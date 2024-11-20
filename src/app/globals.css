@@ -22,17 +22,14 @@
   }
 }
 
-/* body {
-  background: linear-gradient(90deg, #7e379c, #206fa4, #c065e3, #175c89);
-  background-size: 400% 400%;
-  animation: gradientPulse 25s ease infinite;
-  min-height: 100vh;
-} */
-
 @keyframes pulse {
   0% {
     background-position: 50% 50%;
     background-size: 150% 150%;
+  }
+  25% {
+    background-position: 50% 50%;
+    background-size: 175% 175%;
   }
   50% {
     background-position: 50% 50%;
@@ -46,7 +43,7 @@
 
 
 body {
-  background: radial-gradient(circle, #f765d8, #813c9f, #2f8ac6);
+  background: radial-gradient(circle, #d227ad, #581659, #2541b2);
   background-size: 200% 200%;
   animation: pulse 20s ease-in-out infinite;
   min-height: 100vh;

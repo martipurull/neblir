@@ -13,6 +13,7 @@
     "cypress:run": "cypress run"
   },
   "dependencies": {
+    "faunadb": "^4.8.1",
     "next": "^15.0.3",
     "react": "^18",
     "react-dom": "^18"
