@@ -7,7 +7,7 @@ export default function Home() {
   const [players, setPlayers] = useState<any[]>([])
 
   useEffect(() => {
-    fetch('/players')
+    fetch('/api/players')
       .then(response => response.json())
       .then(data => setPlayers(data.players))
       .catch(error => console.error('Error fetching players', error))
