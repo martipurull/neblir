@@ -9,7 +9,7 @@ export async function getDocumentById(collection: string, id: string): Promise<D
 }
 
 export async function getAllDocumentsInCollection(collection: string): Promise<DocumentData[]> {
-    const response = await client.query<FaunaResponse<Document>>(
+    const response = await client.query<FaunaResponse<DocumentData>>(
         q.Map(
             q.Paginate(q.Documents(q.Collection(collection))),
             q.Lambda("ref", q.Let(
@@ -21,14 +21,14 @@ export async function getAllDocumentsInCollection(collection: string): Promise<D
             ))
         )
     )
-
-    return response.data.map((item: Document) => item.data)
+    console.log('response', JSON.stringify(response))
+    return response.data
 }
 
 export async function createDocument(collection: string, data: DocumentData): Promise<Document> {
     return client.query<Document>(
         q.Create(q.Collection(collection), { data })
-    );
+    )
 }
 
 export async function updateDocument(collection: string, id: string, data: DocumentData): Promise<Document> {

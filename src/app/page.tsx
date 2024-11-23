@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import LoginPage from "./pages/login/page"
 
 
 export default function Home() {
@@ -18,12 +19,12 @@ export default function Home() {
       <div>
         <h1 className="text-3xl font-bold uppercase">Neblir</h1>
         <h2>A homebrewed sci-fi TTRPG set in a starless world</h2>
-        <h3>Players currently registered:</h3>
-        <div>
-          {players.map(player => (
-            <p key={player.email}>{player.username}</p>
-          ))}
-        </div>
+        {/* 
+        @todo
+        If logged in, show the dashboard
+        If not logged in, show the login/signup form
+         */}
+        <LoginPage />
       </div>
     </main>
   );
