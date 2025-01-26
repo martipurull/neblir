@@ -1,31 +1,32 @@
 'use client'
 
-import { useEffect, useState } from "react"
-import LoginPage from "./pages/login/page"
+import { auth } from "@/auth";
+import LoginPage from "./(pages)/signin/page"
 
+
+import { useEffect, useState } from "react";
+import { Session } from "next-auth";
+import DashboardPage from "./(pages)/dashboard/page";
 
 export default function Home() {
-  const [players, setPlayers] = useState<any[]>([])
+  const [session, setSession] = useState<null | Session>(null);
 
   useEffect(() => {
-    fetch('/api/players')
-      .then(response => response.json())
-      .then(data => setPlayers(data.players))
-      .catch(error => console.error('Error fetching players', error))
-  }, [])
+    async function fetchSession() {
+      const sessionData = await auth();
+      console.log('user: ', sessionData?.user);
+      setSession(sessionData);
+    }
+    fetchSession();
+  }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div>
-        <h1 className="text-3xl font-bold uppercase">Neblir</h1>
-        <h2>A homebrewed sci-fi TTRPG set in a starless world</h2>
-        {/* 
-        @todo
-        If logged in, show the dashboard
-        If not logged in, show the login/signup form
-         */}
-        <LoginPage />
-      </div>
+    <main>
+      {
+        session
+          ? <DashboardPage />
+          : <LoginPage />
+      }
     </main>
   );
 }
