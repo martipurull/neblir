@@ -25,3 +25,10 @@ export interface Document {
 export interface FaunaResponse<T> {
     data: T[];
 }
+
+export interface Player {
+    ts: string
+    id: string
+    email: string
+    name: string
+}

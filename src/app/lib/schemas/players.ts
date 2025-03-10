@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const playerSchema = z.object({
     id: z.string(),
-    username: z.string(),
+    name: z.string(),
     email: z.string().email(),
     games: z.array(z.string()).optional(),
     characters: z.array(z.string()).optional(),

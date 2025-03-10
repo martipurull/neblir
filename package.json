@@ -13,8 +13,10 @@
     "cypress:run": "cypress run"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "fauna": "^2.5.0",
     "faunadb": "^4.8.1",
-    "next": "^15.1.6",
+    "next": "^15.2.1",
     "next-auth": "^5.0.0-beta.25",
     "react": "^18",
     "react-dom": "^18",

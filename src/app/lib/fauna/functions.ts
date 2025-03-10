@@ -1,38 +1,44 @@
-import { query as q } from 'faunadb'
 import { client } from './client'
-import { Document, DocumentData, FaunaResponse } from './types'
+import { Document, DocumentData, Player } from './types'
+import { FaunaError, fql, QueryArgument } from 'fauna'
 
 export async function getDocumentById(collection: string, id: string): Promise<Document> {
-    return client.query<Document>(
-        q.Get(q.Ref(q.Collection(collection), id))
-    )
+    const query = fql`Collection(${collection}).byId(${id})`
+    const { data } = await client.query(query, { format: 'simple' })
+
+    return data
 }
 
 export async function getAllDocumentsInCollection(collection: string): Promise<DocumentData[]> {
-    const response = await client.query<FaunaResponse<DocumentData>>(
-        q.Map(
-            q.Paginate(q.Documents(q.Collection(collection))),
-            q.Lambda("ref", q.Let(
-                {
-                    doc: q.Get(q.Var("ref")),
-                    id: q.Select(["ref", "id"], q.Var("doc")),
-                },
-                q.Merge(q.Select(["data"], q.Var("doc")), { id: q.Var("id") })
-            ))
-        )
-    )
-    console.log('response', JSON.stringify(response))
-    return response.data
+    const query = fql`Collection(${collection}).all()`
+    const { data: { data } } = await client.query(query, { format: 'simple' })
+
+    return data
 }
 
-export async function createDocument(collection: string, data: DocumentData): Promise<Document> {
-    return client.query<Document>(
-        q.Create(q.Collection(collection), { data })
-    )
+export async function createDocument(collection: string, data: QueryArgument) {
+    try {
+        const query = fql`Collection(${collection}).create(${data}) {id, ts, email, name}`
+        const { data: responseData } = await client.query(query, { format: 'simple' })
+
+        return responseData
+    } catch (error) {
+        if (error instanceof FaunaError) {
+            console.error('FaunaError: ', error)
+        }
+    }
 }
 
-export async function updateDocument(collection: string, id: string, data: DocumentData): Promise<Document> {
-    return client.query<Document>(
-        q.Update(q.Ref(q.Collection(collection), id), { data })
-    )
+export async function updateDocument(collection: string, id: string, data: Record<string, any>): Promise<any> {
+    const query = fql`Collection(${collection}).byId(${id})!.update(${data})`
+    const { data: updatedData } = await client.query(query, { format: 'simple' })
+
+    return updatedData
+}
+
+export async function getPlayerByEmail(email: string): Promise<Player> {
+    const query = fql`players.byEmail(${email})`
+    const { data } = await client.query(query, { format: 'simple' });
+
+    return data[0]
 }
