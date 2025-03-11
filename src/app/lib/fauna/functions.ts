@@ -1,8 +1,9 @@
 import { client } from './client'
-import { Document, DocumentData, Player } from './types'
 import { FaunaError, fql, QueryArgument } from 'fauna'
+import { DocumentData } from './types/genericTypes'
+import { Player } from './types/players'
 
-export async function getDocumentById(collection: string, id: string): Promise<Document> {
+export async function getDocumentById(collection: string, id: string): Promise<DocumentData> {
     const query = fql`Collection(${collection}).byId(${id})`
     const { data } = await client.query(query, { format: 'simple' })
 
@@ -16,7 +17,7 @@ export async function getAllDocumentsInCollection(collection: string): Promise<D
     return data
 }
 
-export async function createDocument(collection: string, data: QueryArgument) {
+export async function createDocument(collection: string, data: QueryArgument): Promise<DocumentData | undefined> {
     try {
         const query = fql`Collection(${collection}).create(${data}) {id, ts, email, name}`
         const { data: responseData } = await client.query(query, { format: 'simple' })

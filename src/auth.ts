@@ -19,7 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 } else {
                     token.player = player
                 }
-                console.log('token', JSON.stringify(token))
+
                 return token
             }
 

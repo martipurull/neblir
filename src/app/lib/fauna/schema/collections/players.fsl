@@ -1,0 +1,21 @@
+collection players {
+    name: String?
+    email: String?
+    typeConflicts: { *: Any }?
+
+    *: Any
+
+    migrations {
+        add .name
+        add .email
+        add .typeConflicts
+        move_conflicts .typeConflicts
+    }
+    
+    index byEmail {
+        terms [.email]
+        values [asc(.email)]
+    }
+
+    unique [.email]
+}
