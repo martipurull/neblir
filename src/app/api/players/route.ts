@@ -1,6 +1,6 @@
 import { getAllDocumentsInCollection } from "../../lib/fauna/functions";
 import { NextResponse } from "next/server";
-import { playersSchema } from "@/app/lib/fauna/types/players";
+import { playersSchema } from "@/app/lib/fauna/types/player";
 
 export async function GET() {
     try {

@@ -1,0 +1,183 @@
+collection Characters {
+  // General Information
+  name: String
+  age: Number
+  religion: "Tritheology" | "Pantritheology" | "Chrislam" | "Humanism" | "Chosen Faith" | "Fore Cast"
+  profession: String
+  race: "Kinian" | "Human" | "Fenne" | "Manfenn"
+  birthplace: String
+  level: Number
+  avatarURL: String?
+
+  // Health
+  rolledPhysicalHealth: Number
+  rolledMentalHealth: Number
+  currentPhysicalHealth: Number
+  seriousPhysicalInjuries: Number
+  currentMentalHealth: Number
+  seriousTrauma: Number
+
+    // Computed health fields
+  compute innatePhysicalHealth: Number = (doc => 
+  doc.innateAttributes.constitution.resistanceInternal +
+  doc.innateAttributes.constitution.resistanceExternal +
+  doc.innateAttributes.constitution.stamina
+  )
+
+  compute maxPhysicalHealth: Number = (doc => doc.innatePhysicalHealth + doc.rolledPhysicalHealth)
+
+  compute innateMentalHealth: Number = (doc =>
+    doc.innateAttributes.wisdom.sense +
+    doc.innateAttributes.wisdom.perception +
+    doc.innateAttributes.wisdom.insight
+    )
+
+  compute maxMentalHealth: Number = (doc => doc.innateMentalHealth + doc.rolledMentalHealth)
+
+  // Combat Information
+  initiativeModifier: Number
+  speed: Number
+  armourModifier: Number
+  armourMaxHP: Number
+  armourCurrentHP: Number
+  GridMod: Number
+  rangeAttackMod: Number
+  meleeAttackMod: Number
+  GridAttackMod: Number
+  rangeDefenceMod: Number
+  meleeDefenceMod: Number
+  GridDefenceMod: Number
+
+  // Innate Attributes
+  innateAttributes: {
+    intelligence: {
+      investigation: Number
+      memory: Number
+      deduction: Number
+    }
+    wisdom: {
+      sense: Number
+      perception: Number
+      insight: Number
+    }
+    personality: {
+      persuasion: Number
+      deception: Number
+      mentality: Number
+    }
+    strength: {
+      athletics: Number
+      resilience: Number
+      bruteForce: Number
+    }
+    dexterity: {
+      manual: Number
+      stealth: Number
+      agility: Number
+    }
+    constitution: {
+      resistanceInternal: Number
+      resistanceExternal: Number
+      stamina: Number
+    }
+  }
+
+  // Learned Skills
+  learnedSkills: {
+    generalSkills: {
+      mechanics: Number
+      software: Number
+      generalKnowledge: Number
+      history: Number
+      driving: Number
+      acrobatics: Number
+      aim: Number
+      melee: Number
+      GRID: Number
+      research: Number
+      medicine: Number
+      science: Number
+      survival: Number
+      streetwise: Number
+      performance: Number
+      manipulationNegotiation: Number
+    }
+    specialSkills: [String]?
+  }
+
+  // Path (optional)
+  path: Ref<Paths>?
+
+  // Equipment (optional)
+  equipment: [Ref<Items>]?
+
+  // Constraints
+  unique [.name]
+
+  check validAge ((doc) => doc.age > 0)
+
+  check validLevel ((doc) => doc.level > 0)
+
+  check validHealthValues ((doc) => 
+      doc.currentPhysicalHealth <= doc.maxPhysicalHealth &&
+      doc.currentMentalHealth <= doc.maxMentalHealth
+    )
+
+  check validAttributeValues ((doc) =>
+    doc.innateAttributes.intelligence.investigation >= 1 && doc.innateAttributes.intelligence.investigation <= 5 &&
+    doc.innateAttributes.intelligence.memory >= 1 && doc.innateAttributes.intelligence.memory <= 5 &&
+    doc.innateAttributes.intelligence.deduction >= 1 && doc.innateAttributes.intelligence.deduction <= 5 &&
+    doc.innateAttributes.wisdom.sense >= 1 && doc.innateAttributes.wisdom.sense <= 5 &&
+    doc.innateAttributes.wisdom.perception >= 1 && doc.innateAttributes.wisdom.perception <= 5 &&
+    doc.innateAttributes.wisdom.insight >= 1 && doc.innateAttributes.wisdom.insight <= 5 &&
+    doc.innateAttributes.personality.persuasion >= 1 && doc.innateAttributes.personality.persuasion <= 5 &&
+    doc.innateAttributes.personality.deception >= 1 && doc.innateAttributes.personality.deception <= 5 &&
+    doc.innateAttributes.personality.mentality >= 1 && doc.innateAttributes.personality.mentality <= 5 &&
+    doc.innateAttributes.strength.athletics >= 1 && doc.innateAttributes.strength.athletics <= 5 &&
+    doc.innateAttributes.strength.resilience >= 1 && doc.innateAttributes.strength.resilience <= 5 &&
+    doc.innateAttributes.strength.bruteForce >= 1 && doc.innateAttributes.strength.bruteForce <= 5 &&
+    doc.innateAttributes.dexterity.manual >= 1 && doc.innateAttributes.dexterity.manual <= 5 &&
+    doc.innateAttributes.dexterity.stealth >= 1 && doc.innateAttributes.dexterity.stealth <= 5 &&
+    doc.innateAttributes.dexterity.agility >= 1 && doc.innateAttributes.dexterity.agility <= 5 &&
+    doc.innateAttributes.constitution.resistanceInternal >= 1 && doc.innateAttributes.constitution.resistanceInternal <= 5 &&
+    doc.innateAttributes.constitution.resistanceExternal >= 1 && doc.innateAttributes.constitution.resistanceExternal <= 5 &&
+    doc.innateAttributes.constitution.stamina >= 1 && doc.innateAttributes.constitution.stamina <= 5
+  )
+
+  check validGeneralSkills ((doc) =>
+    doc.learnedSkills.generalSkills.mechanics >= 1 && doc.learnedSkills.generalSkills.mechanics <= 5 &&
+    doc.learnedSkills.generalSkills.software >= 1 && doc.learnedSkills.generalSkills.software <= 5 &&
+    doc.learnedSkills.generalSkills.generalKnowledge >= 1 && doc.learnedSkills.generalSkills.generalKnowledge <= 5 &&
+    doc.learnedSkills.generalSkills.history >= 1 && doc.learnedSkills.generalSkills.history <= 5 &&
+    doc.learnedSkills.generalSkills.driving >= 1 && doc.learnedSkills.generalSkills.driving <= 5 &&
+    doc.learnedSkills.generalSkills.acrobatics >= 1 && doc.learnedSkills.generalSkills.acrobatics <= 5 &&
+    doc.learnedSkills.generalSkills.aim >= 1 && doc.learnedSkills.generalSkills.aim <= 5 &&
+    doc.learnedSkills.generalSkills.melee >= 1 && doc.learnedSkills.generalSkills.melee <= 5 &&
+    doc.learnedSkills.generalSkills.GRID >= 1 && doc.learnedSkills.generalSkills.GRID <= 5 &&
+    doc.learnedSkills.generalSkills.research >= 1 && doc.learnedSkills.generalSkills.research <= 5 &&
+    doc.learnedSkills.generalSkills.medicine >= 1 && doc.learnedSkills.generalSkills.medicine <= 5 &&
+    doc.learnedSkills.generalSkills.science >= 1 && doc.learnedSkills.generalSkills.science <= 5 &&
+    doc.learnedSkills.generalSkills.survival >= 1 && doc.learnedSkills.generalSkills.survival <= 5 &&
+    doc.learnedSkills.generalSkills.streetwise >= 1 && doc.learnedSkills.generalSkills.streetwise <= 5 &&
+    doc.learnedSkills.generalSkills.performance >= 1 && doc.learnedSkills.generalSkills.performance <= 5 &&
+    doc.learnedSkills.generalSkills.manipulationNegotiation >= 1 && doc.learnedSkills.generalSkills.manipulationNegotiation <= 5
+  )
+
+  check maxSpecialSkills ((doc) => (
+    if(doc.learnedSkills.specialSkills != null) { 
+      doc.learnedSkills.specialSkills!.length <= 3
+      }
+    )
+  )
+
+  // Indexes
+  index byName {
+    terms [.name]
+    values [asc(.name)]
+  }
+
+  index byRace {
+    terms [.race]
+    values [asc(.race)]
+  }
+}
