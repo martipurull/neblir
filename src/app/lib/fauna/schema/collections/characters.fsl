@@ -1,52 +1,43 @@
 collection Characters {
-  // General Information
-  name: String
-  age: Number
-  religion: "Tritheology" | "Pantritheology" | "Chrislam" | "Humanism" | "Chosen Faith" | "Fore Cast"
-  profession: String
-  race: "Kinian" | "Human" | "Fenne" | "Manfenn"
-  birthplace: String
-  level: Number
-  avatarURL: String?
+  generalInformation: {
+    name: String
+    age: Number
+    religion: "Tritheology" | "Pantritheology" | "Chrislam" | "Humanism" | "Chosen Faith" | "Fore Cast" | "Atheist" | "Agnostic"
+    profession: String
+    race: "Kinian" | "Human" | "Fenne" | "Manfenn"
+    birthplace: String
+    level: Number
+    avatarURL: String?
+  }
 
-  // Health
-  rolledPhysicalHealth: Number
-  rolledMentalHealth: Number
-  currentPhysicalHealth: Number
-  seriousPhysicalInjuries: Number
-  currentMentalHealth: Number
-  seriousTrauma: Number
-
-    // Computed health fields
-  compute innatePhysicalHealth: Number = (doc => 
-  doc.innateAttributes.constitution.resistanceInternal +
-  doc.innateAttributes.constitution.resistanceExternal +
-  doc.innateAttributes.constitution.stamina
-  )
-
-  compute maxPhysicalHealth: Number = (doc => doc.innatePhysicalHealth + doc.rolledPhysicalHealth)
-
-  compute innateMentalHealth: Number = (doc =>
-    doc.innateAttributes.wisdom.sense +
-    doc.innateAttributes.wisdom.perception +
-    doc.innateAttributes.wisdom.insight
+    rolledPhysicalHealth: Number
+    rolledMentalHealth: Number
+    currentPhysicalHealth: Number
+    seriousPhysicalInjuries: Number
+    currentMentalHealth: Number
+    seriousTrauma: Number
+    state: "alive" | "deceased"
+    compute innatePhysicalHealth: Number = (doc => 
+      doc.innateAttributes.constitution.resistanceInternal +
+      doc.innateAttributes.constitution.resistanceExternal +
+      doc.innateAttributes.constitution.stamina
     )
+    compute maxPhysicalHealth: Number = (doc => doc.innatePhysicalHealth + doc.rolledPhysicalHealth)
+    compute innateMentalHealth: Number = (doc => doc.innateAttributes.personality.persuasion + doc.innateAttributes.personality.deception + doc.innateAttributes.personality.mentality)
+    compute maxMentalHealth: Number = (doc => doc.innateMentalHealth + doc.rolledMentalHealth)
 
-  compute maxMentalHealth: Number = (doc => doc.innateMentalHealth + doc.rolledMentalHealth)
-
-  // Combat Information
-  initiativeModifier: Number
-  speed: Number
-  armourModifier: Number
-  armourMaxHP: Number
-  armourCurrentHP: Number
-  GridMod: Number
-  rangeAttackMod: Number
-  meleeAttackMod: Number
-  GridAttackMod: Number
-  rangeDefenceMod: Number
-  meleeDefenceMod: Number
-  GridDefenceMod: Number
+    armourModifier: Number
+    armourMaxHP: Number
+    armourCurrentHP: Number
+    GridMod: Number
+    compute initiativeModifier: Number = (doc => doc.innateAttributes.personality.mentality + doc.innateAttributes.dexterity.agility)
+    compute speed: Number = (doc => doc.innateAttributes.strength.athletics + doc.innateAttributes.dexterity.agility)
+    compute rangeAttackMod: Number = (doc => doc.innateAttributes.dexterity.manual + doc.learnedSkills.generalSkills.aim)
+    compute meleeAttackMod: Number = (doc => doc.innateAttributes.strength.bruteForce + doc.learnedSkills.generalSkills.melee)
+    compute GridAttackMod: Number = (doc => doc.GridMod + doc.innateAttributes.personality.mentality + doc.learnedSkills.generalSkills.GRID)
+    compute rangeDefenceMod: Number = (doc => doc.armourModifier + doc.innateAttributes.dexterity.agility + doc.learnedSkills.generalSkills.acrobatics)
+    compute meleeDefenceMod: Number = (doc => doc.armourModifier + doc.innateAttributes.strength.resilience + doc.learnedSkills.generalSkills.melee)
+    compute GridDefenceMod: Number = (doc => doc.GridMod + doc.innateAttributes.personality.mentality + doc.learnedSkills.generalSkills.GRID)
 
   // Innate Attributes
   innateAttributes: {
@@ -102,21 +93,21 @@ collection Characters {
       performance: Number
       manipulationNegotiation: Number
     }
-    specialSkills: [String]?
+    specialSkills: Array<String>?
   }
 
   // Path (optional)
   path: Ref<Paths>?
 
   // Equipment (optional)
-  equipment: [Ref<Items>]?
+  equipment: Array<Ref<Items>>?
 
   // Constraints
-  unique [.name]
+  unique [.generalInformation.name]
 
-  check validAge ((doc) => doc.age > 0)
+  check validAge ((doc) => doc.generalInformation.age > 0)
 
-  check validLevel ((doc) => doc.level > 0)
+  check validLevel ((doc) => doc.generalInformation.level > 0)
 
   check validHealthValues ((doc) => 
       doc.currentPhysicalHealth <= doc.maxPhysicalHealth &&
@@ -145,22 +136,22 @@ collection Characters {
   )
 
   check validGeneralSkills ((doc) =>
-    doc.learnedSkills.generalSkills.mechanics >= 1 && doc.learnedSkills.generalSkills.mechanics <= 5 &&
-    doc.learnedSkills.generalSkills.software >= 1 && doc.learnedSkills.generalSkills.software <= 5 &&
-    doc.learnedSkills.generalSkills.generalKnowledge >= 1 && doc.learnedSkills.generalSkills.generalKnowledge <= 5 &&
-    doc.learnedSkills.generalSkills.history >= 1 && doc.learnedSkills.generalSkills.history <= 5 &&
-    doc.learnedSkills.generalSkills.driving >= 1 && doc.learnedSkills.generalSkills.driving <= 5 &&
-    doc.learnedSkills.generalSkills.acrobatics >= 1 && doc.learnedSkills.generalSkills.acrobatics <= 5 &&
-    doc.learnedSkills.generalSkills.aim >= 1 && doc.learnedSkills.generalSkills.aim <= 5 &&
-    doc.learnedSkills.generalSkills.melee >= 1 && doc.learnedSkills.generalSkills.melee <= 5 &&
-    doc.learnedSkills.generalSkills.GRID >= 1 && doc.learnedSkills.generalSkills.GRID <= 5 &&
-    doc.learnedSkills.generalSkills.research >= 1 && doc.learnedSkills.generalSkills.research <= 5 &&
-    doc.learnedSkills.generalSkills.medicine >= 1 && doc.learnedSkills.generalSkills.medicine <= 5 &&
-    doc.learnedSkills.generalSkills.science >= 1 && doc.learnedSkills.generalSkills.science <= 5 &&
-    doc.learnedSkills.generalSkills.survival >= 1 && doc.learnedSkills.generalSkills.survival <= 5 &&
-    doc.learnedSkills.generalSkills.streetwise >= 1 && doc.learnedSkills.generalSkills.streetwise <= 5 &&
-    doc.learnedSkills.generalSkills.performance >= 1 && doc.learnedSkills.generalSkills.performance <= 5 &&
-    doc.learnedSkills.generalSkills.manipulationNegotiation >= 1 && doc.learnedSkills.generalSkills.manipulationNegotiation <= 5
+    doc.learnedSkills.generalSkills.mechanics <= 5 &&
+    doc.learnedSkills.generalSkills.software <= 5 &&
+    doc.learnedSkills.generalSkills.generalKnowledge <= 5 &&
+    doc.learnedSkills.generalSkills.history <= 5 &&
+    doc.learnedSkills.generalSkills.driving <= 5 &&
+    doc.learnedSkills.generalSkills.acrobatics <= 5 &&
+    doc.learnedSkills.generalSkills.aim <= 5 &&
+    doc.learnedSkills.generalSkills.melee <= 5 &&
+    doc.learnedSkills.generalSkills.GRID <= 5 &&
+    doc.learnedSkills.generalSkills.research <= 5 &&
+    doc.learnedSkills.generalSkills.medicine <= 5 &&
+    doc.learnedSkills.generalSkills.science <= 5 &&
+    doc.learnedSkills.generalSkills.survival <= 5 &&
+    doc.learnedSkills.generalSkills.streetwise <= 5 &&
+    doc.learnedSkills.generalSkills.performance <= 5 &&
+    doc.learnedSkills.generalSkills.manipulationNegotiation <= 5
   )
 
   check maxSpecialSkills ((doc) => (
@@ -172,12 +163,12 @@ collection Characters {
 
   // Indexes
   index byName {
-    terms [.name]
-    values [asc(.name)]
+    terms [.generalInformation.name]
+    values [asc(.generalInformation.name)]
   }
 
   index byRace {
-    terms [.race]
-    values [asc(.race)]
+    terms [.generalInformation.race]
+    values [asc(.generalInformation.race)]
   }
 }

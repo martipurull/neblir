@@ -1,11 +1,11 @@
 collection Paths {
     pathName: "scientist/doctor" | "survivalist" | "anti-hero" | "soldier" | "con-artist" | "sleuth" | "nerd-hero"
-    features: [{
+    features: Array<{
         level: Int
         featureName: String
         featureDescription: String
         example: String?
-    }]
+    }>
 
     // Constraints
     unique [.pathName]

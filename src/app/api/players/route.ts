@@ -1,4 +1,4 @@
-import { getAllDocumentsInCollection } from "../../lib/fauna/functions";
+import { getAllDocumentsInCollection } from "../../lib/fauna/functions/generic";
 import { NextResponse } from "next/server";
 import { playersSchema } from "@/app/lib/fauna/types/player";
 

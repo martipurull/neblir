@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { pathSchema } from './path'
-import { generalItemSchema, itemSchema, walletSchema, weaponSchema } from './item'
+import { itemSchema, walletSchema } from './item'
 
 const religionSchema = z.enum([
     'Tritheology',
@@ -8,12 +8,14 @@ const religionSchema = z.enum([
     'Chrislam',
     'Humanism',
     'Chosen Faith',
-    'Fore Cast'
+    'Fore Cast',
+    'Atheist',
+    'Agnostic',
 ])
 
 const raceSchema = z.enum(['Kinian', 'Human', 'Fenne', 'Manfenn'])
 
-const generalInformationSchema = z.object({
+export const generalInformationSchema = z.object({
     name: z.string(),
     age: z.number(),
     religion: religionSchema,
@@ -24,31 +26,31 @@ const generalInformationSchema = z.object({
     avatarURL: z.string().optional(),
 })
 
-const healthSchema = z.object({
+export const healthSchema = z.object({
     innatePhysicalHealth: z.number(), // Needs to be computed
-    rolledPhysicalHealth: z.number(),
+    rolledPhysicalHealth: z.number().default(10),
     maxPhysicalHealth: z.number(), // Needs to be computed
     innateMentalHealth: z.number(), // Needs to be computed
-    rolledMentalHealth: z.number(),
+    rolledMentalHealth: z.number().default(10),
     maxMentalHealth: z.number(), // Needs to be computed
-    currentPhysicalHealth: z.number(),
-    seriousPhysicalInjuries: z.number().max(3),
-    currentMentalHealth: z.number(),
-    seriousTrauma: z.number().max(3),
+    currentPhysicalHealth: z.number(), // Computed by API
+    seriousPhysicalInjuries: z.number().max(3).default(0),
+    currentMentalHealth: z.number(), // Computed by API
+    seriousTrauma: z.number().max(3).default(0),
     deathSaves: z.object({
-        successes: z.number().max(3),
-        failures: z.number().max(3)
-    }),
-    state: z.enum(['alive', 'deceased'])
+        successes: z.number().max(3).default(0),
+        failures: z.number().max(3).default(0)
+    }).optional(),
+    state: z.enum(['alive', 'deceased']).default('alive')
 })
 
-const combatInformationSchema = z.object({
+export const combatInformationSchema = z.object({
     initiativeModifier: z.number(), // Needs to be computed
     speed: z.number(), // Needs to be computed
-    armourModifier: z.number(),
-    armourMaxHP: z.number(),
-    armourCurrentHP: z.number(),
-    GridMod: z.number(),
+    armourModifier: z.number().default(0),
+    armourMaxHP: z.number().default(0),
+    armourCurrentHP: z.number().default(0),
+    GridMod: z.number().default(0),
     rangeAttackMod: z.number(), // Needs to be computed
     meleeAttackMod: z.number(), // Needs to be computed
     GridAttackMod: z.number(), // Needs to be computed
@@ -57,7 +59,7 @@ const combatInformationSchema = z.object({
     GridDefenceMod: z.number(), // Needs to be computed
 })
 
-const innateAttributesSchema = z.object({
+export const innateAttributesSchema = z.object({
     intelligence: z.object({
         investigation: z.number().min(1).max(5),
         memory: z.number().min(1).max(5),
@@ -88,25 +90,32 @@ const innateAttributesSchema = z.object({
         resistanceExternal: z.number().min(1).max(5),
         stamina: z.number().min(1).max(5),
     })
+}).refine((data) => {
+    const sum = Object.values(data).reduce((acc, obj) =>
+        acc + Object.values(obj).reduce((sum, value) =>
+            sum + value, 0), 0)
+    return sum <= 30
+}, {
+    message: 'The sum of all attributes must not exceed 30.',
 })
 
-const generalSkillsSchema = z.object({
-    mechanics: z.number().min(1).max(5),
-    software: z.number().min(1).max(5),
-    generalKnowledge: z.number().min(1).max(5),
-    history: z.number().min(1).max(5),
-    driving: z.number().min(1).max(5),
-    acrobatics: z.number().min(1).max(5),
-    aim: z.number().min(1).max(5),
-    melee: z.number().min(1).max(5),
-    GRID: z.number().min(1).max(5),
-    research: z.number().min(1).max(5),
-    medicine: z.number().min(1).max(5),
-    science: z.number().min(1).max(5),
-    survival: z.number().min(1).max(5),
-    streetwise: z.number().min(1).max(5),
-    performance: z.number().min(1).max(5),
-    manipulationNegotiation: z.number().min(1).max(5),
+export const generalSkillsSchema = z.object({
+    mechanics: z.number().max(5),
+    software: z.number().max(5),
+    generalKnowledge: z.number().max(5),
+    history: z.number().max(5),
+    driving: z.number().max(5),
+    acrobatics: z.number().max(5),
+    aim: z.number().max(5),
+    melee: z.number().max(5),
+    GRID: z.number().max(5),
+    research: z.number().max(5),
+    medicine: z.number().max(5),
+    science: z.number().max(5),
+    survival: z.number().max(5),
+    streetwise: z.number().max(5),
+    performance: z.number().max(5),
+    manipulationNegotiation: z.number().max(5),
 })
 
 const characterSchema = z.object({

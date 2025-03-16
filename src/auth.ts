@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { createDocument, getPlayerByEmail } from "./app/lib/fauna/functions"
+import { createDocument, getPlayerByEmail } from "./app/lib/fauna/functions/generic"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [Google],
