@@ -17,6 +17,7 @@
     "fauna": "^2.5.0",
     "fauna-shell": "^4.0.0",
     "faunadb": "^4.8.1",
+    "mongodb": "^6.15.0",
     "next": "^15.2.1",
     "next-auth": "^5.0.0-beta.25",
     "node": "^20.19.0",
@@ -27,7 +28,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^16.0.0",
-    "@types/node": "^20",
+    "@types/node": "^20.17.24",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "cypress": "^13.13.0",
