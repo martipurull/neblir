@@ -1,7 +1,7 @@
 import { client } from '../client'
 import { FaunaError, fql, QueryArgument } from 'fauna'
-import { DocumentData } from '../types/genericTypes'
-import { Player } from '../types/player'
+import { DocumentData } from '../../types/genericTypes'
+import { Player } from '../../types/player'
 
 export async function getDocumentById(collection: string, id: string): Promise<DocumentData> {
     const query = fql`Collection(${collection}).byId(${id})`

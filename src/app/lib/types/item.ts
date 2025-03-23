@@ -15,10 +15,11 @@ const weaponDamageTypeSchema = z.enum(['bullet', 'blade', 'siike', 'acid', 'fire
 const baseItemSchema = z.object({
     type: z.enum(['generalItem', 'weapon']),
     name: z.string(),
+    imageURL: z.string().optional(),
     confCost: z.number(),
     costInfo: z.string().optional().describe('e.g. cost per unit, not for sale, illegal item, etc.'),
     description: z.string(),
-    notes: z.string()
+    notes: z.string().optional()
 })
 
 export const generalItemSchema = baseItemSchema.extend({
@@ -30,11 +31,11 @@ export type GeneralItem = z.infer<typeof generalItemSchema>
 
 export const weaponSchema = baseItemSchema.extend({
     type: z.literal('weapon'),
-    attackRoll: weaponDamageTypeSchema,
+    attackRoll: z.array(weaponAttackRollTypeSchema),
     damage: z.object({
         diceType: z.number(),
         numberOfDice: z.number(),
-        damageType: weaponAttackRollTypeSchema,
+        damageType: weaponDamageTypeSchema,
     })
 })
 

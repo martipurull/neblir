@@ -1,0 +1,22 @@
+import { prisma } from './client'
+import { Prisma } from '@prisma/client'
+
+export async function createCharacter(data: Prisma.CharacterCreateInput) {
+    // Compute fields before creating character in db
+
+    return prisma.character.create({ data })
+}
+
+export async function getCharacter(id: string) {
+    return prisma.character.findUniqueOrThrow({ where: { id } })
+}
+
+export async function updateCharacter(id: string, data: Prisma.CharacterUpdateInput) {
+    // Compute fields before updating character in db
+
+    return prisma.character.update({ where: { id }, data })
+}
+
+export async function deleteCharacter(id: string) {
+    return prisma.character.delete({ where: { id } })
+}

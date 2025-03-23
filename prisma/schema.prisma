@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+enum ItemType {
+  GENERALITEM
+  WEAPON
+}
+
+enum PathName {
+  SCIENTISTDOCTOR
+  SURVIVALIST
+  ANTIHERO
+  SOLDIER
+  CONARTIST
+  SLEUTH
+  NERDHERO
+}
+
+enum Race {
+  KINIAN
+  HUMAN
+  FENNE
+  MANFENN
+}
+
+enum Religion {
+  TRITHEOLOGY
+  PANTRITHEOLOGY
+  CHRISLAM
+  HUMANISM
+  CHOSENFAITH
+  FORECAST
+  ATHEIST
+  AGNOSTIC
+}
+
+enum Status {
+  ALIVE
+  DECEASED
+}
+
+type CharacterCombatInformation {
+  GridAttackMod      Int
+  GridDefenceMod     Int
+  GridMod            Int
+  armourCurrentHP    Int
+  armourMaxHP        Int
+  armourModifier     Int
+  initiativeModifier Int
+  meleeAttackMod     Int
+  meleeDefenceMod    Int
+  rangeAttackMod     Int
+  rangeDefenceMod    Int
+  speed              Int
+}
+
+type CharacterGeneralInformation {
+  age        Int
+  avatarURL  String
+  birthplace String
+  level      Int
+  name       String
+  profession String
+  race       Race
+  religion   Religion
+}
+
+type CharacterHealth {
+  currentMentalHealth     Int
+  currentPhysicalHealth   Int
+  deathSaves              CharacterHealthDeathSaves
+  innateMentalHealth      Int
+  innatePhysicalHealth    Int
+  maxMentalHealth         Int
+  maxPhysicalHealth       Int
+  rolledMentalHealth      Int
+  rolledPhysicalHealth    Int
+  seriousPhysicalInjuries Int
+  seriousTrauma           Int
+  status                  Status
+}
+
+type CharacterHealthDeathSaves {
+  failures  Int
+  successes Int
+}
+
+type CharacterInnateAttributes {
+  constitution CharacterInnateAttributesConstitution
+  dexterity    CharacterInnateAttributesDexterity
+  intelligence CharacterInnateAttributesIntelligence
+  personality  CharacterInnateAttributesPersonality
+  strength     CharacterInnateAttributesStrength
+  wisdom       CharacterInnateAttributesWisdom
+}
+
+type CharacterInnateAttributesConstitution {
+  resistanceExternal Int
+  resistanceInternal Int
+  stamina            Int
+}
+
+type CharacterInnateAttributesDexterity {
+  agility Int
+  manual  Int
+  stealth Int
+}
+
+type CharacterInnateAttributesIntelligence {
+  deduction     Int
+  investigation Int
+  memory        Int
+}
+
+type CharacterInnateAttributesPersonality {
+  deception  Int
+  mentality  Int
+  persuasion Int
+}
+
+type CharacterInnateAttributesStrength {
+  athletics  Int
+  bruteForce Int
+  resilience Int
+}
+
+type CharacterInnateAttributesWisdom {
+  insight    Int
+  perception Int
+  sense      Int
+}
+
+type CharacterLearnedSkills {
+  generalSkills CharacterLearnedSkillsGeneralSkills
+  specialSkills String[]
+}
+
+type CharacterLearnedSkillsGeneralSkills {
+  GRID                    Int
+  acrobatics              Int
+  aim                     Int
+  driving                 Int
+  generalKnowledge        Int
+  history                 Int
+  manipulationNegotiation Int
+  mechanics               Int
+  medicine                Int
+  melee                   Int
+  performance             Int
+  research                Int
+  science                 Int
+  software                Int
+  streetwise              Int
+  survival                Int
+}
+
+type CharacterWallet {
+  currencyName String
+  quantity     Int
+}
+
+type ItemDamage {
+  damageType   String
+  diceType     Int
+  numberOfDice Int
+}
+
+type PathFeatures {
+  description String
+  example     String?
+  level       Int
+  name        String
+}
+
+model Character {
+  id                 String                      @id @default(auto()) @map("_id") @db.ObjectId
+  combatInformation  CharacterCombatInformation
+  generalInformation CharacterGeneralInformation
+  health             CharacterHealth
+  innateAttributes   CharacterInnateAttributes
+  learnedSkills      CharacterLearnedSkills
+  wallet             CharacterWallet[]
+  equipment          ItemCharacter[]
+}
+
+model ItemCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  itemId      String @db.ObjectId
+  characterId String @db.ObjectId
+
+  item      Item      @relation(fields: [itemId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([itemId, characterId])
+  @@index([itemId])
+  @@index([characterId])
+}
+
+model Game {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster String     @db.ObjectId
+  imageURL   String
+  name       String
+  users      GameUser[]
+}
+
+model GameUser {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  gameId String @db.ObjectId
+  userId String @db.ObjectId
+
+  game Game @relation(fields: [gameId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
+}
+
+model Item {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  attackRoll  String[]
+  confCost    Int
+  costInfo    String?
+  damage      ItemDamage?
+  description String
+  imageURL    String?
+  name        String
+  notes       String?
+  type        ItemType
+  usage       String?
+
+  ItemCharacter ItemCharacter[]
+}
+
+model Path {
+  id       String         @id @default(auto()) @map("_id") @db.ObjectId
+  features PathFeatures[]
+  name     PathName
+}
+
+model User {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  email String
+  name  String
+
+  games GameUser[]
+}

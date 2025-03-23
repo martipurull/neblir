@@ -41,7 +41,7 @@ export const healthSchema = z.object({
         successes: z.number().max(3).default(0),
         failures: z.number().max(3).default(0)
     }).optional(),
-    state: z.enum(['alive', 'deceased']).default('alive')
+    status: z.enum(['alive', 'deceased']).default('alive')
 })
 
 export const combatInformationSchema = z.object({

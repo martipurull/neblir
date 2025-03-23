@@ -12,13 +12,13 @@ const paths = z.enum([
 
 const featureSchema = z.object({
     level: z.number().min(2),
-    featureName: z.string(),
-    featureDescription: z.string(),
+    name: z.string(),
+    description: z.string(),
     example: z.string().optional(),
 })
 
 export const pathSchema = z.object({
-    pathName: paths,
+    name: paths,
     features: z.array(featureSchema),
 })
 

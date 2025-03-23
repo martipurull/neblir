@@ -1,4 +1,4 @@
-import { combatInformationSchema, generalInformationSchema, generalSkillsSchema, healthSchema, innateAttributesSchema } from "@/app/lib/fauna/types/character";
+import { combatInformationSchema, generalInformationSchema, generalSkillsSchema, healthSchema, innateAttributesSchema } from "@/app/lib/types/character";
 import { z } from "zod";
 
 export const characterCreationRequestSchema = z.object({
