@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
 const paths = z.enum([
-    'scientist/doctor',
-    'survivalist',
-    'anti-hero',
-    'soldier',
-    'con-artist',
-    'sleuth',
-    'nerd-hero',
+    'SCIENTIST_DOCTOR',
+    'SURVIVALIST',
+    'ANTI_HERO',
+    'SOLDIER',
+    'CON_ARTIST',
+    'SLEUTH',
+    'NERD_HERO',
 ])
 
 const featureSchema = z.object({

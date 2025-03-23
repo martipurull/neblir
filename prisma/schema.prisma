@@ -8,18 +8,34 @@ datasource db {
 }
 
 enum ItemType {
-  GENERALITEM
+  GENERAL_ITEM
   WEAPON
 }
 
+enum ItemWeaponAttackRollType {
+  RANGE
+  MELEE
+  GRID
+  THROW
+}
+
+enum ItemWeaponDamageType {
+  BULLET
+  BLADE
+  SIIKE
+  ACID
+  FIRE
+  ICE
+}
+
 enum PathName {
-  SCIENTISTDOCTOR
+  SCIENTIST_DOCTOR
   SURVIVALIST
-  ANTIHERO
+  ANTI_HERO
   SOLDIER
-  CONARTIST
+  CON_ARTIST
   SLEUTH
-  NERDHERO
+  NERD_HERO
 }
 
 enum Race {
@@ -34,8 +50,8 @@ enum Religion {
   PANTRITHEOLOGY
   CHRISLAM
   HUMANISM
-  CHOSENFAITH
-  FORECAST
+  CHOSEN_FAITH
+  FORE_CAST
   ATHEIST
   AGNOSTIC
 }
@@ -46,23 +62,23 @@ enum Status {
 }
 
 type CharacterCombatInformation {
-  GridAttackMod      Int
-  GridDefenceMod     Int
-  GridMod            Int
-  armourCurrentHP    Int
-  armourMaxHP        Int
-  armourModifier     Int
-  initiativeModifier Int
-  meleeAttackMod     Int
-  meleeDefenceMod    Int
-  rangeAttackMod     Int
-  rangeDefenceMod    Int
-  speed              Int
+  GridAttackMod   Int
+  GridDefenceMod  Int
+  GridMod         Int
+  armourCurrentHP Int
+  armourMaxHP     Int
+  armourMod       Int
+  initiativeMod   Int
+  meleeAttackMod  Int
+  meleeDefenceMod Int
+  rangeAttackMod  Int
+  rangeDefenceMod Int
+  speed           Int
 }
 
 type CharacterGeneralInformation {
   age        Int
-  avatarURL  String
+  avatarURL  String?
   birthplace String
   level      Int
   name       String
@@ -166,7 +182,7 @@ type CharacterWallet {
 }
 
 type ItemDamage {
-  damageType   String
+  damageType   ItemWeaponDamageType
   diceType     Int
   numberOfDice Int
 }
@@ -224,8 +240,8 @@ model GameUser {
 }
 
 model Item {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  attackRoll  String[]
+  id          String                     @id @default(auto()) @map("_id") @db.ObjectId
+  attackRoll  ItemWeaponAttackRollType[]
   confCost    Int
   costInfo    String?
   damage      ItemDamage?

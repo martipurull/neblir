@@ -9,11 +9,11 @@ export const walletSchema = z.array(currencySchema)
 
 export type Wallet = z.infer<typeof walletSchema>
 
-const weaponAttackRollTypeSchema = z.enum(['range', 'melee', 'GRID', 'throw'])
-const weaponDamageTypeSchema = z.enum(['bullet', 'blade', 'siike', 'acid', 'fire', 'ice'])
+const weaponAttackRollTypeSchema = z.enum(['RANGE', 'MELEE', 'GRID', 'THROW'])
+const weaponDamageTypeSchema = z.enum(['BULLET', 'BLADE', 'SIIKE', 'ACID', 'FIRE', 'ICE'])
 
 const baseItemSchema = z.object({
-    type: z.enum(['generalItem', 'weapon']),
+    type: z.enum(['GENERAL_ITEM', 'WEAPON']),
     name: z.string(),
     imageURL: z.string().optional(),
     confCost: z.number(),
@@ -23,14 +23,14 @@ const baseItemSchema = z.object({
 })
 
 export const generalItemSchema = baseItemSchema.extend({
-    type: z.literal('generalItem'),
+    type: z.literal('GENERAL_ITEM'),
     usage: z.string(),
 })
 
 export type GeneralItem = z.infer<typeof generalItemSchema>
 
 export const weaponSchema = baseItemSchema.extend({
-    type: z.literal('weapon'),
+    type: z.literal('WEAPON'),
     attackRoll: z.array(weaponAttackRollTypeSchema),
     damage: z.object({
         diceType: z.number(),

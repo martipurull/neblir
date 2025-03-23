@@ -12,7 +12,7 @@ export const characterCreationRequestSchema = z.object({
         currentMentalHealth: true
     }),
     combatInformation: combatInformationSchema.omit({
-        initiativeModifier: true,
+        initiativeMod: true,
         speed: true,
         rangeAttackMod: true,
         meleeAttackMod: true,
@@ -31,3 +31,16 @@ export const characterCreationRequestSchema = z.object({
         return (generalSkillsSum + specialSkillsSum) <= 15
     }),
 })
+
+export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>
+
+export const characterUpdateRequestSchema = characterCreationRequestSchema.extend({
+    health: healthSchema.omit({
+        innatePhysicalHealth: true,
+        maxPhysicalHealth: true,
+        innateMentalHealth: true,
+        maxMentalHealth: true,
+    })
+}).partial().strict()
+
+export type CharacterUpdateRequest = z.infer<typeof characterUpdateRequestSchema>
