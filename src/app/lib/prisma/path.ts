@@ -6,7 +6,7 @@ export async function createPath(data: Prisma.PathCreateInput) {
 }
 
 export async function getPath(id: string) {
-    return prisma.path.findUniqueOrThrow({ where: { id } })
+    return prisma.path.findUnique({ where: { id } })
 }
 
 export async function getPaths() {

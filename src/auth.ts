@@ -17,6 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     await createUser({ email: user.email, name: user.name })
                     token.user = await getUserByEmail(user.email)
                 } else {
+                    console.log('user already exists')
                     token.user = existingUser
                 }
 

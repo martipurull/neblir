@@ -6,7 +6,7 @@ export async function createItem(data: Prisma.ItemCreateInput) {
 }
 
 export async function getItem(id: string) {
-    return prisma.item.findUniqueOrThrow({ where: { id } })
+    return prisma.item.findUnique({ where: { id } })
 }
 
 export async function getItems() {

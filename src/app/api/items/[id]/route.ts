@@ -8,9 +8,9 @@ export async function GET(
 ) {
     try {
         const { id } = await params
-        const item = JSON.stringify(await getItem(id))
+        const item = await getItem(id)
 
-        return new Response(item, { status: 201 })
+        return new Response(JSON.stringify(item), { status: 201 })
     } catch (error) {
         console.log('items route GET error: ', error)
         return NextResponse.error()
