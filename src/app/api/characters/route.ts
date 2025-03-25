@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { characterCreationRequestSchema, characterUpdateRequestSchema } from "./schemas";
+import { characterCreationRequestSchema } from "./schemas";
 import { createCharacter } from "@/app/lib/prisma/character";
 import { computeFieldsOnCharacterCreation } from "./parsing";
 

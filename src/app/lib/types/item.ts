@@ -15,7 +15,7 @@ const weaponDamageTypeSchema = z.enum(['BULLET', 'BLADE', 'SIIKE', 'ACID', 'FIRE
 const baseItemSchema = z.object({
     type: z.enum(['GENERAL_ITEM', 'WEAPON']),
     name: z.string(),
-    imageURL: z.string().optional(),
+    imageKey: z.string().optional(),
     confCost: z.number(),
     costInfo: z.string().optional().describe('e.g. cost per unit, not for sale, illegal item, etc.'),
     description: z.string(),

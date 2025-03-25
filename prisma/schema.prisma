@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -78,7 +79,7 @@ type CharacterCombatInformation {
 
 type CharacterGeneralInformation {
   age        Int
-  avatarURL  String?
+  avatarKey  String?
   birthplace String
   level      Int
   name       String
@@ -221,7 +222,7 @@ model ItemCharacter {
 model Game {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
   gameMaster String     @db.ObjectId
-  imageURL   String
+  imageKey   String
   name       String
   users      GameUser[]
 }
@@ -246,7 +247,7 @@ model Item {
   costInfo    String?
   damage      ItemDamage?
   description String
-  imageURL    String?
+  imageKey    String?
   name        String
   notes       String?
   type        ItemType
