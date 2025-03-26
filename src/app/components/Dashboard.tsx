@@ -2,14 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 const Dashboard: React.FC = () => {
-    const [players, setPlayers] = useState<any[]>([])
 
-    useEffect(() => {
-        fetch('/api/players')
-            .then(response => response.json())
-            .then(data => setPlayers(data.players))
-            .catch(error => console.error('Error fetching players', error))
-    }, [])
     return (
         <div className="p-8 bg-gray-100 min-h-screen">
             <h2 className="text-3xl font-bold mb-8 text-center">Dashboard</h2>
