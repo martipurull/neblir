@@ -6,6 +6,33 @@ export function computeFieldsOnCharacterCreation(parsedCharacterCreationRequest:
     const innateMentalHealth = Object.values(parsedCharacterCreationRequest.innateAttributes.personality).reduce((acc, val) => acc + val, 0)
     const maxMentalHealth = innateMentalHealth + parsedCharacterCreationRequest.health.rolledMentalHealth
 
+    const innateAttributesSum =
+        Object.values(
+            parsedCharacterCreationRequest.innateAttributes.intelligence).reduce((acc, val) => acc + val, 0)
+        + Object.values(
+            parsedCharacterCreationRequest.innateAttributes.wisdom).reduce((acc, val) => acc + val, 0)
+        + Object.values(
+            parsedCharacterCreationRequest.innateAttributes.personality).reduce((acc, val) => acc + val, 0)
+        + Object.values(
+            parsedCharacterCreationRequest.innateAttributes.strength).reduce((acc, val) => acc + val, 0)
+        + Object.values(
+            parsedCharacterCreationRequest.innateAttributes.dexterity).reduce((acc, val) => acc + val, 0)
+        + Object.values(
+            parsedCharacterCreationRequest.innateAttributes.constitution).reduce((acc, val) => acc + val, 0)
+
+    if (innateAttributesSum > 30) {
+        return null
+    }
+
+    const learnedSkillsMax = (12 + (parsedCharacterCreationRequest.generalInformation.level - 1) + (3 - (parsedCharacterCreationRequest.learnedSkills.specialSkills?.length ?? 0)))
+    const learnedSkillsSum =
+        Object.values(parsedCharacterCreationRequest.learnedSkills.generalSkills)
+            .reduce((acc, val) => acc + (val === 5 ? val + 1 : val), 0)
+
+    if (learnedSkillsSum > learnedSkillsMax) {
+        return null
+    }
+
     return {
         ...parsedCharacterCreationRequest,
         health: {

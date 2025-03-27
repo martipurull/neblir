@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
         const item = JSON.stringify(await createItem(parsedBody))
 
-        return new Response(item, { status: 201 })
+        return NextResponse.json(item, { status: 201 })
 
     } catch (error) {
         console.log('items route POST error: ', error)

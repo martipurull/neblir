@@ -182,10 +182,19 @@ type CharacterWallet {
   quantity     Int
 }
 
+type AreaEffect {
+  defenceReactionCost     Int
+  defenceRoll             String
+  successfulDefenceResult String
+}
+
 type ItemDamage {
-  damageType   ItemWeaponDamageType
-  diceType     Int
-  numberOfDice Int
+  damageType      ItemWeaponDamageType
+  diceType        Int
+  numberOfDice    Int
+  primaryRadius   Int?
+  secondaryRadius Int?
+  areaEffect      AreaEffect?
 }
 
 type PathFeatures {

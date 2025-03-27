@@ -36,11 +36,19 @@ export const weaponSchema = baseItemSchema.extend({
         diceType: z.number(),
         numberOfDice: z.number(),
         damageType: weaponDamageTypeSchema,
+        primaryRadius: z.number().optional(),
+        secondaryRadius: z.number().optional(),
+        areaEffect: z.object({
+            defenceReactionCost: z.number(),
+            defenceRoll: z.string(),
+            successfulDefenceResult: z.string()
+        }).optional()
     })
 })
 
 export type Weapon = z.infer<typeof weaponSchema>
 
 export const itemSchema = z.discriminatedUnion('type', [generalItemSchema, weaponSchema])
+export const itemUpdateSchema = z.union([generalItemSchema.partial(), weaponSchema.partial()])
 
 export type Item = z.infer<typeof itemSchema>

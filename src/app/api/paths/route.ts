@@ -8,9 +8,9 @@ export async function POST(request: NextRequest) {
         const { data: parsedBody, error } = pathSchema.safeParse(requestBody);
         if (error) throw error
 
-        const item = JSON.stringify(await createPath(parsedBody))
+        const item = await createPath(parsedBody)
 
-        return new Response(item, { status: 201 })
+        return NextResponse.json(item, { status: 201 })
 
     } catch (error) {
         console.log('paths route POST error: ', error)

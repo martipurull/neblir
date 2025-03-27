@@ -1,4 +1,5 @@
-import { combatInformationSchema, generalInformationSchema, generalSkillsSchema, healthSchema, innateAttributesSchema } from "@/app/lib/types/character";
+import { combatInformationSchema, generalInformationSchema, generalSkillsSchema, healthSchema, innateAttributesSchema, itemCharacterSchema } from "@/app/lib/types/character";
+import { walletSchema } from "@/app/lib/types/item";
 import { z } from "zod";
 
 export const characterCreationRequestSchema = z.object({
@@ -25,11 +26,9 @@ export const characterCreationRequestSchema = z.object({
     learnedSkills: z.object({
         generalSkills: generalSkillsSchema,
         specialSkills: z.array(z.string()).max(3).optional(),
-    }).refine((data) => {
-        const specialSkillsSum = data.specialSkills?.length ?? 0
-        const generalSkillsSum = Object.values(data.generalSkills).reduce((acc, val) => acc + val, 0)
-        return (generalSkillsSum + specialSkillsSum) <= 15
     }),
+    wallet: walletSchema.optional(),
+    equipment: z.array(itemCharacterSchema).optional(),
 })
 
 export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>

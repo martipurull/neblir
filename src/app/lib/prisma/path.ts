@@ -6,11 +6,25 @@ export async function createPath(data: Prisma.PathCreateInput) {
 }
 
 export async function getPath(id: string) {
-    return prisma.path.findUnique({ where: { id } })
+    const path = await prisma.path.findUnique({ where: { id } })
+
+    if (!path) return null
+
+    return {
+        ...path,
+        features: path.features.sort((a, b) => a.level - b.level)
+    }
 }
 
 export async function getPaths() {
-    return prisma.path.findMany()
+    const paths = await prisma.path.findMany()
+
+    if (!paths.length) return []
+
+    return paths.map(path => ({
+        ...path,
+        features: path.features.sort((a, b) => a.level - b.level)
+    }))
 }
 
 export async function updatePath(id: string, data: Prisma.PathUpdateInput) {

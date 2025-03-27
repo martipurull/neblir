@@ -8,9 +8,9 @@ export async function GET(
 ) {
     try {
         const { id } = await params
-        const character = JSON.stringify(await getCharacter(id))
+        const character = await getCharacter(id)
 
-        return new Response(character, { status: 201 })
+        return NextResponse.json(character, { status: 201 })
     } catch (error) {
         console.log('characters route GET error: ', error)
         return NextResponse.error()
@@ -45,7 +45,7 @@ export async function DELETE(
         const { id } = await params
         await deleteCharacter(id)
 
-        return new Response(`Character with id ${id} deleted successfully`, { status: 204 })
+        return new NextResponse(null, { status: 204 })
 
     } catch (error) {
         console.log('characters route DELETE error: ', error)

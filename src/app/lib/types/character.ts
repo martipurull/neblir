@@ -15,6 +15,12 @@ const religionSchema = z.enum([
 
 const raceSchema = z.enum(['KINIAN', 'HUMAN', 'FENNE', 'MANFENN'])
 
+export const itemCharacterSchema = z.object({
+    id: z.string(),
+    itemId: z.string(),
+    characterId: z.string()
+});
+
 export const generalInformationSchema = z.object({
     name: z.string(),
     age: z.number(),
@@ -23,7 +29,7 @@ export const generalInformationSchema = z.object({
     race: raceSchema,
     birthplace: z.string(),
     level: z.number(),
-    avatarURL: z.string().optional(),
+    avatarKey: z.string().optional(),
 })
 
 export const healthSchema = z.object({
@@ -128,8 +134,8 @@ export const characterSchema = z.object({
         specialSkills: z.array(z.string()).max(3).optional(),
     }),
     path: pathSchema.optional(),
-    equipment: z.array(itemSchema).optional(),
-    wallet: walletSchema.optional()
+    wallet: walletSchema.optional(),
+    equipment: z.array(itemCharacterSchema).optional(),
 })
 
 export type Character = z.infer<typeof characterSchema>

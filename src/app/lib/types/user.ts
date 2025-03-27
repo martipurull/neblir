@@ -6,6 +6,8 @@ export const userSchema = z.object({
     email: z.string().email(),
 })
 
+export const userCreateSchema = userSchema.omit({ id: true })
+
 export const userUpdateSchema = userSchema.partial().strict()
 
 export const usersSchema = z.array(userSchema)

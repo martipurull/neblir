@@ -22,4 +22,6 @@ export const pathSchema = z.object({
     features: z.array(featureSchema),
 })
 
+export const pathUpdateSchema = pathSchema.partial().strict()
+
 export type Path = z.infer<typeof pathSchema>

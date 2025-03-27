@@ -1,6 +1,7 @@
 import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
-import { itemSchema } from "@/app/lib/types/item";
+import { itemUpdateSchema } from "@/app/lib/types/item";
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 export async function GET(
     _request: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
         const { id } = await params
         const item = await getItem(id)
 
-        return new Response(JSON.stringify(item), { status: 201 })
+        return NextResponse.json(item, { status: 201 })
     } catch (error) {
         console.log('items route GET error: ', error)
         return NextResponse.error()
@@ -24,7 +25,7 @@ export async function PATCH(
     try {
         const { id } = await params
         const requestBody = await request.json()
-        const { data: parsedBody, error } = itemSchema.safeParse(requestBody);
+        const { data: parsedBody, error } = itemUpdateSchema.safeParse(requestBody);
         if (error) throw error
 
         const updatedItem = await updateItem(id, parsedBody)
@@ -33,6 +34,9 @@ export async function PATCH(
 
     } catch (error) {
         console.log('items route PATCH error: ', error)
+        if (error instanceof ZodError) {
+            return NextResponse.json(`Bad Request:\n${error.issues.map(issue => `${issue.code} at ${issue.path}: ${issue.message}.`)}`, { status: 400 })
+        }
         return NextResponse.error()
     }
 }
@@ -45,7 +49,7 @@ export async function DELETE(
         const { id } = await params
         await deleteItem(id)
 
-        return new Response(`Item with id ${id} deleted successfully`, { status: 204 })
+        return new NextResponse(null, { status: 204 })
 
     } catch (error) {
         console.log('items route DELETE error: ', error)
