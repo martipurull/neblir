@@ -10,7 +10,7 @@ export async function GET(
         const { id } = await params
         const path = await getPath(id)
 
-        return NextResponse.json(path, { status: 201 })
+        return NextResponse.json(path, { status: 200 })
     } catch (error) {
         console.log('paths route GET error: ', error)
         return NextResponse.error()

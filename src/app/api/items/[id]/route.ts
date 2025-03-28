@@ -11,7 +11,7 @@ export async function GET(
         const { id } = await params
         const item = await getItem(id)
 
-        return NextResponse.json(item, { status: 201 })
+        return NextResponse.json(item, { status: 200 })
     } catch (error) {
         console.log('items route GET error: ', error)
         return NextResponse.error()

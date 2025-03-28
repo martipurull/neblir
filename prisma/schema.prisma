@@ -60,6 +60,7 @@ enum Religion {
 enum Status {
   ALIVE
   DECEASED
+  DERANGED
 }
 
 type CharacterCombatInformation {
@@ -224,8 +225,6 @@ model ItemCharacter {
   character Character @relation(fields: [characterId], references: [id])
 
   @@unique([itemId, characterId])
-  @@index([itemId])
-  @@index([characterId])
 }
 
 model Game {

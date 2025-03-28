@@ -6,7 +6,7 @@ export async function createCharacter(data: Prisma.CharacterCreateInput) {
 }
 
 export async function getCharacter(id: string) {
-    return prisma.character.findUnique({ where: { id }, include: { equipment: true } })
+    return prisma.character.findUnique({ where: { id }, include: { equipment: { include: { item: true } } } })
 }
 
 export async function updateCharacter(id: string, data: Prisma.CharacterUpdateInput) {

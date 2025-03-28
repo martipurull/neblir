@@ -16,10 +16,11 @@ const religionSchema = z.enum([
 const raceSchema = z.enum(['KINIAN', 'HUMAN', 'FENNE', 'MANFENN'])
 
 export const itemCharacterSchema = z.object({
-    id: z.string(),
     itemId: z.string(),
     characterId: z.string()
 });
+
+export const equipmentSchema = z.array(itemCharacterSchema)
 
 export const generalInformationSchema = z.object({
     name: z.string(),
@@ -47,7 +48,7 @@ export const healthSchema = z.object({
         successes: z.number().max(3).default(0),
         failures: z.number().max(3).default(0)
     }).optional(),
-    status: z.enum(['ALIVE', 'DECEASED']).default('ALIVE')
+    status: z.enum(['ALIVE', 'DECEASED', 'DERANGED']).default('ALIVE')
 })
 
 export const combatInformationSchema = z.object({
@@ -65,44 +66,49 @@ export const combatInformationSchema = z.object({
     GridDefenceMod: z.number(), // Needs to be computed
 })
 
+const intelligenceSchema = z.object({
+    investigation: z.number().min(1).max(5),
+    memory: z.number().min(1).max(5),
+    deduction: z.number().min(1).max(5),
+})
+
+const wisdomSchema = z.object({
+    sense: z.number().min(1).max(5),
+    perception: z.number().min(1).max(5),
+    insight: z.number().min(1).max(5),
+})
+
+const personalitySchema = z.object({
+    persuasion: z.number().min(1).max(5),
+    deception: z.number().min(1).max(5),
+    mentality: z.number().min(1).max(5),
+})
+
+const strengthSchema = z.object({
+    athletics: z.number().min(1).max(5),
+    resilience: z.number().min(1).max(5),
+    bruteForce: z.number().min(1).max(5),
+})
+
+const dexteritySchema = z.object({
+    manual: z.number().min(1).max(5),
+    stealth: z.number().min(1).max(5),
+    agility: z.number().min(1).max(5),
+})
+
+const constitutionSchema = z.object({
+    resistanceInternal: z.number().min(1).max(5),
+    resistanceExternal: z.number().min(1).max(5),
+    stamina: z.number().min(1).max(5),
+})
+
 export const innateAttributesSchema = z.object({
-    intelligence: z.object({
-        investigation: z.number().min(1).max(5),
-        memory: z.number().min(1).max(5),
-        deduction: z.number().min(1).max(5),
-    }),
-    wisdom: z.object({
-        sense: z.number().min(1).max(5),
-        perception: z.number().min(1).max(5),
-        insight: z.number().min(1).max(5),
-    }),
-    personality: z.object({
-        persuasion: z.number().min(1).max(5),
-        deception: z.number().min(1).max(5),
-        mentality: z.number().min(1).max(5),
-    }),
-    strength: z.object({
-        athletics: z.number().min(1).max(5),
-        resilience: z.number().min(1).max(5),
-        bruteForce: z.number().min(1).max(5),
-    }),
-    dexterity: z.object({
-        manual: z.number().min(1).max(5),
-        stealth: z.number().min(1).max(5),
-        agility: z.number().min(1).max(5),
-    }),
-    constitution: z.object({
-        resistanceInternal: z.number().min(1).max(5),
-        resistanceExternal: z.number().min(1).max(5),
-        stamina: z.number().min(1).max(5),
-    })
-}).refine((data) => {
-    const sum = Object.values(data).reduce((acc, obj) =>
-        acc + Object.values(obj).reduce((sum, value) =>
-            sum + value, 0), 0)
-    return sum <= 30
-}, {
-    message: 'The sum of all attributes must not exceed 30.',
+    intelligence: intelligenceSchema,
+    wisdom: wisdomSchema,
+    personality: personalitySchema,
+    strength: strengthSchema,
+    dexterity: dexteritySchema,
+    constitution: constitutionSchema
 })
 
 export const generalSkillsSchema = z.object({
@@ -135,7 +141,11 @@ export const characterSchema = z.object({
     }),
     path: pathSchema.optional(),
     wallet: walletSchema.optional(),
-    equipment: z.array(itemCharacterSchema).optional(),
+    equipment: equipmentSchema.optional(),
 })
+
+export const characterWithFullEquipmentSchema = characterSchema.extend({
+    equipment: z.array(itemSchema).optional()
+}) // This needs reviewing as its probably missing the ItemCharacter model data (just do a GET request for one character with equipment and compare)
 
 export type Character = z.infer<typeof characterSchema>

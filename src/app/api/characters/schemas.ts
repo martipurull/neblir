@@ -32,14 +32,3 @@ export const characterCreationRequestSchema = z.object({
 })
 
 export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>
-
-export const characterUpdateRequestSchema = characterCreationRequestSchema.extend({
-    health: healthSchema.omit({
-        innatePhysicalHealth: true,
-        maxPhysicalHealth: true,
-        innateMentalHealth: true,
-        maxMentalHealth: true,
-    })
-}).partial().strict()
-
-export type CharacterUpdateRequest = z.infer<typeof characterUpdateRequestSchema>

@@ -10,7 +10,7 @@ export async function GET(
         const { id } = await params
         const user = await getUser(id)
 
-        return NextResponse.json(user, { status: 201 })
+        return NextResponse.json(user, { status: 200 })
     } catch (error) {
         console.log('users route GET error: ', error)
         return NextResponse.error()
