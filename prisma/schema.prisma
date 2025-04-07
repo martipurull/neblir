@@ -205,6 +205,11 @@ type PathFeatures {
   name        String
 }
 
+type CharacterPath {
+  pathName PathName
+  level    Int
+}
+
 model Character {
   id                 String                      @id @default(auto()) @map("_id") @db.ObjectId
   combatInformation  CharacterCombatInformation
@@ -214,6 +219,8 @@ model Character {
   learnedSkills      CharacterLearnedSkills
   wallet             CharacterWallet[]
   equipment          ItemCharacter[]
+  notes              String[]
+  paths              CharacterPath[]
 }
 
 model ItemCharacter {

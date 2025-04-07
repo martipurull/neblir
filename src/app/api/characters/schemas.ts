@@ -29,6 +29,6 @@ export const characterCreationRequestSchema = z.object({
     }),
     wallet: walletSchema.optional(),
     equipment: z.array(itemCharacterSchema).optional(),
-})
+}).strip()
 
 export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>

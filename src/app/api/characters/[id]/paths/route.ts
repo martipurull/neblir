@@ -1,6 +1,6 @@
 import { updateCharacter } from "@/app/lib/prisma/character";
-import { equipmentSchema } from "@/app/lib/types/character";
 import { NextRequest, NextResponse } from "next/server";
+import { characterPathsSchema } from "@/app/lib/types/character";
 
 export async function PATCH(
     request: NextRequest,
@@ -9,10 +9,10 @@ export async function PATCH(
     try {
         const { id } = await params
         const requestBody = await request.json()
-        const { data: parsedBody, error } = equipmentSchema.safeParse(requestBody);
+        const { data: parsedBody, error } = characterPathsSchema.safeParse(requestBody);
         if (error) throw error
 
-        const updatedCharacter = await updateCharacter(id, { equipment: parsedBody })
+        const updatedCharacter = await updateCharacter(id, { paths: parsedBody })
 
         return NextResponse.json(updatedCharacter, { status: 200 })
 

@@ -1,4 +1,4 @@
-import { CharacterCreationRequest, CharacterUpdateRequest } from "./schemas";
+import { CharacterCreationRequest } from "./schemas";
 
 export function computeFieldsOnCharacterCreation(parsedCharacterCreationRequest: CharacterCreationRequest) {
     const innatePhysicalHealth = Object.values(parsedCharacterCreationRequest.innateAttributes.constitution).reduce((acc, val) => acc + val, 0)

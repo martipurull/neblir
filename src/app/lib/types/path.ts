@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const paths = z.enum([
+export const paths = z.enum([
     'SCIENTIST_DOCTOR',
     'SURVIVALIST',
     'ANTI_HERO',

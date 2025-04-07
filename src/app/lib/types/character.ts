@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { pathSchema } from './path'
+import { paths, pathSchema } from './path'
 import { itemSchema, walletSchema } from './item'
 
 const religionSchema = z.enum([
@@ -30,7 +30,7 @@ export const generalInformationSchema = z.object({
     race: raceSchema,
     birthplace: z.string(),
     level: z.number(),
-    avatarKey: z.string().optional(),
+    avatarKey: z.string().optional().nullable(),
 })
 
 export const healthSchema = z.object({
@@ -130,6 +130,15 @@ export const generalSkillsSchema = z.object({
     manipulationNegotiation: z.number().max(5).default(0),
 })
 
+export const characterPathsSchema = z.array(
+    z.object({
+        pathName: paths,
+        level: z.number()
+    })
+)
+
+export const characterNotesSchema = z.array(z.string())
+
 export const characterSchema = z.object({
     generalInformation: generalInformationSchema,
     health: healthSchema,
@@ -142,6 +151,8 @@ export const characterSchema = z.object({
     path: pathSchema.optional(),
     wallet: walletSchema.optional(),
     equipment: equipmentSchema.optional(),
+    notes: characterNotesSchema.optional(),
+    paths: characterPathsSchema.optional(),
 })
 
 export const characterWithFullEquipmentSchema = characterSchema.extend({
