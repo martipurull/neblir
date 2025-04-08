@@ -1,4 +1,11 @@
-import { combatInformationSchema, generalInformationSchema, generalSkillsSchema, healthSchema, innateAttributesSchema, itemCharacterSchema } from "@/app/lib/types/character";
+import {
+    combatInformationSchema,
+    generalInformationSchema,
+    generalSkillsSchema,
+    healthSchema,
+    innateAttributesSchema,
+    itemCharacterSchema
+} from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
 import { z } from "zod";
 

@@ -1,6 +1,6 @@
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextRequest, NextResponse } from "next/server";
-import { CombatInformationUpdate, combatInformationUpdateRequestSchema } from "./schema";
+import { combatInformationUpdateRequestSchema } from "./schema";
 
 export async function PATCH(
     request: NextRequest,

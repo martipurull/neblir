@@ -1,4 +1,4 @@
-import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
+import { updateCharacter } from "@/app/lib/prisma/character";
 import { NextRequest, NextResponse } from "next/server";
 import { characterNotesSchema } from "@/app/lib/types/character";
 

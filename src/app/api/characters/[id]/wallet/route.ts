@@ -10,7 +10,9 @@ export async function PATCH(
         const { id } = await params
         const requestBody = await request.json()
         const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
-        if (error) throw error
+        if (error) {
+            return NextResponse.json({ message: error.issues }, { status: 400 })
+        }
 
         const updatedCharacter = await updateCharacter(id, { wallet: parsedBody })
 

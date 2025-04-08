@@ -8,13 +8,12 @@ export async function POST(request: NextRequest) {
         const requestBody = await request.json()
         const { data: parsedBody, error } = characterCreationRequestSchema.safeParse(requestBody);
         if (error) {
-            console.log('ERROR:', JSON.stringify(error))
-            throw error
+            return NextResponse.json({ message: error.issues }, { status: 400 })
         }
 
         const characterCreationData = computeFieldsOnCharacterCreation(parsedBody)
         if (!characterCreationData) {
-            throw new Error('Error while computing character creation data.')
+            return NextResponse.json({ message: 'Error while computing character creation data' }, { status: 400 })
         }
         const character = await createCharacter(characterCreationData)
 

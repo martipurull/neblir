@@ -8,6 +8,9 @@ export async function GET(
     try {
         const { id } = await params
         const character = await getCharacter(id)
+        if (!character) {
+            return NextResponse.json({ message: 'Character not found' }, { status: 404 })
+        }
 
         return NextResponse.json(character, { status: 200 })
     } catch (error) {
