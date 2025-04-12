@@ -9,3 +9,9 @@ export const gameSchema = z.object({
 })
 
 export type Game = z.infer<typeof gameSchema>
+
+export const gameUserSchema = z.object({
+    id: z.string(),
+    gameId: z.string(),
+    userId: z.string(),
+})

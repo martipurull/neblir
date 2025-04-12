@@ -4,7 +4,6 @@ import {
     generalSkillsSchema,
     healthSchema,
     innateAttributesSchema,
-    itemCharacterSchema
 } from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
 import { z } from "zod";
@@ -35,7 +34,7 @@ export const characterCreationRequestSchema = z.object({
         specialSkills: z.array(z.string()).max(3).optional(),
     }),
     wallet: walletSchema.optional(),
-    equipment: z.array(itemCharacterSchema).optional(),
+    userId: z.string(),
 }).strip()
 
 export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>

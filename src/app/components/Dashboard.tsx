@@ -2,7 +2,27 @@
 import React, { useEffect, useState } from 'react';
 
 const Dashboard: React.FC = () => {
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('/api/characters/67df01a6c6ce706aa8198854', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('User data:', data);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
 
+        fetchData();
+    }, [])
     return (
         <div className="p-8 bg-gray-100 min-h-screen">
             <h2 className="text-3xl font-bold mb-8 text-center">Dashboard</h2>

@@ -221,6 +221,7 @@ model Character {
   equipment          ItemCharacter[]
   notes              String[]
   paths              CharacterPath[]
+  userId             String                      @db.ObjectId
 }
 
 model ItemCharacter {
@@ -282,5 +283,6 @@ model User {
   email String
   name  String
 
-  games GameUser[]
+  games      GameUser[]
+  characters String[]   @db.ObjectId
 }

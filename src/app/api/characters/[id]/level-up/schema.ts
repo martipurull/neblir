@@ -75,7 +75,6 @@ export type LevelUpRequest = z.infer<typeof levelUpRequestSchema>;
 
 export const levelUpCharacterBodySchema = characterCreationRequestSchema
     .omit({
-        equipment: true,
         wallet: true,
     })
     .strip()

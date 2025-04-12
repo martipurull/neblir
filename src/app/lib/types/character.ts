@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { paths, pathSchema } from './path'
 import { itemSchema, walletSchema } from './item'
+import { userSchema } from './user'
 
 const religionSchema = z.enum([
     'TRITHEOLOGY',
@@ -16,6 +17,7 @@ const religionSchema = z.enum([
 const raceSchema = z.enum(['KINIAN', 'HUMAN', 'FENNE', 'MANFENN'])
 
 export const itemCharacterSchema = z.object({
+    id: z.string(),
     itemId: z.string(),
     characterId: z.string()
 });
@@ -153,6 +155,7 @@ export const characterSchema = z.object({
     equipment: equipmentSchema.optional(),
     notes: characterNotesSchema.optional(),
     paths: characterPathsSchema.optional(),
+    userId: z.string(),
 })
 
 export const characterWithFullEquipmentSchema = characterSchema.extend({
