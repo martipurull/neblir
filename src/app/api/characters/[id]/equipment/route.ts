@@ -1,13 +1,29 @@
 import { createItemCharacter } from "@/app/lib/prisma/itemCharacter";
-import { NextRequest, NextResponse } from "next/server";
+import { AuthNextRequest } from "@/app/lib/types/api";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export async function POST(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
+        }
+        if (!request.auth?.user?.characters.includes(id)) {
+            return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
+        }
+
         const requestBody = await request.json()
         const { data, error } = z.object({ itemId: z.string() }).safeParse(requestBody)
         if (error) {
@@ -24,4 +40,4 @@ export async function POST(
         console.log('characters route POST error: ', error)
         return NextResponse.error()
     }
-}
+})

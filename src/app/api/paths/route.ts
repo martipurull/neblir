@@ -1,9 +1,18 @@
 import { createPath, getPaths } from "@/app/lib/prisma/path";
+import { AuthNextRequest } from "@/app/lib/types/api";
 import { pathSchema } from "@/app/lib/types/path";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export const POST = auth(async (request: AuthNextRequest) => {
     try {
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
         const requestBody = await request.json()
         const { data: parsedBody, error } = pathSchema.safeParse(requestBody);
         if (error) throw error
@@ -16,10 +25,17 @@ export async function POST(request: NextRequest) {
         console.log('paths route POST error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function GET() {
+export const GET = auth(async (request: AuthNextRequest) => {
     try {
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
         const paths = await getPaths()
 
         return NextResponse.json(paths)
@@ -28,4 +44,4 @@ export async function GET() {
         console.log('paths route POST error: ', error)
         return NextResponse.error()
     }
-}
+})

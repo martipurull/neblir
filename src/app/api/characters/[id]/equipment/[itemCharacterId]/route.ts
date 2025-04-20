@@ -1,12 +1,27 @@
 import { deleteItemCharacter } from "@/app/lib/prisma/itemCharacter"
-import { NextRequest, NextResponse } from "next/server"
+import { AuthNextRequest } from "@/app/lib/types/api"
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
 
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string, itemCharacterId: string }> }
-) {
+export const DELETE = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { itemCharacterId } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            )
+        }
+
+        const { id, itemCharacterId } = await params as { id: string, itemCharacterId: string }
+        if (!id || typeof id !== 'string' || !itemCharacterId || typeof itemCharacterId !== 'string') {
+            return NextResponse.json({ message: "Invalid character or itemCharacter ID" }, { status: 400 })
+        }
+        if (!request.auth?.user?.characters.includes(id)) {
+            return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
+        }
 
         const itemCharacter = await deleteItemCharacter(itemCharacterId)
         if (!itemCharacter) {
@@ -18,4 +33,4 @@ export async function DELETE(
         console.log('characters route DELETE error: ', error)
         return NextResponse.error()
     }
-}
+})

@@ -5,7 +5,7 @@ export const userSchema = z.object({
     id: z.string(),
     name: z.string(),
     email: z.string().email(),
-    games: z.array(gameUserSchema).optional(),
+    games: z.array(z.lazy(() => gameUserSchema)).optional(),
     characters: z.array(z.string()).optional(),
 })
 

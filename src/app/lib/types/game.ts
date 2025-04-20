@@ -4,7 +4,7 @@ import { userSchema } from "./user";
 export const gameSchema = z.object({
     name: z.string(),
     gameMaster: z.string(),
-    users: z.array(userSchema),
+    users: z.array(z.lazy(() => userSchema)),
     imageKey: z.string().optional()
 })
 

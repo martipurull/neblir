@@ -1,18 +1,31 @@
-// This endpoint is akin to the create character one
-// It must compute all the relevant fields once the new skills and any moved attributes have been submitted
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { computeFieldsOnCharacterCreation } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import { parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate } from "./parsing";
-import { CharacterCreationRequest } from "../../schemas";
+import { auth } from "@/auth";
+import { AuthNextRequest } from "@/app/lib/types/api";
 
-export async function POST(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
+        }
+        if (!request.auth?.user?.characters.includes(id)) {
+            return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
+        }
+
         const requestBody = await request.json()
         const { data: parsedBody, error } = levelUpRequestSchema.safeParse(requestBody);
         if (error) {
@@ -58,4 +71,4 @@ export async function POST(
         console.log('characters route POST error: ', error)
         return NextResponse.error()
     }
-}
+})

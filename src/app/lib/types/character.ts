@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { paths, pathSchema } from './path'
 import { itemSchema, walletSchema } from './item'
-import { userSchema } from './user'
 
 const religionSchema = z.enum([
     'TRITHEOLOGY',
@@ -151,7 +150,7 @@ export const characterSchema = z.object({
         specialSkills: z.array(z.string()).max(3).optional(),
     }),
     path: pathSchema.optional(),
-    wallet: walletSchema.optional(),
+    wallet: z.lazy(() => walletSchema).optional(),
     equipment: equipmentSchema.optional(),
     notes: characterNotesSchema.optional(),
     paths: characterPathsSchema.optional(),
@@ -159,7 +158,7 @@ export const characterSchema = z.object({
 })
 
 export const characterWithFullEquipmentSchema = characterSchema.extend({
-    equipment: z.array(itemSchema).optional()
+    equipment: z.array(z.lazy(() => itemSchema)).optional()
 }) // This needs reviewing as its probably missing the ItemCharacter model data (just do a GET request for one character with equipment and compare)
 
 export type Character = z.infer<typeof characterSchema>

@@ -1,14 +1,27 @@
 import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
+import { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
+import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid item ID" }, { status: 400 })
+        }
+
         const item = await getItem(id)
 
         return NextResponse.json(item, { status: 200 })
@@ -16,14 +29,25 @@ export async function GET(
         console.log('items route GET error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid item ID" }, { status: 400 })
+        }
+
         const requestBody = await request.json()
         const { data: parsedBody, error } = itemUpdateSchema.safeParse(requestBody);
         if (error) throw error
@@ -39,14 +63,25 @@ export async function PATCH(
         }
         return NextResponse.error()
     }
-}
+})
 
-export async function DELETE(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid item ID" }, { status: 400 })
+        }
+
         await deleteItem(id)
 
         return new NextResponse(null, { status: 204 })
@@ -55,4 +90,4 @@ export async function DELETE(
         console.log('items route DELETE error: ', error)
         return NextResponse.error()
     }
-}
+})

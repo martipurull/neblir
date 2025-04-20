@@ -1,13 +1,26 @@
 import { deletePath, getPath, updatePath } from "@/app/lib/prisma/path";
+import { AuthNextRequest } from "@/app/lib/types/api";
 import { pathUpdateSchema } from "@/app/lib/types/path";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid path ID" }, { status: 400 })
+        }
+
         const path = await getPath(id)
 
         return NextResponse.json(path, { status: 200 })
@@ -15,14 +28,25 @@ export async function GET(
         console.log('paths route GET error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid path ID" }, { status: 400 })
+        }
+
         const requestBody = await request.json()
         const { data: parsedBody, error } = pathUpdateSchema.safeParse(requestBody);
         if (error) throw error
@@ -35,14 +59,25 @@ export async function PATCH(
         console.log('paths route PATCH error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function DELETE(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid path ID" }, { status: 400 })
+        }
+
         await deletePath(id)
 
         return new NextResponse(null, { status: 204 })
@@ -51,4 +86,4 @@ export async function DELETE(
         console.log('paths route DELETE error: ', error)
         return NextResponse.error()
     }
-}
+})

@@ -1,13 +1,29 @@
 import { deleteUser, getUser, updateUser } from "@/app/lib/prisma/user";
+import { AuthNextRequest } from "@/app/lib/types/api";
 import { userUpdateSchema } from "@/app/lib/types/user";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export async function GET(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid user ID" }, { status: 400 })
+        }
+        if (request.auth?.user?.id !== id) {
+            return NextResponse.json({ status: 403 })
+        }
+
         const user = await getUser(id)
 
         return NextResponse.json(user, { status: 200 })
@@ -15,14 +31,28 @@ export async function GET(
         console.log('users route GET error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid user ID" }, { status: 400 })
+        }
+        if (request.auth?.user?.id !== id) {
+            return NextResponse.json({ status: 403 })
+        }
+
         const requestBody = await request.json()
         const { data: parsedBody, error } = userUpdateSchema.safeParse(requestBody);
         if (error) throw error
@@ -35,14 +65,28 @@ export async function PATCH(
         console.log('users route PATCH error: ', error)
         return NextResponse.error()
     }
-}
+})
 
-export async function DELETE(
-    _request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = auth(async (
+    request: AuthNextRequest,
+    { params }
+) => {
     try {
-        const { id } = await params
+        if (!request.auth?.user) {
+            return NextResponse.json(
+                { message: "Unauthorised" },
+                { status: 401 },
+            );
+        }
+
+        const { id } = await params as { id: string }
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ message: "Invalid user ID" }, { status: 400 })
+        }
+        if (request.auth?.user?.id !== id) {
+            return NextResponse.json({ status: 403 })
+        }
+
         await deleteUser(id)
 
         return new NextResponse(null, { status: 204 })
@@ -51,4 +95,4 @@ export async function DELETE(
         console.log('users route DELETE error: ', error)
         return NextResponse.error()
     }
-}
+})

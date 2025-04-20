@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { createUser, getUserByEmail } from "./app/lib/prisma/user"
+import { AdapterUser } from "next-auth/adapters"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [Google],
@@ -24,14 +25,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token
             }
 
-            return null
+            return token
         },
 
         async session({ session, token }) {
-            session.user.email = (token.user as { email: string }).email
-            session.user.name = (token.user as { name: string }).name
+            session.user = token.user as AdapterUser
 
             return session
-        }
+        },
+
+        // authorized: async ({ auth, request }) => {
+        //     return !!auth
+        // },
     }
 })
