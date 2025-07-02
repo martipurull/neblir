@@ -55,7 +55,9 @@ export const PATCH = auth(async (
 
         const requestBody = await request.json()
         const { data: parsedBody, error } = userUpdateSchema.safeParse(requestBody);
-        if (error) throw error
+        if (error) {
+            return NextResponse.json({ message: error.issues }, { status: 400 })
+        }
 
         const updatedUser = await updateUser(id, parsedBody)
 

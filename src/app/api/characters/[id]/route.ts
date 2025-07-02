@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { deleteCharacter, getCharacter } from "@/app/lib/prisma/character";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
+import { deleteCharacterUserByCharacterId } from "@/app/lib/prisma/characterUser";
+import { characterBelongsToUser } from "../checks";
+import { deleteCharacterEquipment } from "@/app/lib/prisma/itemCharacter";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
     try {
@@ -16,7 +19,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
-        if (!request.auth?.user?.characters.includes(id)) {
+        if (!request.auth?.user?.characters.map(characterUser => characterUser.characterId).includes(id)) {
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 
@@ -48,13 +51,14 @@ export const DELETE = auth(async (
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
-        if (!request.auth?.user?.characters.includes(id)) {
+
+        if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 
+        await deleteCharacterUserByCharacterId(id)
+        await deleteCharacterEquipment(id)
         await deleteCharacter(id)
-
-        // Remove the character ID from the user's characters array
 
         return new NextResponse(null, { status: 204 })
 

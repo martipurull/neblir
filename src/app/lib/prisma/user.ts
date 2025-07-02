@@ -6,12 +6,11 @@ export async function createUser(data: Prisma.UserCreateInput) {
 }
 
 export async function getUser(id: string) {
-    return prisma.user.findUnique({ where: { id } })
+    return prisma.user.findUnique({ where: { id }, include: { characters: true, games: true } })
 }
 
 export async function getUserByEmail(email: string) {
-    console.log('email: ', email)
-    return prisma.user.findFirst({ where: { email } })
+    return prisma.user.findUnique({ where: { email } })
 }
 
 export async function updateUser(id: string, data: Prisma.UserUpdateInput) {

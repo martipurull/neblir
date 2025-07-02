@@ -49,7 +49,9 @@ export const PATCH = auth(async (
 
         const requestBody = await request.json()
         const { data: parsedBody, error } = pathUpdateSchema.safeParse(requestBody);
-        if (error) throw error
+        if (error) {
+            return NextResponse.json({ message: error.issues }, { status: 400 })
+        }
 
         const updatedItem = await updatePath(id, parsedBody)
 

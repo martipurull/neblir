@@ -222,6 +222,20 @@ model Character {
   notes              String[]
   paths              CharacterPath[]
   userId             String                      @db.ObjectId
+  games              GameCharacter[]
+
+  users CharacterUser[]
+}
+
+model CharacterUser {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String @db.ObjectId
+  userId      String @db.ObjectId
+
+  character Character @relation(fields: [characterId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([characterId, userId])
 }
 
 model ItemCharacter {
@@ -236,11 +250,12 @@ model ItemCharacter {
 }
 
 model Game {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  gameMaster String     @db.ObjectId
-  imageKey   String
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster String          @db.ObjectId
+  imageKey   String?
   name       String
   users      GameUser[]
+  characters GameCharacter[]
 }
 
 model GameUser {
@@ -254,6 +269,19 @@ model GameUser {
   @@unique([gameId, userId])
   @@index([gameId])
   @@index([userId])
+}
+
+model GameCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  gameId      String @db.ObjectId
+  characterId String @db.ObjectId
+
+  game      Game      @relation(fields: [gameId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([gameId, characterId])
+  @@index([gameId])
+  @@index([characterId])
 }
 
 model Item {
@@ -280,9 +308,9 @@ model Path {
 
 model User {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String
+  email String @unique
   name  String
 
   games      GameUser[]
-  characters String[]   @db.ObjectId
+  characters CharacterUser[]
 }

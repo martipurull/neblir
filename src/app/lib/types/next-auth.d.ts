@@ -2,11 +2,17 @@
 import "next-auth";
 
 declare module "next-auth" {
+
+    interface CharacterUser {
+        id: string
+        characterId: string
+        userId: string
+    }
     interface User {
         id: string;
         email: string;
         name: string;
-        characters: string[];
+        characters: CharacterUser[];
     }
 
     interface Session {

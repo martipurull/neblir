@@ -3,6 +3,7 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { generalInformationSchema } from "@/app/lib/types/character";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { characterBelongsToUser } from "../../checks";
 
 export const PATCH = auth(async (
     request: AuthNextRequest,
@@ -20,7 +21,7 @@ export const PATCH = auth(async (
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
-        if (!request.auth?.user?.characters.includes(id)) {
+        if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 

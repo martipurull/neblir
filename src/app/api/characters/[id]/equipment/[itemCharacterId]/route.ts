@@ -2,6 +2,7 @@ import { deleteItemCharacter } from "@/app/lib/prisma/itemCharacter"
 import { AuthNextRequest } from "@/app/lib/types/api"
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
+import { characterBelongsToUser } from "../../../checks"
 
 export const DELETE = auth(async (
     request: AuthNextRequest,
@@ -19,14 +20,15 @@ export const DELETE = auth(async (
         if (!id || typeof id !== 'string' || !itemCharacterId || typeof itemCharacterId !== 'string') {
             return NextResponse.json({ message: "Invalid character or itemCharacter ID" }, { status: 400 })
         }
-        if (!request.auth?.user?.characters.includes(id)) {
+        if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 
-        const itemCharacter = await deleteItemCharacter(itemCharacterId)
-        if (!itemCharacter) {
-            return NextResponse.json({ message: 'ItemCharacter not found' }, { status: 404 })
-        }
+        await deleteItemCharacter(itemCharacterId)
+            .catch((error) => {
+                console.log('itemCharacterId Delete Error: ', JSON.stringify(error))
+                return new NextResponse(`Error while deleting itemCharacter with id ${itemCharacterId}`, { status: 500 })
+            })
 
         return new NextResponse(null, { status: 204 })
     } catch (error) {

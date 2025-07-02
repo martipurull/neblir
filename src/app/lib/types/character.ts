@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { paths, pathSchema } from './path'
 import { itemSchema, walletSchema } from './item'
+import { gameCharacterSchema, gameUserSchema } from './game'
 
 const religionSchema = z.enum([
     'TRITHEOLOGY',
@@ -155,6 +156,7 @@ export const characterSchema = z.object({
     notes: characterNotesSchema.optional(),
     paths: characterPathsSchema.optional(),
     userId: z.string(),
+    games: z.array(z.lazy(() => gameCharacterSchema)).optional(),
 })
 
 export const characterWithFullEquipmentSchema = characterSchema.extend({
