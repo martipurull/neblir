@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { characterCreationRequestSchema } from "../../schemas";
+import { pathSchema } from "@/app/lib/types/path";
 
 const attributePropertyNames = [
     'intelligence.investigation',
@@ -66,9 +67,11 @@ export const healthUpdateSchema = z.object({
 })
 
 export const levelUpRequestSchema = z.object({
+    healthUpdate: healthUpdateSchema,
+    pathId: z.string(),
+    featureIds: z.array(z.string()),
+    skillImprovement: generalSkillEnum,
     attributeChanges: z.array(attributeChangeSchema).max(1).optional(),
-    skillImprovement: generalSkillEnum.optional(),
-    healthUpdate: healthUpdateSchema
 }).strict()
 
 export type LevelUpRequest = z.infer<typeof levelUpRequestSchema>;

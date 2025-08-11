@@ -1,20 +1,8 @@
 import { z } from 'zod'
-import { paths, pathSchema } from './path'
+import { featureSchema, pathSchema } from './path'
 import { itemSchema, walletSchema } from './item'
-import { gameCharacterSchema, gameUserSchema } from './game'
-
-const religionSchema = z.enum([
-    'TRITHEOLOGY',
-    'PANTRITHEOLOGY',
-    'CHRISLAM',
-    'HUMANISM',
-    'CHOSEN_FAITH',
-    'FORE_CAST',
-    'ATHEIST',
-    'AGNOSTIC',
-])
-
-const raceSchema = z.enum(['KINIAN', 'HUMAN', 'FENNE', 'MANFENN'])
+import { gameCharacterSchema } from './game'
+import { Race, Religion, Status } from '@prisma/client'
 
 export const itemCharacterSchema = z.object({
     id: z.string(),
@@ -27,12 +15,14 @@ export const equipmentSchema = z.array(itemCharacterSchema)
 export const generalInformationSchema = z.object({
     name: z.string(),
     age: z.number(),
-    religion: religionSchema,
+    religion: z.nativeEnum(Religion),
     profession: z.string(),
-    race: raceSchema,
+    race: z.nativeEnum(Race),
     birthplace: z.string(),
     level: z.number(),
     avatarKey: z.string().optional().nullable(),
+    height: z.number().int(),
+    weight: z.number().int(),
 })
 
 export const healthSchema = z.object({
@@ -50,7 +40,7 @@ export const healthSchema = z.object({
         successes: z.number().max(3).default(0),
         failures: z.number().max(3).default(0)
     }).optional(),
-    status: z.enum(['ALIVE', 'DECEASED', 'DERANGED']).default('ALIVE')
+    status: z.nativeEnum(Status).default('ALIVE')
 })
 
 export const combatInformationSchema = z.object({
@@ -132,13 +122,6 @@ export const generalSkillsSchema = z.object({
     manipulationNegotiation: z.number().max(5).default(0),
 })
 
-export const characterPathsSchema = z.array(
-    z.object({
-        pathName: paths,
-        level: z.number()
-    })
-)
-
 export const characterNotesSchema = z.array(z.string())
 
 export const characterSchema = z.object({
@@ -152,15 +135,11 @@ export const characterSchema = z.object({
     }),
     path: pathSchema.optional(),
     wallet: z.lazy(() => walletSchema).optional(),
-    equipment: equipmentSchema.optional(),
+    equipment: z.array(z.lazy(() => itemSchema)).optional(),
     notes: characterNotesSchema.optional(),
-    paths: characterPathsSchema.optional(),
-    userId: z.string(),
+    paths: z.array(z.lazy(() => pathSchema)).optional(),
+    features: z.array(z.lazy(() => featureSchema)).optional(),
     games: z.array(z.lazy(() => gameCharacterSchema)).optional(),
 })
-
-export const characterWithFullEquipmentSchema = characterSchema.extend({
-    equipment: z.array(z.lazy(() => itemSchema)).optional()
-}) // This needs reviewing as its probably missing the ItemCharacter model data (just do a GET request for one character with equipment and compare)
 
 export type Character = z.infer<typeof characterSchema>

@@ -1,25 +1,22 @@
+import { PathName } from '@prisma/client'
 import { z } from 'zod'
 
-export const paths = z.enum([
-    'SCIENTIST_DOCTOR',
-    'SURVIVALIST',
-    'ANTI_HERO',
-    'SOLDIER',
-    'CON_ARTIST',
-    'SLEUTH',
-    'NERD_HERO',
-])
+export const pathName = z.nativeEnum(PathName)
 
-const featureSchema = z.object({
-    level: z.number().min(2),
+export const featureSchema = z.object({
+    level: z.number().min(1),
     name: z.string(),
     description: z.string(),
-    example: z.string().optional(),
+    applicablePaths: z.array(pathName),
+    examples: z.array(z.string()).optional().nullable(),
 })
 
+export const featureUpdateSchema = featureSchema.partial().strict()
+
 export const pathSchema = z.object({
-    name: paths,
-    features: z.array(featureSchema),
+    name: pathName,
+    level: z.number().min(1),
+    description: z.string().optional().nullable(),
 })
 
 export const pathUpdateSchema = pathSchema.partial().strict()

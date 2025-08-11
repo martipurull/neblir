@@ -87,6 +87,8 @@ type CharacterGeneralInformation {
   profession String
   race       Race
   religion   Religion
+  height     Int
+  weight     Int
 }
 
 type CharacterHealth {
@@ -198,18 +200,6 @@ type ItemDamage {
   areaEffect      AreaEffect?
 }
 
-type PathFeatures {
-  description String
-  example     String?
-  level       Int
-  name        String
-}
-
-type CharacterPath {
-  pathName PathName
-  level    Int
-}
-
 model Character {
   id                 String                      @id @default(auto()) @map("_id") @db.ObjectId
   combatInformation  CharacterCombatInformation
@@ -220,11 +210,10 @@ model Character {
   wallet             CharacterWallet[]
   equipment          ItemCharacter[]
   notes              String[]
-  paths              CharacterPath[]
-  userId             String                      @db.ObjectId
+  paths              PathCharacter[]
+  features           FeatureCharacter[]
   games              GameCharacter[]
-
-  users CharacterUser[]
+  users              CharacterUser[]
 }
 
 model CharacterUser {
@@ -284,6 +273,33 @@ model GameCharacter {
   @@index([characterId])
 }
 
+model PathCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  pathId      String @db.ObjectId
+  characterId String @db.ObjectId
+  level       Int
+
+  path      Path      @relation(fields: [pathId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([pathId, characterId])
+  @@index([pathId])
+  @@index([characterId])
+}
+
+model FeatureCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  featureId   String @db.ObjectId
+  characterId String @db.ObjectId
+
+  feature   Feature   @relation(fields: [featureId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([featureId, characterId])
+  @@index([featureId])
+  @@index([characterId])
+}
+
 model Item {
   id          String                     @id @default(auto()) @map("_id") @db.ObjectId
   attackRoll  ItemWeaponAttackRollType[]
@@ -300,10 +316,34 @@ model Item {
   ItemCharacter ItemCharacter[]
 }
 
+model Feature {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  level       Int
+  examples    String[]
+
+  applicablePaths  PathFeature[]
+  FeatureCharacter FeatureCharacter[]
+}
+
 model Path {
-  id       String         @id @default(auto()) @map("_id") @db.ObjectId
-  features PathFeatures[]
-  name     PathName
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        PathName
+  description String?
+
+  PathCharacter PathCharacter[]
+
+  applicableFeatures PathFeature[]
+}
+
+model PathFeature {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  pathId    String @db.ObjectId
+  featureId String @db.ObjectId
+
+  path    Path    @relation(fields: [pathId], references: [id])
+  feature Feature @relation(fields: [featureId], references: [id])
 }
 
 model User {

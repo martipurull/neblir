@@ -6,6 +6,8 @@ import { parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate }
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
+import { createPathCharacter, updatePathCharacter } from "@/app/lib/prisma/pathCharacter";
+import { createFeatureCharacter } from "@/app/lib/prisma/featureCharacter";
 
 export const POST = auth(async (
     request: AuthNextRequest,
@@ -34,15 +36,28 @@ export const POST = auth(async (
             return NextResponse.json({ error: error.issues }, { status: 400 })
         }
 
-
         const existingCharacter = await getCharacter(id)
         if (!existingCharacter) {
             return NextResponse.json({ error: 'Character not found' }, { status: 404 })
         }
 
-        const parsedHealthUpdate = parseHealthUpdate(parsedBody.healthUpdate, existingCharacter)
-        if (parsedHealthUpdate.error) {
-            return NextResponse.json({ error: parsedHealthUpdate.error }, { status: 400 })
+        // If the pathId is not present, create a new PathCharacter record
+        const isNewPath = !existingCharacter.paths.map(path => path.id).includes(parsedBody.pathId)
+        if (isNewPath) {
+            await createPathCharacter({ characterId: id, pathId: parsedBody.pathId, level: 1 })
+        } else {
+            // If the pathId is already present in the character's paths prop, increase its level by 1
+            await updatePathCharacter(parsedBody.pathId, { level: { increment: 1 } })
+        }
+
+        // Create CharacterFeature records for the each featureId in the request body
+        await Promise.all(parsedBody.featureIds.map(async (featureId) => {
+            createFeatureCharacter({ characterId: id, featureId: featureId })
+        }))
+
+        const healthUpdate = parseHealthUpdate(parsedBody.healthUpdate, existingCharacter)
+        if (healthUpdate.error) {
+            return NextResponse.json({ error: healthUpdate.error }, { status: 400 })
         }
 
         const attributeChanges = parseAttributeChanges(parsedBody) as {
@@ -53,7 +68,7 @@ export const POST = auth(async (
         const levelUpBodyToCompute = parseCharacterBodyToCompute(
             existingCharacter,
             attributeChanges,
-            parsedHealthUpdate,
+            healthUpdate,
             parsedBody.skillImprovement
         )
         if (levelUpBodyToCompute?.error) {

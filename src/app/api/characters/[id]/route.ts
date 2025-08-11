@@ -15,7 +15,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
             );
         }
 
-        const { id } = await params as { id: string }
+        const id = await Promise.resolve(params?.id)
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
@@ -47,7 +47,7 @@ export const DELETE = auth(async (
             );
         }
 
-        const id = await params?.id
+        const id = await Promise.resolve(params?.id)
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
