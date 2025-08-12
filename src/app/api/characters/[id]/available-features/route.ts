@@ -49,7 +49,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
             .filter(feature => feature !== undefined)
 
         const incrementalFeatures = uniqueAvailableFeatures.filter(feature => feature.maxLevel > 1)
-        const newFeatures = uniqueAvailableFeatures.filter(feature => feature.maxLevel === 1 && character.features)
+        const newFeatures = uniqueAvailableFeatures.filter(feature => feature.maxLevel === 1 && !character.features.map(characterFeature => characterFeature.featureId).includes(feature.id))
 
         return NextResponse.json({ incrementalFeatures, newFeatures }, { status: 200 })
 
