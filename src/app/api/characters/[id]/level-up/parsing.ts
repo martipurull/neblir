@@ -1,5 +1,20 @@
 import { Character } from "@prisma/client";
 import { levelUpCharacterBodySchema, LevelUpRequest } from "./schema";
+import { getFeatures } from "@/app/lib/prisma/feature";
+import { getFeatureCharacterByFeatureId } from "@/app/lib/prisma/featureCharacter";
+
+export async function areIncrementFeaturesValid(featureIds: string[], characterId: string) {
+    const existingFeatures = await getFeatures(featureIds)
+    const invalidFeatureCharacters = await Promise.all(existingFeatures.filter(async (feature) => {
+        const featureCharacter = await getFeatureCharacterByFeatureId(feature.id, characterId)
+        if (featureCharacter && featureCharacter.level + 1 > feature.maxLevel) {
+            return true
+        }
+        return false
+    }))
+
+    return invalidFeatureCharacters.length === 0
+}
 
 export function parseAttributeChanges(levelUpRequest: LevelUpRequest) {
     const fromParts = levelUpRequest?.attributeChanges?.[0]?.from?.split('.') ?? undefined;

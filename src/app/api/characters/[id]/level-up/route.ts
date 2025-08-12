@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { computeFieldsOnCharacterCreation } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
-import { parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate } from "./parsing";
+import { areIncrementFeaturesValid, parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate } from "./parsing";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import { createPathCharacter, updatePathCharacter } from "@/app/lib/prisma/pathCharacter";
-import { createFeatureCharacter } from "@/app/lib/prisma/featureCharacter";
+import { createFeatureCharacter, increaseFeatureCharacterLevel } from "@/app/lib/prisma/featureCharacter";
 
 export const POST = auth(async (
     request: AuthNextRequest,
@@ -50,10 +50,24 @@ export const POST = auth(async (
             await updatePathCharacter(parsedBody.pathId, { level: { increment: 1 } })
         }
 
-        // Create CharacterFeature records for the each featureId in the request body
-        await Promise.all(parsedBody.featureIds.map(async (featureId) => {
-            createFeatureCharacter({ characterId: id, featureId: featureId })
-        }))
+        // Increment level of existing features if present and not already at max level
+        if (parsedBody.incrementalFeatureIds.length) {
+            const incrementFeaturesAreValid = await areIncrementFeaturesValid(parsedBody.incrementalFeatureIds, id)
+            if (incrementFeaturesAreValid) {
+                await Promise.all(parsedBody.incrementalFeatureIds.map((featureId) => {
+                    return increaseFeatureCharacterLevel(featureId)
+                }))
+            } else {
+                return NextResponse.json({ error: 'Invalid increment features' }, { status: 400 })
+            }
+        }
+
+        // Create CharacterFeature records for the each newFeatureId in the request body
+        if (parsedBody.newFeatureIds.length) {
+            await Promise.all(parsedBody.newFeatureIds.map((newFeatureId) => {
+                createFeatureCharacter({ characterId: id, featureId: newFeatureId, level: 1 })
+            }))
+        }
 
         const healthUpdate = parseHealthUpdate(parsedBody.healthUpdate, existingCharacter)
         if (healthUpdate.error) {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { characterCreationRequestSchema } from "../../schemas";
 import { pathSchema } from "@/app/lib/types/path";
+import { getCharacterFeatures } from "@/app/lib/prisma/featureCharacter";
 
 const attributePropertyNames = [
     'intelligence.investigation',
@@ -69,7 +70,8 @@ export const healthUpdateSchema = z.object({
 export const levelUpRequestSchema = z.object({
     healthUpdate: healthUpdateSchema,
     pathId: z.string(),
-    featureIds: z.array(z.string()),
+    newFeatureIds: z.array(z.string()),
+    incrementalFeatureIds: z.array(z.string()),
     skillImprovement: generalSkillEnum,
     attributeChanges: z.array(attributeChangeSchema).max(1).optional(),
 }).strict()

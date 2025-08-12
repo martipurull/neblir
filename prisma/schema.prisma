@@ -273,33 +273,6 @@ model GameCharacter {
   @@index([characterId])
 }
 
-model PathCharacter {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  pathId      String @db.ObjectId
-  characterId String @db.ObjectId
-  level       Int
-
-  path      Path      @relation(fields: [pathId], references: [id])
-  character Character @relation(fields: [characterId], references: [id])
-
-  @@unique([pathId, characterId])
-  @@index([pathId])
-  @@index([characterId])
-}
-
-model FeatureCharacter {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  featureId   String @db.ObjectId
-  characterId String @db.ObjectId
-
-  feature   Feature   @relation(fields: [featureId], references: [id])
-  character Character @relation(fields: [characterId], references: [id])
-
-  @@unique([featureId, characterId])
-  @@index([featureId])
-  @@index([characterId])
-}
-
 model Item {
   id          String                     @id @default(auto()) @map("_id") @db.ObjectId
   attackRoll  ItemWeaponAttackRollType[]
@@ -321,10 +294,25 @@ model Feature {
   name        String
   description String
   level       Int
+  maxLevel    Int
   examples    String[]
 
   applicablePaths  PathFeature[]
   FeatureCharacter FeatureCharacter[]
+}
+
+model FeatureCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  featureId   String @db.ObjectId
+  characterId String @db.ObjectId
+  level       Int
+
+  feature   Feature   @relation(fields: [featureId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([featureId, characterId])
+  @@index([featureId])
+  @@index([characterId])
 }
 
 model Path {
@@ -335,6 +323,20 @@ model Path {
   PathCharacter PathCharacter[]
 
   applicableFeatures PathFeature[]
+}
+
+model PathCharacter {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  pathId      String @db.ObjectId
+  characterId String @db.ObjectId
+  level       Int
+
+  path      Path      @relation(fields: [pathId], references: [id])
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([pathId, characterId])
+  @@index([pathId])
+  @@index([characterId])
 }
 
 model PathFeature {
