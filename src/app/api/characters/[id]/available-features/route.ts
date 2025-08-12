@@ -48,10 +48,10 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
             .map(id => allAvailableFeatures.find(feature => feature.id === id))
             .filter(feature => feature !== undefined)
 
-        const incrementalFeatures = uniqueAvailableFeatures.filter(feature => feature.maxLevel > 1)
-        const newFeatures = uniqueAvailableFeatures.filter(feature => feature.maxLevel === 1 && !character.features.map(characterFeature => characterFeature.featureId).includes(feature.id))
+        const existingIncrementalFeatures = uniqueAvailableFeatures.filter(feature => character.features.map(characterFeature => characterFeature.featureId).includes(feature.id) && feature.maxLevel > 1)
+        const newFeatures = uniqueAvailableFeatures.filter(feature => !character.features.map(characterFeature => characterFeature.featureId).includes(feature.id))
 
-        return NextResponse.json({ incrementalFeatures, newFeatures }, { status: 200 })
+        return NextResponse.json({ existingIncrementalFeatures, newFeatures }, { status: 200 })
 
     } catch (error) {
         console.log('available-features route GET error: ', error)
