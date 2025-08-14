@@ -23,10 +23,10 @@ export async function getFeatureCharacterByFeatureId(featureId: string, characte
         })
 }
 
-export async function increaseFeatureCharacterLevel(id: string) {
+export async function increaseFeatureCharacterGrade(id: string) {
     return prisma.featureCharacter.update({
         where: { id },
-        data: { level: { increment: 1 } }
+        data: { grade: { increment: 1 } }
     });
 }
 

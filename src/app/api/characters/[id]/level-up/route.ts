@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import { createPathCharacter, updatePathCharacter } from "@/app/lib/prisma/pathCharacter";
-import { createFeatureCharacter, increaseFeatureCharacterLevel } from "@/app/lib/prisma/featureCharacter";
+import { createFeatureCharacter, increaseFeatureCharacterGrade } from "@/app/lib/prisma/featureCharacter";
 
 export const POST = auth(async (
     request: AuthNextRequest,
@@ -41,31 +41,31 @@ export const POST = auth(async (
             return NextResponse.json({ error: 'Character not found' }, { status: 404 })
         }
 
-        // If the pathId is not present, create a new PathCharacter record
+        // If the pathId is not present, create a new PathCharacter record at rank 1
         const isNewPath = !existingCharacter.paths.map(path => path.id).includes(parsedBody.pathId)
         if (isNewPath) {
-            await createPathCharacter({ characterId: id, pathId: parsedBody.pathId, level: 1 })
+            await createPathCharacter({ characterId: id, pathId: parsedBody.pathId, rank: 1 })
         } else {
-            // If the pathId is already present in the character's paths prop, increase its level by 1
-            await updatePathCharacter(parsedBody.pathId, { level: { increment: 1 } })
+            // If the pathId is already present in the character's paths prop, increase its rank by 1
+            await updatePathCharacter(parsedBody.pathId, { rank: { increment: 1 } })
         }
 
-        // Increment level of existing features if present and not already at max level
+        // Increment grade of existing features if present and not already at max grade
         if (parsedBody.incrementalFeatureIds.length) {
             const incrementFeaturesAreValid = await areIncrementFeaturesValid(parsedBody.incrementalFeatureIds, id)
             if (incrementFeaturesAreValid) {
                 await Promise.all(parsedBody.incrementalFeatureIds.map((featureId) => {
-                    return increaseFeatureCharacterLevel(featureId)
+                    return increaseFeatureCharacterGrade(featureId)
                 }))
             } else {
                 return NextResponse.json({ error: 'Invalid increment features' }, { status: 400 })
             }
         }
 
-        // Create CharacterFeature records for the each newFeatureId in the request body
+        // Create CharacterFeature records for the each newFeatureId in the request body at grade 1
         if (parsedBody.newFeatureIds.length) {
             await Promise.all(parsedBody.newFeatureIds.map((newFeatureId) => {
-                createFeatureCharacter({ characterId: id, featureId: newFeatureId, level: 1 })
+                createFeatureCharacter({ characterId: id, featureId: newFeatureId, grade: 1 })
             }))
         }
 

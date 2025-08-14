@@ -18,7 +18,7 @@ export async function getFeatures(ids: string[]) {
     return prisma.feature.findMany({ where: { id: { in: ids } } })
 }
 
-export async function getFeaturesAvailableForPathCharacter(pathId: string, pathCharacterLevel: number) {
+export async function getFeaturesAvailableForPathCharacter(pathId: string, pathCharacterRank: number) {
     return prisma.feature.findMany({
         where: {
             applicablePaths: {
@@ -26,7 +26,7 @@ export async function getFeaturesAvailableForPathCharacter(pathId: string, pathC
                     pathId: pathId,
                 }
             },
-            level: { lte: pathCharacterLevel }
+            minPathRank: { lte: pathCharacterRank }
         }
     })
 }

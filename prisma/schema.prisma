@@ -32,11 +32,12 @@ enum ItemWeaponDamageType {
 enum PathName {
   SCIENTIST_DOCTOR
   SURVIVALIST
-  ANTI_HERO
+  ANTIHERO
   SOLDIER
   CON_ARTIST
   SLEUTH
   NERD_HERO
+  TECHNO_CRAFTER
 }
 
 enum Race {
@@ -293,8 +294,8 @@ model Feature {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
-  level       Int
-  maxLevel    Int
+  minPathRank Int
+  maxGrade    Int
   examples    String[]
 
   applicablePaths  PathFeature[]
@@ -305,7 +306,7 @@ model FeatureCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   featureId   String @db.ObjectId
   characterId String @db.ObjectId
-  level       Int
+  grade       Int
 
   feature   Feature   @relation(fields: [featureId], references: [id])
   character Character @relation(fields: [characterId], references: [id])
@@ -319,6 +320,7 @@ model Path {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        PathName
   description String?
+  baseFeature String
 
   PathCharacter PathCharacter[]
 
@@ -329,7 +331,7 @@ model PathCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   pathId      String @db.ObjectId
   characterId String @db.ObjectId
-  level       Int
+  rank        Int
 
   path      Path      @relation(fields: [pathId], references: [id])
   character Character @relation(fields: [characterId], references: [id])

@@ -1,5 +1,5 @@
-// Get character's path ids and PathCharacter levels with character id
-// For each PathCharacter, getFeaturesAvailableForPathCharacter (gets features available for the character's path and pathCharacter level)
+// Get character's path ids and PathCharacter ranks with character id
+// For each PathCharacter, getFeaturesAvailableForPathCharacter (gets features available for the character's path and pathCharacter rank)
 // Combine all unique features (no duplicates) for all PathCharacters
 // Return the features
 
@@ -37,7 +37,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         const allAvailableFeatures = (
             await Promise.all(
                 character.paths.map(async (path) =>
-                    await getFeaturesAvailableForPathCharacter(path.pathId, path.level)
+                    await getFeaturesAvailableForPathCharacter(path.pathId, path.rank)
                 )
             )
         ).flat()
@@ -48,7 +48,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
             .map(id => allAvailableFeatures.find(feature => feature.id === id))
             .filter(feature => feature !== undefined)
 
-        const existingIncrementalFeatures = uniqueAvailableFeatures.filter(feature => character.features.map(characterFeature => characterFeature.featureId).includes(feature.id) && feature.maxLevel > 1)
+        const existingIncrementalFeatures = uniqueAvailableFeatures.filter(feature => character.features.map(characterFeature => characterFeature.featureId).includes(feature.id) && feature.maxGrade > 1)
         const newFeatures = uniqueAvailableFeatures.filter(feature => !character.features.map(characterFeature => characterFeature.featureId).includes(feature.id))
 
         return NextResponse.json({ existingIncrementalFeatures, newFeatures }, { status: 200 })

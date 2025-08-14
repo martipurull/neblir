@@ -4,7 +4,8 @@ import { z } from 'zod'
 export const pathName = z.nativeEnum(PathName)
 
 export const featureSchema = z.object({
-    level: z.number().min(1),
+    minPathRank: z.number().min(1),
+    maxGrade: z.number().min(1).max(4),
     name: z.string(),
     description: z.string(),
     applicablePaths: z.array(pathName),
@@ -15,8 +16,8 @@ export const featureUpdateSchema = featureSchema.partial().strict()
 
 export const pathSchema = z.object({
     name: pathName,
-    level: z.number().min(1),
-    description: z.string().optional().nullable(),
+    baseFeature: z.string(),
+    description: z.string().nullish(),
 })
 
 export const pathUpdateSchema = pathSchema.partial().strict()

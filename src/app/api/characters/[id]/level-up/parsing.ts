@@ -7,7 +7,7 @@ export async function areIncrementFeaturesValid(featureIds: string[], characterI
     const existingFeatures = await getFeatures(featureIds)
     const invalidFeatureCharacters = await Promise.all(existingFeatures.filter(async (feature) => {
         const featureCharacter = await getFeatureCharacterByFeatureId(feature.id, characterId)
-        if (featureCharacter && featureCharacter.level + 1 > feature.maxLevel) {
+        if (featureCharacter && featureCharacter.grade + 1 > feature.maxGrade) {
             return true
         }
         return false
