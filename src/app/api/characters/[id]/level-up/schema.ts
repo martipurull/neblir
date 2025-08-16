@@ -1,7 +1,5 @@
 import { z } from "zod";
 import { characterCreationRequestSchema } from "../../schemas";
-import { pathSchema } from "@/app/lib/types/path";
-import { getCharacterFeatures } from "@/app/lib/prisma/featureCharacter";
 
 const attributePropertyNames = [
     'intelligence.investigation',

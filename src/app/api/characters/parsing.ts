@@ -1,10 +1,21 @@
 import { CharacterCreationRequest } from "./schemas";
 
+export function calculateReactionsPerRound(level: number): number {
+    if (level === 3) {
+        return 2
+    }
+    if (level >= 4) {
+        return 3
+    }
+    return 1
+}
+
 export function computeFieldsOnCharacterCreation(parsedCharacterCreationRequest: CharacterCreationRequest) {
     const innatePhysicalHealth = Object.values(parsedCharacterCreationRequest.innateAttributes.constitution).reduce((acc, val) => acc + val, 0)
     const maxPhysicalHealth = innatePhysicalHealth + parsedCharacterCreationRequest.health.rolledPhysicalHealth
     const innateMentalHealth = Object.values(parsedCharacterCreationRequest.innateAttributes.personality).reduce((acc, val) => acc + val, 0)
     const maxMentalHealth = innateMentalHealth + parsedCharacterCreationRequest.health.rolledMentalHealth
+    const reactionsPerRound = calculateReactionsPerRound(parsedCharacterCreationRequest.generalInformation.level)
 
     const innateAttributesSum =
         Object.values(
@@ -52,6 +63,7 @@ export function computeFieldsOnCharacterCreation(parsedCharacterCreationRequest:
             ...parsedCharacterCreationRequest.combatInformation,
             initiativeMod: parsedCharacterCreationRequest.innateAttributes.personality.mentality + parsedCharacterCreationRequest.innateAttributes.dexterity.agility,
             speed: parsedCharacterCreationRequest.innateAttributes.strength.athletics + parsedCharacterCreationRequest.innateAttributes.dexterity.agility + 10,
+            reactionsPerRound: reactionsPerRound,
             rangeAttackMod: parsedCharacterCreationRequest.innateAttributes.dexterity.manual + parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
             meleeAttackMod: parsedCharacterCreationRequest.innateAttributes.strength.bruteForce + parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
             GridAttackMod: parsedCharacterCreationRequest.combatInformation.GridMod + parsedCharacterCreationRequest.innateAttributes.personality.mentality + parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,

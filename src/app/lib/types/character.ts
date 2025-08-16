@@ -46,6 +46,7 @@ export const healthSchema = z.object({
 export const combatInformationSchema = z.object({
     initiativeMod: z.number(), // Needs to be computed
     speed: z.number(), // Needs to be computed
+    reactionsPerRound: z.number(), // Needs to be computed
     armourMod: z.number().default(0),
     armourMaxHP: z.number().default(0),
     armourCurrentHP: z.number().default(0),

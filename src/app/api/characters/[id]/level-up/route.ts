@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { computeFieldsOnCharacterCreation } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
-import { areIncrementFeaturesValid, parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate } from "./parsing";
+import { areIncrementFeaturesValid, calculateNewReactionsPerRound, parseAttributeChanges, parseCharacterBodyToCompute, parseHealthUpdate } from "./parsing";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import { createPathCharacter, updatePathCharacter } from "@/app/lib/prisma/pathCharacter";
-import { createFeatureCharacter, increaseFeatureCharacterGrade } from "@/app/lib/prisma/featureCharacter";
+import { createFeatureCharacter, getCharacterFeatures, increaseFeatureCharacterGrade } from "@/app/lib/prisma/featureCharacter";
 
 export const POST = auth(async (
     request: AuthNextRequest,
@@ -69,6 +69,9 @@ export const POST = auth(async (
             }))
         }
 
+        // Calculate new number of reactions per round if relevant
+        const newReactionsPerRound = await calculateNewReactionsPerRound(existingCharacter.generalInformation.level, id)
+
         const healthUpdate = parseHealthUpdate(parsedBody.healthUpdate, existingCharacter)
         if (healthUpdate.error) {
             return NextResponse.json({ error: healthUpdate.error }, { status: 400 })
@@ -83,7 +86,8 @@ export const POST = auth(async (
             existingCharacter,
             attributeChanges,
             healthUpdate,
-            parsedBody.skillImprovement
+            parsedBody.skillImprovement,
+            newReactionsPerRound
         )
         if (levelUpBodyToCompute?.error) {
             return NextResponse.json({ error: levelUpBodyToCompute.error.issues }, { status: 400 })

@@ -21,6 +21,7 @@ export const characterCreationRequestSchema = z.object({
     combatInformation: combatInformationSchema.omit({
         initiativeMod: true,
         speed: true,
+        reactionsPerRound: true,
         rangeAttackMod: true,
         meleeAttackMod: true,
         GridAttackMod: true,

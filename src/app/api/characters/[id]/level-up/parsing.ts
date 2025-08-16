@@ -1,7 +1,8 @@
 import { Character } from "@prisma/client";
 import { levelUpCharacterBodySchema, LevelUpRequest } from "./schema";
 import { getFeatures } from "@/app/lib/prisma/feature";
-import { getFeatureCharacterByFeatureId } from "@/app/lib/prisma/featureCharacter";
+import { getCharacterFeatures, getFeatureCharacterByFeatureId } from "@/app/lib/prisma/featureCharacter";
+import { combatInformationSchema } from "@/app/lib/types/character";
 
 export async function areIncrementFeaturesValid(featureIds: string[], characterId: string) {
     const existingFeatures = await getFeatures(featureIds)
@@ -50,13 +51,38 @@ export function parseHealthUpdate(healthUpdate: LevelUpRequest['healthUpdate'], 
     }
 }
 
+export async function calculateNewReactionsPerRound(
+    existingCharacterLevel: number,
+    existingCharacterId: string
+) {
+    const newCharacterLevel = existingCharacterLevel + 1
+    if (newCharacterLevel >= 4) {
+        const characterFeatures = await getCharacterFeatures(existingCharacterId)
+        const legendaryDodger = characterFeatures.find(cf => cf.feature.name === 'Legendary Dodger')
+        if (legendaryDodger) {
+            if (legendaryDodger.grade >= 5) {
+                return 100
+            } else if (legendaryDodger.grade >= 3) {
+                return 5
+            } else {
+                return 4
+            }
+        } else {
+            return 3
+        }
+    } else if (newCharacterLevel === 3) {
+        return 2
+    }
+}
+
 export function parseCharacterBodyToCompute(
     existingCharacter: Character,
     attributeChanges: ReturnType<typeof parseAttributeChanges>,
     healthUpdate: ReturnType<typeof parseHealthUpdate>,
-    skillImprovement: LevelUpRequest['skillImprovement']
+    skillImprovement: LevelUpRequest['skillImprovement'],
+    reactionsPerRound?: number
 ) {
-    // instead of returning the constrcted object,
+    // instead of returning the constructed object,
     // safeParse it first with zod to strip any unrecognised keys, such as the id, 
     // which will otherwise be rejected when included in the update body for prisma
     const updateBody = {
@@ -70,6 +96,12 @@ export function parseCharacterBodyToCompute(
             rolledPhysicalHealth: healthUpdate.newRolledPhysicalHealth ?? 0,
             rolledMentalHealth: healthUpdate.newRolledMentalHealth ?? 0,
         },
+        ...(reactionsPerRound && {
+            combatInformation: {
+                ...existingCharacter.combatInformation,
+                reactionsPerRound: reactionsPerRound,
+            }
+        }),
         ...(attributeChanges && {
             innateAttributes: {
                 ...existingCharacter.innateAttributes,

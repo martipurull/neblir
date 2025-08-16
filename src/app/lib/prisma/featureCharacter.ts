@@ -6,7 +6,7 @@ export async function createFeatureCharacter(data: Prisma.FeatureCharacterUnchec
 }
 
 export async function getCharacterFeatures(characterId: string) {
-    return prisma.featureCharacter.findMany({ where: { characterId } })
+    return prisma.featureCharacter.findMany({ where: { characterId }, include: { feature: true } })
 }
 
 export async function getFeatureCharacter(id: string) {
