@@ -38,6 +38,7 @@ enum PathName {
   SLEUTH
   NERD_HERO
   TECHNO_CRAFTER
+  URBAN_ROVER
 }
 
 enum Race {
@@ -291,14 +292,15 @@ model Item {
 }
 
 model Feature {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  minPathRank Int
-  maxGrade    Int
-  examples    String[]
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  description     String
+  minPathRank     Int
+  maxGrade        Int
+  examples        String[]
+  applicablePaths PathName[]
 
-  applicablePaths  PathFeature[]
+  pathFeature      PathFeature[]
   FeatureCharacter FeatureCharacter[]
 }
 
