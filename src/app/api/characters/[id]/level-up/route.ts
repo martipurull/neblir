@@ -19,7 +19,7 @@ export const POST = auth(async (
             return errorResponse('Unauthorised', 401)
         }
 
-        const { id } = await params as { id: string }
+        const id = await Promise.resolve(params?.id)
         if (!id || typeof id !== 'string') {
             return errorResponse('Invalid character ID', 400)
         }
