@@ -2,37 +2,40 @@ import { Character } from "@prisma/client";
 import { levelUpCharacterBodySchema, LevelUpRequest } from "./schema";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import { getCharacterFeatures, getFeatureCharacterByFeatureId } from "@/app/lib/prisma/featureCharacter";
-import { combatInformationSchema } from "@/app/lib/types/character";
 
-export async function areIncrementFeaturesValid(featureIds: string[], characterId: string) {
-    const existingFeatures = await getFeatures(featureIds)
-    const invalidFeatureCharacters = await Promise.all(existingFeatures.filter(async (feature) => {
-        const featureCharacter = await getFeatureCharacterByFeatureId(feature.id, characterId)
-        if (featureCharacter && featureCharacter.grade + 1 > feature.maxGrade) {
-            return true
-        }
+
+export async function areIncrementFeaturesValid(characterId: string, featureIds?: string[]) {
+    if (!featureIds || !featureIds.length) {
         return false
+    }
+    const existingFeatures = await getFeatures(featureIds)
+    const incrementFeatureChecks = await Promise.all(existingFeatures.map(async (feature) => {
+        const featureCharacter = await getFeatureCharacterByFeatureId(feature.id, characterId)
+        return featureCharacter && featureCharacter.grade + 1 <= feature.maxGrade
     }))
 
-    return invalidFeatureCharacters.length === 0
+    return incrementFeatureChecks.every(valid => valid)
 }
 
-export function parseAttributeChanges(levelUpRequest: LevelUpRequest) {
-    const fromParts = levelUpRequest?.attributeChanges?.[0]?.from?.split('.') ?? undefined;
-    const toParts = levelUpRequest?.attributeChanges?.[0]?.to?.split('.') ?? undefined;
-    if (!fromParts || !toParts) {
-        return undefined;
+export function parseAttributeChanges(attributeChanges: LevelUpRequest['attributeChanges']) {
+    if (!attributeChanges || !attributeChanges.length) {
+        return undefined
     }
-    return {
-        from: {
-            attribute: fromParts[0],
-            property: fromParts[1],
-        },
-        to: {
-            attribute: toParts[0],
-            property: toParts[1],
-        },
-    }
+    return attributeChanges.map(change => {
+        const fromParts = change.from.split('.')
+        const toParts = change.to.split('.')
+
+        return {
+            from: {
+                attribute: fromParts[0],
+                property: fromParts[1],
+            },
+            to: {
+                attribute: toParts[0],
+                property: toParts[1],
+            },
+        }
+    })
 }
 
 export function parseHealthUpdate(healthUpdate: LevelUpRequest['healthUpdate'], existingCharacter: Character) {
@@ -72,19 +75,18 @@ export async function calculateNewReactionsPerRound(
         }
     } else if (newCharacterLevel === 3) {
         return 2
+    } else {
+        return 1
     }
 }
 
 export function parseCharacterBodyToCompute(
     existingCharacter: Character,
-    attributeChanges: ReturnType<typeof parseAttributeChanges>,
     healthUpdate: ReturnType<typeof parseHealthUpdate>,
+    reactionsPerRound: number,
     skillImprovement: LevelUpRequest['skillImprovement'],
-    reactionsPerRound?: number
+    attributeChanges: ReturnType<typeof parseAttributeChanges>,
 ) {
-    // instead of returning the constructed object,
-    // safeParse it first with zod to strip any unrecognised keys, such as the id, 
-    // which will otherwise be rejected when included in the update body for prisma
     const updateBody = {
         ...existingCharacter,
         generalInformation: {
@@ -93,31 +95,37 @@ export function parseCharacterBodyToCompute(
         },
         health: {
             ...existingCharacter.health,
-            rolledPhysicalHealth: healthUpdate.newRolledPhysicalHealth ?? 0,
-            rolledMentalHealth: healthUpdate.newRolledMentalHealth ?? 0,
+            rolledPhysicalHealth: healthUpdate.newRolledPhysicalHealth,
+            rolledMentalHealth: healthUpdate.newRolledMentalHealth,
         },
-        ...(reactionsPerRound && {
-            combatInformation: {
-                ...existingCharacter.combatInformation,
-                reactionsPerRound: reactionsPerRound,
-            }
-        }),
-        ...(attributeChanges && {
-            innateAttributes: {
-                ...existingCharacter.innateAttributes,
-                [`${attributeChanges.from.attribute}.${attributeChanges.from.property}`]: (existingCharacter.innateAttributes[attributeChanges.from.attribute as keyof typeof existingCharacter.innateAttributes] as Record<string, number>)[attributeChanges.from.property] - 1,
-                [`${attributeChanges.to.attribute}.${attributeChanges.to.property}`]: (existingCharacter.innateAttributes[attributeChanges.to.attribute as keyof typeof existingCharacter.innateAttributes] as Record<string, number>)[attributeChanges.to.property] + 1,
-            }
-        }),
+        combatInformation: {
+            ...existingCharacter.combatInformation,
+            reactionsPerRound: reactionsPerRound,
+        },
         ...(skillImprovement && {
             learnedSkills: {
                 ...existingCharacter.learnedSkills,
                 generalSkills: {
                     ...existingCharacter.learnedSkills.generalSkills,
-                    [skillImprovement]: (existingCharacter.learnedSkills.generalSkills as Record<string, number>)[skillImprovement] + 1,
+                    [skillImprovement]: ((existingCharacter.learnedSkills.generalSkills as Record<string, number>)[skillImprovement] ?? 0) + 1,
                 }
             }
-        })
+        }),
+        ...(attributeChanges && attributeChanges.length && {
+            innateAttributes: {
+                ...existingCharacter.innateAttributes,
+                ...(attributeChanges.reduce((acc, change) => {
+                    const fromCurrent = (existingCharacter.innateAttributes[change.from.attribute as keyof typeof existingCharacter.innateAttributes] as Record<string, number>)[change.from.property] ?? 2
+                    const toCurrent = (existingCharacter.innateAttributes[change.to.attribute as keyof typeof existingCharacter.innateAttributes] as Record<string, number>)[change.to.property] ?? 1
+                    acc[`${change.from.attribute}.${change.from.property}`] =
+                        fromCurrent - 1;
+                    acc[`${change.to.attribute}.${change.to.property}`] =
+                        toCurrent + 1;
+                    return acc;
+                }, {} as Record<string, number>))
+            }
+
+        }),
     }
     const parsedUpdateBody = levelUpCharacterBodySchema.safeParse(updateBody)
     if (parsedUpdateBody.error) {
