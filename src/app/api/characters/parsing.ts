@@ -1,3 +1,4 @@
+import { ValidationError } from "../shared/errors";
 import { CharacterCreationRequest } from "./schemas";
 
 export function calculateReactionsPerRound(level: number): number {
@@ -17,31 +18,32 @@ export function computeFieldsOnCharacterCreation(parsedCharacterCreationRequest:
     const maxMentalHealth = innateMentalHealth + parsedCharacterCreationRequest.health.rolledMentalHealth
     const reactionsPerRound = calculateReactionsPerRound(parsedCharacterCreationRequest.generalInformation.level)
 
-    const innateAttributesSum =
-        Object.values(
-            parsedCharacterCreationRequest.innateAttributes.intelligence).reduce((acc, val) => acc + val, 0)
-        + Object.values(
-            parsedCharacterCreationRequest.innateAttributes.wisdom).reduce((acc, val) => acc + val, 0)
-        + Object.values(
-            parsedCharacterCreationRequest.innateAttributes.personality).reduce((acc, val) => acc + val, 0)
-        + Object.values(
-            parsedCharacterCreationRequest.innateAttributes.strength).reduce((acc, val) => acc + val, 0)
-        + Object.values(
-            parsedCharacterCreationRequest.innateAttributes.dexterity).reduce((acc, val) => acc + val, 0)
-        + Object.values(
-            parsedCharacterCreationRequest.innateAttributes.constitution).reduce((acc, val) => acc + val, 0)
+    const innateAttributesGroups = [
+        'intelligence', 'wisdom', 'personality', 'strength', 'dexterity', 'constitution'
+    ] as const;
+
+    type InnateAttributeGroup = typeof innateAttributesGroups[number];
+
+    const innateAttributesSum = innateAttributesGroups.reduce((total, group) => {
+        const groupValues = Object.values(
+            parsedCharacterCreationRequest.innateAttributes[group as InnateAttributeGroup]
+        ) as number[];
+        return total + groupValues.reduce((acc: number, val: number) => acc + val, 0);
+    }, 0);
+
 
     if (innateAttributesSum > 30) {
-        return null
+        throw new ValidationError('Innate attributes sum exceeds the allowed maximum of 30')
     }
 
     const learnedSkillsMax = (12 + (parsedCharacterCreationRequest.generalInformation.level - 1) + (3 - (parsedCharacterCreationRequest.learnedSkills.specialSkills?.length ?? 0)))
+    // If a learned skill is at max level (5), it counts as 2 towards the total
     const learnedSkillsSum =
         Object.values(parsedCharacterCreationRequest.learnedSkills.generalSkills)
             .reduce((acc, val) => acc + (val === 5 ? val + 1 : val), 0)
 
     if (learnedSkillsSum > learnedSkillsMax) {
-        return null
+        throw new ValidationError('Learned skills sum exceeds the allowed maximum')
     }
 
     return {
