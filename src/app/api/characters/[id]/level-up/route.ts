@@ -7,8 +7,9 @@ import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import { createPathCharacter, updatePathCharacter } from "@/app/lib/prisma/pathCharacter";
-import { createFeatureCharacter, getCharacterFeatures, increaseFeatureCharacterGrade } from "@/app/lib/prisma/featureCharacter";
+import { createFeatureCharacter, increaseFeatureCharacterGrade } from "@/app/lib/prisma/featureCharacter";
 import { errorResponse } from "@/app/api/shared/responses";
+import logger from "@/logger";
 
 export const POST = auth(async (
     request: AuthNextRequest,
@@ -16,25 +17,30 @@ export const POST = auth(async (
 ) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Unauthorised access attempt' })
             return errorResponse('Unauthorised', 401)
         }
 
         const id = await Promise.resolve(params?.id)
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Invalid character ID', characterId: id })
             return errorResponse('Invalid character ID', 400)
         }
         if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Character does not belong to user', characterId: id })
             return errorResponse("This is not one of your characters.", 403)
         }
 
         const requestBody = await request.json()
         const parseResult = levelUpRequestSchema.safeParse(requestBody);
         if (!parseResult.success) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error parsing level up request', details: parseResult.error.issues })
             return errorResponse('Invalid request body', 400, JSON.stringify(parseResult.error.issues))
         }
 
         const existingCharacter = await getCharacter(id)
         if (!existingCharacter) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Character not found', characterId: id })
             return errorResponse('Character not found', 404)
         }
 
@@ -44,6 +50,7 @@ export const POST = auth(async (
 
         const healthUpdate = parseHealthUpdate(parsedBody.healthUpdate, existingCharacter)
         if (healthUpdate.error || !healthUpdate.newRolledMentalHealth || !healthUpdate.newRolledPhysicalHealth) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Invalid health update', characterId: id, error: healthUpdate.error })
             return errorResponse(healthUpdate.error ?? 'Invalid health update', 400)
         }
 
@@ -59,11 +66,13 @@ export const POST = auth(async (
             attributeChanges,
         )
         if (levelUpBodyToCompute?.error) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error in level up data', characterId: id, details: levelUpBodyToCompute.error.issues })
             return errorResponse('Error in level up data', 400, JSON.stringify(levelUpBodyToCompute.error.issues))
         }
 
         const characterUpdateData = computeFieldsOnCharacterCreation(levelUpBodyToCompute.updateBody)
         if (!characterUpdateData) {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error while computing character level up data', characterId: id })
             return errorResponse('Error while computing character level up data.', 400, 'Check changes to attributes and learned skills.')
         }
 
@@ -77,7 +86,7 @@ export const POST = auth(async (
                 await updatePathCharacter(parsedBody.pathId, { rank: { increment: 1 } })
             }
         } catch (error) {
-            console.error('Error while creating or updating path character: ', error)
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error while creating or updating path character', characterId: id, error })
             return errorResponse('Error while creating or updating path character', 500)
         }
 
@@ -90,10 +99,11 @@ export const POST = auth(async (
                     return increaseFeatureCharacterGrade(featureId)
                 }))
             } catch (error) {
-                console.error('Error while increasing feature character grades: ', error)
+                logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error while increasing feature character grades', characterId: id, error })
                 return errorResponse('Error while increasing feature character grades', 500)
             }
         } else {
+            logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Invalid increment features', characterId: id, incrementalFeatureIds: parsedBody.incrementalFeatureIds })
             return errorResponse('Invalid increment features', 400)
         }
 
@@ -104,7 +114,7 @@ export const POST = auth(async (
                     return createFeatureCharacter({ characterId: id, featureId: newFeatureId, grade: 1 })
                 }))
             } catch (error) {
-                console.error('Error while creating feature character: ', error)
+                logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error while creating feature character', characterId: id, error })
                 return errorResponse('Error while creating feature character', 500)
             }
         }
@@ -114,7 +124,7 @@ export const POST = auth(async (
         return NextResponse.json(updatedCharacter, { status: 200 })
 
     } catch (error) {
-        console.error('characters route POST error: ', error)
+        logger.error({ method: 'POST', route: '/api/characters/[id]/level-up', message: 'Error processing level up request', error })
         return errorResponse('Internal Server Error', 500)
     }
 })

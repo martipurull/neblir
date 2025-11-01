@@ -4,6 +4,7 @@ import { healthUpdateSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
+import logger from "@/logger";
 
 export const PATCH = auth(async (
     request: AuthNextRequest,
@@ -11,6 +12,7 @@ export const PATCH = auth(async (
 ) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Unauthorised access attempt' })
             return NextResponse.json(
                 { message: "Unauthorised" },
                 { status: 401 },
@@ -19,26 +21,32 @@ export const PATCH = auth(async (
 
         const { id } = await params as { id: string }
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Invalid character ID', characterId: id })
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
         if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Character does not belong to user', characterId: id })
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 
         const requestBody = await request.json()
         const { data: parsedBody, error } = healthUpdateSchema.safeParse(requestBody);
         if (error) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Error parsing health update request', details: error })
             return NextResponse.json({ message: error.issues }, { status: 400 })
         }
 
         const existingCharacter = await getCharacter(id)
         if (!existingCharacter) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Character not found', characterId: id })
             return NextResponse.json({ message: 'Character not found' }, { status: 404 })
         }
         if (parsedBody.currentPhysicalHealth && parsedBody.currentPhysicalHealth > existingCharacter.health.maxPhysicalHealth) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Current physical health cannot be greater than max physical health', characterId: id, currentPhysicalHealth: parsedBody.currentPhysicalHealth, maxPhysicalHealth: existingCharacter.health.maxPhysicalHealth })
             return NextResponse.json({ message: 'Current physical health cannot be greater than max physical health' }, { status: 400 })
         }
         if (parsedBody.currentMentalHealth && parsedBody.currentMentalHealth > existingCharacter.health.maxMentalHealth) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Current mental health cannot be greater than max mental health', characterId: id, currentMentalHealth: parsedBody.currentMentalHealth, maxMentalHealth: existingCharacter.health.maxMentalHealth })
             return NextResponse.json({ message: 'Current mental health cannot be greater than max mental health' }, { status: 400 })
         }
 
@@ -57,7 +65,7 @@ export const PATCH = auth(async (
         return NextResponse.json(updatedCharacter, { status: 200 })
 
     } catch (error) {
-        console.log('characters route PATCH error: ', error)
+        logger.error({ method: 'PATCH', route: '/api/characters/[id]/health', message: 'Error updating health', error })
         return NextResponse.error()
     }
 })

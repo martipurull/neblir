@@ -9,7 +9,7 @@ export async function getCharacter(id: string) {
     return prisma.character.findUnique({
         where: { id },
         include: {
-            equipment: { include: { item: true } },
+            inventory: { include: { item: true } },
             paths: { include: { path: true } },
             features: { include: { feature: true } }
         }

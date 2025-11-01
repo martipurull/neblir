@@ -4,6 +4,7 @@ import { combatInformationUpdateRequestSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
+import logger from "@/logger";
 
 export const PATCH = auth(async (
     request: AuthNextRequest,
@@ -11,6 +12,7 @@ export const PATCH = auth(async (
 ) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'Unauthorised access attempt' })
             return NextResponse.json(
                 { message: "Unauthorised" },
                 { status: 401 },
@@ -19,17 +21,23 @@ export const PATCH = auth(async (
 
         const { id } = await params as { id: string }
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'Invalid character ID', characterId: id })
             return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
         }
         if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'Character does not belong to user', characterId: id })
             return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
         }
 
         const requestBody = await request.json()
         const { data: parsedBody, error } = combatInformationUpdateRequestSchema.safeParse(requestBody);
-        if (error) throw error
+        if (error) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'Error parsing combat information update request', details: error })
+            return NextResponse.json({ message: error.issues }, { status: 400 })
+        }
         const existingCharacter = await getCharacter(id)
         if (!existingCharacter?.combatInformation) {
+            logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'No combat information found in character', characterId: id })
             return NextResponse.json('No combat information found in request', { status: 400 })
         }
 
@@ -75,7 +83,7 @@ export const PATCH = auth(async (
         return NextResponse.json(updatedCharacter, { status: 200 })
 
     } catch (error) {
-        console.log('characters route PATCH error: ', error)
+        logger.error({ method: 'PATCH', route: '/api/characters/[id]/combat-info', message: 'Error updating combat information', error })
         return NextResponse.error()
     }
 })

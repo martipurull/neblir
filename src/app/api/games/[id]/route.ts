@@ -1,16 +1,14 @@
-// We should be able to GET a game by id
-// We should be able to DELETE a game by id
-// We should be able to PATCH a game by id to add a character and user to a game
-
 import { getGame, deleteGame, updateGame } from "@/app/lib/prisma/game";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
+import logger from "@/logger";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'GET', route: '/api/games/[id]', message: 'Unauthorised access attempt' })
             return NextResponse.json(
                 { message: "Unauthorised" },
                 { status: 401 },
@@ -19,17 +17,19 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
 
         const { id } = await params as { id: string }
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'GET', route: '/api/games/[id]', message: 'Invalid game ID', gameId: id })
             return NextResponse.json({ message: "Invalid game ID" }, { status: 400 })
         }
 
         const game = await getGame(id);
         if (!game) {
+            logger.error({ method: 'GET', route: '/api/games/[id]', message: 'Game not found', gameId: id })
             return NextResponse.json({ message: 'Game not found' }, { status: 404 })
         }
 
         return NextResponse.json(game, { status: 200 });
     } catch (error) {
-        console.log('games route GET by id error: ', error);
+        logger.error({ method: 'GET', route: '/api/games/[id]', message: 'Error fetching game', error })
         return NextResponse.error();
     }
 });
@@ -37,6 +37,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'PATCH', route: '/api/games/[id]', message: 'Unauthorised access attempt' })
             return NextResponse.json(
                 { message: "Unauthorised" },
                 { status: 401 },
@@ -45,12 +46,14 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
         const { id } = await params as { id: string }
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'PATCH', route: '/api/games/[id]', message: 'Invalid game ID', gameId: id })
             return NextResponse.json({ message: "Invalid game ID" }, { status: 400 })
         }
 
         const requestBody = await request.json();
         const { data: parsedBody, error } = gameUpdateSchema.safeParse(requestBody)
         if (error) {
+            logger.error({ method: 'PATCH', route: '/api/games/[id]', message: 'Error parsing game update request', details: error })
             return NextResponse.json({ message: error.issues }, { status: 400 })
         }
 
@@ -58,7 +61,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
         return NextResponse.json(updatedGame, { status: 200 });
     } catch (error) {
-        console.log('games route PATCH error: ', error);
+        logger.error({ method: 'PATCH', route: '/api/games/[id]', message: 'Error updating game', error })
         return NextResponse.error();
     }
 });
@@ -66,6 +69,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     try {
         if (!request.auth?.user) {
+            logger.error({ method: 'DELETE', route: '/api/games/[id]', message: 'Unauthorised access attempt' })
             return NextResponse.json(
                 { message: "Unauthorised" },
                 { status: 401 },
@@ -74,6 +78,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
 
         const { id } = await params as { id: string }
         if (!id || typeof id !== 'string') {
+            logger.error({ method: 'DELETE', route: '/api/games/[id]', message: 'Invalid game ID', gameId: id })
             return NextResponse.json({ message: "Invalid game ID" }, { status: 400 })
         }
 
@@ -81,7 +86,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
 
         return new NextResponse(null, { status: 204 });
     } catch (error) {
-        console.log('games route DELETE error: ', error);
+        logger.error({ method: 'DELETE', route: '/api/games/[id]', message: 'Error deleting game', error })
         return NextResponse.error();
     }
 });

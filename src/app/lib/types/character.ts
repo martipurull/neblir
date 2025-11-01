@@ -10,7 +10,7 @@ export const itemCharacterSchema = z.object({
     characterId: z.string()
 });
 
-export const equipmentSchema = z.array(itemCharacterSchema)
+export const inventorySchema = z.array(itemCharacterSchema)
 
 export const generalInformationSchema = z.object({
     name: z.string(),
@@ -136,7 +136,7 @@ export const characterSchema = z.object({
     }),
     path: pathSchema.optional(),
     wallet: z.lazy(() => walletSchema).optional(),
-    equipment: z.array(z.lazy(() => itemSchema)).optional(),
+    inventory: z.array(z.lazy(() => itemSchema)).optional(),
     notes: characterNotesSchema.optional(),
     paths: z.array(z.lazy(() => pathSchema)).optional(),
     features: z.array(z.lazy(() => featureSchema)).optional(),
