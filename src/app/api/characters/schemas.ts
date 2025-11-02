@@ -1,41 +1,45 @@
 import {
-    combatInformationSchema,
-    generalInformationSchema,
-    generalSkillsSchema,
-    healthSchema,
-    innateAttributesSchema,
+  combatInformationSchema,
+  generalInformationSchema,
+  generalSkillsSchema,
+  healthSchema,
+  innateAttributesSchema,
 } from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
 import { z } from "zod";
 
-export const characterCreationRequestSchema = z.object({
+export const characterCreationRequestSchema = z
+  .object({
     generalInformation: generalInformationSchema,
     health: healthSchema.omit({
-        innatePhysicalHealth: true,
-        maxPhysicalHealth: true,
-        innateMentalHealth: true,
-        maxMentalHealth: true,
-        currentPhysicalHealth: true,
-        currentMentalHealth: true
+      innatePhysicalHealth: true,
+      maxPhysicalHealth: true,
+      innateMentalHealth: true,
+      maxMentalHealth: true,
+      currentPhysicalHealth: true,
+      currentMentalHealth: true,
     }),
     combatInformation: combatInformationSchema.omit({
-        initiativeMod: true,
-        speed: true,
-        reactionsPerRound: true,
-        rangeAttackMod: true,
-        meleeAttackMod: true,
-        GridAttackMod: true,
-        rangeDefenceMod: true,
-        meleeDefenceMod: true,
-        GridDefenceMod: true,
+      initiativeMod: true,
+      speed: true,
+      reactionsPerRound: true,
+      rangeAttackMod: true,
+      meleeAttackMod: true,
+      GridAttackMod: true,
+      rangeDefenceMod: true,
+      meleeDefenceMod: true,
+      GridDefenceMod: true,
     }),
     innateAttributes: innateAttributesSchema,
     learnedSkills: z.object({
-        generalSkills: generalSkillsSchema,
-        specialSkills: z.array(z.string()).max(3).optional(),
+      generalSkills: generalSkillsSchema,
+      specialSkills: z.array(z.string()).max(3).optional(),
     }),
     wallet: walletSchema.optional(),
     userId: z.string(),
-}).strip()
+  })
+  .strip();
 
-export type CharacterCreationRequest = z.infer<typeof characterCreationRequestSchema>
+export type CharacterCreationRequest = z.infer<
+  typeof characterCreationRequestSchema
+>;

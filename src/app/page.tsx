@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import LoginPage from "./(pages)/signin/page";
 import DashboardPage from "./(pages)/dashboard/page";
@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchSession() {
       const session = await getSession();
-      console.log('session', session);
+      console.log("session", session);
       setSession(session);
       setIsLoading(false);
     }
@@ -22,18 +22,16 @@ export default function Home() {
   }, []);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <div className="text-lg font-semibold">Loading...</div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold">Loading...</div>
+      </div>
+    );
   }
 
   return (
     <main className="min-h-screen">
-      {
-        session
-          ? <DashboardPage />
-          : <LoginPage />
-      }
+      {session ? <DashboardPage /> : <LoginPage />}
     </main>
   );
 }

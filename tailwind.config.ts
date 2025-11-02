@@ -9,15 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sarpanch: ['Sarpanch', 'sans-serif'],
-        oxanium: ['Oxanium', 'sans-serif'],
+        sarpanch: ["Sarpanch", "sans-serif"],
+        oxanium: ["Oxanium", "sans-serif"],
       },
     },
     colors: {
-      customPrimary: '#421161',
-      customPrimaryHover: '#6D597A',
-      customSecondary: '#F8ECFF',
-      customSecondaryHover: '#F5F0F9',
+      customPrimary: "#421161",
+      customPrimaryHover: "#6D597A",
+      customSecondary: "#F8ECFF",
+      customSecondaryHover: "#F5F0F9",
     },
   },
   plugins: [],

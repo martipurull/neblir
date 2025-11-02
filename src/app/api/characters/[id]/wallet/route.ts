@@ -6,42 +6,65 @@ import { NextResponse } from "next/server";
 import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
 
-export const PATCH = auth(async (
-    request: AuthNextRequest,
-    { params }
-) => {
-    try {
-        if (!request.auth?.user) {
-            logger.error({ method: 'PATCH', route: '/api/characters/[id]/wallet', message: 'Unauthorised access attempt' })
-            return NextResponse.json(
-                { message: "Unauthorised" },
-                { status: 401 },
-            );
-        }
-
-        const { id } = await params as { id: string }
-        if (!id || typeof id !== 'string') {
-            logger.error({ method: 'PATCH', route: '/api/characters/[id]/wallet', message: 'Invalid character ID', characterId: id })
-            return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
-        }
-        if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
-            logger.error({ method: 'PATCH', route: '/api/characters/[id]/wallet', message: 'Character does not belong to user', characterId: id })
-            return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
-        }
-
-        const requestBody = await request.json()
-        const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
-        if (error) {
-            logger.error({ method: 'PATCH', route: '/api/characters/[id]/wallet', message: 'Error parsing wallet update request', details: error })
-            return NextResponse.json({ message: error.issues }, { status: 400 })
-        }
-
-        const updatedCharacter = await updateCharacter(id, { wallet: parsedBody })
-
-        return NextResponse.json(updatedCharacter, { status: 200 })
-
-    } catch (error) {
-        logger.error({ method: 'PATCH', route: '/api/characters/[id]/wallet', message: 'Error updating wallet', error })
-        return NextResponse.error()
+export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user) {
+      logger.error({
+        method: "PATCH",
+        route: "/api/characters/[id]/wallet",
+        message: "Unauthorised access attempt",
+      });
+      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
     }
-})
+
+    const { id } = (await params) as { id: string };
+    if (!id || typeof id !== "string") {
+      logger.error({
+        method: "PATCH",
+        route: "/api/characters/[id]/wallet",
+        message: "Invalid character ID",
+        characterId: id,
+      });
+      return NextResponse.json(
+        { message: "Invalid character ID" },
+        { status: 400 }
+      );
+    }
+    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+      logger.error({
+        method: "PATCH",
+        route: "/api/characters/[id]/wallet",
+        message: "Character does not belong to user",
+        characterId: id,
+      });
+      return NextResponse.json(
+        { message: "This is not one of your characters." },
+        { status: 403 }
+      );
+    }
+
+    const requestBody = await request.json();
+    const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
+    if (error) {
+      logger.error({
+        method: "PATCH",
+        route: "/api/characters/[id]/wallet",
+        message: "Error parsing wallet update request",
+        details: error,
+      });
+      return NextResponse.json({ message: error.issues }, { status: 400 });
+    }
+
+    const updatedCharacter = await updateCharacter(id, { wallet: parsedBody });
+
+    return NextResponse.json(updatedCharacter, { status: 200 });
+  } catch (error) {
+    logger.error({
+      method: "PATCH",
+      route: "/api/characters/[id]/wallet",
+      message: "Error updating wallet",
+      error,
+    });
+    return NextResponse.error();
+  }
+});

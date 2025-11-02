@@ -1,10 +1,8 @@
-import SignIn from '@/app/components/SignIn'
-import React from 'react'
+import SignIn from "@/app/components/SignIn";
+import React from "react";
 
 const LoginPage: React.FC = () => {
-    return (
-        <SignIn />
-    );
+  return <SignIn />;
 };
 
-export default LoginPage
+export default LoginPage;

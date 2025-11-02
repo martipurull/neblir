@@ -79,6 +79,7 @@ type CharacterCombatInformation {
   rangeDefenceMod   Int
   speed             Int
   reactionsPerRound Int
+  maxCarryWeight    Int
 }
 
 type CharacterGeneralInformation {
@@ -288,6 +289,7 @@ model Item {
   notes       String?
   type        ItemType
   usage       String?
+  weight      Int?
 
   ItemCharacter ItemCharacter[]
 }

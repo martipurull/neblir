@@ -11,55 +11,102 @@ import logger from "@/logger";
 import { NextResponse } from "next/server";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
-    try {
-        if (!request.auth?.user) {
-            logger.error({ method: 'GET', route: '/api/characters/[id]/available-features', message: 'Unauthorised access attempt' })
-            return NextResponse.json(
-                { message: "Unauthorised" },
-                { status: 401 },
-            );
-        }
-
-        const characterId = await Promise.resolve(params?.id)
-        if (!characterId || typeof characterId !== 'string') {
-            logger.error({ method: 'GET', route: '/api/characters/[id]/available-features', message: 'Invalid character ID', characterId: characterId })
-            return NextResponse.json({ message: "Invalid character ID" }, { status: 400 })
-        }
-        if (!request.auth?.user?.characters.map(characterUser => characterUser.characterId).includes(characterId)) {
-            logger.error({ method: 'GET', route: '/api/characters/[id]/available-features', message: 'Character does not belong to user', characterId: characterId })
-            return NextResponse.json({ message: "This is not one of your characters." }, { status: 403 })
-        }
-        const character = await getCharacter(characterId)
-        if (!character) {
-            logger.error({ method: 'GET', route: '/api/characters/[id]/available-features', message: 'Character not found', characterId: characterId })
-            return NextResponse.json({ message: 'Character not found' }, { status: 404 })
-        }
-
-        if (!character?.paths.length) {
-            return NextResponse.json([], { status: 200 })
-        }
-
-        const allAvailableFeatures = (
-            await Promise.all(
-                character.paths.map(async (path) =>
-                    await getFeaturesAvailableForPathCharacter(path.pathId, path.rank)
-                )
-            )
-        ).flat()
-
-        const uniqueAvailableFeatures = Array.from(
-            new Set(allAvailableFeatures.map(feature => feature.id))
-        )
-            .map(id => allAvailableFeatures.find(feature => feature.id === id))
-            .filter(feature => feature !== undefined)
-
-        const existingIncrementalFeatures = uniqueAvailableFeatures.filter(feature => character.features.map(characterFeature => characterFeature.featureId).includes(feature.id) && feature.maxGrade > 1)
-        const newFeatures = uniqueAvailableFeatures.filter(feature => !character.features.map(characterFeature => characterFeature.featureId).includes(feature.id))
-
-        return NextResponse.json({ existingIncrementalFeatures, newFeatures }, { status: 200 })
-
-    } catch (error) {
-        logger.error({ method: 'GET', route: '/api/characters/[id]/available-features', message: 'Error fetching available features', error })
-        return NextResponse.error()
+  try {
+    if (!request.auth?.user) {
+      logger.error({
+        method: "GET",
+        route: "/api/characters/[id]/available-features",
+        message: "Unauthorised access attempt",
+      });
+      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
     }
-})
+
+    const characterId = await Promise.resolve(params?.id);
+    if (!characterId || typeof characterId !== "string") {
+      logger.error({
+        method: "GET",
+        route: "/api/characters/[id]/available-features",
+        message: "Invalid character ID",
+        characterId: characterId,
+      });
+      return NextResponse.json(
+        { message: "Invalid character ID" },
+        { status: 400 }
+      );
+    }
+    if (
+      !request.auth?.user?.characters
+        .map((characterUser) => characterUser.characterId)
+        .includes(characterId)
+    ) {
+      logger.error({
+        method: "GET",
+        route: "/api/characters/[id]/available-features",
+        message: "Character does not belong to user",
+        characterId: characterId,
+      });
+      return NextResponse.json(
+        { message: "This is not one of your characters." },
+        { status: 403 }
+      );
+    }
+    const character = await getCharacter(characterId);
+    if (!character) {
+      logger.error({
+        method: "GET",
+        route: "/api/characters/[id]/available-features",
+        message: "Character not found",
+        characterId: characterId,
+      });
+      return NextResponse.json(
+        { message: "Character not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!character?.paths.length) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    const allAvailableFeatures = (
+      await Promise.all(
+        character.paths.map(
+          async (path) =>
+            await getFeaturesAvailableForPathCharacter(path.pathId, path.rank)
+        )
+      )
+    ).flat();
+
+    const uniqueAvailableFeatures = Array.from(
+      new Set(allAvailableFeatures.map((feature) => feature.id))
+    )
+      .map((id) => allAvailableFeatures.find((feature) => feature.id === id))
+      .filter((feature) => feature !== undefined);
+
+    const existingIncrementalFeatures = uniqueAvailableFeatures.filter(
+      (feature) =>
+        character.features
+          .map((characterFeature) => characterFeature.featureId)
+          .includes(feature.id) && feature.maxGrade > 1
+    );
+    const newFeatures = uniqueAvailableFeatures.filter(
+      (feature) =>
+        !character.features
+          .map((characterFeature) => characterFeature.featureId)
+          .includes(feature.id)
+    );
+
+    return NextResponse.json(
+      { existingIncrementalFeatures, newFeatures },
+      { status: 200 }
+    );
+  } catch (error) {
+    logger.error({
+      method: "GET",
+      route: "/api/characters/[id]/available-features",
+      message: "Error fetching available features",
+      error,
+    });
+    return NextResponse.error();
+  }
+});

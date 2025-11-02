@@ -1,9 +1,9 @@
-import pino from 'pino';
+import pino from "pino";
 
 /**
  * Determines if the current environment is development.
  */
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === "development";
 
 /**
  * Centralised logger instance configured with pino.
@@ -15,14 +15,16 @@ const isDevelopment = process.env.NODE_ENV === 'development';
  * This logger should be imported and used across the application for consistent structured logging.
  */
 const logger = pino({
-    level: process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
-    transport: isDevelopment ? {
-        target: 'pino-pretty',
-        options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss' },
-    } : undefined,
-    base: {
-        pid: false,
-    },
+  level: process.env.LOG_LEVEL || (isDevelopment ? "debug" : "info"),
+  transport: isDevelopment
+    ? {
+        target: "pino-pretty",
+        options: { colorize: true, translateTime: "yyyy-mm-dd HH:MM:ss" },
+      }
+    : undefined,
+  base: {
+    pid: false,
+  },
 });
 
 export default logger;

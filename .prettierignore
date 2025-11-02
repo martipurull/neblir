@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.next/
+out/
+build/
+
+# Prisma
+prisma/migrations/
+
+# Package managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+
+# Miscellaneous
+*.log
+.env*
+
