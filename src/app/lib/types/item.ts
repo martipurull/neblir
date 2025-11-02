@@ -30,6 +30,7 @@ const baseItemSchema = z.object({
     .describe("e.g. cost per unit, not for sale, illegal item, etc."),
   description: z.string(),
   notes: z.string().optional(),
+  weight: z.number().optional(),
 });
 
 export const generalItemSchema = baseItemSchema.extend({
