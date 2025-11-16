@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev | pino-pretty",
+    "dev:raw": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -39,6 +40,7 @@
     "cypress": "^13.13.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.4",
+    "pino-pretty": "^13.1.2",
     "postcss": "^8",
     "prettier": "^3.6.2",
     "prisma": "^6.5.0",
