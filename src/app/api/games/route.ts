@@ -4,6 +4,7 @@ import { gameSchema } from "@/app/lib/types/game";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
   try {
@@ -13,7 +14,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         route: "/api/games",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const requestBody = await request.json();
@@ -25,7 +26,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         message: "Error parsing game creation request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing game creation request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const game = await createGame(parsedBody);
@@ -38,7 +39,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       message: "Error creating game",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error creating game", 500, JSON.stringify(error));
   }
 });
 
@@ -51,7 +52,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         route: "/api/games",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const userId = request.auth.user.id;
@@ -62,10 +63,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         message: "User ID not found",
         userId,
       });
-      return NextResponse.json({
-        message: `User with id ${userId} does not exist`,
-        status: 400,
-      });
+      return errorResponse(`User with id ${userId} does not exist`, 400);
     }
     const userGames = await getUserGames(userId);
 
@@ -77,6 +75,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching games",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching games", 500, JSON.stringify(error));
   }
 });

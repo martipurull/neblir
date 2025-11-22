@@ -21,7 +21,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
     }
 
-    const characterId = await Promise.resolve(params?.id);
+    const { id: characterId } = (await params) as { id: string };
     if (!characterId || typeof characterId !== "string") {
       logger.error({
         method: "GET",

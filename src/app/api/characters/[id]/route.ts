@@ -6,6 +6,7 @@ import { deleteCharacterUserByCharacterId } from "@/app/lib/prisma/characterUser
 import { characterBelongsToUser } from "../checks";
 import { deleteCharacterInventory } from "@/app/lib/prisma/itemCharacter";
 import logger from "@/logger";
+import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -15,23 +16,24 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401)
     }
 
-    const id = await Promise.resolve(params?.id);
+    const { id } = (await params) as { id: string };
+    console.log('id: ', id)
+
     if (!id || typeof id !== "string") {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]",
         message: "Invalid character ID",
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID.", 400);
     }
+    console.log('HERE!')
+    console.log('user: ', JSON.stringify(request.auth?.user, null, 2))
     if (
-      !request.auth?.user?.characters
+      !request.auth?.user?.characters || !request.auth?.user?.characters
         .map((characterUser) => characterUser.characterId)
         .includes(id)
     ) {
@@ -41,13 +43,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters", 403)
     }
 
     const character = await getCharacter(id);
+
     if (!character) {
       logger.error({
         method: "GET",
@@ -55,10 +55,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character not found",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Character not found" },
-        { status: 404 }
-      );
+      return errorResponse("Character not found", 404);
     }
 
     return NextResponse.json(character, { status: 200 });
@@ -69,7 +66,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching character",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching character", 500, JSON.stringify(error));
   }
 });
 
@@ -81,10 +78,11 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]",
         message: "Unauthorised",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401)
     }
 
-    const id = await Promise.resolve(params?.id);
+    const { id } = (await params) as { id: string };
+
     if (!id || typeof id !== "string") {
       logger.error({
         method: "DELETE",
@@ -92,10 +90,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid character ID",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID.", 400);
     }
 
     if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
@@ -105,10 +100,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters", 403)
     }
 
     await deleteCharacterUserByCharacterId(id);
@@ -123,6 +115,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting character",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error deleting character", 500, JSON.stringify(error));
   }
 });

@@ -34,7 +34,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Unauthorised", 401);
     }
 
-    const id = await Promise.resolve(params?.id);
+    const { id } = (await params) as { id: string };
     if (!id || typeof id !== "string") {
       logger.error({
         method: "POST",
