@@ -14,6 +14,7 @@ export const inventorySchema = z.array(itemCharacterSchema);
 
 export const generalInformationSchema = z.object({
   name: z.string(),
+  surname: z.string(),
   age: z.number(),
   religion: z.nativeEnum(Religion),
   profession: z.string(),

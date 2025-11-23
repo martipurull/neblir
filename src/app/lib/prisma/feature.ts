@@ -21,12 +21,20 @@ export async function getFeaturesAvailableForPathCharacter(
   pathId: string,
   pathCharacterRank: number
 ) {
+  // First get the path to find its name (PathName enum)
+  const path = await prisma.path.findUnique({
+    where: { id: pathId },
+    select: { name: true },
+  });
+
+  if (!path) {
+    return [];
+  }
+
   return prisma.feature.findMany({
     where: {
       applicablePaths: {
-        some: {
-          pathId: pathId,
-        },
+        has: path.name,
       },
       minPathRank: { lte: pathCharacterRank },
     },

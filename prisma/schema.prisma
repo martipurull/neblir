@@ -88,6 +88,7 @@ type CharacterGeneralInformation {
   birthplace String
   level      Int
   name       String
+  surname    String
   profession String
   race       Race
   religion   Religion
