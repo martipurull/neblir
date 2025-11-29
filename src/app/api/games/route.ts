@@ -1,6 +1,6 @@
 import { createGame, getUserGames } from "@/app/lib/prisma/game";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { gameSchema } from "@/app/lib/types/game";
+import { gameCreateSchema } from "@/app/lib/types/game";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -18,7 +18,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
     }
 
     const requestBody = await request.json();
-    const { data: parsedBody, error } = gameSchema.safeParse(requestBody);
+    const { data: parsedBody, error } = gameCreateSchema.safeParse(requestBody);
     if (error) {
       logger.error({
         method: "POST",

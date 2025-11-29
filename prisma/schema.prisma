@@ -230,6 +230,8 @@ model CharacterUser {
   user      User      @relation(fields: [userId], references: [id])
 
   @@unique([characterId, userId])
+  @@index([characterId])
+  @@index([userId])
 }
 
 model ItemCharacter {
@@ -241,6 +243,8 @@ model ItemCharacter {
   character Character @relation(fields: [characterId], references: [id])
 
   @@unique([itemId, characterId])
+  @@index([itemId])
+  @@index([characterId])
 }
 
 model Game {
@@ -250,6 +254,8 @@ model Game {
   name       String
   users      GameUser[]
   characters GameCharacter[]
+
+  @@index([gameMaster])
 }
 
 model GameUser {
@@ -306,6 +312,9 @@ model Feature {
 
   pathFeature      PathFeature[]
   FeatureCharacter FeatureCharacter[]
+
+  @@index([applicablePaths])
+  @@index([minPathRank])
 }
 
 model FeatureCharacter {
@@ -354,6 +363,9 @@ model PathFeature {
 
   path    Path    @relation(fields: [pathId], references: [id])
   feature Feature @relation(fields: [featureId], references: [id])
+
+  @@index([pathId])
+  @@index([featureId])
 }
 
 model User {

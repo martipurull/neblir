@@ -30,8 +30,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID.", 400);
     }
-    console.log('HERE!')
-    console.log('user: ', JSON.stringify(request.auth?.user, null, 2))
+
     if (
       !request.auth?.user?.characters || !request.auth?.user?.characters
         .map((characterUser) => characterUser.characterId)

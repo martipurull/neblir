@@ -1,12 +1,20 @@
 import { z } from "zod";
 
-export const gameSchema = z.object({
+// Base schema for create/update operations (without relations)
+const gameBaseSchema = z.object({
   name: z.string(),
   gameMaster: z.string(),
   imageKey: z.string().optional(),
 });
 
-export const gameUpdateSchema = gameSchema.partial().strict();
+// Full schema for reading (with relations)
+export const gameSchema = gameBaseSchema.extend({
+  users: z.array(z.lazy(() => gameUserSchema)).optional(),
+  characters: z.array(z.lazy(() => gameCharacterSchema)).optional(),
+});
+
+export const gameCreateSchema = gameBaseSchema.strict();
+export const gameUpdateSchema = gameBaseSchema.partial().strict();
 
 export type Game = z.infer<typeof gameSchema>;
 
