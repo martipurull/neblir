@@ -4,6 +4,7 @@ import { pathSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
   try {
@@ -13,7 +14,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         route: "/api/paths",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const requestBody = await request.json();
@@ -25,7 +26,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         message: "Error parsing path creation request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing path creation request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const item = await createPath(parsedBody);
@@ -38,7 +39,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       message: "Error creating path",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error creating path", 500, JSON.stringify(error));
   }
 });
 
@@ -50,7 +51,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         route: "/api/paths",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const paths = await getPaths();
@@ -63,6 +64,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching paths",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching paths", 500, JSON.stringify(error));
   }
 });

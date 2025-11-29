@@ -4,6 +4,7 @@ import { itemSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
   try {
@@ -13,7 +14,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         route: "/api/items",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const requestBody = await request.json();
@@ -25,7 +26,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         message: "Error parsing item creation request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing item creation request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const item = JSON.stringify(await createItem(parsedBody));
@@ -38,7 +39,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       message: "Error creating item",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error creating item", 500, JSON.stringify(error));
   }
 });
 
@@ -50,7 +51,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         route: "/api/items",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const items = await getItems();
@@ -63,6 +64,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching items",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching items", 500, JSON.stringify(error));
   }
 });

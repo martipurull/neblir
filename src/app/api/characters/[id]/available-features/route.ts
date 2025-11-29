@@ -9,6 +9,7 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { NextResponse } from "next/server";
+import { errorResponse } from "../../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -18,7 +19,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]/available-features",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id: characterId } = (await params) as { id: string };
@@ -29,10 +30,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid character ID",
         characterId: characterId,
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID", 400);
     }
     if (
       !request.auth?.user?.characters
@@ -45,10 +43,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: characterId,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters.", 403);
     }
     const character = await getCharacter(characterId);
     if (!character) {
@@ -58,10 +53,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character not found",
         characterId: characterId,
       });
-      return NextResponse.json(
-        { message: "Character not found" },
-        { status: 404 }
-      );
+      return errorResponse("Character not found", 404);
     }
 
     if (!character?.paths.length) {
@@ -107,6 +99,6 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching available features",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching available features", 500, JSON.stringify(error));
   }
 });

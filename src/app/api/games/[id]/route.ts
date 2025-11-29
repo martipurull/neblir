@@ -4,6 +4,7 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
 import logger from "@/logger";
+import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -13,7 +14,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/games/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -24,7 +25,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid game ID",
         gameId: id,
       });
-      return NextResponse.json({ message: "Invalid game ID" }, { status: 400 });
+      return errorResponse("Invalid game ID", 400);
     }
 
     const game = await getGame(id);
@@ -35,7 +36,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Game not found",
         gameId: id,
       });
-      return NextResponse.json({ message: "Game not found" }, { status: 404 });
+      return errorResponse("Game not found", 404);
     }
 
     return NextResponse.json(game, { status: 200 });
@@ -46,7 +47,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching game",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching game", 500, JSON.stringify(error));
   }
 });
 
@@ -58,7 +59,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/games/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -69,7 +70,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid game ID",
         gameId: id,
       });
-      return NextResponse.json({ message: "Invalid game ID" }, { status: 400 });
+      return errorResponse("Invalid game ID", 400);
     }
 
     const requestBody = await request.json();
@@ -81,7 +82,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing game update request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing game update request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const updatedGame = await updateGame(id, parsedBody);
@@ -94,7 +95,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating game",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error updating game", 500, JSON.stringify(error));
   }
 });
 
@@ -106,7 +107,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/games/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -117,7 +118,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid game ID",
         gameId: id,
       });
-      return NextResponse.json({ message: "Invalid game ID" }, { status: 400 });
+      return errorResponse("Invalid game ID", 400);
     }
 
     await deleteGame(id);
@@ -130,6 +131,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting game",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error deleting game", 500, JSON.stringify(error));
   }
 });

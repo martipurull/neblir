@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
+import { errorResponse } from "../../../shared/responses";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -14,7 +15,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]/combat-info",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -25,10 +26,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid character ID",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID", 400);
     }
     if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
       logger.error({
@@ -37,10 +35,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters.", 403);
     }
 
     const requestBody = await request.json();
@@ -53,7 +48,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing combat information update request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing combat information update request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
     const existingCharacter = await getCharacter(id);
     if (!existingCharacter?.combatInformation) {
@@ -63,9 +58,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "No combat information found in character",
         characterId: id,
       });
-      return NextResponse.json("No combat information found in request", {
-        status: 400,
-      });
+      return errorResponse("No combat information found in character", 400);
     }
 
     let updateBody = existingCharacter.combatInformation;
@@ -145,6 +138,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating combat information",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error updating combat information", 500, JSON.stringify(error));
   }
 });

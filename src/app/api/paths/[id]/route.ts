@@ -4,6 +4,7 @@ import { pathUpdateSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -13,7 +14,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/paths/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -24,7 +25,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid path ID",
         pathId: id,
       });
-      return NextResponse.json({ message: "Invalid path ID" }, { status: 400 });
+      return errorResponse("Invalid path ID", 400);
     }
 
     const path = await getPath(id);
@@ -37,7 +38,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching path",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching path", 500, JSON.stringify(error));
   }
 });
 
@@ -49,7 +50,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/paths/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -60,7 +61,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid path ID",
         pathId: id,
       });
-      return NextResponse.json({ message: "Invalid path ID" }, { status: 400 });
+      return errorResponse("Invalid path ID", 400);
     }
 
     const requestBody = await request.json();
@@ -72,7 +73,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing path update request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing path update request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const updatedItem = await updatePath(id, parsedBody);
@@ -85,7 +86,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating path",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error updating path", 500, JSON.stringify(error));
   }
 });
 
@@ -97,7 +98,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/paths/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -108,7 +109,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid path ID",
         pathId: id,
       });
-      return NextResponse.json({ message: "Invalid path ID" }, { status: 400 });
+      return errorResponse("Invalid path ID", 400);
     }
 
     await deletePath(id);
@@ -121,6 +122,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting path",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error deleting path", 500, JSON.stringify(error));
   }
 });

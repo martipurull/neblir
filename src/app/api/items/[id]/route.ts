@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import logger from "@/logger";
+import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -14,7 +15,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/items/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -25,7 +26,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid item ID",
         itemId: id,
       });
-      return NextResponse.json({ message: "Invalid item ID" }, { status: 400 });
+      return errorResponse("Invalid item ID", 400);
     }
 
     const item = await getItem(id);
@@ -38,7 +39,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching item",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error fetching item", 500, JSON.stringify(error));
   }
 });
 
@@ -50,7 +51,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/items/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -61,7 +62,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid item ID",
         itemId: id,
       });
-      return NextResponse.json({ message: "Invalid item ID" }, { status: 400 });
+      return errorResponse("Invalid item ID", 400);
     }
 
     const requestBody = await request.json();
@@ -73,7 +74,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing item update request",
         details: error,
       });
-      return NextResponse.error();
+      return errorResponse("Error parsing item update request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const updatedItem = await updateItem(id, parsedBody);
@@ -87,9 +88,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Validation error updating item",
         details: error.issues,
       });
-      return NextResponse.json(
-        `Bad Request:\n${error.issues.map((issue) => `${issue.code} at ${issue.path}: ${issue.message}.`)}`,
-        { status: 400 }
+      return errorResponse(
+        "Validation error updating item",
+        400,
+        error.issues.map((issue) => `${issue.code} at ${issue.path}: ${issue.message}.`).join("\n")
       );
     }
     logger.error({
@@ -98,7 +100,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating item",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error updating item", 500, JSON.stringify(error));
   }
 });
 
@@ -110,7 +112,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/items/[id]",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -121,7 +123,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid item ID",
         itemId: id,
       });
-      return NextResponse.json({ message: "Invalid item ID" }, { status: 400 });
+      return errorResponse("Invalid item ID", 400);
     }
 
     await deleteItem(id);
@@ -134,6 +136,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting item",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error deleting item", 500, JSON.stringify(error));
   }
 });

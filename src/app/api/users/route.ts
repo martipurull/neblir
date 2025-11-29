@@ -2,6 +2,7 @@ import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
 import { NextRequest, NextResponse } from "next/server";
 import logger from "@/logger";
+import { errorResponse } from "../shared/responses";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
         message: "Error parsing user creation request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing user creation request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const user = await createUser(parsedBody);
@@ -27,6 +28,6 @@ export async function POST(request: NextRequest) {
       message: "Error creating user",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error creating user", 500, JSON.stringify(error));
   }
 }

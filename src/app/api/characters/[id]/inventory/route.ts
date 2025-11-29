@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
+import { errorResponse } from "../../../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -14,7 +15,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]/inventory",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -25,10 +26,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid character ID",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID", 400);
     }
     if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
       logger.error({
@@ -37,10 +35,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters.", 403);
     }
 
     const requestBody = await request.json();
@@ -54,7 +49,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing inventory request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing inventory request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     await createItemCharacter({
@@ -70,6 +65,6 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error adding item to inventory",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error adding item to inventory", 500, JSON.stringify(error));
   }
 });

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
+import { errorResponse } from "../../../shared/responses";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -14,7 +15,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]/health",
         message: "Unauthorised access attempt",
       });
-      return NextResponse.json({ message: "Unauthorised" }, { status: 401 });
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -25,10 +26,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Invalid character ID",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Invalid character ID" },
-        { status: 400 }
-      );
+      return errorResponse("Invalid character ID", 400);
     }
     if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
       logger.error({
@@ -37,10 +35,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character does not belong to user",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "This is not one of your characters." },
-        { status: 403 }
-      );
+      return errorResponse("This is not one of your characters.", 403);
     }
 
     const requestBody = await request.json();
@@ -53,7 +48,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing health update request",
         details: error,
       });
-      return NextResponse.json({ message: error.issues }, { status: 400 });
+      return errorResponse("Error parsing health update request", 400, error.issues.map((issue) => issue.message).join(". "));
     }
 
     const existingCharacter = await getCharacter(id);
@@ -64,10 +59,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Character not found",
         characterId: id,
       });
-      return NextResponse.json(
-        { message: "Character not found" },
-        { status: 404 }
-      );
+      return errorResponse("Character not found", 404);
     }
     if (
       parsedBody.currentPhysicalHealth &&
@@ -83,13 +75,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         currentPhysicalHealth: parsedBody.currentPhysicalHealth,
         maxPhysicalHealth: existingCharacter.health.maxPhysicalHealth,
       });
-      return NextResponse.json(
-        {
-          message:
-            "Current physical health cannot be greater than max physical health",
-        },
-        { status: 400 }
-      );
+      return errorResponse("Current physical health cannot be greater than max physical health", 400);
     }
     if (
       parsedBody.currentMentalHealth &&
@@ -104,13 +90,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         currentMentalHealth: parsedBody.currentMentalHealth,
         maxMentalHealth: existingCharacter.health.maxMentalHealth,
       });
-      return NextResponse.json(
-        {
-          message:
-            "Current mental health cannot be greater than max mental health",
-        },
-        { status: 400 }
-      );
+      return errorResponse("Current mental health cannot be greater than max mental health", 400);
     }
 
     let newHealth = {
@@ -136,6 +116,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating health",
       error,
     });
-    return NextResponse.error();
+    return errorResponse("Error updating health", 500, JSON.stringify(error));
   }
 });
