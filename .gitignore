@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# Google OAuth token
+.google-token.json
+
 # vercel
 .vercel
 
