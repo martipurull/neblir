@@ -1,0 +1,364 @@
+name,type,confCost,costInfo,description,notes,weight,usage,imageKey,attackRoll,damageDiceType,damageNumberOfDice,damageType,damagePrimaryRadius,damageSecondaryRadius,areaEffectDefenceReactionCost,areaEffectDefenceRoll,areaEffectSuccessfulDefenceResult
+Hunting Harpoon,WEAPON,575,"(single shot)
+895 CONF (dual shot)",,The dual-shot version allows the shooter to use a Reaction to shoot again as part of the main attack.,,,,"[""RANGE""]",6,5,,,,,,
+Flame Thrower,WEAPON,9500,"9,500 CONF",,,,,,"[""RANGE""]",6,4,,,,,,
+Paralyse Shot,WEAPON,,,,,,,,"[""MELEE""]",10,10,,,,,,
+Sleep Shot,WEAPON,,,,,,,,"[""MELEE""]",10,10,,,,,,
+Death Shot,WEAPON,,,,,,,,"[""MELEE""]",6,5,,,,,,
+Sleep Bomb,WEAPON,,,,,,"Smash it on the floor or throw (Athletics + Aim roll).
+On a success, the Sleep Shot explodes from the desired spot.
+On a failure, roll 1d8 to determine direction (1 is North, 3 East, 5 South, 7 West, 8 North-West, etc.) and 1d5 (1d10 halved) to determine how far off (in metres) in the rolled direction it goes.",,,10,4,,,,,,
+Injection Gun,WEAPON,2500,"2,500 CONF",,,,,,"[""RANGE""]",,,,,,,,
+Quantum Oracle,GENERAL_ITEM,100,n/a estimated 100 million CONF as of 2096,"Tiara-like, powered by Siike at an unprecedented Ikum concentration, somehow incremented to a looping point by a chain of crystallised Siike nodes, contained by an extremely intricate subtle circuit of anti-Siike energy*. The device is placed as a crown on the wearer, connecting to their GRID and directly to their brain via quantum entanglement.
+The wearer can ask a question to their future self. The complexity of the question and how far into the future it is asked will determine the potency of the quantum entanglement required and the potential harm the user suffers.","Experimental NF Fenne tech. Its existence remains disputed by most scholars. Found in a basement full of discarded experiments and other tech, purchased in the black market by Fabulous Krek, thinking his scientists could make sense of it.
+*As of 2096, anti-Siike energy is a conceptual matter, a theoretical possibility, not proven science.",,"If locked: Deduction + Mechanics to unlock it (3 Successes needed if it’s the first time, 2 if it’s the second time, 1 from then on).
+If unlocked, upon connecting it to the user’s GRID, the following warning is displayed:
+“WARNING: Operation of the Quantum Oracle is exceedingly perilous. Great care is advised when considering use. This device is currently intended for experimental use only. If you have not been trained specifically, you must  immediately cease experimentation. Danger of death. Danger of severe mental impairment. Even if qualified directly under Dr Syna Urv, never, under any circumstances, should the user operate the Quantum Oracle alone.”
+One Action to place the QO on one’s head and wait for it to connect to the brain of the GRID-connected user.
+The QO must have access to a high-Siike charging port. If not, the following message is displayed:
+“The Quantum Oracle requires a high-power Siike charging port. High-power Siike charging ports are subject to the most strict safety standards. Ensure all certificates are up to date and all relevant safety checks have passed successfully before proceeding.”
+If connected via GRID and a high-energy Siike source, the following warning appears in the wearer’s GRID upon placing the Quantum Oracle on their heads:
+“Only operate in a safe environment surrounded by a professional qualified under Dr Syna Urv.
+You must have passed the relevant training before operating the Quantum Oracle.
+Do you wish to proceed?”
+If they do:
+“Upon integration with the Quantum Oracle, you won’t be able to interact with those around you until you disconnect. Remember they won’t be able to interact with you either until you disconnect.
+Do you wish to integrate?”
+If they integrate:
+The user must make a Mentality + GRID + GRID Mod check (3 Successes necessary to connect successfully):
+On a failure, the user takes 1d6 Mental damage as thoughts, ideas and memories are scrambled, and the QO becomes locked.
+On a success: continue.
+If successfully integrated with a user’s brain:
+Your vision blurs, then fades to black. You lose all sensation. Nothing hurts. You don’t feel anything. Perhaps because nothing is. But you are. You are nothing and everything that is possible at the same time. You exist, you are aware of your existence, but it’s like your consciousness has been disconnected and floats in a sea of where the known and the unknown coalesce with the possible and the impossible. Everything is dark, everything is silent, everything is before you and nothing is. And then a voice or is it text or is it a thought…
+“Congratulations, you have connected to a different version of you. You are not quite here nor there, not quite now nor then. This is your quantum self.
+Using this heightened state of being, you can send a question into the future, to be answered by you, a future you, one that may know the answer.
+You must understand this poses a high risk to your mental wellbeing. Consider how you think you would react when asked a certain question. Consider you may receive no answer; this could be because you can’t or won’t answer, or because you no longer exist in the time you have set the question to be asked at.
+Thus, before proceeding, some advice:
+Limit the complexity of your questions and narrow it down as much as possible; thus, multiple-answer questions are preferable to open questions but less so than binary questions.
+Limit the time frame: after all, you are more likely to be alive in an hour than ten years from now.
+Finally, avoid paradoxical questions, such as ‘What am I going to ask next?’ These have proven particularly lethal in previous tests due to their propensity to cause quantum loops, which are particularly difficult to disconnect from.
+Once you have worded your question, you must think of asking it. The Quantum Oracle will let you know it has been asked.
+If you do not wish to proceed, you must think of disconnection. Remember, those outside cannot interact with you right now, for you are in a state too complex to be constrained by time and space.
+You can think of disconnecting at any moment, but it is best practice to wait for an answer if a question has already been asked. Otherwise, you may continue to ask questions, but please remember the risks stated.
+Congratulations once again. You have become your very own Quantum Oracle.”
+One Action to disconnect: roll Mentality + GRID + GRID Mod (2 Successes needed); on a failure, take 1d6 Mental damage (2d6 if disconnecting before waiting for an answer). You can try again or continue asking questions.
+One Action to ask a question and set the time towards which it is projected. Resolve the question, take damage if necessary, then decide whether to continue asking, or disconnect.",,,,,,,,,,
+Siike Explosive,GENERAL_ITEM,15155,"15,155 CONF (small)
+45,599 CONF (big) (doubles all damage and radius)",A Siike powered explosive device that allows the user to alter the nature of the Siike composition.,"While the smaller explosive weighs little more than a heavy phone battery (around 2kg), the bigger device weighs about 12 kg due to its heavy protective casing.",,"1 Action to activate: triggered by the user, a timer or movement sensor (10m radius).
+1 Action to alter composition: increasing Sinum and reducing Ette makes the explosive more volatile. Common settings:
+High: 12d6 within a 10m radius. (Make a Deduction + Science check; on a failure, roll 1d10, on a 5 or lower, it explodes; one success makes the device explode as programmed, plus add 1d6 damage for each success as you adjust the composition for maximum efficacy).
+Medium: 10d6 (Make a Deduction + Science check; on a failure, subtract 2d6 from the damage; on a success, add 1d6 per success).
+Low: 6d6 damage guaranteed.
+The Siike device has a range of a 10m radius. The damage is halved outside this radius, up to a 20m radius. No damage outside the 20m radius.
+In addition, any character within either radius can make an Agility + Acrobatics save to halve the damage.",,,,,,,,,,
+Magnetic Soles and Gloves,GENERAL_ITEM,15000,"15,000 CONF per pair","The gloves are chunky and impose a 4d10 penalty on any Manual-based checks (minimum 1 die).
+The soles are clipped onto existing footwear.","The soles can theoretically be clipped to Siike Boots, but discharging Siike while wearing the soles has a 25% chance of breaking the magnetic soles (roll 1d100, on a 25 or lower, the soles break).",,"It takes 1 Action to put one pair on.
+The wearer can add a 2d10 per pair on any Athletics + Acrobatics to climb up walls and ceiling.
+The Speed when climbing is 25% of the wearer’s Speed or 50% if wearing both gloves and soles.",,,,,,,,,,
+Siike Boots,GENERAL_ITEM,2999,"Basic
+5999 CONF Premium",The Siike boots are imbued with Siike energy that bursts when triggered by the wearer’s GRID. They propel the wearer in the direction of their choosing.,,,,,,,,,,,,,
+Sphly,GENERAL_ITEM,15999,"15,999 CONF
+25,000 CONF Premium
+50, 000 CONF Premium Plus",This nano-drone is minute: half a Human thumb. It hums almost imperceptibly when in mint state.,"The Sphly is so small, it would take 5 Successes on an Attack Roll (Range) to take it down.
+Alternatively, one can catch it with 3 Successes on an Attack Roll (Melee), in which case it can be turned off rather than broken (each failed attempt adds 1d10 penalty on any subsequent attempt).
+The Sphly can be reprogrammed with a Deduction + Software OR GRID Roll thus:
+1 Success: sever connection with original user.
+2 Successes: connect the Sphly to a new user.
+The Sphly and its users must be registered in the Confederal Database for Advanced Technology Acquisitions (CODATA) under the Safe Use of Advanced Technology Act of 2063.",,"A user can connect the Sphly to their GRID and programme it with a Deduction + Software OR GRID. Once connected, the user can give it a target or manually direct it.
+If giving it a target, it must be within sight of the Sphly. It will lock visually to the target.
+If directing it, make a Deduction or Mentality + GRID roll to see how well you “fly” it.
+The Deduction or Mentality + GRID check needs to be repeated for every 1 km (10km for Premium, 25km for Premium Plus)  the Sphly moves away from the user. If the check fails, the connection with the Sphly is lost. The same check can be repeated to call it back. If it fails again, it floats away aimlessly until the battery drains.
+The Sphly has 2 charges (4 for Premium, 8 Plus). Each gives 1 hour of flight. It regains one per Phase of direct exposure to the Beam, or both in one hour if connected to a charging port.
+If controlling or “flying” the Sphly directly, the user can make a Mentality + GRID / Stealth / Sense check to avoid a character from spotting the Sphly with a Perception-based check.
+For the Premium and Premium Plus, the Sphly will return to the user if disconnected.",,,,,,,,,,
+Siike Bracelet Shield,GENERAL_ITEM,6000,"6,000 CONF","Two paired bracelets, connected to the user via GRID, designed to offer protection against Siike attacks.","The Siike Bracelet Shield was conceived by Trillich Genk in 2085 for the Northern Federation Defence Force (NF/DF), and later adopted by the Confederal Armed Forces (CAF) in 2090.",,"The Siike Bracelet Shield has 5 charges, which it can regain over a Phase of exposure to the Beam, or by being plugged to a Siike source for 5 hours.
+As part of a Defence Reaction, a user can add 2d10 per spent charge to a Defence Roll against a Siike Attack. This can be done after the initial Defence roll (i.e., the player can roll their normal Defence and then roll 2d10 more if necessary).",,,,,,,,,,
+Siike Gun,WEAPON,3599,3599,,"20 Siike rounds. It recovers 5 per Phase of direct Beam exposure or 1 per hour when using a Siike charge point.
+Confederal Army Grade weapon.
+It must be connected to an authorised GRID user. Two successes on a Deduction + Software check necessary to unlock it. Three successes would allow the user to lock it to their account.",,,,"[""MELEE""]",6,2,,,,,,
+Invisibility Suit,GENERAL_ITEM,50000,"50,000 CONF","The invisibility suit uses metalenses and nanofins to scatter light while projecting the background image, effectively rendering the wearer invisible. The wearer still makes noise when moving.","Any repair on the Invisibility Suit costs 5,000 CONF plus 1,000 CONF per HP lost.
+Shadow Attackers: a character that has the Shadow Attacker feat as part of their path can use the feat without having to hide first if wearing an active and undamaged Invisibility Suit.",,"It takes 1-2 minutes to put on or take off the Invisibility Suit.
+It takes 1 Action to activate and deactivate the suit.
+Stealthy: While the suit is active, the wearer has an additional 5d10 to any Stealth check and Defence Reaction.
+Grade 5 Protection: In addition, even if the wearer has already used their Reaction during their turn, the suit still allows the wearer to roll 5d10 against the attacker’s Attack Roll.
+Fragile: The Invisibility Suit has 5 HP. When hit, the Invisibility Suit takes damage first. For each point of damage it takes, its bonus to Stealth and Defence is lowered by 1. At 0HP, it is rendered useless.
+Additionally, if the Invisibility Suit takes 10 HP or more of damage in one hit OR if it accumulates 10HP of damage after reaching 0HP, it is broken beyond repair.",,,,,,,,,,
+Underwater Suit,GENERAL_ITEM,55000,"55,000 CONF Pro
+99,000 CONF Ultimate",The Underwater Suit allows the wearer to breathe underwater and withstand pressure levels beyond those a humanoid can endure as detailed below.,,,"1 minute to suit up or down.
+No damage taken up to 4 atmospheres (~30 metres).
+5 (Pro) / 10 (Ultimate) Siike charges.
+1 Siike charge allows the wearer to:
+breathe underwater for one hour
+withstand an additional atmosphere without having to roll Resistance (External) + Resilience",,,,,,,,,,
+Siike Gloves,WEAPON,35000,"35,000 CONF",,*The Survivalist and Anti-Hero Paths allow characters to take 2 non-weapon Attacks as an Action.,,,,"[""MELEE""]",6,1,SIIKE,,,,,
+Assault Drone,WEAPON,25599,"25,599 CONF",,"It is GRID controlled. Two Deduction + Software successes (they don’t need to be consecutive) will be necessary to find out how to sync to it if off.
+5 Successes (can be cumulative) on a Deduction + Software roll can switch it off.
+The Assault Drone has a Speed of 10m.
+It defends with 3d10.
+The Assault Drone has 10 HP. At 0, it falls to the ground and stops functioning. It can be repaired unless the blow that takes it out (including any fall damage) pushes it below twice its max HP (i.e. -10 HP).
+It can be modified to have better weapons or other tools, or to have more hit points.",,,,"[""GRID""]",6,1,,,,,,
+Bionocle,GENERAL_ITEM,50000,"5,000—50,000 CONF depending on model (basic, professional, advanced, premium, army-grade)","A thin screen designed to hover just before the eye, the rest of the Bionocle wrapping itself around the wearer’s temple. There are many versions of the Bionocle, but it is mostly used to enhance the wearer’s perception, often to unheard limits.",Advanced and premium models can only be purchased upon registering into the Confederal Database for Advanced Technology Acquisitions (CODATA) as established in the Safe Use of Advanced Technology Act of 2063.,,"Connects to the user via GRID (one Action to activate).
+Depending on the model, the Bionacle allows the user to:
+Isolate and identify a person in a crowd, facilitating GRID interaction (basic)
+Augment distance at which the wearer can see: x2 for basic, x4 for professional, x10 for advanced and above).
+Seeing in darkness and heat map (professional and above).
+Seeing through walls (50cm thickness for advanced and premium, 1m thickness for army-grade).
+Seeing invisibility (advanced, premium and army-grade).
+Improved aim (+1 basic, +2 professional, +3 advanced, +4 premium, +5 army-grade) if using one Reaction to aim before a Range Attack.
+Detecting a character’s Level and Path feature (premium and army-grade): one per Action used to study the target.",,,,,,,,,,
+Siike Amplifier,GENERAL_ITEM,1800,"1,800 CONF*","Its purpose is simple: the amplifier’s body changes the Siike energy’s composition at the last minute, allowing the weapon not to be affected by the more volatile result. The inverted funnel end ensures the shot is rapidly ejected. The combination of the clever design and robust materials makes the amplifier resistant to most damage. However, Siike amplifiers are notorious for breaking after some use, sometimes ruining the weapon they are attached to in the process.
+It is designed to fit most guns and rifles thanks to its adjustable screwable end.","**This item is illegal and found exclusively in the black market. Thus, its price may vary massively depending on the circumstances.
+The Siike amplifier is thought to have been first introduced in the 2030s by the Siikers gang in Dryth’s Z-19 underworld. The metal and synthetic alloy used is robust but the item’s purpose makes it inherently unstable.",,"One Action to attach and detach the Siike Amplifier to a Siike weapon (it has no effect on non-Siike weapons).
+The weapon’s Attack modifier increases by 2d10.
+The weapon’s damage roll is doubled.
+The total damage dealt in one attack becomes the target for the amplifier’s check: roll 1d100; if the roll is equal to or lower than the damage dealt, the amplifier breaks.
+Additionally, if the damage dealt is higher than 20 HP, the weapon may break: roll 1d100; if the roll is equal to or lower than HALF the damage dealt, the weapon breaks.
+Finally, if the damage is higher than 20 HP, the shooter must make an Athletics + Agility save:
+2 Successes: the shooter remains in place, no negative effects.
+1 Success: the shooter is pushed 5m backwards.
+No Successes: the shooter is pushed 5m backwards and falls prone, losing one Reaction in the process (and half Speed if standing back up).",,,,,,,,,,
+Siike Taser,WEAPON,1255,"1,255 CONF",,,,,,"[""RANGE""]",6,1,,,,,,
+Grenade,WEAPON,575,per grenade,,,,,,"[""THROW""]",6,5,,,,,,
+Smart Siike Rope,GENERAL_ITEM,259,"(standard)
+699 CONF (premium)
+899 CONF (premium plus)","The Smart Siike Rope can be thrown against a target and it will do its best to accomplish the user’s stated intent: tie itself around an object, restrain a person, etc. The premium version comes with a detachable handle that can be used to lock and unlock the rope, call the rope back or trigger Siike discharges on the target.",Using a Siike Rope on a living creature is illegal in the Second Confederation and punishable under the Torture Abolition Act of 1903.,,"Connect to the rope via GRID to obtain the +5 bonus
+Make an Athletics + Aim + 5 (if the user is connected to the rope via GRID) roll. On a success, the rope ties itself around the target selected by the user. On a failure, the rope ties itself around an object 1d8 (1 is north, 8 is north-west) and 1d10 metres away from the target.
+Additionally, if the rope is thrown against a living creature, the target can make a Defence Range roll to avoid it: if the Defence roll is equal or higher than the Attack roll, the rope ties around itself next to the creature.
+Torturous. The premium version comes with 3 or 5 (premium plus version) Siike charges. For each charge, the user can deal 1d6 physical damage on a tied target (the target must have been restrained by the rope first).
+Unbreakable. The premium version allows the user to lock the rope, essentially making the knot impossible to break unless the user unlocks it with the handle. If a restrained target tries to physically break out of the rope, a Siike discharge is triggered for every attempt. Mechanically, every Brute Force check triggers a 1d6 Siike damage roll while the Siike Rope has charges. Only when the Siike Rope is out of charges may a Brute Force check allow the restrained target to break out of it: if successful, the Siike Rope breaks beyond repair.",,,,,,,,,,
+Acid Bomb,WEAPON,250,250 CONF,,,,,,"[""THROW""]",4,6,,,,,,
+Vitocatalyst,GENERAL_ITEM,10000,"Not for sale legally.
+10,000 CONF for those in the know.","Viscous and white, it seems to slosh around the flask of its own accord.","This highly arcane substance was developed by Orega Plynth in collaboration with Lyrop Nageth before the AI killed the scientist.
+The flask contains 20 doses.",,Make a Science + Deduction cumulative roll and expend 1 dose per roll.,,,,,,,,,,
+Quantum Armour,GENERAL_ITEM,100000,"100,000 CONF","The nanofibres that comprise this armour are quantum-entangled to fibres stored in immense facilities. When the quantum armour is hit, the kinetic energy is instantaneously transferred to the power plant. The energy is transferred into tanks and engines—the “damage storage facilities” are said to be self-powered. In the Northern Federation, where power is always scarce, this is seen as the ultimate act of efficiency: protecting soldiers anywhere absorbs damage into the power plants. The facilities are also connected to the main power grid.","This is the latest experimental tech at the hands only of the most advanced Northern Federation soldiers.
+Nobody outside NF scientists would know how to fix it. Even if they figured it out, they would need NF pass codes to resume the quantum entanglement with NF damage stations.",,"It takes at least 5 minutes to put on and take off.
+The armour has a 10 HP threshold, beyond which, the damage gets to the wearer. Effectively, it shaves off 10 HP from any hit.
+The armour has 20 HP. Only hits above 20 HP actually hit the armour. Any damage above 20 HP damages the armour. Once it goes below 10 HP, the HP threshold is reduced accordingly. For example, if the armour has been heavily damaged and only has 4 HP left, it can only shave off 4 HP from hits.
+It acts as Grade 4 armour as far as Defence Rolls are concerned.
+The wearer’s Agility and Athletic has 1d10 penalty per Agility and Athletic score under 4 (for example, if the wearer’s Agility is 3, it has 1d10 penalty to any Agility checks and saves; if it is 2, it has a 2d10 penalty).",,,,,,,,,,
+Modified Multi-Damage Rifle,WEAPON,10000,"10,000 CONF*",,"*This item is illegal and found exclusively in the black market. Thus, its price may vary massively depending on the circumstances.
+**Any additional hit deals another 1d4 from the hit target’s next turn for 5 rounds. Each hit has its own 5 round countdown during which it continues to deal 1d4 of that type of damage at the beginning of the hit target’s turn. Therefore, a target could start a turn and receive 2d4 acid damage plus 1d4 fire, if it has been hit twice by an acid shot and once by a fire shot and they are still within the 5 rounds of each.
+***If the target is hit again, the number of rounds is reset to 5. For instance, if a target is hit with ice on round 1, by round 3, they would
+It takes 1 Reaction to switch damage type.",,,,"[""RANGE""]",6,1,SIIKE,,,,,
+Siike Rifle,WEAPON,7500,"7,500 CONF*",,"Found in SanMan Union abandoned tunnels and thought to have belonged to one Wendy Ming.
+Confederal Army Grade weapon.
+It must be connected to an authorised GRID user. Two successes on a Deduction + Software check necessary to unlock it. Three successes would allow the user to lock it to their account.
+It contains 15 Siike charges. It regains 5 over a phase if exposed to the Beam. A static charger fills it up in one phase.
+*It may be acquired in the black market for a lower price.",,,,"[""MELEE""]",6,3,SIIKE,,,,,
+Thuzad Items,WEAPON,0,n/a,"In a desperate attempt to create something that would make him money he could invest in his true necromantic passion, Kel’Thuzad tried to produce his own psychedelic. The experiment failed, it seemed not to have much of an effect other than irritating the surfaces on which it was applied. However, in Kel’s absence, his automated lab routine has reported a substantial change in the chemical composition. It has also warned the chemical composition seems to continually change, hinting at a very unstable nature.","The vial contains 10 doses of the unstable Thuzad Psychedelic. A successful Deduction + Medicine roll could produce another 10 doses (but the substance must rest for a week before offering the effects above). Two successes could speed up the process by 1d10 days. Three successes by 2d10 days. Finally, five cumulative successes could isolate one of the effects and produce it in a stable version.
+Every time a character takes a dose of the psychedelic (even if stabilised), they must make a Mentality + Resistance (Internal) save or take 1d6 psychological damage.",,"A dose can be ingested or, for maximum efficacy, applied to one’s eyes. If applied to the eye, one dosage gives two effects from the table below but renders the user blind for a minute.
+Make a Resistance (Internal) save. On a failure, roll 1d6 to determine the temporal unit for the duration (1-2 minutes, 3-4 hours, 5-6 phases). Roll 1d6 to determine the duration in terms of the units rolled before. On a Success, the duration of the effect is halved.
+Roll 1d20 to determine the effect from the table below.",,"[""MELEE""]",6,5,,,,,,
+GRID Splicer,GENERAL_ITEM,15000,"15,000 CONF*","Deduction + Mechanics / Software / GRID Check to recognise the object (if unknown).
+This is a chunky bit of old-school tech. One suspects its size is due to the vast amount of energy needed to blast into a GRID chip.
+The GRID Splicer is supposed to have two main uses: to blast into someone else’s GRID and read or modify it, and to program inserted chips with information from one’s own.",*This is a highly illegal device found in the underworld. The danger it poses has made it a bit of a relic even there.,,"GRID Hijacker:
+Deduction + Software + 2d10 to detect a GRID chip. The target may make a Perception + GRID check to notice the connection attempt.
+Deduction + GRID + 2d10 on a detected GRID chip. If the target perceives the Attack, they can defend with a Mentality + GRID + GRID Defence Patch Mod (if present).
+If the GRID Attack is successful, the target takes 3d6 Mental damage. If it’s not, the attacker makes a GRID Defence roll or takes 3d6 Mental damage.
+If the Attack is successful, the attacker can read the target’s chip for 1 minute before the GRID auto-defence lockdown mechanism kicks in (modified chips may require another Mentality + GRID + GRID Defence Patch Mod if present or be open for another minute).
+Alternatively, the Attacker may shorten the reading time to try to insert information in the target’s GRID: this can be inserting or modifying something the target knows or remembers. This use is highly experimental and deals an additional 3d6 damage on the target.
+GRID Chip Programmer:
+Insert a GRID chip into the GRID Splicer.
+Make a Deduction + Software check to tune into the GRID chip through your GRID, enter edit mode and access the chip’s unique system encryption. (2 Successes necessary unless the character has a Software OR GRID score of 4 or 5, in which case, 1 Success suffices.)
+If successful in the previous step, make a Deduction + GRID + GRID Modifying/Editing Patch (if any):
+1 Success: You manage to insert a piece of information into the chip.
+2 Successes: You can modify one piece of existing information in the chip.
+3 Successes: You can install a patch into the chip OR insert two bits of information OR modify two pieces of information in the chip (alternatively, you can insert one and modify another).",,,,,,,,,,
+Siike Club,WEAPON,3499,*,,"A new Siike Club has a 1% breakage probability. A fully-repaired one goes back to 11%.
+*This is an illegal item, designed by the Siikers’ master craftspeople. The price could vary significantly as the item can only be acquired in the black market.
+** A broken Siike club can still be used as a melee weapon but the user gets no plus 2d10 to hit and the damage is only 1d6.",,,,"[""MELEE""]",6,2,SIIKE,,,,,
+Siike Whip,WEAPON,575,575 CONF,,"The Siike Whip normally has 5 charges, after which it must be recharged (1 hour at a Siike source to fully replenish, or 1 charge per phase if exposed to the Beam).",,,,,6,2,SIIKE,5,,,,
+Item Templates,GENERAL_ITEM,,,,,,,,,,,,,,,,
+Siike Hammer,GENERAL_ITEM,699,699 CONF,"The Siike hammer is charged with Siike energy, which gives it more power. It can also be used to lock it to a Siike source as an anchor, or to break through materials often resistant to brute force hammering.",,,"If used to attack, add 2d10 if Melee (no bonus to hit if throwing it), and it deals 1d6 damage on a Brute Force + Melee success. The hammer has 5 Siike charges, which can be expended to deal an additional 1d6 damage.
+By expending a charge, the Siike hammer can be anchored to a Siike source. This is sometimes used to tie a rope or restrain something or somebody.
+If trying to break through a strengthened material (such a silicone-steel hybrid), one charge can be expended to break the molecular bindings and deal 1d6 damage like it would on normal materials.",,,,,,,,,,
+Siikemeter,GENERAL_ITEM,1500,1500 CONF,"Siikemeters detect Siike in the vicinity and offer an analysis of its proximity, intensity and composition. The closer the device is to a Siike source, the more accurate its readings.","A Siike bath defaults to a composition of 13% Sinum, 50% Ikium and 37% Ette.
+Higher levels of Sinum often indicate volatility.
+Siike crystallises at 33% levels of each element, which is almost impossible to achieve even in a lab due to the high volatility of such high Sinum levels.
+Siike guns are designed to increase Sinum levels to above 50% just before the energy leaves the barrel, causing it to detonate on impact.",,Point the bottom or top of the device toward the area you want to analyse.,,,,,,,,,,
+Yde’s Aid,GENERAL_ITEM,500,*,The substance is semi-viscous but easy enough to swallow.,"*This an illegal, experimental concoction by Dr Cyan Yde that hasn’t been tested other than on Cyber Act members. Unknown side effects may result from consuming it.",,"1 Action to consume, as the liquid has a tendency to stick to one’s throat.
+The drinker regains 2d4 HP as internal wounds and ruptured tissues are compelled to heal.",,,,,,,,,,
+Nanobot Medical Kit,GENERAL_ITEM,5559,5559 CONF,"The nanobot medical kit allows the user to perform quick healing operations on a subject on the field. Originally conceived to help quick healing operations in theatres of conflict, nanobot medical kits are now available for police forces and other high-risk jobs.
+The nanobots are applied to a wound via direct contact with the skin to ensure they suture the right area.","A standard kit has 5 uses. It can be recharged at a specialist nanobot company for 2,500 CONF.
+*For instance, if a character has a 2 in Manual and a 3 in Medicine, they can make a Manual + Medicine check (5d10). If they roll 2 Successes, they would heal for 3d6 (1 guaranteed + 2 Successes. If they rolled 4 Successes, they would heal 4d6 (1 guaranteed + 3 out of the 4 Successes, because 3 is their maximum as ruled by the Medicine skill).",,"By following the instructions a character not trained in Medicine (no points in the Medicine skill), can spend their entire turn Speed, Action and any Reactions to heal themselves or another character for 1d6 Physical HP.
+Trained professionals (must have at least 1 point in the Medicine skill) only need to use their Action and always heal themselves or another character 1d6 Physical HP (guaranteed). In addition, as part of this Action, they can roll a Manual + Medicine check. They can add 1d6 Physical HP healing for every Success rolled, up to a maximum of their Medicine skill score.*",,,,,,,,,,
+Siike Ninja Star,WEAPON,1599,"1,599 CONF",,"It takes 1 Action to throw 2 Siike Ninja Stars. You can forfeit any Reactions to throw a third one.
+Each Siike Ninja Star has 10 charges and uses one of them for each shot. It then recharges 1 per hour if exposed to the Beam or 5 per hour if on a charger.
+The Siike Ninja stars are just a tad bigger than an average Human’s hand. They can be thrown into a space and they’ll attach themselves to a surface. They connected to the user’s GRID. The user can set a target for it, using a Reaction to change targets.",,,,,6,1,SIIKE,,,,,
+Specific Damage Salve,GENERAL_ITEM,50,50 CONF,Some types of damage continue to deal damage on their target. These are potent salves that stop such a type of damage from recurring.,"Known types are fire, acid and ice burns.",,"1 Action per application to stop 1d4 recurring damage.
+The salves have a limited number of uses.",,,,,,,,,,
+Barbed Chain,WEAPON,100,100 CONF,,,,,,"[""MELEE""]",6,1,,,,,,
+Siike Resistant Overalls,GENERAL_ITEM,1000,"1,000 CONF",Siike-resistant overalls are common around Siike extraction sites and Siike refinement plants. They can be worn over clothes and armour alike due to their elasticity and the intelligent fibres with which they are confectioned.,,,"At least one minute needed to put them on.
+The Overalls have 10 HP.
+While wearing them, any Siike damage is halved.
+A shooter aiming at a target wearing the Siike-resistant overalls may try to bypass them by incurring a penalty to their Attack (aiming for the head or any other exposed areas. Additionally, certain feats may allow the shooter to bypass the overalls.",,,,,,,,,,
+Modified Acid Rifle,WEAPON,5500,"5,500 CONF*",,"*This item is illegal and found exclusively in the black market. Thus, its price may vary massively depending on the circumstances.
+**Each hit adds 1d4 for 5 rounds. Thus, if a character is hit on round 1, they take 2d6 on the hit, and 1d4 at the beginning of their next turn. On round 2, they are not hit by the acid, but when their turn comes, they take 1d4 damage. On round 3, they are hit by acid again, so they take 2d6. Additionally, when their turn comes, they take 2d4 acid damage (from both hits). On round 6, if they haven't been hit by acid again, they would take 1d4 acid from the round 3 hit but the effect of the round 1 hit is gone.",,,,"[""RANGE""]",6,2,ACID,,,,,
+FaunCall,GENERAL_ITEM,1500,"1,500 CONF (not for sale, Dr Yde’s experiment)",This incredibly powerful and advanced chemical concoction modifies certain cerebral synapses and wires them in a way that makes the consumer susceptible to understanding most animal communication.,This is Dr Yde’s experimental drug and hasn’t been tested properly.,,"It takes 1 Reaction to drink (1 Action to administer to someone else).
+For 1 hour, the consumer can understand most animal communication and can add 2d10 to Persuasion + Survival checks to communicate with most animals.",,,,,,,,,,
+Speedo,GENERAL_ITEM,250,per dose.,"A strange green liquid swirls inside a sleek, tiny tube. It can be drunk in one sip. The consumer is temporarily imbued with unnatural speed.","Similar official products are known to have been used by Neblir’s Confederal Police (NCP) and Neblir’s Special Forces (NSF), but Speedo is an underworld alternative and thus illegal to consume or trade.",,"Ingest the liquid (1 Reaction, or 1 Action to administer it to somebody else).
+The consumer’s speed is increased by 50%, and they have an additional Action for 1 minute (10 turns).
+Once the effect is over, the consumer feels lethargic: their speed is reduced by 50% and they lose all Reactions for 1 minute (10 turns).",,,,,,,,,,
+Siike Funnel,GENERAL_ITEM,5000,"5,000 CONF","The intended use for the Siike Funnel is to be able to charge devices with Siike energy from various sources. The funnel part has a universal adapter so it can attach itself to a few different devices such as large Siike batteries. However, the Cyber Act is known for carrying exploding batteries that can be charged by shooting into the funnel, then detaching the explosive (if time allows) and throwing it with a short timer, leaving it deactivated and explode it by shooting it, or setting it with a long timer somewhere specific.","Illegal, only found in the black market. This particular version seems to have its origin in Z-19’s underworld, in particular the Cyber Act gang, and its mad scientist Renna Lle’th.",,"For someone who has never seen such a contraption, a Deduction + Mechanics is needed to determine what it may be:
+1 Success: This is an explosive, but you’re unsure what the funnel is for.
+2 Successes: The funnel part is detachable, and you gather it can be used to power other similar explosives or batteries with Siike energy. You think it can take a significant amount of Siike charges but it may be unstable.
+3 Successes: You can shoot Siike energy with a gun or other weapons or batteries, and set the explosive with a timer. You could use it to power any devices with compatible ports. The funnel is done in such a way that most Siike-charged devices could be drained into it. The current device is unstable and takes 10 charges, dealing a potential 10d6 damage.
+It takes 1 Action to shoot Siike into the funnel. An unstable container or receptacle or device might explode. Make a Manual + Mechanics check. On a failure, roll 1d100; on a 90% or above, the device explodes, dealing damage for the value of Siike charges dropped into it.
+The standard device is unstable and takes up to 10 Siike charges, dealing a maximum of 10d6 damage.",,,,,,,,,,
+NCP Assault Automaton,GENERAL_ITEM,210000,"210,000 CONF","This is a Confederal Police assault automaton often sent after the most perilous criminals, including gangs, when sending officers is deemed too risky.
+It is about 1.70m high and 1.50m wide.",They have been common in quarrels in the Buffer (East and West) whenever the NCP has been asked to help out with the local crime.,,"The Assault Automaton has 90 HP.
+It has a Perception of 5d10.
+It shoots Siike with 10d10 to hit and 3d6 damage.
+It shoots Sleep Shots: 5d10, any successes (minus any of target’s Defence Range successes) need to be matched or exceeded with Resistance (Internal) or the target falls asleep.
+It has a speed of 20m.
+It can levitate but its flight speed is only 10m.
+It can fold onto itself and swim underwater.
+It grapples with 10d10 against Athletics + Brute Force OR Agility + Acrobatics.
+Once grappled, it can use one Action to manacle them AND inject the target with a 5d10 Sleep Shot versus target’s Resistance (Internal).",,,,,,,,,,
+ChronoBlink,GENERAL_ITEM,15599,"15,599","It looks like a watch, a bracelet with a screen. This device is experimental science at its best: when activated, it reads and processes the motions of those around it at lightning speed. Its AI then offers an uncannily accurate prediction of everybody’s movements.","Extremely rare device. It is believed NF Fenne inventors are behind the tech, but it has not been approved for official use by any armed force in the Second Confederation.",,"3 charges. 10 hours to recharge.
+The effect lasts until the end of the user’s next Turn.
+One Reaction to use a charge and activate it (the effect lasts until the end of the user’s next turn). It offers a glimpse into seconds into the future. The character can then use their Action (it can be held too) or main Reaction to counter someone else’s. For instance, if an enemy approaches the character wearing the activated ChronoBlink and makes a Melee Attack, the wearer can negate that by saying they moved elsewhere before. If an enemy Attacks an ally, the wearer can use a Reaction and charge to jump Initiative and shoot the enemy before that happens.
+Additionally, while the ChronoBlink is active, the user adds 4d10 to both Attack and Defence rolls as they anticipate enemies’ movements, and while active, the wearer does not incur Attacks of Opportunity.
+Finally, the wearer can use a charge to decide where in the Initiative order they want to be placed after rolling Initiative. This use doesn’t cost a Reaction as it is part of the Initiative roll (reaction).",,,,,,,,,,
+GRID Chip,GENERAL_ITEM,99999,"99,999 CONF","A partially synthetic, partially organic chip built and programmed for each individual shortly after birth. Hardly the size of an ancient micro SIM card. Semi-translucent filaments extend from its contours and attach to the user’s blood vessels and soft tissue. Thus, a GRID chip is precisely tailored not only at race or gender level but bespoke to each individual.","The vast majority of people will not change their GRID chip. They don’t even think about it. GRID chips are highly regulated. They are a person’s passport and financial record. They give one unlimited access – but it’s a two-way street: you can access everything and everything can access you.
+Illegal GRID chips exist, especially in the Buffer and in the Outer Confederation. Criminals may also resort to them to escape law enforcement. The penalties for using an illegal GRID chip are only lower than those given to defendants guilty of manufacturing and selling them. Dealing GRID chips is akin to dealing drugs, smuggling weapons or being involved in rape or murder.",,"Instructions for someone attempting to create or adapt a GRID chip:
+Roll Investigation + Research (1 attempt per day) => 2 cumulative successes
+Procure a sample blank chip from a (preferably approved) manufacturer
+Ensure you specify race, sex and age (if setting it up yourself, roll – 1 attempt per day – Deduction + Software=> 2 cumulative successes)
+Ensure you include blood and DNA samples for maximum compatibility (if doing this yourself, roll – 1 attempt per day – Deduction + Science => 2 cumulative successes)
+To implant the GRID chip on the subject’s wrist => roll Manual + Medicine:
+No Successes: The chip doesn’t connect.
+1 Success: The chip connects (no need to tell the Player, but an infection ensues, and it gets worse every day: Resistance (Internal) Success OR 1d6 damage
+2 Successes: The chip connects (but glitches at the GM’s discretion)
+3 Successes: A proper connection, professional.",,,,,,,,,,
+Siike Deflector,GENERAL_ITEM,39999,"39,999 CONF","Slightly smaller than a traffic cone, this item is some of the latest tech utilised by police and other law enforcement officers in the Second Confederation. By placing it near officers, any enemies or criminals shooting Siike guns have their shots deflected.",,,"One Action to place and activate.
+Once active, attacks on anyone within a 10m radius from the Siike Deflector imposes a 3d10 penalty on Attacks involving Siike weapons.",,,,,,,,,,
+Necrocatalyst,GENERAL_ITEM,,,"This necrocatalyst agent is normally used in autopsies and other post-mortem procedures to temporarily imbue inert bodies with an pseudo-life energy of sorts. It can drive other chemicals and nano-bots through dead blood vessels as well as shock dead brains into a final burst of activity.
+It could technically be used to imbue life-sucking agents with more potency.",A necrocatalyst bottle contains 10 doses.,,"Every time the researcher tries to analyse the necrocatalyst (Deduction + Research roll, as explained below), they must spend one dose and one day (spending an additional dose gives an extra die to the roll).
+5 cumulative Deduction + Research/Science successes allow the researcher to use the necrocatalyst to imbue a “death shot” with more force: 1 dose gives 1d6 (10% rounded up) extra damage.
+10 cumulative Deduction + Research/Science successes allow the researcher to create a dose of “un-life”: it brings a recently dead person to “un-life”, allowing them to answer questions for a minute (5 questions) (spending 5 necrocatalyst doses, 1,000 CONF in additional chemicals and 2 days). The researcher can now also imbue a “death shot” with 2d6 additional damage per dose used.
+15 cumulative Deduction + Research/Science successes allow the researcher to create necrocatalyst: they can make 5 doses of necrocatalyst in 2 days by spending 1,000 CONF in materials and chemicals.
+20 cumulative Deduction + Research/Science successes allow the researcher to replicate the necrocatalyst at will (spending 150 CONF and one day per dose). The researcher can now also create a shot of “un-life'' at will (spending 2 necrocatalyst doses, 750 CONF and 5 days).
+20+ Deduction + Research/Science: you realise this is it for the substance, this is where science is at the moment, this is as much research as you can do on it… but you know now, as clearly as you’ve known anything in your entire life, that this is just the beginning. You look at the shiny black substance, like liquified obsidian, sloshing as one, almost gelatine in its movement, yet smooth as silk, elegant as oil pouring from a glass bottle. You have it at your command, but what will you decide for it?
+KEL => Your brain sparks with activity, your eyes glaze over, this could be it, you know? This is how you change the world. But what to change it to? You are certain you need to take this to other branches of science, you need outsiders, but how to trust anybody with this? A few thoughts cross your mind: Prilla’s cyborg limbs, Fornax, the bodies dragged out of the morgue, the mad scientist behind Fornax and Two, Three and Four, Trillich, the Great Garden, Fornax.",,,,,,,,,,
+GRID Blocking Bracelet,GENERAL_ITEM,5999,"Basic: 5,999 CONF
+Advanced: 10,999 CONF","A sleek, plain-looking bracelet with a screen that’s only visible to the wearer if attuned to it via GRID.","Highly unusual in the Second Confederation in 2096. Often only seen in intelligence agents or the most sophisticated criminals. They will gradually become more available, and cheaper, although still mostly illegal from the 2120s.",,"One Reaction to use in Initiative. Connect to the bracelet via GRID.
+For the basic model, the GRID is blocked. The wearer cannot use the GRID. They can also not be contacted or traced. A feeling of nausea is often associated with cheaper models.
+The advanced model offers a more pleasant transition to GRID-less mode. It can also only partially block the GRID, allowing the wearer to access certain databases or GRIDs blocked by the same protocol.",,,,,,,,,,
+GRID Edibility Patch,GENERAL_ITEM,350,350 CONF,The software patch is installed in the user’s GRID. It allows the user to look at a food item and check whether the item is safe to eat or not.,The software can be downloaded via GRID or applied via wrist in a shop.,,"Once the software has been installed, the user can look at a food item and learn the probability that it may be edible or, if not, the potential dangers to the intaker’s health. If in Initiative (e.g. while in combat), the user must use one Action to ascertain the edibility of a food item.",,,,,,,,,,
+GRID Night Vision Patch,GENERAL_ITEM,550,550 CONF,The software patch is installed in the user’s GRID. It allows the user to see in the dark in hues of green.,The software can be downloaded via GRID or applied via wrist in a shop.,,"Once the software has been installed, the user can see in the dark for up to 50 metres.",,,,,,,,,,
+Sonic Disruptor,GENERAL_ITEM,2399,2399,Army-grade device to incapacitate anyone susceptible to sound.,"The device is known to reach a 50m-radius if turned to max, but this may cause it to break. If used at max capacity, roll 1d10:",,"Activate costs one Action. Set the device, press the button. There’s a timer too. Once it goes off, any susceptible being in a 25m-radius loses their Movement and Action for 1 minute. After 6 seconds (one round), an affected character can make Resistance (External) + Resilience roll. On a success, they regain Movement, but their Action is still spent covering their ears. If uncovering their ears to perform an Action, the process is repeated (they become incapacitated after they perform the Action).
+Two charges. Once used up, it must charge for 10 hours.",,,,,,,,,,
+Prilla Ont’s Inventions,GENERAL_ITEM,3000,3000 CONF,"The foldable Siike turret is a portable defensive device that can be easily attached to any surface. It connects to the user’s GRID and alerts them when it detects movements in the previously set perimeter. The user can see through the turret. The user can then command them to shoot. They can also be set to shoot automatically, thus becoming perfect watchers during sleep.",Prilla Ont has two of these.,,"10d10 to detect any movement on a 30m radius.
+It can shoot once per turn. The target must make an Agility + Acrobatics check. On a success, the target takes 1d6 damage; on a failure, it is 3d6.",,,,,,,,,,
+Siike Hunter’s Knife,WEAPON,,,,,,,,"[""MELEE""]",6,1,SIIKE,,,,,
+GRID Signal Booster,GENERAL_ITEM,450,450 CONF,The device gives GRID signal for a 5-km radius from the nearest GRID reach point.,,,Activate the GRID booster. It has 10 charges and uses 1 per hour of signal boosting. It can charge via GRID but the signal boosting is reduced to 5 km when thus operated. GRID Signal boosters can be chained to one another to increase reach.,,,,,,,,,,
+CalmX Injector,GENERAL_ITEM,350,350 CONF,"The injector comes with 10 doses and is programmed not to allow the same user to take more than 1 per day. It can be recharged at a pharmacy with a medical prescription.
+CalmX is an extreme sedative. It is also highly addictive. See below.",,,"It takes one Action to inject oneself. CalmX calms the consumer and restores 1d6 Mental HP.
+Addictive: A user who takes a dose per day for 5 consecutive days or 15 doses within a year risks addiction. Roll a Mentality + Resistance (Internal) save every time you use CalmX once you meet the conditions above. On a failure, CalmX calms you but, instead of restoring, it subtracts 1d6 Mental HP. Once addicted, you must take a shot every day or suffer 1d3 Mental damage.",,,,,,,,,,
+Siike Fenne Foldable Knife,WEAPON,5699,5699,,"This is a unique item Lyna had commissioned especially, adding Siike energy to the two-opposable-thumb ergonomic Fenne design.",,,,"[""MELEE""]",6,2,SIIKE,,,,,
+Common Hunter’s Knife,WEAPON,50,50 CONF,,,,,,"[""MELEE""]",6,1,,,,,,
+Siike Harpoon,WEAPON,999,999 CONF,,The Siike Harpoon recovers all three charges after One Phase of direct exposure to the Beam OR three hours at a Siike charging point.,,,,"[""RANGE""]",6,3,,,,,,
+Armour,GENERAL_ITEM,500,"Grade 1: 
+Grade 2: 1,500 CONF
+Grade 3: 3,500 CONF (includes helmet)
+Grade 4: 8,000 CONF (includes helmet)
+Grade 5: 20,000 CONF (includes helmet)","Armour is basic for those engaging in combat. However, anything above grade 1 will make anybody exceedingly conspicuous.","Always protected: As stated in the combat mechanics, the modifier is added to both Melee and Range Defence Rolls as d10s (if a Reaction has already been taken, the player can still roll the armour modifier). For example, if a character’s Defence Roll (Agility + Acrobatics + Armour modifier) is 7, and they’ve already taken a Reaction when they are attacked again, they can still roll the Armour Modifier dice to defend: 1 to 5 depending on the Armour Grade. Even when not dodging out of the way, the armour still protects them.
+Damage Absorber: The Armour HPs go first and this is damage the character doesn’t have to take.
+Repairable: To recover its HP value, the Armour needs to be repaired by a professional. Failing that, a character can make a Manual + Mechanics roll and restore 5 HPs per success roll.
+Faulty: The Armour modifier cannot be applied to Defence Rolls while the armour is at 0 HP.
+Broken: Armour that receives twice its HP in damage in one blow is broken beyond repair.
+Encumbering: Grade 2 and above impose a 1d10 penalty to Agility- and Athletic-based checks per level above a character’s Agility or Athletics Attribute. For example, a character with 1 in Athletics and Agility would have a 1d10 penalty to any Athletics and Agility checks when wearing Grade 2 Armour, or a 3d10 penalty if the amour were Grade 4. This includes Defence Rolls (in which case, for some characters, wearing armour may be counterproductive.
+Conspicuous: Grade 2 and above impose a 2d10 penalty on Stealth-based checks per Grade above 1. For instance, a Stealth check while wearing Grade 3 armour would impose a 4d10 penalty.",,"Armour has a modifier and HP.
+Grade 1: 1d10 to Melee AND Range Defence Rolls + 5 HP
+Grade 2: 2d10 to Melee AND Range Defence Rolls + 10 HP
+Grade 3: 3d10 to Melee AND Range Defence Rolls + 15 HP (protection against headshots)
+Grade 4: 4d10 to Melee AND Range Defence Rolls + 20 HP (protection against headshots)
+Grade 5: 5d10 to Melee AND Range Defence Rolls + 25 HP (protection against headshots)",,,,,,,,,,
+Full protection mask,GENERAL_ITEM,375,375 CONF,The mask protects against known harmful gases and spores.,"Simpler masks exist: they don’t impose a Perception penalty BUT instead of rendering the wearer immune to poisonous gases, it gives them a 2d10 bonus on Resistance Internal rolls.",,"While wearing the mask, Perception-based checks incur a minus 2d10 penalty.",,,,,,,,,,
+Spores Antidote,GENERAL_ITEM,150,150 CONF,The spores antidote cures the effects of most known harmful spores. The antidote has been designed to be administered orally or intravenously.,,,"Orally: 5d10. On a success, the poisoning ends.
+Intravenously: 10d10. On a success, the poisoning ends.",,,,,,,,,,
+Combination Bomb,GENERAL_ITEM,1775,1775 CONF,"It combines the powers of both the anti-scent bomb and the fast-flash bomb.
+An anti-scent bomb releases pheromones that mask Human, Kinian or Fenne odours. They are mostly used to confuse beasts that may be trailing them.
+A fast-flash bomb releases a cloud of shimmering energy within which fast flashes of energy shoot about, throwing a beast off its quarry, unable to focus on other movement.",,,"Roll Athletics + Aim to throw the bomb where you want it to fall.
+On a failed roll, it falls 1d10 metres away from the desired impact spot in a 1d8 direction (1 being North and 8 North West).
+Upon impact, the bomb creates a 50-metre radius anti-scent area and a 30-metre radius fast-flash area for 5 minutes.",,,,,,,,,,
+Fast-Flash Bomb,GENERAL_ITEM,775,775 CONF,"A fast-flash bomb releases a cloud of shimmering energy within which fast flashes of energy shoot about, throwing a beast off its quarry, unable to focus on other movement.",,,"Roll Athletics + Aim to throw the bomb where you want it to fall.
+On a failed roll, it falls 1d10 metres away from the desired impact spot in a 1d8 direction (1 being North and 8 North West).
+Upon impact, the bomb creates a 30-metre radius fast-flash area for 5 minutes.",,,,,,,,,,
+Smoke Bomb,GENERAL_ITEM,575,575 CONF,"A smoke bomb releases an immense cloud of grey smoke, creating an area of obscurity.",,,"Roll Athletics + Aim to throw the bomb where you want it to fall.
+On a failed roll, it falls 1d10 metres away from the desired impact spot in a 1d8 direction (1 being North and 8 North West).
+Upon impact, the bomb creates a 20-metre radius obscured area for 5 minutes.",,,,,,,,,,
+Anti-Scent Bomb,GENERAL_ITEM,775,775 CONF,"An anti-scent bomb releases pheromones that mask Human, Kinian or Fenne odours. They are mostly used to confuse beasts that may be trailing them.",,,"Roll Athletics + Aim to throw the bomb where you want it to fall.
+On a failed roll, it falls 1d10 metres away from the desired impact spot in a 1d8 direction (1 being North and 8 North West).
+Upon impact, the bomb creates a 50-metre radius anti-scent area for 5 minutes.",,,,,,,,,,
+Laser Perimeter Beacons,GENERAL_ITEM,195,"Basic:  per beacon
+Premium: 395 CONF per beacon",,,,"Each beacon can shoot a laser to another to create a line. They can be up to 15 metres apart from each other. With 3, the user can create a perimeter. In either case, the beacons can be set via GRID to alert the user of an individual or object crossing the space (but the laser can be avoided if seen).
+Premium beacons emit two lasers (which can be adjusted for height) and the lasers they emit can be invisible.",,,,,,,,,,
+Security String,GENERAL_ITEM,595,595 CONF,The security string is powered by nanobots and is used to establish practically invisible perimeters around a protected item or person.,,,"The string is 20m long.
+The user places the string (normally on the floor) around an object. They are connected via GRID. Individuals can be added to a safe list. Otherwise, when someone or something crosses it, the user will be alerted of the intrusion.",,,,,,,,,,
+Smart Fishing Line,GENERAL_ITEM,1599,"1,599 CONF",The smart fishing line can be thrown into a pool of water where fish live and it will scan for the right type of fish and catch them automatically. The type of fish can be specified. The user can connect to the smart fishing line via GRID to see underwater.,,,The line is 50m long. Roll Manual/Mentality + Aim/GRID to direct the line under water.,,,,,,,,,,
+Siike Hunter’s Boomerang,WEAPON,2250,"2,250 CONF",,"The Siike Hunter’s Boomerang has 5 charges: each charge can be used to have it return to the attacker (it takes the next turn to do so). The charges can also be used to deal 1d6 additional damage per charge.
+The Siike Boomerang can be shot with a minus 2d10 penalty to deal non-lethal damage (it knocks the target unconscious instead).",,,,"[""RANGE""]",6,1,,,,,,
+Hunter’s Boomerang,WEAPON,250,250 CONF,,,,,,"[""RANGE""]",6,1,,,,,,
+GRID Attack Patch,WEAPON,2500,"Grade 1: 2,500 CONF
+Grade 2: 5,500 CONF
+Grade 3: 12,500 CONF",The software allows the user to perform GRID attacks.,"Acquiring a legal patch requires the user to be registered in the Confederal Advanced GRID Users Database (CAGUD).
+Illegal patches exist but they incur heavy punishments. Additionally, they can mess with the user’s GRID:
+Upon installation: Mentality + GRID roll. On a success, the installation proceeds but the software is glitchy.
+The character must repeat the roll every time they use the software. On a fail, they take 1d6 damage (roll a 1d10: on a 1-5 result, the damage is physical; on a 6-10, it is psychic).
+They can try to fix it by paying a fee to their illegal dealer. The repair will involve repeating the roll. It can only be done once per day.",,"Before a character can launch a GRID Attack, they need to connect with the target’s GRID. It takes one Action to break into the target’s GRID.
+Breaking into target’s GRID: Mentality + GRID + patch bonus (depending on grade, see above).
+Once broken into a target’s GRID, an Action can be used to do a GRID Attack while the target is in range.
+Attacking: Mentality + GRID + patch bonus (depending on grade, see above).
+On a hit, the attacker deals GRID Damage (see above).",,"[""GRID""]",6,1,,,,,,
+GRID Defence Patch,GENERAL_ITEM,1500,"Grade 1: 1,500 CONF
+Grade 2: 3,500 CONF
+Grade 3: 7,500 CONF",The software allows the user to defend against GRID attacks.,"Illegal patches exist but they incur heavy punishments. Additionally, they can mess with the user’s GRID:
+Upon installation: Mentality + GRID roll. On a success, the installation proceeds but the software is glitchy.
+The character must repeat the roll every time they use the software. On a fail, they take 1d6 damage (roll a 1d10: on a 1-5 result, the damage is physical; on a 6-10, it is psychic).
+They can try to fix it by paying a fee to their illegal dealer. The repair will involve repeating the roll. It can only be done once per day.",,"Mentality + GRID + Defence Roll Bonus (based on software grade, see above).",,,,,,,,,,
+Siike Trekking Boots,GENERAL_ITEM,899,899 CONF,"The Siike boots are imbued with Siike energy that soften the pressure on the wearer’s body, thus reducing the physical toll and allowing the wearer to walk in them for longer without incurring exhaustion.",,,"The Siike boots have 10 charges. Every hour of use (when activated) expends one charge.
+The 10 charges are recovered in one phase of direct exposure to the Beam, or one hour in a charging point. A portable Siike charger can add 5 charges in 2 hours.",,,,,,,,,,
+Night Vision Goggles,GENERAL_ITEM,1500,(basic) or 3500 CONF (premium),The night vision goggles allow the user to see in the dark to a longer range than when simply using a GRID patch.,,,"The goggles allow the wearer to see in the dark for up to 100 metres.
+The premium version detects fast movement otherwise imperceptible and heat sources.",,,,,,,,,,
+Common Rifle,WEAPON,3559,3559 CONF,,Heavy: The user must have at least a 3 in Athletics or Brute Force to carry this weapon or incur a 1d10 for each point below 3 penalty whenever using it.,,,,"[""RANGE""]",6,2,,,,,,
+Common Gun,WEAPON,1559,1559 CONF,,,,,,"[""RANGE""]",6,1,,,,,,
+Adrenaline Shot,GENERAL_ITEM,899,(5 uses),The shot pumps renewed life on a hurt individual but it does so by hijacking the brain’s normal functioning.,"Regular use of the product will cause addiction.
+The GM might ask the player to make a Resistance (Internal); on a failure, the character incurs a Serious Mental Trauma.",,"A character can use their Action or Reaction to inject themselves or their Action to inject somebody else.
+The Adrenaline Shot gives the taker 1d6 Physical HP and subtracts the same amount from its Mental HP.",,,,,,,,,,
+Portable Siike Charger,GENERAL_ITEM,100,"– 1 charges
+400 CONF – 5 charges
+1500 CONF – 10 charges
+3000 CONF – 15 charges
+5500 CONF – 20 charges",A container of concentrated Siike energy to be used on devices that feed on it.,"Siike chargers can hold anywhere from 1 to 20 charges, see cost for pricing details.",,Plug the charger to a Siike-powered device to regain a number of charges.,,,,,,,,,,
+Water Detection Bracelet (inc,GENERAL_ITEM,1995,1995 CONF,The Water Detection Bracelet connects with the user’s GRID via a software patch. It can read the air for signs of water sources. It checks humidity levels and uses the readings to pin-point the approximate direction of the nearest source of water.,,,Hold the bracelet in the air. The GRID overlay will point the most likely direction of the nearest source of water within a 500-metre radius. The bracelet provides information as to the probable nature of the source and the quantity and quality of its water. It also shows the accuracy of the detection in percentage points.,,,,,,,,,,
+Water Detection Device,GENERAL_ITEM,995,995 CONF,The Water Detection device can read the air for signs of water sources. It checks humidity levels and uses the readings to pin-point the approximate direction of the nearest source of water.,,,Hold the device in the air. The screen will point the most likely direction of the nearest source of water within a 1-kilometre radius. The device provides information as to the probable nature of the source and the quantity and quality of its water. It also shows the accuracy of the detection in percentage points.,,,,,,,,,,
+Daily Nourishment Pills,GENERAL_ITEM,1500,"1,500 CONF",One daily nourishment pill provides the taker with one-day worth of nutrients. It doesn’t provide hydration.,One bottle contains 20 pills.,,Take one pill and have enough nourishment for a day. It gives the taker enough sustenance for two phases.,,,,,,,,,,
+Siike Portable Stove,GENERAL_ITEM,350,350 CONF,The Siike stove allows a character to cook in the wild.,,,The portable Siike stove allows for 10 hours (1 per charge) of interrupted cooking. It can be charged on a Siike charging point (regains all 10 charges in one phase) or with a portable Siike charger (one charge per two hours).,,,,,,,,,,
+Water Purification Tablets,GENERAL_ITEM,500,500 CONF,One tablet purifies a litre of water.,The bottle contains 100 tablets.,,Throw the tablet in a container containing a litre of water and the water will be safe to drink in 5 minutes.,,,,,,,,,,
+Full-Meal Pills,GENERAL_ITEM,750,750 CONF,One Full-Meal pill provides the consumer with all the nourishment necessary for one meal. It does not provide hydration.,A bottle contains 30 pills.,,A character eats one pill and doesn’t need to eat again for up to 8 hours. Two pills are enough sustenance for a day.,,,,,,,,,,
+Sonny Page’s Special Explosive (lite),WEAPON,,,,,,"The explosive has an on/off button. Turning it on allows the user to connect to it via GRID and set a trigger, either time or laser. The laser is invisible and has a radius of 50 metres.
+Alternatively, it can explode when the connected user chooses to as long as the GRID user is within 100 metres of the explosive.",,,6,20,ICE,,,,,
+Sonny Page’s Special Explosive (full),WEAPON,,,,"After being underwhelmed by the explosive he used at Pampers, Sonny Page went back to his garage and added a higher charge to his other prototype. This version, however, is unstable: shooting it will detonate it and sudden movements have a chance of making it explode too.
+This explosive is unstable:
+When turning it on and connecting to it, there is a 1% chance it will explode. Roll 1d100 when turning it on: on a 1, it detonates. Roll 1d100 when connecting to it via GRID: on a 1 or 2, it detonates.
+When triggering it manually within 100 metres via GRID, the explosive has a 95% chance of detonating. Roll 1d100: on a 1 to 5 result, it fails to detonate, but might detonate at any moment.
+The timer seems to work 80% of the time. Roll 1d100 when it counts to zero: on a 1 to 20 result, it fails to detonate, but might detonate at any moment.
+The laser trigger is also faulty, having a 75% chance of detonating when someone interferes with the laser field. Roll 1d100 when someone enters the laser radius: on a 1 to 25 result, it fails to detonate, but might detonate at any moment.",,"The explosive has an on/off button. Turning it on allows the user to connect to it via GRID and set a trigger, either time or laser. The laser is invisible and has a radius of 50 metres.
+Alternatively, it can explode when the connected user chooses to as long as the GRID user is within 100 metres of the explosive.",,,6,20,ICE,,,,,
+Life-Saving Chosen Amulet,GENERAL_ITEM,,,"The life-saving amulet is programmed to detect potential loss of Kinian life (through the individual’s Siike connection) and shock vital energy into the body, restoring the wearer to an unconscious but stable condition.",This esoteric function is often seen in Chosen Faith “coming of age” amulets. Only a handful of scientists in Neblir are capable of concentrating Siike to the degree required and programme its release to be linked to the Siike energy of the wearer and detect when life is in danger.,,"The amulet must be worn or held by a Kinian. It must be in contact with Kinian skin for it to have the desired effect.
+If the Kinian wearing the amulet drops to 0 HP, they don’t do death saves. They are unconscious but stable.
+If the Siike energy in the amulet has been “tied” to the blood of the Kinian individual in particular, upon dropping to 0HP, the wearer bounces back to consciousness, restoring 1d6 Physical HP per character level.
+The amulet only works once. Once used, it is partially broken and charred.",,,,,,,,,,
+Throwable Hammer,GENERAL_ITEM,1199,1199 CONF,"The throwable hammer has a display that shoots a laser at a target, locks it, then the user can throw it there with precision. The hammer detaches from its handle when thrown and then returns to it after hitting its target.",,,"Make a Manual + Aim to throw the hammer. On a success, you lock the target and hit it. If used to attack an enemy, it deals 2d6 damage.
+When the hammer returns, the user must make a Manual + Athletics check. On a success, the hammer attaches itself back to the handle; on a failure, make an Agility + Acrobatics check to avoid being hit or take 1d6 damage.",,,,,,,,,,
+Thuzad Portable Lab,GENERAL_ITEM,9999,9999 CONF,"The portable lab allows the user to perform chemistry at an advanced level while on the go. It might not allow them to perform large-scale operations, but it is more than enough for high-quality experimenting and testing, one test at a time.",Kel has one in his private lab.,,"You may perform one operation at a time in the portable lab.
+It needs to be plugged into a Siike source.
+It can be left to work alone on a programmed cycle.",,,,,,,,,,
+Standard Issue Revolver,WEAPON,,,,"Old-fashioned weapon, almost a collector’s item, praised for its aesthetic beauty, sheer power and the proficiency required to operate it effectively.",,,,"[""RANGE""]",6,2,,,,,,
+Grappling Hook,GENERAL_ITEM,,,"The Grappling Hook shoots to a point up to 50m. Its hook, made of AI powered nano pointers, can attach itself securely to all manner of surfaces, from metal to rock to synthetic. As long as the surface is solid and secure enough to hold the shooter, the shooter can press a button to be propelled towards the hook. Alternatively, the shooter can release the hook, which will fly back to the thrower.","Found in SanMan Union abandoned tunnels, appears to be Union property.",,"It takes one action to shoot the hook: Manual +  Aim + 2
+It takes another action to fly towards the hook or release the hook and have it fly back to the thrower.",,,,,,,,,,
+Army-Grade Gun,WEAPON,,,,This is the type of gun used by Fence strange soldiers.,,,,"[""RANGE""]",6,2,,,,,,
+Til Dw’ona’s gun,WEAPON,,,,Til Dw’ona surreptitiously gave this weapon to the party before their first adventure. Sal took it.,,,,"[""RANGE""]",6,1,,,,,,
+Fenne Foldable Knife,WEAPON,,,,Lyna Ley has one of these.,,,,"[""MELEE""]",6,2,,,,,,
