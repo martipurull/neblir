@@ -15,7 +15,11 @@ export async function POST(request: NextRequest) {
         message: "Error parsing user creation request",
         details: error,
       });
-      return errorResponse("Error parsing user creation request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing user creation request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const user = await createUser(parsedBody);

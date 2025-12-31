@@ -10,35 +10,40 @@ import { z } from "zod";
 
 export const characterCreationRequestSchema = z
   .object({
-    generalInformation: generalInformationSchema,
-    health: healthSchema.omit({
-      innatePhysicalHealth: true,
-      maxPhysicalHealth: true,
-      innateMentalHealth: true,
-      maxMentalHealth: true,
-      currentPhysicalHealth: true,
-      currentMentalHealth: true,
-    }),
-    combatInformation: combatInformationSchema.omit({
-      initiativeMod: true,
-      speed: true,
-      reactionsPerRound: true,
-      rangeAttackMod: true,
-      meleeAttackMod: true,
-      GridAttackMod: true,
-      rangeDefenceMod: true,
-      meleeDefenceMod: true,
-      GridDefenceMod: true,
-    }),
-    innateAttributes: innateAttributesSchema,
-    learnedSkills: z.object({
-      generalSkills: generalSkillsSchema,
-      specialSkills: z.array(z.string()).max(3).optional(),
-    }),
+    generalInformation: generalInformationSchema.strict(),
+    health: healthSchema
+      .omit({
+        innatePhysicalHealth: true,
+        maxPhysicalHealth: true,
+        innateMentalHealth: true,
+        maxMentalHealth: true,
+        currentPhysicalHealth: true,
+        currentMentalHealth: true,
+      })
+      .strict(),
+    combatInformation: combatInformationSchema
+      .omit({
+        initiativeMod: true,
+        speed: true,
+        reactionsPerRound: true,
+        rangeAttackMod: true,
+        meleeAttackMod: true,
+        GridAttackMod: true,
+        rangeDefenceMod: true,
+        meleeDefenceMod: true,
+        GridDefenceMod: true,
+      })
+      .strict(),
+    innateAttributes: innateAttributesSchema.strict(),
+    learnedSkills: z
+      .object({
+        generalSkills: generalSkillsSchema.strict(),
+        specialSkills: z.array(z.string()).max(3).optional(),
+      })
+      .strict(),
     wallet: walletSchema.optional(),
-    userId: z.string(),
   })
-  .strip();
+  .strict();
 
 export type CharacterCreationRequest = z.infer<
   typeof characterCreationRequestSchema

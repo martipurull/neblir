@@ -74,7 +74,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing item update request",
         details: error,
       });
-      return errorResponse("Error parsing item update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing item update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const updatedItem = await updateItem(id, parsedBody);
@@ -91,7 +95,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse(
         "Validation error updating item",
         400,
-        error.issues.map((issue) => `${issue.code} at ${issue.path}: ${issue.message}.`).join("\n")
+        error.issues
+          .map((issue) => `${issue.code} at ${issue.path}: ${issue.message}.`)
+          .join("\n")
       );
     }
     logger.error({

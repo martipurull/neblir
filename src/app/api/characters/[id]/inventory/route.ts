@@ -3,9 +3,9 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
 import { errorResponse } from "../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -28,7 +28,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/inventory",
@@ -49,7 +49,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing inventory request",
         details: error,
       });
-      return errorResponse("Error parsing inventory request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing inventory request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     await createItemCharacter({
@@ -65,6 +69,10 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error adding item to inventory",
       error,
     });
-    return errorResponse("Error adding item to inventory", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error adding item to inventory",
+      500,
+      JSON.stringify(error)
+    );
   }
 });

@@ -82,7 +82,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing game update request",
         details: error,
       });
-      return errorResponse("Error parsing game update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing game update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const updatedGame = await updateGame(id, parsedBody);

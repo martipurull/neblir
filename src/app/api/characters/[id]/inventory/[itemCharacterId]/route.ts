@@ -2,9 +2,9 @@ import { deleteItemCharacter } from "@/app/lib/prisma/itemCharacter";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { characterBelongsToUser } from "../../../checks";
 import logger from "@/logger";
 import { errorResponse } from "../../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -36,7 +36,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character or itemCharacter ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]/equipment/[itemCharacterId]",
@@ -54,7 +54,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         itemCharacterId,
         error,
       });
-      return errorResponse(`Error while deleting itemCharacter with id ${itemCharacterId}`, 500);
+      return errorResponse(
+        `Error while deleting itemCharacter with id ${itemCharacterId}`,
+        500
+      );
     });
 
     return new NextResponse(null, { status: 204 });
@@ -65,6 +68,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting item from equipment",
       error,
     });
-    return errorResponse("Error deleting item from equipment", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error deleting item from equipment",
+      500,
+      JSON.stringify(error)
+    );
   }
 });

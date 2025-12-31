@@ -26,7 +26,11 @@ export const POST = auth(async (request: AuthNextRequest) => {
         message: "Error parsing path creation request",
         details: error,
       });
-      return errorResponse("Error parsing path creation request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing path creation request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const item = await createPath(parsedBody);

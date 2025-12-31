@@ -60,6 +60,7 @@ export function computeFieldsOnCharacterCreation(
 
     type InnateAttributeGroup = (typeof innateAttributesGroups)[number];
 
+    const maxInnateAttributeSum = 36;
     const innateAttributesSum = innateAttributesGroups.reduce((total, group) => {
         const groupValues = Object.values(
             parsedCharacterCreationRequest.innateAttributes[
@@ -71,15 +72,15 @@ export function computeFieldsOnCharacterCreation(
         );
     }, 0);
 
-    if (innateAttributesSum > 30) {
+    if (innateAttributesSum > maxInnateAttributeSum) {
         throw new ValidationError(
-            "Innate attributes sum exceeds the allowed maximum of 30"
+            `Innate attributes sum exceeds the allowed maximum of ${maxInnateAttributeSum}.`
         );
     }
-
+    const learnedSkillsMaxBase =
+        14 + (parsedCharacterCreationRequest.generalInformation.level - 1);
     const learnedSkillsMax =
-        12 +
-        (parsedCharacterCreationRequest.generalInformation.level - 1) +
+        learnedSkillsMaxBase +
         (3 -
             (parsedCharacterCreationRequest.learnedSkills.specialSkills?.length ??
                 0));
@@ -89,11 +90,14 @@ export function computeFieldsOnCharacterCreation(
     ).reduce((acc, val) => acc + (val === 5 ? val + 1 : val), 0);
 
     if (learnedSkillsSum > learnedSkillsMax) {
-        throw new ValidationError("Learned skills sum exceeds the allowed maximum");
+        throw new ValidationError(
+            `Learned skills sum exceeds the allowed maximum; received ${learnedSkillsSum} but maximum is ${learnedSkillsMax}.`
+        );
     }
 
     return {
         ...parsedCharacterCreationRequest,
+        notes: [],
         health: {
             ...parsedCharacterCreationRequest.health,
             innatePhysicalHealth: innatePhysicalHealth,

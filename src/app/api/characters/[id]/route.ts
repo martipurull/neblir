@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { deleteCharacter, getCharacter } from "@/app/lib/prisma/character";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { deleteCharacterUserByCharacterId } from "@/app/lib/prisma/characterUser";
-import { characterBelongsToUser } from "../checks";
+import {
+  deleteCharacterUserByCharacterId,
+  characterBelongsToUser,
+} from "@/app/lib/prisma/characterUser";
 import { deleteCharacterInventory } from "@/app/lib/prisma/itemCharacter";
 import logger from "@/logger";
 import { errorResponse } from "../../shared/responses";
@@ -16,11 +18,10 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]",
         message: "Unauthorised access attempt",
       });
-      return errorResponse("Unauthorised", 401)
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
-    console.log('id: ', id)
 
     if (!id || typeof id !== "string") {
       logger.error({
@@ -31,18 +32,14 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID.", 400);
     }
 
-    if (
-      !request.auth?.user?.characters || !request.auth?.user?.characters
-        .map((characterUser) => characterUser.characterId)
-        .includes(id)
-    ) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]",
         message: "Character does not belong to user",
         characterId: id,
       });
-      return errorResponse("This is not one of your characters", 403)
+      return errorResponse("This is not one of your characters", 403);
     }
 
     const character = await getCharacter(id);
@@ -65,7 +62,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching character",
       error,
     });
-    return errorResponse("Error fetching character", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error fetching character",
+      500,
+      JSON.stringify(error)
+    );
   }
 });
 
@@ -77,7 +78,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         route: "/api/characters/[id]",
         message: "Unauthorised",
       });
-      return errorResponse("Unauthorised", 401)
+      return errorResponse("Unauthorised", 401);
     }
 
     const { id } = (await params) as { id: string };
@@ -92,14 +93,14 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID.", 400);
     }
 
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]",
         message: "Character does not belong to user",
         characterId: id,
       });
-      return errorResponse("This is not one of your characters", 403)
+      return errorResponse("This is not one of your characters", 403);
     }
 
     await deleteCharacterUserByCharacterId(id);
@@ -114,6 +115,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting character",
       error,
     });
-    return errorResponse("Error deleting character", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error deleting character",
+      500,
+      JSON.stringify(error)
+    );
   }
 });

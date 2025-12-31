@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { healthUpdateSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
 import { errorResponse } from "../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -28,7 +28,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/health",
@@ -48,7 +48,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing health update request",
         details: error,
       });
-      return errorResponse("Error parsing health update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing health update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const existingCharacter = await getCharacter(id);
@@ -75,7 +79,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         currentPhysicalHealth: parsedBody.currentPhysicalHealth,
         maxPhysicalHealth: existingCharacter.health.maxPhysicalHealth,
       });
-      return errorResponse("Current physical health cannot be greater than max physical health", 400);
+      return errorResponse(
+        "Current physical health cannot be greater than max physical health",
+        400
+      );
     }
     if (
       parsedBody.currentMentalHealth &&
@@ -90,7 +97,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         currentMentalHealth: parsedBody.currentMentalHealth,
         maxMentalHealth: existingCharacter.health.maxMentalHealth,
       });
-      return errorResponse("Current mental health cannot be greater than max mental health", 400);
+      return errorResponse(
+        "Current mental health cannot be greater than max mental health",
+        400
+      );
     }
 
     let newHealth = {

@@ -91,7 +91,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing user update request",
         details: error,
       });
-      return errorResponse("Error parsing user update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing user update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const updatedUser = await updateUser(id, parsedBody);

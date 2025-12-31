@@ -11,7 +11,7 @@ import {
 } from "./parsing";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { characterBelongsToUser } from "../../checks";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import {
   createPathCharacter,
   updatePathCharacter,
@@ -44,7 +44,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/level-up",

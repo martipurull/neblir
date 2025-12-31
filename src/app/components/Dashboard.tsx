@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const Dashboard: React.FC = () => {
-  const [imageURL, setImageURL] = useState('')
+  const [imageURL, setImageURL] = useState("");
   useEffect(() => {
     // const fetchData = async () => {
     //   try {
@@ -29,11 +29,13 @@ const Dashboard: React.FC = () => {
     // fetchData();
 
     async function fetchImageURL() {
-      const response = await fetch("/api/image-url?imageKey=characters-dahlia_ters.png")
-      const data = await response.json()
-      setImageURL(data?.url)
+      const response = await fetch(
+        "/api/image-url?imageKey=characters-dahlia_ters.png"
+      );
+      const data = await response.json();
+      setImageURL(data?.url);
     }
-    fetchImageURL()
+    fetchImageURL();
   }, []);
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -47,7 +49,12 @@ const Dashboard: React.FC = () => {
         <div>
           <h4>Testing pre-signed URL functionality</h4>
           {imageURL && (
-            <Image src={imageURL} width={200} height={200} alt={"Testing pre-signed image URL"} />
+            <Image
+              src={imageURL}
+              width={200}
+              height={200}
+              alt={"Testing pre-signed image URL"}
+            />
           )}
         </div>
         {/* Add user characters here */}

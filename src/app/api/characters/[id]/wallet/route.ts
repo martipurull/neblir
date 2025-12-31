@@ -3,9 +3,9 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { walletSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
 import { errorResponse } from "../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -28,7 +28,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/wallet",
@@ -39,6 +39,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
+    console.log("requestBody: ", JSON.stringify(requestBody, null, 2));
     const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
     if (error) {
       logger.error({
@@ -47,7 +48,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing wallet update request",
         details: error,
       });
-      return errorResponse("Error parsing wallet update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing wallet update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
 
     const updatedCharacter = await updateCharacter(id, { wallet: parsedBody });

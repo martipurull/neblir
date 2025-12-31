@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { combatInformationUpdateRequestSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { characterBelongsToUser } from "../../checks";
 import logger from "@/logger";
 import { errorResponse } from "../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -28,7 +28,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(request.auth?.user?.characters, id)) {
+    if (!characterBelongsToUser(id, request.auth.user.id)) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/combat-info",
@@ -48,7 +48,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         message: "Error parsing combat information update request",
         details: error,
       });
-      return errorResponse("Error parsing combat information update request", 400, error.issues.map((issue) => issue.message).join(". "));
+      return errorResponse(
+        "Error parsing combat information update request",
+        400,
+        error.issues.map((issue) => issue.message).join(". ")
+      );
     }
     const existingCharacter = await getCharacter(id);
     if (!existingCharacter?.combatInformation) {
@@ -138,6 +142,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating combat information",
       error,
     });
-    return errorResponse("Error updating combat information", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error updating combat information",
+      500,
+      JSON.stringify(error)
+    );
   }
 });

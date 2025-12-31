@@ -59,12 +59,12 @@ export const POST = auth(async (request: AuthNextRequest) => {
           method: "POST",
           route: "/api/characters",
           message: "Error while computing character attributes or skills.",
-          details: error,
+          details: error.message,
         });
         return errorResponse(
           "Error while computing character attributes or skills.",
           400,
-          JSON.stringify(error)
+          JSON.stringify(error.message)
         );
       } else {
         logger.error({

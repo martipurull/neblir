@@ -1,4 +1,6 @@
 {
-  "prisma.enableDiagnostics": false
+  "prisma.enableDiagnostics": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
-

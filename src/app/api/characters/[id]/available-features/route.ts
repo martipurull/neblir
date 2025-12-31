@@ -99,6 +99,10 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching available features",
       error,
     });
-    return errorResponse("Error fetching available features", 500, JSON.stringify(error));
+    return errorResponse(
+      "Error fetching available features",
+      500,
+      JSON.stringify(error)
+    );
   }
 });
