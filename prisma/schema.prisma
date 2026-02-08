@@ -8,6 +8,11 @@ datasource db {
   url      = env("MONGODB_URI")
 }
 
+enum ItemAccessType {
+  PLAYER
+  GAME_MASTER
+}
+
 enum ItemType {
   GENERAL_ITEM
   WEAPON
@@ -27,6 +32,8 @@ enum ItemWeaponDamageType {
   ACID
   FIRE
   ICE
+  BLUDGEONING
+  OTHER
 }
 
 enum PathName {
@@ -286,7 +293,9 @@ model GameCharacter {
 
 model Item {
   id          String                     @id @default(auto()) @map("_id") @db.ObjectId
+  accessType  ItemAccessType
   attackRoll  ItemWeaponAttackRollType[]
+  attackBonus Int
   confCost    Int
   costInfo    String?
   damage      ItemDamage?

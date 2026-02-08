@@ -17,10 +17,13 @@ const weaponDamageTypeSchema = z.enum([
   "ACID",
   "FIRE",
   "ICE",
+  "BLUDGEONING",
+  "OTHER",
 ]);
 
 const baseItemSchema = z.object({
   type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+  accessType: z.enum(["PLAYER", "GAME_MASTER"]),
   name: z.string(),
   imageKey: z.string().optional(),
   confCost: z.number(),
@@ -43,6 +46,7 @@ export type GeneralItem = z.infer<typeof generalItemSchema>;
 export const weaponSchema = baseItemSchema.extend({
   type: z.literal("WEAPON"),
   attackRoll: z.array(weaponAttackRollTypeSchema),
+  attackBonus: z.number(),
   damage: z.object({
     diceType: z.number(),
     numberOfDice: z.number(),
