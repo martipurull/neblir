@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 import { characterCreationRequestSchema } from "./schemas";
 import { createCharacter } from "@/app/lib/prisma/character";
-import { computeFieldsOnCharacterCreation } from "./parsing";
+import { computeCharacterRequestData } from "./parsing";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { getUser } from "@/app/lib/prisma/user";
 import { createCharacterUser } from "@/app/lib/prisma/characterUser";
+import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
 import logger from "@/logger";
+import { createPathCharacter } from "@/app/lib/prisma/pathCharacter";
 
 export const POST = auth(async (request: AuthNextRequest) => {
   const user = request.auth?.user;
+
   try {
     if (!user || !user.id) {
       logger.error({
@@ -39,20 +42,18 @@ export const POST = auth(async (request: AuthNextRequest) => {
         method: "POST",
         route: "/api/characters",
         message: "Error parsing character creation request",
-        details: parseResult.error.issues,
+        details: parseResult.error,
       });
       return errorResponse(
         "Error parsing character creation request",
         400,
-        parseResult.error.issues.map((issue) => issue.message).join(". ")
+        JSON.stringify(parseResult.error)
       );
     }
 
     let characterCreationData;
     try {
-      characterCreationData = computeFieldsOnCharacterCreation(
-        parseResult.data
-      );
+      characterCreationData = computeCharacterRequestData(parseResult.data);
     } catch (error) {
       if (error instanceof ValidationError) {
         logger.error({
@@ -64,7 +65,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         return errorResponse(
           "Error while computing character attributes or skills.",
           400,
-          JSON.stringify(error.message)
+          error.message
         );
       } else {
         logger.error({
@@ -76,7 +77,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         return errorResponse(
           "Error while computing character creation data",
           500,
-          JSON.stringify(error)
+          serializeError(error)
         );
       }
     }
@@ -95,6 +96,22 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Error while adding character to user", 500);
     }
 
+    try {
+      await createPathCharacter({
+        characterId: character.id,
+        pathId: parseResult.data.path.pathId,
+        rank: parseResult.data.path.rank,
+      });
+    } catch (error) {
+      logger.error({
+        method: "POST",
+        route: "/api/characters",
+        message: "Error while creating path character",
+        details: error,
+      });
+      return errorResponse("Error while creating path character", 500);
+    }
+
     return NextResponse.json(character, { status: 201 });
   } catch (error) {
     logger.error({
@@ -106,7 +123,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
     return errorResponse(
       "characters route POST error: ",
       500,
-      JSON.stringify(error)
+      serializeError(error)
     );
   }
 });

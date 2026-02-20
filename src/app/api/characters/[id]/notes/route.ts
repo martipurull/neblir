@@ -4,6 +4,7 @@ import { characterNotesSchema } from "@/app/lib/types/character";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
+import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
@@ -65,6 +66,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating notes",
       error,
     });
-    return errorResponse("Error updating notes", 500, JSON.stringify(error));
+    return errorResponse("Error updating notes", 500, serializeError(error));
   }
 });

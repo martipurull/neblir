@@ -137,7 +137,6 @@ export const characterSchema = z.object({
     generalSkills: generalSkillsSchema,
     specialSkills: z.array(z.string()).max(3).optional(),
   }),
-  path: pathSchema.optional(),
   wallet: z.lazy(() => walletSchema).optional(),
   inventory: z.array(z.lazy(() => itemSchema)).optional(),
   notes: characterNotesSchema.optional(),

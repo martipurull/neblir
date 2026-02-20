@@ -8,7 +8,10 @@ export async function createItemCharacter(
 }
 
 export async function getCharacterInventory(characterId: string) {
-  return prisma.itemCharacter.findMany({ where: { characterId } });
+  return prisma.itemCharacter.findMany({
+    where: { characterId },
+    include: { item: true },
+  });
 }
 
 export async function deleteItemCharacter(id: string) {

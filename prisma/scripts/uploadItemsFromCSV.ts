@@ -33,6 +33,13 @@ function parseOptionalInt(value: string | undefined): number | undefined {
   return Number.isNaN(n) ? undefined : n;
 }
 
+function parseOptionalFloat(value: string | undefined): number | undefined {
+  if (value === undefined || value === null || String(value).trim() === "")
+    return undefined;
+  const n = parseFloat(String(value).trim());
+  return Number.isNaN(n) ? undefined : n;
+}
+
 function parseOptionalString(value: string | undefined): string | undefined {
   if (value === undefined || value === null) return undefined;
   const s = String(value).trim();
@@ -65,7 +72,7 @@ function csvRowToItem(row: Record<string, string>): Item {
     costInfo: parseOptionalString(row.costInfo),
     description: parseOptionalString(row.description) ?? "",
     notes: parseOptionalString(row.notes),
-    weight: parseOptionalInt(row.weight),
+    weight: parseOptionalFloat(row.weight),
   };
 
   if (type === "GENERAL_ITEM") {

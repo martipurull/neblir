@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import logger from "@/logger";
+import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -39,7 +40,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching item",
       error,
     });
-    return errorResponse("Error fetching item", 500, JSON.stringify(error));
+    return errorResponse("Error fetching item", 500, serializeError(error));
   }
 });
 
@@ -106,7 +107,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating item",
       error,
     });
-    return errorResponse("Error updating item", 500, JSON.stringify(error));
+    return errorResponse("Error updating item", 500, serializeError(error));
   }
 });
 
@@ -142,6 +143,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting item",
       error,
     });
-    return errorResponse("Error deleting item", 500, JSON.stringify(error));
+    return errorResponse("Error deleting item", 500, serializeError(error));
   }
 });

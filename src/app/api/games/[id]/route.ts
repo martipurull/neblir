@@ -4,6 +4,7 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
 import logger from "@/logger";
+import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -47,7 +48,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching game",
       error,
     });
-    return errorResponse("Error fetching game", 500, JSON.stringify(error));
+    return errorResponse("Error fetching game", 500, serializeError(error));
   }
 });
 
@@ -99,7 +100,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating game",
       error,
     });
-    return errorResponse("Error updating game", 500, JSON.stringify(error));
+    return errorResponse("Error updating game", 500, serializeError(error));
   }
 });
 
@@ -135,6 +136,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting game",
       error,
     });
-    return errorResponse("Error deleting game", 500, JSON.stringify(error));
+    return errorResponse("Error deleting game", 500, serializeError(error));
   }
 });

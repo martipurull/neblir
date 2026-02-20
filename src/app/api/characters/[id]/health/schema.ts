@@ -8,9 +8,8 @@ export const healthUpdateSchema = healthSchema
     seriousPhysicalInjuries: true,
     seriousTrauma: true,
     deathSaves: true,
+    status: true,
   })
   .partial();
 
-export type HealthUpdateBody = z.infer<typeof healthUpdateSchema> & {
-  status?: "ALIVE" | "DECEASED" | "DERANGED";
-};
+export type HealthUpdateBody = z.infer<typeof healthUpdateSchema>;

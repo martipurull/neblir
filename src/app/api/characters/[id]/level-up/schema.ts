@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { characterCreationRequestSchema } from "../../schemas";
+import { characterSchema } from "@/app/lib/types/character";
 
 const attributePropertyNames = [
   "intelligence.investigation",
@@ -83,8 +84,15 @@ export const levelUpRequestSchema = z
 
 export type LevelUpRequest = z.infer<typeof levelUpRequestSchema>;
 
-export const levelUpCharacterBodySchema = characterCreationRequestSchema
+export const levelUpCharacterBodySchema = characterSchema
   .omit({
     wallet: true,
+    inventory: true,
+    notes: true,
+    paths: true,
+    features: true,
+    games: true,
   })
-  .strip();
+  .strict();
+
+export type LevelUpCharacterBody = z.infer<typeof levelUpCharacterBodySchema>;

@@ -42,6 +42,10 @@ export const characterCreationRequestSchema = z
       })
       .strict(),
     wallet: walletSchema.optional(),
+    path: z.strictObject({
+      pathId: z.string(),
+      rank: z.number().min(1),
+    }),
   })
   .strict();
 

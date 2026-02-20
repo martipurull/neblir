@@ -3,6 +3,7 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
@@ -71,7 +72,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     return errorResponse(
       "Error deleting item from equipment",
       500,
-      JSON.stringify(error)
+      serializeError(error)
     );
   }
 });

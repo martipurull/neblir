@@ -4,6 +4,7 @@ import { healthUpdateSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import logger from "@/logger";
+import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
@@ -65,6 +66,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Character not found", 404);
     }
+
     if (
       parsedBody.currentPhysicalHealth &&
       parsedBody.currentPhysicalHealth >
@@ -107,15 +109,21 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...existingCharacter.health,
       ...parsedBody,
     };
-    if (parsedBody.seriousTrauma === 3) {
+    if (parsedBody.status === "ALIVE") {
+      newHealth = { ...newHealth, status: "ALIVE" };
+    }
+    if (parsedBody.seriousTrauma && parsedBody.seriousTrauma >= 3) {
       newHealth = { ...newHealth, status: "DERANGED" };
     }
     if (
-      parsedBody.deathSaves?.failures === 3 ||
-      parsedBody.seriousPhysicalInjuries === 3
+      (parsedBody.deathSaves?.failures &&
+        parsedBody.deathSaves?.failures >= 3) ||
+      (parsedBody.seriousPhysicalInjuries &&
+        parsedBody.seriousPhysicalInjuries >= 3)
     ) {
       newHealth = { ...newHealth, status: "DECEASED" };
     }
+
     const updatedCharacter = await updateCharacter(id, { health: newHealth });
 
     return NextResponse.json(updatedCharacter, { status: 200 });
@@ -126,6 +134,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating health",
       error,
     });
-    return errorResponse("Error updating health", 500, JSON.stringify(error));
+    return errorResponse("Error updating health", 500, serializeError(error));
   }
 });

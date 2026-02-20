@@ -4,6 +4,7 @@ import { pathSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
@@ -43,7 +44,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       message: "Error creating path",
       error,
     });
-    return errorResponse("Error creating path", 500, JSON.stringify(error));
+    return errorResponse("Error creating path", 500, serializeError(error));
   }
 });
 
@@ -68,6 +69,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching paths",
       error,
     });
-    return errorResponse("Error fetching paths", 500, JSON.stringify(error));
+    return errorResponse("Error fetching paths", 500, serializeError(error));
   }
 });

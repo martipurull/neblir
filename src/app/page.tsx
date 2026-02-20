@@ -14,7 +14,6 @@ export default function Home() {
   useEffect(() => {
     async function fetchSession() {
       const session = await getSession();
-      console.log("session", session);
       setSession(session);
       setIsLoading(false);
     }

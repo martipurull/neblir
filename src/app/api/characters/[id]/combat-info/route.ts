@@ -4,6 +4,7 @@ import { combatInformationUpdateRequestSchema } from "./schema";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import logger from "@/logger";
+import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
@@ -118,6 +119,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (parsedBody.armourCurrentHP === 0) {
       updateBody = {
         ...updateBody,
+        armourCurrentHP: 0,
         armourMod: 0,
         rangeDefenceMod:
           existingCharacter.innateAttributes.dexterity.agility +
@@ -145,7 +147,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     return errorResponse(
       "Error updating combat information",
       500,
-      JSON.stringify(error)
+      serializeError(error)
     );
   }
 });

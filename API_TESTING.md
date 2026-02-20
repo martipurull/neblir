@@ -8,6 +8,8 @@ This document contains manual CURL requests for testing the Neblir API functiona
 - You should have at least one user account created
 - You'll need to authenticate and capture the session cookie for protected endpoints
 
+**Tip (shell quoting):** For short JSON bodies you can use `-d '{ ... }'` (single quotes so double quotes inside need no escaping). If the body contains **apostrophes** (e.g. "taker's", "GM's") or is **long and complex**, use `--data-binary @- << 'EOF'` and put the raw JSON between the EOF markers so the shell does not interpret quotes or newlines.
+
 ## Base Configuration
 
 ```bash
@@ -16,7 +18,7 @@ BASE_URL="http://localhost:3000"
 
 # You'll need to capture your session cookie after logging in
 # Replace this with your actual cookie value
-SESSION_COOKIE="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiUGNDamIxVDRNRFpXLVo4bU9YZF9SXzcyMUJOaTJtWWNzSGgwaHpva2MwZ0ljMmx2Y0dMaGVvRU41V1hmaHMybkprSjVsWmgxOVh2RHpPWDMxUHk0TFEifQ..Q4B5mI6Q8LnRmZdAYEEKmg.YCLeQ3VMOlg3amap38nThzdhHps4yOZkJTObg_HWZ7AQv2cYjv-YqWw6__ohmgQc31DR8k27N-ZoHj83BJYGUf3dKRwhNFhhwK85VCX2W-LlDQ7pXiS7lC4A_1II-2f5ShnElj9j3--ttIvMcI3uBADWGt5BENzDjwG2_VZH5rc-reqgNv6PljXVYmgXwFyjpWo515IQ4NK8eaJmPfEdLh_y2gMCLt7u3QfgIOXpX__SYvQXiX_UweiGgCdiCXeRrkOWDZbzP1O1eehQS_O2EUOYjLVBJImqdKwW9CY-RPKO_5f6NrmNdD5AMSOLtmZZ7N_zeWjlJUIHux2_F07ahoEBNXuR1jDy3V0SUIMrOmNtNyC5o1hNPSEj6A5PKv31UAccz4YF7nkPQW4nMaFslGCwwettWVat7XQqHLo11Si_PuWoC6bh3pA3tYMf457Nn4KTprJO0zd4maGFFgrZEjS6Gh-KAeh3b8R0Y9Zxn4RFXMLbjBii2SnOqs_OqUOfE8Q1gZBGhUshpt8cBF71pA.O2DcP5febgy1_HGnmX9pk87FZAYVmvDnRpKkgN1npZg"
+SESSION_COOKIE="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiUGNDamIxVDRNRFpXLVo4bU9YZF9SXzcyMUJOaTJtWWNzSGgwaHpva2MwZ0ljMmx2Y0dMaGVvRU41V1hmaHMybkprSjVsWmgxOVh2RHpPWDMxUHk0TFEifQ..JGwwsmE4vQg5k3pbicp4yg.6PK1BDkZ66TWBlGI1sJs2kxXdfk93dXyZTdbpJoXsBqEb9oHwBOQeiUc25gVg1Q2cZVAEJ_zLr4e_JLwXDg67LbpbjYjW6k7IDc68TJDi92Uhn04es4bBYczX2wExLqb2aMC8jAesbCeVhH2LyPfHO0q-BX5P-N486sXy6kpRXBvV2eOxEJVqoBgWmEwwm_93lwQ52ceSsn6QJg2xN4urkqMn6FwfesSuXHPZdKsFkFE4yoZIlxaFKJ-qCb6CdQcKW7YYlEflDkArF3ZZ7XhmGFU3fZ_L7W7O1X0DuN7YzubHqGVdv5EJCGZZV3pDUJch2LEqh9PxbfDEBw8PRIn5KuuIE5QVUjDgpPxoROhFSA4BTkUcryPK6nyTcs6Wz-qrM3XN7PiwR4ORASiVqJU0k6UoAgZWaF3On_kXoLo39q85ScrYZ6RwJ8_f7G9ju2ATyegS92YgHKjj2e_uTUrZsnipWeIi2jUGGD9YB1O7UNjD9WZRpUaeKnloBm2AeVMwciOljeQuk3u7oZlW_8JeA.uQQ11XgBeeHxYylUlqlDv7cFadmC07JB2-T1GinUg_U"
 ```
 
 ## Authentication
@@ -30,6 +32,7 @@ Since the app uses NextAuth with Google OAuth, you'll need to:
 3. Open browser DevTools (F12) → Application/Storage → Cookies
 4. Find the cookie named `authjs.session-token` (or similar NextAuth session cookie)
 5. Copy its value
+6. Save it to a variable in the terminal (i.e. export SESSION_COOKIE=<your-cookie>)
 
 Alternatively, you can use browser DevTools Network tab to capture the cookie from any authenticated request.
 
@@ -62,7 +65,8 @@ curl -X POST "${BASE_URL}/api/characters" \
       "birthplace": "New Haven",
       "level": 1,
       "height": 175,
-      "weight": 70
+      "weight": 70,
+      "avatarKey": "characters-alexandra_rivers.png"
     },
     "health": {
       "rolledPhysicalHealth": 12,
@@ -135,7 +139,11 @@ curl -X POST "${BASE_URL}/api/characters" \
         "currencyName": "CONF",
         "quantity": 500
       }
-    ]
+    ],
+    "path": {
+      "pathId": "692a2e886f6040cf47955002",
+      "rank": 1
+    }
   }'
 ```
 
@@ -156,7 +164,7 @@ curl -X POST "${BASE_URL}/api/characters" \
 ### Get Character by ID
 
 ```bash
-CHARACTER_ID="692b4b7e7e03239f4ad0e8b0"
+CHARACTER_ID="6997975709a2f5cd8c487604"
 
 curl -X GET "${BASE_URL}/api/characters/${CHARACTER_ID}" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
@@ -203,13 +211,13 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/health" \
   -H "Content-Type: application/json" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
-    "currentPhysicalHealth": 18,
+    "currentPhysicalHealth": 0,
     "currentMentalHealth": 15,
     "seriousPhysicalInjuries": 1,
     "seriousTrauma": 0,
     "deathSaves": {
       "successes": 1,
-      "failures": 0
+      "failures": 3
     }
   }'
 ```
@@ -266,6 +274,8 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/wallet" \
     ]'
 ```
 
+**note** The calculation is done in the frontend. The backend has protection against negative quantities and invalid currencies.
+
 ### Update Notes
 
 ```bash
@@ -274,13 +284,11 @@ CHARACTER_ID="your-character-id-here"
 curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/notes" \
   -H "Content-Type: application/json" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
-  -d '{
-    "notes": [
+  -d '[
       "Met with the research team in Sector 7",
       "Discovered unusual energy readings",
       "Need to investigate further"
-    ]
-  }'
+    ]'
 ```
 
 ---
@@ -289,20 +297,24 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/notes" \
 
 ### Create a General Item
 
+For bodies that contain apostrophes (e.g. "taker's", "GM's") or long text, use a heredoc so the shell does not interpret quotes:
+
 ```bash
 curl -X POST "${BASE_URL}/api/items" \
   -H "Content-Type: application/json" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
-  -d '{
-    "type": "GENERAL_ITEM",
-    "name": "Medkit",
-    "description": "A standard medical kit for treating injuries",
-    "confCost": 50,
-    "costInfo": "Standard medical supply",
-    "usage": "Apply to wounds to restore physical health",
-    "weight": 2,
-    "notes": "Contains bandages, antiseptic, and painkillers"
-  }'
+  --data-binary @- << 'EOF'
+{
+  "type": "GENERAL_ITEM",
+  "accessType": "PLAYER",
+  "name": "HyperFocus",
+  "description": "A drug devised to enhance the taker's ability to focus their attention on a subject.",
+  "confCost": 500,
+  "costInfo": "Price per packet of 10. It may be cheaper, but less safe, in the blackmarket.",
+  "usage": "One pill gives the taker 2d10 on any Investigation-based roll requiring attention to detail: this could be a crime scene if enough time is given, or a scientific paper. However, any Perception-based check is at minus 2d10 penalty. The effects can be doubled by taking two pills at once, but the character won't be able to sleep for a day, incurring a level of Exhaustion; additionally, a Resistance (Internal) is required, and the character takes 1d6 Mental damage on a failure. Addictive: taking one pill every day for three or more days or taking two or more pills on the same day causes addiction. Addiction forces the user to take one pill per day or suffer three days of all Investigation- AND Perception-based rolls with minus 2d10 penalty, after which, the user is clean. After 5 consecutive days of usage, the process to clean up takes 5 days. After 6 days, the addiction requires professional help at the GM's discretion.",
+  "weight": 0.1
+}
+EOF
 ```
 
 ### Create a Weapon
@@ -313,12 +325,14 @@ curl -X POST "${BASE_URL}/api/items" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
     "type": "WEAPON",
+    "accessType": "PLAYER",
     "name": "Plasma Pistol",
     "description": "A compact energy weapon",
     "confCost": 200,
     "costInfo": "Restricted item, requires permit",
     "weight": 1,
     "attackRoll": ["RANGE"],
+    "attackBonus": 2,
     "damage": {
       "diceType": 6,
       "numberOfDice": 2,
@@ -338,21 +352,23 @@ curl -X POST "${BASE_URL}/api/items" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
     "type": "WEAPON",
-    "name": "Grenade",
+    "accessType": "PLAYER",
+    "name": "Plasma Grenade",
     "description": "Explosive device with area damage",
     "confCost": 75,
     "costInfo": "Illegal in most sectors",
     "weight": 1,
     "attackRoll": ["THROW"],
+    "attackBonus": 0,
     "damage": {
-      "diceType": 8,
-      "numberOfDice": 3,
+      "diceType": 6,
+      "numberOfDice": 5,
       "damageType": "FIRE",
-      "primaryRadius": 3,
-      "secondaryRadius": 6,
+      "primaryRadius": 5,
+      "secondaryRadius": 10,
       "areaEffect": {
         "defenceReactionCost": 1,
-        "defenceRoll": "DEX + Acrobatics",
+        "defenceRoll": "Agility + Acrobatics",
         "successfulDefenceResult": "Half damage"
       }
     }
@@ -423,31 +439,6 @@ curl -X GET "${BASE_URL}/api/paths" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
 ```
 
-### Create a Path
-
-```bash
-curl -X POST "${BASE_URL}/api/paths" \
-  -H "Content-Type: application/json" \
-  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
-  -d '{
-    "name": "SCIENTIST_DOCTOR",
-    "baseFeature": "Scientific Method",
-    "description": "A path for those who seek knowledge and healing through science"
-  }'
-```
-
-**Note:** Path names must be one of the enum values:
-
-- `SCIENTIST_DOCTOR`
-- `SURVIVALIST`
-- `ANTIHERO`
-- `SOLDIER`
-- `CON_ARTIST`
-- `SLEUTH`
-- `NERD_HERO`
-- `TECHNO_CRAFTER`
-- `URBAN_ROVER`
-
 ### Get Path by ID
 
 ```bash
@@ -455,6 +446,13 @@ PATH_ID="your-path-id-here"
 
 curl -X GET "${BASE_URL}/api/paths/${PATH_ID}" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+### Get Available Features For Path
+
+```bash
+curl -X GET "${BASE_URL}/api/paths/${PATH_ID}/available-features" \
+ -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
 ```
 
 ---
@@ -470,7 +468,7 @@ curl -X POST "${BASE_URL}/api/games" \
   -d '{
     "name": "The Lost Expedition",
     "gameMaster": "YOUR_USER_ID_HERE",
-    "imageKey": "games/lost-expedition.png"
+    "imageKey": "lost-expedition.png"
   }'
 ```
 
@@ -506,13 +504,39 @@ curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/level-up" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
     "healthUpdate": {
-      "rolledPhysicalHealth": 13,
-      "rolledMentalHealth": 11
+      "rolledPhysicalHealth": 6,
+      "rolledMentalHealth": 10
     },
-    "pathId": "your-path-id-here",
-    "newFeatureIds": ["new-feature-id-1", "new-feature-id-2"],
-    "incrementalFeatureIds": ["existing-feature-id-to-increment"],
+    "pathId": "692a2e886f6040cf47955002",
+    "newFeatureIds": ["692a2e886f6040cf47954fb4", "692a2e886f6040cf47954fcf"],
+    "incrementalFeatureIds": [],
     "skillImprovement": "research",
+    "attributeChanges": [
+      {
+        "from": "intelligence.investigation",
+        "to": "intelligence.memory"
+      }
+    ]
+  }'
+```
+
+### Level Up Character With Incremental Features
+
+```bash
+CHARACTER_ID="your-character-id-here"
+
+curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/level-up" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "healthUpdate": {
+      "rolledPhysicalHealth": 6,
+      "rolledMentalHealth": 10
+    },
+    "pathId": "692a2e886f6040cf47955002",
+    "newFeatureIds": ["692a2e886f6040cf47954ff5"],
+    "incrementalFeatureIds": ["692a2e886f6040cf47954fb4"],
+    "skillImprovement": "manipulationNegotiation",
     "attributeChanges": [
       {
         "from": "intelligence.investigation",

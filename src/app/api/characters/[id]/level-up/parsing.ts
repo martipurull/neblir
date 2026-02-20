@@ -1,10 +1,49 @@
-import { Character } from "@prisma/client";
 import { levelUpCharacterBodySchema, LevelUpRequest } from "./schema";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import {
   getCharacterFeatures,
   getFeatureCharacterByFeatureId,
 } from "@/app/lib/prisma/featureCharacter";
+import { getCharacterPaths } from "@/app/lib/prisma/pathCharacter";
+import { Character } from "@/app/lib/types/character";
+
+/**
+ * Character shape used by level-up parsing. Only the fields actually read are required,
+ * so we can pass either a full Character or the getCharacter() result (which has
+ * inventory/paths/features as Prisma relation shapes instead of schema types).
+ */
+export type CharacterForLevelUp = Pick<
+  Character,
+  | "generalInformation"
+  | "health"
+  | "combatInformation"
+  | "innateAttributes"
+  | "learnedSkills"
+>;
+
+// Check if any of the features, incremental or new, have a minPathGrade above the character's current path rank
+export async function areFeaturesValidForLevelUp(
+  characterId: string,
+  featureIds?: string[]
+) {
+  if (!featureIds || !featureIds.length) {
+    return false;
+  }
+  const existingFeatures = await getFeatures(featureIds);
+  const characterPaths = await getCharacterPaths(characterId);
+  let featureValidationChecks = [];
+  for (const feature of existingFeatures) {
+    featureValidationChecks.push(
+      characterPaths.some(
+        (path) =>
+          feature.applicablePaths.includes(path.path.name) &&
+          // The minPathRank needs to account for the rank after level up (hence the +1)
+          path.rank + 1 >= feature.minPathRank
+      )
+    );
+  }
+  return featureValidationChecks.every((check) => check);
+}
 
 export async function areIncrementFeaturesValid(
   characterId: string,
@@ -52,21 +91,26 @@ export function parseAttributeChanges(
 
 export function parseHealthUpdate(
   healthUpdate: LevelUpRequest["healthUpdate"],
-  existingCharacter: Character
+  existingCharacter: CharacterForLevelUp
 ) {
   const newRolledPhysicalHealth =
     existingCharacter.health.rolledPhysicalHealth +
     healthUpdate.rolledPhysicalHealth;
+  const newMaxPhysicalHealth =
+    existingCharacter.health.maxPhysicalHealth +
+    healthUpdate.rolledPhysicalHealth;
   const newRolledMentalHealth =
     existingCharacter.health.rolledMentalHealth +
     healthUpdate.rolledMentalHealth;
-  if (newRolledPhysicalHealth > existingCharacter.health.maxPhysicalHealth) {
+  const newMaxMentalHealth =
+    existingCharacter.health.maxMentalHealth + healthUpdate.rolledMentalHealth;
+  if (newRolledPhysicalHealth > newMaxPhysicalHealth) {
     return {
       error:
         "Current physical health cannot be greater than max physical health",
     };
   }
-  if (newRolledMentalHealth > existingCharacter.health.maxMentalHealth) {
+  if (newRolledMentalHealth > newMaxMentalHealth) {
     return {
       error: "Current mental health cannot be greater than max mental health",
     };
@@ -75,6 +119,8 @@ export function parseHealthUpdate(
   return {
     newRolledPhysicalHealth,
     newRolledMentalHealth,
+    newMaxPhysicalHealth,
+    newMaxMentalHealth,
   };
 }
 
@@ -107,29 +153,14 @@ export async function calculateNewReactionsPerRound(
 }
 
 export function parseCharacterBodyToCompute(
-  existingCharacter: Character,
+  existingCharacter: CharacterForLevelUp,
   healthUpdate: ReturnType<typeof parseHealthUpdate>,
   reactionsPerRound: number,
   skillImprovement: LevelUpRequest["skillImprovement"],
   attributeChanges: ReturnType<typeof parseAttributeChanges>
 ) {
-  const updateBody = {
-    ...existingCharacter,
-    generalInformation: {
-      ...existingCharacter.generalInformation,
-      level: existingCharacter.generalInformation.level + 1,
-    },
-    health: {
-      ...existingCharacter.health,
-      rolledPhysicalHealth: healthUpdate.newRolledPhysicalHealth,
-      rolledMentalHealth: healthUpdate.newRolledMentalHealth,
-    },
-    combatInformation: {
-      ...existingCharacter.combatInformation,
-      reactionsPerRound: reactionsPerRound,
-    },
-    ...(skillImprovement && {
-      learnedSkills: {
+  const learnedSkills = skillImprovement
+    ? {
         ...existingCharacter.learnedSkills,
         generalSkills: {
           ...existingCharacter.learnedSkills.generalSkills,
@@ -141,11 +172,12 @@ export function parseCharacterBodyToCompute(
               >
             )[skillImprovement] ?? 0) + 1,
         },
-      },
-    }),
-    ...(attributeChanges &&
-      attributeChanges.length && {
-        innateAttributes: {
+      }
+    : existingCharacter.learnedSkills;
+
+  const innateAttributes =
+    attributeChanges && attributeChanges.length
+      ? {
           ...existingCharacter.innateAttributes,
           ...attributeChanges.reduce(
             (acc, change) => {
@@ -171,12 +203,32 @@ export function parseCharacterBodyToCompute(
             },
             {} as Record<string, number>
           ),
-        },
-      }),
+        }
+      : existingCharacter.innateAttributes;
+
+  const updateBody = {
+    generalInformation: {
+      ...existingCharacter.generalInformation,
+      level: existingCharacter.generalInformation.level + 1,
+    },
+    health: {
+      ...existingCharacter.health,
+      rolledPhysicalHealth: healthUpdate.newRolledPhysicalHealth,
+      rolledMentalHealth: healthUpdate.newRolledMentalHealth,
+      maxPhysicalHealth: healthUpdate.newMaxPhysicalHealth,
+      maxMentalHealth: healthUpdate.newMaxMentalHealth,
+    },
+    combatInformation: {
+      ...existingCharacter.combatInformation,
+      reactionsPerRound: reactionsPerRound,
+    },
+    learnedSkills,
+    innateAttributes,
   };
   const parsedUpdateBody = levelUpCharacterBodySchema.safeParse(updateBody);
   if (parsedUpdateBody.error) {
     return { error: parsedUpdateBody.error };
   }
+
   return { updateBody: parsedUpdateBody.data };
 }

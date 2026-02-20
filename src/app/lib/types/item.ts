@@ -1,9 +1,11 @@
 import { z } from "zod";
 
 const currencySchema = z.object({
-  currencyName: z.string(),
-  quantity: z.number(),
+  currencyName: z.enum(["CONF", "NORD", "NAS", "HUMF", "MRARK"]),
+  quantity: z.number().min(0),
 });
+
+export type Currency = z.infer<typeof currencySchema>;
 
 export const walletSchema = z.array(currencySchema);
 

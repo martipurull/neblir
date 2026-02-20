@@ -4,6 +4,7 @@ import { gameCreateSchema } from "@/app/lib/types/game";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
@@ -43,7 +44,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       message: "Error creating game",
       error,
     });
-    return errorResponse("Error creating game", 500, JSON.stringify(error));
+    return errorResponse("Error creating game", 500, serializeError(error));
   }
 });
 
@@ -79,6 +80,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching games",
       error,
     });
-    return errorResponse("Error fetching games", 500, JSON.stringify(error));
+    return errorResponse("Error fetching games", 500, serializeError(error));
   }
 });

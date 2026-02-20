@@ -9,7 +9,9 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { NextResponse } from "next/server";
+import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -32,11 +34,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (
-      !request.auth?.user?.characters
-        .map((characterUser) => characterUser.characterId)
-        .includes(characterId)
-    ) {
+    if (!characterBelongsToUser(characterId, request.auth.user.id)) {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]/available-features",
@@ -59,12 +57,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     if (!character?.paths.length) {
       return NextResponse.json([], { status: 200 });
     }
-
     const allAvailableFeatures = (
       await Promise.all(
         character.paths.map(
           async (path) =>
-            await getFeaturesAvailableForPathCharacter(path.pathId, path.rank)
+            await getFeaturesAvailableForPathCharacter(path.path.id, path.rank)
         )
       )
     ).flat();
@@ -102,7 +99,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     return errorResponse(
       "Error fetching available features",
       500,
-      JSON.stringify(error)
+      serializeError(error)
     );
   }
 });

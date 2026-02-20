@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
-import { computeFieldsOnCharacterCreation } from "../../parsing";
+import { getCharacter } from "@/app/lib/prisma/character";
+import { computeCharacterRequestData } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import {
+  areFeaturesValidForLevelUp,
   areIncrementFeaturesValid,
   calculateNewReactionsPerRound,
   parseAttributeChanges,
@@ -12,16 +13,11 @@ import {
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
-import {
-  createPathCharacter,
-  updatePathCharacter,
-} from "@/app/lib/prisma/pathCharacter";
-import {
-  createFeatureCharacter,
-  increaseFeatureCharacterGrade,
-} from "@/app/lib/prisma/featureCharacter";
+import { serializeError } from "@/app/api/shared/errors";
 import { errorResponse } from "@/app/api/shared/responses";
 import logger from "@/logger";
+import { ValidationError } from "@/app/api/shared/errors";
+import { prisma } from "@/app/lib/prisma/client";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -132,10 +128,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         JSON.stringify(levelUpBodyToCompute.error.issues)
       );
     }
-
-    const characterUpdateData = computeFieldsOnCharacterCreation(
-      levelUpBodyToCompute.updateBody
+    const characterUpdateData = computeCharacterRequestData(
+      levelUpBodyToCompute.updateBody,
+      true
     );
+
     if (!characterUpdateData) {
       logger.error({
         method: "POST",
@@ -150,108 +147,170 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    // If the pathId is not present, create a new PathCharacter record at rank 1
+    // Validate features before starting the transaction (read-only checks)
+    const featureIds = [
+      ...parsedBody.newFeatureIds,
+      ...parsedBody.incrementalFeatureIds,
+    ];
     try {
-      const isNewPath = !existingCharacter.paths.some(
-        (path) => path.id === parsedBody.pathId
-      );
-      if (isNewPath) {
-        await createPathCharacter({
+      const areFeaturesValid = await areFeaturesValidForLevelUp(id, featureIds);
+      if (!areFeaturesValid) {
+        logger.error({
+          method: "POST",
+          route: "/api/characters/[id]/level-up",
+          message: "Invalid features for level up",
           characterId: id,
-          pathId: parsedBody.pathId,
-          rank: 1,
         });
-      } else {
-        // If the pathId is already present in the character's paths prop, increase its rank by 1
-        await updatePathCharacter(parsedBody.pathId, {
-          rank: { increment: 1 },
-        });
+        return errorResponse(
+          "Invalid features for level up",
+          400,
+          "Some features do not belong to any of the character's paths, or are for a rank above the character's current path rank."
+        );
       }
     } catch (error) {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/level-up",
-        message: "Error while creating or updating path character",
+        message: "Error while checking if features are valid for level up",
         characterId: id,
         error,
       });
       return errorResponse(
-        "Error while creating or updating path character",
+        "Error while checking if features are valid for level up",
+        400,
+        serializeError(error)
+      );
+    }
+
+    if (parsedBody.incrementalFeatureIds.length) {
+      const incrementFeaturesAreValid = await areIncrementFeaturesValid(
+        id,
+        parsedBody.incrementalFeatureIds
+      );
+      if (!incrementFeaturesAreValid) {
+        logger.error({
+          method: "POST",
+          route: "/api/characters/[id]/level-up",
+          message: "Invalid increment features",
+          characterId: id,
+          incrementalFeatureIds: parsedBody.incrementalFeatureIds,
+        });
+        return errorResponse("Invalid increment features", 400);
+      }
+    }
+
+    // All writes run in a single transaction: path, feature grades, new features, character update.
+    // If any step fails, the entire level-up is rolled back (no partial path/feature updates).
+    let updatedCharacter;
+    try {
+      updatedCharacter = await prisma.$transaction(async (tx) => {
+        const isNewPath = !existingCharacter.paths.some(
+          (path) => path.path.id === parsedBody.pathId
+        );
+        if (isNewPath) {
+          await tx.pathCharacter.create({
+            data: {
+              characterId: id,
+              pathId: parsedBody.pathId,
+              rank: 1,
+            },
+          });
+        } else {
+          const pathCharacter = existingCharacter.paths.find(
+            (path) => path.path.id === parsedBody.pathId
+          );
+          if (!pathCharacter) {
+            throw new ValidationError("Path character not found");
+          }
+          await tx.pathCharacter.update({
+            where: { id: pathCharacter.id },
+            data: { rank: { increment: 1 } },
+          });
+        }
+
+        for (const featureId of parsedBody.incrementalFeatureIds) {
+          const characterFeature = existingCharacter.features.find(
+            (f) => f.featureId === featureId
+          );
+          if (!characterFeature) {
+            throw new ValidationError("Feature character not found");
+          }
+          await tx.featureCharacter.update({
+            where: { id: characterFeature.id },
+            data: { grade: { increment: 1 } },
+          });
+        }
+
+        for (const newFeatureId of parsedBody.newFeatureIds) {
+          await tx.featureCharacter.create({
+            data: {
+              characterId: id,
+              featureId: newFeatureId,
+              grade: 1,
+            },
+          });
+        }
+
+        return tx.character.update({
+          where: { id },
+          data: characterUpdateData,
+          include: {
+            inventory: { include: { item: true } },
+            paths: { include: { path: true } },
+            features: { include: { feature: true } },
+          },
+        });
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        logger.error({
+          method: "POST",
+          route: "/api/characters/[id]/level-up",
+          message: "Error while applying level up (validation)",
+          characterId: id,
+          details: error.message,
+        });
+        return errorResponse(
+          "Error while computing character attributes or skills.",
+          400,
+          error.message
+        );
+      }
+      logger.error({
+        method: "POST",
+        route: "/api/characters/[id]/level-up",
+        message: "Error while applying level up (transaction rolled back)",
+        characterId: id,
+        error,
+      });
+      return errorResponse(
+        "Error while applying level up. No changes were saved.",
         500
       );
     }
 
-    // Increment grade of existing features if present and not already at max grade
-    const incrementFeaturesAreValid = await areIncrementFeaturesValid(
-      id,
-      parsedBody.incrementalFeatureIds
-    );
-
-    if (incrementFeaturesAreValid) {
-      try {
-        await Promise.all(
-          parsedBody.incrementalFeatureIds.map((featureId) => {
-            return increaseFeatureCharacterGrade(featureId);
-          })
-        );
-      } catch (error) {
-        logger.error({
-          method: "POST",
-          route: "/api/characters/[id]/level-up",
-          message: "Error while increasing feature character grades",
-          characterId: id,
-          error,
-        });
-        return errorResponse(
-          "Error while increasing feature character grades",
-          500
-        );
-      }
+    return NextResponse.json(updatedCharacter, { status: 200 });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      logger.error({
+        method: "POST",
+        route: "/api/characters",
+        message: "Error while computing character attributes or skills.",
+        details: error.message,
+      });
+      return errorResponse(
+        "Error while computing character attributes or skills.",
+        400,
+        error.message
+      );
     } else {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/level-up",
-        message: "Invalid increment features",
-        characterId: id,
-        incrementalFeatureIds: parsedBody.incrementalFeatureIds,
+        message: "Error processing level up request",
+        error,
       });
-      return errorResponse("Invalid increment features", 400);
+      return errorResponse("Internal Server Error", 500);
     }
-
-    // Create CharacterFeature records for the each newFeatureId in the request body at grade 1
-    if (parsedBody.newFeatureIds.length) {
-      try {
-        await Promise.all(
-          parsedBody.newFeatureIds.map((newFeatureId) => {
-            return createFeatureCharacter({
-              characterId: id,
-              featureId: newFeatureId,
-              grade: 1,
-            });
-          })
-        );
-      } catch (error) {
-        logger.error({
-          method: "POST",
-          route: "/api/characters/[id]/level-up",
-          message: "Error while creating feature character",
-          characterId: id,
-          error,
-        });
-        return errorResponse("Error while creating feature character", 500);
-      }
-    }
-
-    const updatedCharacter = await updateCharacter(id, characterUpdateData);
-
-    return NextResponse.json(updatedCharacter, { status: 200 });
-  } catch (error) {
-    logger.error({
-      method: "POST",
-      route: "/api/characters/[id]/level-up",
-      message: "Error processing level up request",
-      error,
-    });
-    return errorResponse("Internal Server Error", 500);
   }
 });

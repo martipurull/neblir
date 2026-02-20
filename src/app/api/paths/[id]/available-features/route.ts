@@ -3,15 +3,16 @@ import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
-import { serializeError } from "../../shared/errors";
-import { errorResponse } from "../../shared/responses";
+import { serializeError } from "../../../shared/errors";
+import { errorResponse } from "../../../shared/responses";
+import { getAllFeaturesAvailableForPath } from "@/app/lib/prisma/feature";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
     if (!request.auth?.user) {
       logger.error({
         method: "GET",
-        route: "/api/paths/[id]",
+        route: "/api/paths/[id]/available-features",
         message: "Unauthorised access attempt",
       });
       return errorResponse("Unauthorised", 401);
@@ -21,7 +22,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     if (!id || typeof id !== "string") {
       logger.error({
         method: "GET",
-        route: "/api/paths/[id]",
+        route: "/api/paths/[id]/available-features",
         message: "Invalid path ID",
         pathId: id,
       });
@@ -29,13 +30,24 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const path = await getPath(id);
+    if (!path) {
+      logger.error({
+        method: "GET",
+        route: "/api/paths/[id]/available-features",
+        message: "Path not found",
+        pathId: id,
+      });
+      return errorResponse("Path not found", 404);
+    }
 
-    return NextResponse.json(path, { status: 200 });
+    const availableFeatures = await getAllFeaturesAvailableForPath(path.name);
+
+    return NextResponse.json(availableFeatures, { status: 200 });
   } catch (error) {
     logger.error({
       method: "GET",
-      route: "/api/paths/[id]",
-      message: "Error fetching path",
+      route: "/api/paths/[id]/available-features",
+      message: "Error fetching available features",
       error,
     });
     return errorResponse("Error fetching path", 500, serializeError(error));

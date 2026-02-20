@@ -4,6 +4,7 @@ import { userUpdateSchema } from "@/app/lib/types/user";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -47,7 +48,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error fetching user",
       error,
     });
-    return errorResponse("Error fetching user", 500, JSON.stringify(error));
+    return errorResponse("Error fetching user", 500, serializeError(error));
   }
 });
 
@@ -108,7 +109,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating user",
       error,
     });
-    return errorResponse("Error updating user", 500, JSON.stringify(error));
+    return errorResponse("Error updating user", 500, serializeError(error));
   }
 });
 
@@ -153,6 +154,6 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error deleting user",
       error,
     });
-    return errorResponse("Error deleting user", 500, JSON.stringify(error));
+    return errorResponse("Error deleting user", 500, serializeError(error));
   }
 });

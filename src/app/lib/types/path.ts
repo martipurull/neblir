@@ -4,20 +4,34 @@ import { z } from "zod";
 export const pathName = z.nativeEnum(PathName);
 
 export const featureSchema = z.object({
-  minPathRank: z.number().min(1),
-  maxGrade: z.number().min(1).max(4),
-  name: z.string(),
-  description: z.string(),
-  applicablePaths: z.array(pathName),
-  examples: z.array(z.string()).optional().nullable(),
+  id: z.string(),
+  featureId: z.string(),
+  characterId: z.string(),
+  grade: z.number().min(1),
+  feature: z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    minPathRank: z.number().min(1),
+    maxGrade: z.number().min(1).max(4),
+    examples: z.array(z.string()).optional().nullable(),
+    applicablePaths: z.array(pathName),
+  }),
 });
 
 export const featureUpdateSchema = featureSchema.partial().strict();
 
 export const pathSchema = z.object({
-  name: pathName,
-  baseFeature: z.string(),
-  description: z.string().nullish(),
+  id: z.string(),
+  pathId: z.string(),
+  characterId: z.string(),
+  rank: z.number().min(1),
+  path: z.object({
+    id: z.string(),
+    name: pathName,
+    baseFeature: z.string(),
+    description: z.string().nullish(),
+  }),
 });
 
 export const pathUpdateSchema = pathSchema.partial().strict();

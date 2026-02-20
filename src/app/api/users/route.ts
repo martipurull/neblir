@@ -2,6 +2,7 @@ import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
 import { NextRequest, NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,6 @@ export async function POST(request: NextRequest) {
       message: "Error creating user",
       error,
     });
-    return errorResponse("Error creating user", 500, JSON.stringify(error));
+    return errorResponse("Error creating user", 500, serializeError(error));
   }
 }

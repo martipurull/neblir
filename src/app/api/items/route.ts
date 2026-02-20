@@ -4,6 +4,7 @@ import { itemSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
@@ -29,21 +30,23 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse(
         "Error parsing item creation request",
         400,
-        error.issues.map((issue) => issue.message).join(". ")
+        JSON.stringify(error)
       );
     }
 
-    const item = JSON.stringify(await createItem(parsedBody));
+    const item = await createItem(parsedBody);
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
+    const details = serializeError(error);
     logger.error({
       method: "POST",
       route: "/api/items",
       message: "Error creating item",
       error,
+      details,
     });
-    return errorResponse("Error creating item", 500, JSON.stringify(error));
+    return errorResponse("Error creating item", 500, details);
   }
 });
 
@@ -68,6 +71,6 @@ export const GET = auth(async (request: AuthNextRequest) => {
       message: "Error fetching items",
       error,
     });
-    return errorResponse("Error fetching items", 500, JSON.stringify(error));
+    return errorResponse("Error fetching items", 500, serializeError(error));
   }
 });

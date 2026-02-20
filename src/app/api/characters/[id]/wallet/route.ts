@@ -1,9 +1,10 @@
 import { updateCharacter } from "@/app/lib/prisma/character";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import { walletSchema } from "@/app/lib/types/item";
+import { Currency, walletSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 
@@ -39,7 +40,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    console.log("requestBody: ", JSON.stringify(requestBody, null, 2));
     const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
     if (error) {
       logger.error({
@@ -55,6 +55,16 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    if (parsedBody.some((item: Currency) => item.quantity < 0)) {
+      logger.error({
+        method: "PATCH",
+        route: "/api/characters/[id]/wallet",
+        message: "Invalid quantity for currency",
+        details: parsedBody,
+      });
+      return errorResponse("Invalid quantity for currency", 400);
+    }
+
     const updatedCharacter = await updateCharacter(id, { wallet: parsedBody });
 
     return NextResponse.json(updatedCharacter, { status: 200 });
@@ -65,6 +75,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       message: "Error updating wallet",
       error,
     });
-    return errorResponse("Error updating wallet", 500, JSON.stringify(error));
+    return errorResponse("Error updating wallet", 500, serializeError(error));
   }
 });

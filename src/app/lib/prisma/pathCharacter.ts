@@ -8,7 +8,10 @@ export async function createPathCharacter(
 }
 
 export async function getCharacterPaths(characterId: string) {
-  return prisma.pathCharacter.findMany({ where: { characterId } });
+  return prisma.pathCharacter.findMany({
+    where: { characterId },
+    include: { path: true },
+  });
 }
 
 export async function getPathCharacter(id: string) {

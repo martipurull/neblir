@@ -33,6 +33,7 @@ enum ItemWeaponDamageType {
   FIRE
   ICE
   BLUDGEONING
+  ELECTRICITY
   OTHER
 }
 
@@ -70,6 +71,14 @@ enum Status {
   ALIVE
   DECEASED
   DERANGED
+}
+
+enum CurrencyName {
+  CONF
+  NORD
+  NAS
+  HUMF
+  MRARK
 }
 
 type CharacterCombatInformation {
@@ -193,7 +202,7 @@ type CharacterLearnedSkillsGeneralSkills {
 }
 
 type CharacterWallet {
-  currencyName String
+  currencyName CurrencyName
   quantity     Int
 }
 
@@ -295,7 +304,7 @@ model Item {
   id          String                     @id @default(auto()) @map("_id") @db.ObjectId
   accessType  ItemAccessType
   attackRoll  ItemWeaponAttackRollType[]
-  attackBonus Int
+  attackBonus Int?
   confCost    Int
   costInfo    String?
   damage      ItemDamage?
@@ -305,7 +314,7 @@ model Item {
   notes       String?
   type        ItemType
   usage       String?
-  weight      Int?
+  weight      Float?
 
   ItemCharacter ItemCharacter[]
 }

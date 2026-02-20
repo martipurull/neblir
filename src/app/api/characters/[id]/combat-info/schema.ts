@@ -15,10 +15,6 @@ const combatInformationUpdateSchema = combatInformationSchema
     armourMaxHP: true,
     armourCurrentHP: true,
     GridMod: true,
-    rangeDefenceMod: true,
-    meleeDefenceMod: true,
-    GridDefenceMod: true,
-    GridAttackMod: true,
   })
   .partial();
 

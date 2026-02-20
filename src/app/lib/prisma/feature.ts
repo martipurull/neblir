@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./client";
+import { PathName } from "@prisma/client";
 
 export async function createFeature(data: Prisma.FeatureUncheckedCreateInput) {
   return prisma.feature.create({ data });
@@ -7,6 +8,30 @@ export async function createFeature(data: Prisma.FeatureUncheckedCreateInput) {
 
 export async function getAllFeatures() {
   return prisma.feature.findMany();
+}
+
+export async function getAllFeaturesAvailableForPath(pathName: PathName) {
+  return prisma.feature.findMany({
+    where: {
+      applicablePaths: {
+        has: pathName,
+      },
+    },
+  });
+}
+
+export async function getAllFeaturesAvailableForPathAndRank(
+  pathName: PathName,
+  rank: number
+) {
+  return prisma.feature.findMany({
+    where: {
+      applicablePaths: {
+        has: pathName,
+      },
+      minPathRank: { lte: rank },
+    },
+  });
 }
 
 export async function getFeature(id: string) {
