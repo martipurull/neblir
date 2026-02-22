@@ -23,15 +23,9 @@ export const featureUpdateSchema = featureSchema.partial().strict();
 
 export const pathSchema = z.object({
   id: z.string(),
-  pathId: z.string(),
-  characterId: z.string(),
-  rank: z.number().min(1),
-  path: z.object({
-    id: z.string(),
-    name: pathName,
-    baseFeature: z.string(),
-    description: z.string().nullish(),
-  }),
+  name: pathName,
+  description: z.string().nullish(),
+  baseFeature: z.string(),
 });
 
 export const pathUpdateSchema = pathSchema.partial().strict();

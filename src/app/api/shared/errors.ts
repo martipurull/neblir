@@ -7,6 +7,40 @@ export class ValidationError extends Error {
   }
 }
 
+type CharacterCreationStep =
+  | "createCharacter"
+  | "createCharacterUser"
+  | "createPathCharacter";
+
+export class CharacterCreationTransactionError extends Error {
+  constructor(
+    public step: CharacterCreationStep,
+    public details?: string
+  ) {
+    super(`Failed at transaction step: ${step}`);
+    this.name = "CharacterCreationTransactionError";
+  }
+}
+
+type CharacterDeletionStep =
+  | "deletePathCharacters"
+  | "deleteFeatureCharacters"
+  | "deleteGameCharacters"
+  | "deleteCharacterUsers"
+  | "deleteCharacterInventory"
+  | "deleteCharacterWallet"
+  | "deleteCharacter";
+
+export class CharacterDeletionTransactionError extends Error {
+  constructor(
+    public step: CharacterDeletionStep,
+    public details?: string
+  ) {
+    super(`Failed at transaction step: ${step}`);
+    this.name = "CharacterDeletionTransactionError";
+  }
+}
+
 /**
  * Serialise an unknown error for logging and API responses.
  * Ensures Prisma and standard Error instances expose message/stack instead of "{}".

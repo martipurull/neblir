@@ -1,13 +1,62 @@
 import { z } from "zod";
 import { featureSchema, pathSchema } from "./path";
-import { itemSchema, walletSchema } from "./item";
+import {
+  itemSourceTypeSchema,
+  walletSchema,
+  weaponAttackRollTypeSchema,
+  weaponDamageTypeSchema,
+} from "./item";
 import { gameCharacterSchema } from "./game";
 import { Race, Religion, Status } from "@prisma/client";
 
+/** Schema for a resolved item (Item, CustomItem, or merged UniqueItem) - used in inventory response */
+const resolvedItemSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+  description: z.string().optional().nullable(),
+  weight: z.number().optional().nullable(),
+  usage: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  imageKey: z.string().optional().nullable(),
+  confCost: z.number().optional(),
+  costInfo: z.string().optional().nullable(),
+  attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
+  attackBonus: z.number().optional().nullable(),
+  damage: z
+    .object({
+      damageType: weaponDamageTypeSchema,
+      diceType: z.number(),
+      numberOfDice: z.number(),
+      primaryRadius: z.number().optional().nullable(),
+      secondaryRadius: z.number().optional().nullable(),
+      areaEffect: z
+        .object({
+          defenceReactionCost: z.number(),
+          defenceRoll: z.string(),
+          successfulDefenceResult: z.string(),
+        })
+        .optional()
+        .nullable(),
+    })
+    .optional()
+    .nullable(),
+  specialTag: z.string().optional().nullable(),
+  _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
+  _uniqueItemId: z.string().optional(),
+}).passthrough();
+
 export const itemCharacterSchema = z.object({
   id: z.string(),
-  itemId: z.string(),
   characterId: z.string(),
+  sourceType: itemSourceTypeSchema,
+  itemId: z.string(),
+  quantity: z.number(),
+  currentAmmo: z.number().optional().nullable(),
+  currentCharges: z.number().optional().nullable(),
+  isEquipped: z.boolean(),
+  customName: z.string().optional().nullable(),
+  item: resolvedItemSchema.nullable(),
 });
 
 export const inventorySchema = z.array(itemCharacterSchema);
@@ -138,7 +187,7 @@ export const characterSchema = z.object({
     specialSkills: z.array(z.string()).max(3).optional(),
   }),
   wallet: z.lazy(() => walletSchema).optional(),
-  inventory: z.array(z.lazy(() => itemSchema)).optional(),
+  inventory: z.array(z.lazy(() => itemCharacterSchema)).optional(),
   notes: characterNotesSchema.optional(),
   paths: z.array(z.lazy(() => pathSchema)).optional(),
   features: z.array(z.lazy(() => featureSchema)).optional(),

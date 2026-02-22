@@ -29,7 +29,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/combat-info",

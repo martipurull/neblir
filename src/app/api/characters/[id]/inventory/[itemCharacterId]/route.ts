@@ -37,7 +37,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character or itemCharacter ID", 400);
     }
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]/equipment/[itemCharacterId]",

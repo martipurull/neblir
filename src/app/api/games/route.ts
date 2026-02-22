@@ -17,6 +17,16 @@ export const POST = auth(async (request: AuthNextRequest) => {
       });
       return errorResponse("Unauthorised", 401);
     }
+    const userId = request.auth.user.id;
+    if (!userId) {
+      logger.error({
+        method: "POST",
+        route: "/api/games",
+        message: "User ID not found",
+        userId,
+      });
+      return errorResponse(`User with id ${userId} does not exist`, 400);
+    }
 
     const requestBody = await request.json();
     const { data: parsedBody, error } = gameCreateSchema.safeParse(requestBody);
@@ -34,7 +44,15 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const game = await createGame(parsedBody);
+    const game = await createGame({
+      ...parsedBody,
+      gameMaster: userId,
+      users: {
+        create: {
+          userId,
+        },
+      },
+    });
 
     return NextResponse.json(game, { status: 201 });
   } catch (error) {

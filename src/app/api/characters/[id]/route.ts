@@ -2,26 +2,13 @@ import { NextResponse } from "next/server";
 import { deleteCharacter, getCharacter } from "@/app/lib/prisma/character";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
-import {
-  deleteCharacterUserByCharacterId,
-  characterBelongsToUser,
-} from "@/app/lib/prisma/characterUser";
-import { deleteCharacterInventory } from "@/app/lib/prisma/itemCharacter";
+import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import logger from "@/logger";
-import { serializeError } from "../../shared/errors";
+import {
+  CharacterDeletionTransactionError,
+  serializeError,
+} from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
-import {
-  deletePathCharacter,
-  getCharacterPaths,
-} from "@/app/lib/prisma/pathCharacter";
-import {
-  deleteFeatureCharacter,
-  getCharacterFeatures,
-} from "@/app/lib/prisma/featureCharacter";
-import {
-  deleteGameCharacter,
-  getCharacterGames,
-} from "@/app/lib/prisma/gameCharacter";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -45,7 +32,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID.", 400);
     }
 
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]",
@@ -106,7 +93,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID.", 400);
     }
 
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]",
@@ -116,25 +103,25 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("This is not one of your characters", 403);
     }
 
-    const characterPaths = await getCharacterPaths(id);
-    for (const path of characterPaths) {
-      await deletePathCharacter(path.id);
-    }
-    const characterFeatures = await getCharacterFeatures(id);
-    for (const feature of characterFeatures) {
-      await deleteFeatureCharacter(feature.id);
-    }
-    const characterGames = await getCharacterGames(id);
-    for (const game of characterGames) {
-      await deleteGameCharacter(game.id);
-    }
-    await deleteCharacterUserByCharacterId(id);
-    await deleteCharacterInventory(id);
-
     await deleteCharacter(id);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    if (error instanceof CharacterDeletionTransactionError) {
+      logger.error({
+        method: "DELETE",
+        route: "/api/characters/[id]",
+        message: "Character deletion transaction step failed",
+        step: error.step,
+        details: error.details,
+      });
+      return errorResponse(
+        `Error while running ${error.step}`,
+        500,
+        error.details
+      );
+    }
+
     logger.error({
       method: "DELETE",
       route: "/api/characters/[id]",

@@ -81,6 +81,12 @@ enum CurrencyName {
   MRARK
 }
 
+enum ItemSourceType {
+  GLOBAL_ITEM
+  CUSTOM_ITEM
+  UNIQUE_ITEM
+}
+
 type CharacterCombatInformation {
   GridAttackMod     Int
   GridDefenceMod    Int
@@ -201,11 +207,6 @@ type CharacterLearnedSkillsGeneralSkills {
   survival                Int
 }
 
-type CharacterWallet {
-  currencyName CurrencyName
-  quantity     Int
-}
-
 type AreaEffect {
   defenceReactionCost     Int
   defenceRoll             String
@@ -228,13 +229,25 @@ model Character {
   health             CharacterHealth
   innateAttributes   CharacterInnateAttributes
   learnedSkills      CharacterLearnedSkills
-  wallet             CharacterWallet[]
+  wallet             CharacterCurrency[]
   inventory          ItemCharacter[]
   notes              String[]
   paths              PathCharacter[]
   features           FeatureCharacter[]
   games              GameCharacter[]
   users              CharacterUser[]
+}
+
+model CharacterCurrency {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  characterId  String       @db.ObjectId
+  currencyName CurrencyName
+  quantity     Int          @default(0)
+
+  character Character @relation(fields: [characterId], references: [id])
+
+  @@unique([characterId, currencyName])
+  @@index([characterId])
 }
 
 model CharacterUser {
@@ -252,15 +265,23 @@ model CharacterUser {
 
 model ItemCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
-  itemId      String @db.ObjectId
+  
   characterId String @db.ObjectId
-
-  item      Item      @relation(fields: [itemId], references: [id])
   character Character @relation(fields: [characterId], references: [id])
+  
+  sourceType ItemSourceType
+  itemId      String @db.ObjectId
 
-  @@unique([itemId, characterId])
-  @@index([itemId])
+  quantity        Int        @default(1)
+  currentAmmo     Int?
+  currentCharges  Int?
+  isEquipped      Boolean    @default(false)
+  customName      String?
+
+
   @@index([characterId])
+  @@index([sourceType,itemId])
+  @@unique([characterId, sourceType, itemId])
 }
 
 model Game {
@@ -270,6 +291,7 @@ model Game {
   name       String
   users      GameUser[]
   characters GameCharacter[]
+  customItems CustomItem[]
 
   @@index([gameMaster])
 }
@@ -314,9 +336,46 @@ model Item {
   notes       String?
   type        ItemType
   usage       String?
-  weight      Float?
+  weight      Float
+}
 
-  ItemCharacter ItemCharacter[]
+model CustomItem {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  gameId      String @db.ObjectId
+  game        Game   @relation(fields: [gameId], references: [id])
+  attackRoll  ItemWeaponAttackRollType[]
+  attackBonus Int?
+  confCost    Int?
+  costInfo    String?
+  damage      ItemDamage?
+  description String?
+  imageKey    String?
+  name        String
+  notes       String?
+  type        ItemType
+  usage       String?
+  weight      Float
+}
+
+model UniqueItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // template it’s based on
+  sourceType  ItemSourceType // GLOBAL_ITEM | CUSTOM_ITEM
+  itemId      String         @db.ObjectId
+
+  attackRollOverride  ItemWeaponAttackRollType[]
+  attackBonusOverride Int?
+  confCostOverride    Int?
+  costInfoOverride    String?
+  damageOverride      ItemDamage?
+  descriptionOverride String?
+  imageKeyOverride    String?
+  nameOverride        String?
+  usageOverride       String?
+  weightOverride      Float?
+  notesOverride       String?
+  specialTag          String?  // e.g. "AMPLIFIED", "PROTOTYPE"
 }
 
 model Feature {

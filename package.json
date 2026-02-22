@@ -42,7 +42,7 @@
     "@types/react-dom": "^18",
     "cypress": "^13.13.0",
     "eslint": "^8",
-    "eslint-config-next": "14.2.4",
+    "eslint-config-next": "^15.5.12",
     "pino-pretty": "^13.1.2",
     "postcss": "^8",
     "prettier": "^3.6.2",

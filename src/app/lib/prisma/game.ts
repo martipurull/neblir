@@ -20,5 +20,17 @@ export function updateGame(id: string, data: Prisma.GameUpdateInput) {
 }
 
 export function deleteGame(id: string) {
-  return prisma.game.delete({ where: { id } });
+  return prisma.$transaction([
+    prisma.gameUser.deleteMany({ where: { gameId: id } }),
+    prisma.gameCharacter.deleteMany({ where: { gameId: id } }),
+    prisma.customItem.deleteMany({ where: { gameId: id } }),
+    prisma.game.delete({ where: { id } }),
+  ]);
+}
+
+export async function userIsInGame(gameId: string, userId: string): Promise<boolean> {
+  const gu = await prisma.gameUser.findFirst({
+    where: { gameId, userId },
+  });
+  return !!gu;
 }

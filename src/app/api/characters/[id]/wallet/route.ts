@@ -1,4 +1,3 @@
-import { updateCharacter } from "@/app/lib/prisma/character";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { Currency, walletSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
@@ -7,6 +6,7 @@ import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { replaceCharacterWallet } from "@/app/lib/prisma/characterCurrency";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -29,7 +29,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/wallet",
@@ -65,9 +66,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid quantity for currency", 400);
     }
 
-    const updatedCharacter = await updateCharacter(id, { wallet: parsedBody });
+    const updatedWallet = await replaceCharacterWallet(id, parsedBody);
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    return NextResponse.json(updatedWallet, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

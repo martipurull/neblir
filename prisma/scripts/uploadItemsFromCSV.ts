@@ -12,9 +12,11 @@
  * damagePrimaryRadius, damageSecondaryRadius, areaEffectDefenceReactionCost,
  * areaEffectDefenceRoll, areaEffectSuccessfulDefenceResult
  *
+ * - weight is required (number). Use 0 if not applicable.
  * - accessType defaults to PLAYER if missing.
- * - attackRoll: semicolon-separated (e.g. "RANGE;MELEE").
+ * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
+ * - damageType: one of BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, OTHER.
  */
 
 import "dotenv/config";
@@ -72,7 +74,7 @@ function csvRowToItem(row: Record<string, string>): Item {
     costInfo: parseOptionalString(row.costInfo),
     description: parseOptionalString(row.description) ?? "",
     notes: parseOptionalString(row.notes),
-    weight: parseOptionalFloat(row.weight),
+    weight: parseOptionalFloat(row.weight) ?? 0,
   };
 
   if (type === "GENERAL_ITEM") {
@@ -99,6 +101,7 @@ function csvRowToItem(row: Record<string, string>): Item {
       | "FIRE"
       | "ICE"
       | "BLUDGEONING"
+      | "ELECTRICITY"
       | "OTHER",
     primaryRadius: parseOptionalInt(row.damagePrimaryRadius),
     secondaryRadius: parseOptionalInt(row.damageSecondaryRadius),
@@ -137,7 +140,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     name: item.name,
     notes: item.notes ?? null,
     type: item.type,
-    weight: item.weight ?? null,
+    weight: item.weight,
   };
 
   if (item.type === "GENERAL_ITEM") {

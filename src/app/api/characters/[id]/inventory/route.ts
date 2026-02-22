@@ -2,10 +2,10 @@ import {
   createItemCharacter,
   getCharacterInventory,
 } from "@/app/lib/prisma/itemCharacter";
+import { addToInventorySchema } from "@/app/lib/types/item";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
@@ -91,9 +91,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    const { data, error } = z
-      .object({ itemId: z.string() })
-      .safeParse(requestBody);
+    const { data, error } = addToInventorySchema.safeParse(requestBody);
     if (error) {
       logger.error({
         method: "POST",
@@ -110,6 +108,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
 
     await createItemCharacter({
       characterId: id,
+      sourceType: data.sourceType,
       itemId: data.itemId,
     });
 

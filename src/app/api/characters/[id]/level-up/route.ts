@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCharacter } from "@/app/lib/prisma/character";
+import { getCharacter, levelUpCharacterWithRelations } from "@/app/lib/prisma/character";
 import { computeCharacterRequestData } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import {
@@ -17,7 +17,6 @@ import { serializeError } from "@/app/api/shared/errors";
 import { errorResponse } from "@/app/api/shared/responses";
 import logger from "@/logger";
 import { ValidationError } from "@/app/api/shared/errors";
-import { prisma } from "@/app/lib/prisma/client";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -40,7 +39,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/level-up",
@@ -132,6 +131,10 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       levelUpBodyToCompute.updateBody,
       true
     );
+    const { wallet: _wallet, ...characterUpdateDataWithoutWallet } =
+      characterUpdateData as typeof characterUpdateData & {
+        wallet?: unknown;
+      };
 
     if (!characterUpdateData) {
       logger.error({
@@ -199,67 +202,16 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    // All writes run in a single transaction: path, feature grades, new features, character update.
-    // If any step fails, the entire level-up is rolled back (no partial path/feature updates).
     let updatedCharacter;
     try {
-      updatedCharacter = await prisma.$transaction(async (tx) => {
-        const isNewPath = !existingCharacter.paths.some(
-          (path) => path.path.id === parsedBody.pathId
-        );
-        if (isNewPath) {
-          await tx.pathCharacter.create({
-            data: {
-              characterId: id,
-              pathId: parsedBody.pathId,
-              rank: 1,
-            },
-          });
-        } else {
-          const pathCharacter = existingCharacter.paths.find(
-            (path) => path.path.id === parsedBody.pathId
-          );
-          if (!pathCharacter) {
-            throw new ValidationError("Path character not found");
-          }
-          await tx.pathCharacter.update({
-            where: { id: pathCharacter.id },
-            data: { rank: { increment: 1 } },
-          });
-        }
-
-        for (const featureId of parsedBody.incrementalFeatureIds) {
-          const characterFeature = existingCharacter.features.find(
-            (f) => f.featureId === featureId
-          );
-          if (!characterFeature) {
-            throw new ValidationError("Feature character not found");
-          }
-          await tx.featureCharacter.update({
-            where: { id: characterFeature.id },
-            data: { grade: { increment: 1 } },
-          });
-        }
-
-        for (const newFeatureId of parsedBody.newFeatureIds) {
-          await tx.featureCharacter.create({
-            data: {
-              characterId: id,
-              featureId: newFeatureId,
-              grade: 1,
-            },
-          });
-        }
-
-        return tx.character.update({
-          where: { id },
-          data: characterUpdateData,
-          include: {
-            inventory: { include: { item: true } },
-            paths: { include: { path: true } },
-            features: { include: { feature: true } },
-          },
-        });
+      updatedCharacter = await levelUpCharacterWithRelations({
+        characterId: id,
+        pathId: parsedBody.pathId,
+        existingPaths: existingCharacter.paths,
+        existingFeatures: existingCharacter.features,
+        incrementalFeatureIds: parsedBody.incrementalFeatureIds,
+        newFeatureIds: parsedBody.newFeatureIds,
+        characterUpdateData: characterUpdateDataWithoutWallet,
       });
     } catch (error) {
       if (error instanceof ValidationError) {

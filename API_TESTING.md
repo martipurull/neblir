@@ -220,6 +220,28 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/health" \
       "failures": 3
     }
   }'
+
+  curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/health" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "currentPhysicalHealth": 1,
+    "currentMentalHealth": 15,
+    "seriousPhysicalInjuries": 1,
+    "seriousTrauma": 1,
+    "deathSaves": {
+      "successes": 0,
+      "failures": 0
+    },
+    "status": "ALIVE"
+  }'
+
+  curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/health" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "currentPhysicalHealth": 11
+  }'
 ```
 
 **Note:** All fields are optional. You can update any combination of:
@@ -274,7 +296,40 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/wallet" \
     ]'
 ```
 
-**note** The calculation is done in the frontend. The backend has protection against negative quantities and invalid currencies.
+### Add Currency to Wallet (increment)
+
+```bash
+CHARACTER_ID="your-character-id-here"
+
+curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/wallet/add" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "currencyName": "CONF",
+    "amount": 100
+  }'
+```
+
+### Subtract Currency from Wallet (decrement)
+
+```bash
+CHARACTER_ID="your-character-id-here"
+
+curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/wallet/subtract" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "currencyName": "CONF",
+    "amount": 25
+  }'
+```
+
+**Notes**
+
+- `amount` must be a positive integer.
+- Subtracting more than available returns a `400` with an insufficient funds message.
+- Subtracting a currency not present in wallet returns a `400`.
+- If a subtraction brings quantity to `0`, that currency entry is removed from the wallet.
 
 ### Update Notes
 
@@ -393,19 +448,200 @@ curl -X GET "${BASE_URL}/api/items/${ITEM_ID}" \
 
 ---
 
+**`sourceType`** must be one of: `GLOBAL_ITEM`, `CUSTOM_ITEM`, `UNIQUE_ITEM`.
+
+## Custom Items (per Game)
+
+Custom items are created on the fly for a specific game. Any player in the game can create, update, and delete custom items. Requires: `name`, `weight`. Other fields are optional.
+
+### List Custom Items for a Game
+
+```bash
+GAME_ID="your-game-id-here"
+
+curl -X GET "${BASE_URL}/api/games/${GAME_ID}/custom-items" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+### Create a Custom Item (minimal – e.g. "A note scribbled in blood")
+
+```bash
+GAME_ID="your-game-id-here"
+
+curl -X POST "${BASE_URL}/api/games/${GAME_ID}/custom-items" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "name": "A note scribbled in blood",
+    "weight": 0
+  }'
+```
+
+### Create a Custom Item (full example)
+
+```bash
+GAME_ID="your-game-id-here"
+
+curl -X POST "${BASE_URL}/api/games/${GAME_ID}/custom-items" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "name": "Custom plasma rifle",
+    "weight": 2.5,
+    "type": "WEAPON",
+    "description": "Modified by the field team",
+    "attackRoll": ["RANGE"],
+    "attackBonus": 3,
+    "damage": {
+      "diceType": 6,
+      "numberOfDice": 3,
+      "damageType": "FIRE"
+    },
+    "confCost": 150,
+    "notes": "Experimental prototype"
+  }'
+```
+
+**Optional fields:** `type` (default: `GENERAL_ITEM`), `attackRoll` (default: `[]`), `attackBonus`, `confCost`, `costInfo`, `damage`, `description`, `imageKey`, `notes`, `usage`.
+
+### Get Custom Item by ID
+
+```bash
+GAME_ID="your-game-id-here"
+CUSTOM_ITEM_ID="your-custom-item-id-here"
+
+curl -X GET "${BASE_URL}/api/games/${GAME_ID}/custom-items/${CUSTOM_ITEM_ID}" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+### Update a Custom Item
+
+```bash
+GAME_ID="your-game-id-here"
+CUSTOM_ITEM_ID="your-custom-item-id-here"
+
+curl -X PATCH "${BASE_URL}/api/games/${GAME_ID}/custom-items/${CUSTOM_ITEM_ID}" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "description": "Updated description",
+    "notes": "Found in Sector 7"
+  }'
+```
+
+### Delete a Custom Item
+
+```bash
+GAME_ID="your-game-id-here"
+CUSTOM_ITEM_ID="your-custom-item-id-here"
+
+curl -X DELETE "${BASE_URL}/api/games/${GAME_ID}/custom-items/${CUSTOM_ITEM_ID}" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+---
+
+## Unique Items
+
+Unique items are based on a global or custom item template, with optional overrides (e.g. a modified gun). Create a unique item first, then add it to a character's inventory with `sourceType: "UNIQUE_ITEM"`.
+
+### Create a Unique Item
+
+```bash
+# Requires sourceType (GLOBAL_ITEM or CUSTOM_ITEM) and itemId (template)
+# All override fields are optional
+
+curl -X POST "${BASE_URL}/api/unique-items" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "sourceType": "GLOBAL_ITEM",
+    "itemId": "your-template-item-id-here",
+    "nameOverride": "John'\''s Plasma Pistol",
+    "specialTag": "AMPLIFIED",
+    "attackBonusOverride": 4,
+    "notesOverride": "Upgraded by the blacksmith in Sector 3"
+  }'
+```
+
+**Override fields (all optional):** `nameOverride`, `descriptionOverride`, `attackRollOverride`, `attackBonusOverride`, `confCostOverride`, `costInfoOverride`, `damageOverride`, `imageKeyOverride`, `usageOverride`, `weightOverride`, `notesOverride`, `specialTag` (e.g. "AMPLIFIED", "PROTOTYPE").
+
+### Get Unique Item by ID
+
+```bash
+UNIQUE_ITEM_ID="your-unique-item-id-here"
+
+curl -X GET "${BASE_URL}/api/unique-items/${UNIQUE_ITEM_ID}" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+**Response notes:** This endpoint now returns:
+- the persisted unique item fields (including override fields),
+- `templateItem` (the base item loaded from `itemId`), and
+- `resolvedItem` (template with overrides applied).
+
+If the template item no longer exists, `templateItem` and `resolvedItem` are `null`.
+
+### Update a Unique Item
+
+```bash
+UNIQUE_ITEM_ID="your-unique-item-id-here"
+
+curl -X PATCH "${BASE_URL}/api/unique-items/${UNIQUE_ITEM_ID}" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "nameOverride": "John'\''s Plasma Pistol (repaired)",
+    "notesOverride": "Fixed after the incident in Sector 5"
+  }'
+```
+
+### Delete a Unique Item
+
+```bash
+UNIQUE_ITEM_ID="your-unique-item-id-here"
+
+curl -X DELETE "${BASE_URL}/api/unique-items/${UNIQUE_ITEM_ID}" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}"
+```
+
+---
+
 ## Character Inventory Management
 
 ### Add Item to Character Inventory
+
+Items can be added from global items, custom items, or unique items. You must specify `sourceType` and `itemId`.
 
 ```bash
 CHARACTER_ID="your-character-id-here"
 ITEM_ID="your-item-id-here"
 
+# Add a global item (from /api/items)
+curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/inventory" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d "{
+    \"sourceType\": \"GLOBAL_ITEM\",
+    \"itemId\": \"${ITEM_ID}\"
+  }"
+
+# Add a custom item (from /api/games/[gameId]/custom-items)
 curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/inventory" \
   -H "Content-Type: application/json" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
-    "itemId": "'${ITEM_ID}'"
+    "sourceType": "CUSTOM_ITEM",
+    "itemId": "your-custom-item-id-here"
+  }'
+
+# Add a unique item (from /api/unique-items)
+curl -X POST "${BASE_URL}/api/characters/${CHARACTER_ID}/inventory" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
+  -d '{
+    "sourceType": "UNIQUE_ITEM",
+    "itemId": "your-unique-item-id-here"
   }'
 ```
 
@@ -467,12 +703,11 @@ curl -X POST "${BASE_URL}/api/games" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
     "name": "The Lost Expedition",
-    "gameMaster": "YOUR_USER_ID_HERE",
     "imageKey": "lost-expedition.png"
   }'
 ```
 
-**Note:** Replace `YOUR_USER_ID_HERE` with your actual user ID.
+**Note:** The authenticated user is automatically set as `gameMaster` and is automatically added to the game users list.
 
 ### Get All Games for User
 
@@ -588,14 +823,16 @@ Here's a suggested workflow for comprehensive testing:
 1. **Authenticate** - Get your session cookie
 2. **Create Character** - Create a new character with all required fields
 3. **Get Character** - Verify the character was created correctly
-4. **Create Items** - Create a few items (general item and weapon)
-5. **Add Items to Inventory** - Add items to your character's inventory
-6. **Get Inventory** - Verify items are in inventory
-7. **Update Character** - Update health, wallet, notes, etc.
-8. **Get Paths** - Retrieve available paths
-9. **Create Game** - Create a game session
-10. **Level Up Character** - Test the level-up functionality
-11. **Get Available Features** - Check what features are available for your character
+4. **Create Items** - Create a few global items (general item and weapon)
+5. **Create Game** - Create a game session (and add yourself/character to the game if needed)
+6. **Create Custom Items** - Create quick custom items (e.g. "A note scribbled in blood")
+7. **Create Unique Items** - Create a unique item based on a global/custom template with overrides
+8. **Add Items to Inventory** - Add items using `sourceType` and `itemId` (GLOBAL_ITEM, CUSTOM_ITEM, or UNIQUE_ITEM)
+9. **Get Inventory** - Verify items are in inventory with resolved item data
+10. **Update Character** - Update health, wallet, notes, etc.
+11. **Get Paths** - Retrieve available paths
+12. **Level Up Character** - Test the level-up functionality
+13. **Get Available Features** - Check what features are available for your character
 
 ---
 
@@ -645,6 +882,15 @@ Here's a suggested workflow for comprehensive testing:
 - `ACID`
 - `FIRE`
 - `ICE`
+- `BLUDGEONING`
+- `ELECTRICITY`
+- `OTHER`
+
+### ItemSourceType (for inventory and unique item template)
+
+- `GLOBAL_ITEM` – from `/api/items`
+- `CUSTOM_ITEM` – from `/api/games/[gameId]/custom-items`
+- `UNIQUE_ITEM` – from `/api/unique-items`
 
 ### PathName
 
@@ -669,6 +915,7 @@ Here's a suggested workflow for comprehensive testing:
 - Skill values must be between 0 and 5
 - Health values are computed automatically, but you can provide `rolledPhysicalHealth` and `rolledMentalHealth`
 - Many combat stats are computed automatically from attributes and skills
+- **Inventory:** When adding items, use `sourceType` + `itemId`. `sourceType` must be `GLOBAL_ITEM`, `CUSTOM_ITEM`, or `UNIQUE_ITEM` depending on the item source.
 
 ---
 

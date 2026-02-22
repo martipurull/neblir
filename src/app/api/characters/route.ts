@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { characterCreationRequestSchema } from "./schemas";
-import { createCharacter } from "@/app/lib/prisma/character";
 import { computeCharacterRequestData } from "./parsing";
 import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
+import { Prisma } from "@prisma/client";
 import { getUser } from "@/app/lib/prisma/user";
-import { createCharacterUser } from "@/app/lib/prisma/characterUser";
-import { serializeError } from "../shared/errors";
+import { createCharacterWithRelations } from "@/app/lib/prisma/character";
+import {
+  CharacterCreationTransactionError,
+  serializeError,
+} from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
 import logger from "@/logger";
-import { createPathCharacter } from "@/app/lib/prisma/pathCharacter";
+import { Currency } from "@/app/lib/types/item";
 
 export const POST = auth(async (request: AuthNextRequest) => {
   const user = request.auth?.user;
@@ -82,38 +85,48 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
-    const character = await createCharacter(characterCreationData);
+    const { wallet = [], ...characterCreationDataWithoutWallet } =
+      characterCreationData as typeof characterCreationData & {
+        wallet?: Currency[];
+      };
 
-    try {
-      await createCharacterUser({ characterId: character.id, userId: user.id });
-    } catch (error) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters",
-        message: "Error while adding character to user",
-        details: error,
-      });
-      return errorResponse("Error while adding character to user", 500);
-    }
+    const characterCreateData: Prisma.CharacterCreateInput = {
+      ...characterCreationDataWithoutWallet,
+      wallet:
+        wallet.length > 0
+          ? {
+              create: wallet.map((entry) => ({
+                currencyName: entry.currencyName,
+                quantity: entry.quantity,
+              })),
+            }
+          : undefined,
+    };
 
-    try {
-      await createPathCharacter({
-        characterId: character.id,
-        pathId: parseResult.data.path.pathId,
-        rank: parseResult.data.path.rank,
-      });
-    } catch (error) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters",
-        message: "Error while creating path character",
-        details: error,
-      });
-      return errorResponse("Error while creating path character", 500);
-    }
+    const character = await createCharacterWithRelations({
+      data: characterCreateData,
+      userId: user.id,
+      pathId: parseResult.data.path.pathId,
+      pathRank: parseResult.data.path.rank,
+    });
 
     return NextResponse.json(character, { status: 201 });
   } catch (error) {
+    if (error instanceof CharacterCreationTransactionError) {
+      logger.error({
+        method: "POST",
+        route: "/api/characters",
+        message: "Character creation transaction step failed",
+        step: error.step,
+        details: error.details,
+      });
+      return errorResponse(
+        `Error while running ${error.step}`,
+        500,
+        error.details
+      );
+    }
+
     logger.error({
       method: "POST",
       route: "/api/characters",

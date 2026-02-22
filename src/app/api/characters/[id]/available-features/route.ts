@@ -34,7 +34,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(characterId, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(characterId, request.auth.user.id))) {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]/available-features",

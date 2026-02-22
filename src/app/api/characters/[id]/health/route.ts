@@ -29,7 +29,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!characterBelongsToUser(id, request.auth.user.id)) {
+    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/health",
@@ -117,7 +117,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
     if (
       (parsedBody.deathSaves?.failures &&
-        parsedBody.deathSaves?.failures >= 3) ||
+        parsedBody.deathSaves.failures >= 3) ||
       (parsedBody.seriousPhysicalInjuries &&
         parsedBody.seriousPhysicalInjuries >= 3)
     ) {
