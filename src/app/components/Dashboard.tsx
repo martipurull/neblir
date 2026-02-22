@@ -46,7 +46,7 @@ const Dashboard: React.FC = () => {
       </section>
       <section className="mb-8 p-6 bg-white rounded-lg shadow-md">
         <h3 className="text-2xl font-semibold mb-4">Characters</h3>
-        <div>
+        {/* <div>
           <h4>Testing pre-signed URL functionality</h4>
           {imageURL && (
             <Image
@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
               alt={"Testing pre-signed image URL"}
             />
           )}
-        </div>
+        </div> */}
         {/* Add user characters here */}
       </section>
       <section className="p-6 bg-white rounded-lg shadow-md">
