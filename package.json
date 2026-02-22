@@ -17,7 +17,9 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "prisma:push": "npx prisma db push",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "prepare": "husky",
+    "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
@@ -45,6 +47,8 @@
     "cypress": "^13.13.0",
     "eslint": "^8",
     "eslint-config-next": "^15.5.12",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "pino-pretty": "^13.1.2",
     "postcss": "^8",
     "prettier": "^3.6.2",
@@ -53,5 +57,14 @@
     "tsx": "^4.20.4",
     "typescript": "^5.9.2",
     "vitest": "^3.0.8"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   }
 }
