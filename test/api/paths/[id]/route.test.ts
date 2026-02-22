@@ -19,20 +19,32 @@ describe("/api/paths/[id] GET", () => {
 
   it("returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/paths/[id]/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "p-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "p-1" })
+    );
     expect(response.status).toBe(401);
   });
 
   it("returns 400 for invalid path id", async () => {
     const { GET } = await import("@/app/api/paths/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "" })
+    );
     expect(response.status).toBe(400);
   });
 
   it("returns 200 with path", async () => {
     getPathMock.mockResolvedValue({ id: "p-1", name: "Scholar" });
     const { GET } = await import("@/app/api/paths/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "p-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "p-1" })
+    );
     expect(response.status).toBe(200);
   });
 });

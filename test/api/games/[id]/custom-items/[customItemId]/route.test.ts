@@ -96,7 +96,10 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
   it("PATCH returns 200 on success", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
-    safeParseMock.mockReturnValue({ data: { name: "updated" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "updated" },
+      error: undefined,
+    });
     updateCustomItemMock.mockResolvedValue({ id: "c-1", name: "updated" });
     const { PATCH } = await import(
       "@/app/api/games/[id]/custom-items/[customItemId]/route"

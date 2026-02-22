@@ -10,41 +10,43 @@ import { gameCharacterSchema } from "./game";
 import { Race, Religion, Status } from "@prisma/client";
 
 /** Schema for a resolved item (Item, CustomItem, or merged UniqueItem) - used in inventory response */
-const resolvedItemSchema = z.object({
-  id: z.string().optional(),
-  name: z.string(),
-  type: z.enum(["GENERAL_ITEM", "WEAPON"]),
-  description: z.string().optional().nullable(),
-  weight: z.number().optional().nullable(),
-  usage: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  imageKey: z.string().optional().nullable(),
-  confCost: z.number().optional(),
-  costInfo: z.string().optional().nullable(),
-  attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
-  attackBonus: z.number().optional().nullable(),
-  damage: z
-    .object({
-      damageType: weaponDamageTypeSchema,
-      diceType: z.number(),
-      numberOfDice: z.number(),
-      primaryRadius: z.number().optional().nullable(),
-      secondaryRadius: z.number().optional().nullable(),
-      areaEffect: z
-        .object({
-          defenceReactionCost: z.number(),
-          defenceRoll: z.string(),
-          successfulDefenceResult: z.string(),
-        })
-        .optional()
-        .nullable(),
-    })
-    .optional()
-    .nullable(),
-  specialTag: z.string().optional().nullable(),
-  _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
-  _uniqueItemId: z.string().optional(),
-}).passthrough();
+const resolvedItemSchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string(),
+    type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+    description: z.string().optional().nullable(),
+    weight: z.number().optional().nullable(),
+    usage: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    imageKey: z.string().optional().nullable(),
+    confCost: z.number().optional(),
+    costInfo: z.string().optional().nullable(),
+    attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
+    attackBonus: z.number().optional().nullable(),
+    damage: z
+      .object({
+        damageType: weaponDamageTypeSchema,
+        diceType: z.number(),
+        numberOfDice: z.number(),
+        primaryRadius: z.number().optional().nullable(),
+        secondaryRadius: z.number().optional().nullable(),
+        areaEffect: z
+          .object({
+            defenceReactionCost: z.number(),
+            defenceRoll: z.string(),
+            successfulDefenceResult: z.string(),
+          })
+          .optional()
+          .nullable(),
+      })
+      .optional()
+      .nullable(),
+    specialTag: z.string().optional().nullable(),
+    _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
+    _uniqueItemId: z.string().optional(),
+  })
+  .passthrough();
 
 export const itemCharacterSchema = z.object({
   id: z.string(),

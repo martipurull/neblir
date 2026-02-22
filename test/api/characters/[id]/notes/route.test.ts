@@ -27,16 +27,27 @@ describe("/api/characters/[id]/notes PATCH", () => {
       error: { issues: [{ message: "invalid notes" }] },
     });
     const { PATCH } = await import("@/app/api/characters/[id]/notes/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(400);
   });
 
   it("returns 200 on success", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({ data: { personal: "hello" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { personal: "hello" },
+      error: undefined,
+    });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
     const { PATCH } = await import("@/app/api/characters/[id]/notes/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(200);
   });
 });

@@ -29,7 +29,11 @@ describe("/api/characters/[id]/wallet PATCH", () => {
 
   it("returns 401 when unauthenticated", async () => {
     const { PATCH } = await import("@/app/api/characters/[id]/wallet/route");
-    const response = await invokeRoute(PATCH, makeUnauthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeUnauthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(401);
   });
 
@@ -55,7 +59,11 @@ describe("/api/characters/[id]/wallet PATCH", () => {
       error: undefined,
     });
     const { PATCH } = await import("@/app/api/characters/[id]/wallet/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(400);
   });
 
@@ -65,9 +73,15 @@ describe("/api/characters/[id]/wallet PATCH", () => {
       data: [{ currencyName: "CREDIT", quantity: 5 }],
       error: undefined,
     });
-    replaceCharacterWalletMock.mockResolvedValue([{ currencyName: "CREDIT", quantity: 5 }]);
+    replaceCharacterWalletMock.mockResolvedValue([
+      { currencyName: "CREDIT", quantity: 5 },
+    ]);
     const { PATCH } = await import("@/app/api/characters/[id]/wallet/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(200);
   });
 });

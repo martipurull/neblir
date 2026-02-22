@@ -124,7 +124,9 @@ export async function levelUpCharacterWithRelations({
         },
       });
     } else {
-      const pathCharacter = existingPaths.find((path) => path.path.id === pathId);
+      const pathCharacter = existingPaths.find(
+        (path) => path.path.id === pathId
+      );
       if (!pathCharacter) {
         throw new ValidationError("Path character not found");
       }
@@ -135,7 +137,9 @@ export async function levelUpCharacterWithRelations({
     }
 
     for (const featureId of incrementalFeatureIds) {
-      const characterFeature = existingFeatures.find((f) => f.featureId === featureId);
+      const characterFeature = existingFeatures.find(
+        (f) => f.featureId === featureId
+      );
       if (!characterFeature) {
         throw new ValidationError("Feature character not found");
       }

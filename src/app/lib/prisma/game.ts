@@ -28,7 +28,10 @@ export function deleteGame(id: string) {
   ]);
 }
 
-export async function userIsInGame(gameId: string, userId: string): Promise<boolean> {
+export async function userIsInGame(
+  gameId: string,
+  userId: string
+): Promise<boolean> {
   const gu = await prisma.gameUser.findFirst({
     where: { gameId, userId },
   });

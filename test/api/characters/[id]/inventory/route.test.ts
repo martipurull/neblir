@@ -31,7 +31,11 @@ describe("/api/characters/[id]/inventory handlers", () => {
 
   it("GET returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/characters/[id]/inventory/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(401);
   });
 
@@ -87,7 +91,10 @@ describe("/api/characters/[id]/inventory handlers", () => {
 
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({ sourceType: "GLOBAL_ITEM", itemId: "item-1" }, "user-1"),
+      makeAuthedRequest(
+        { sourceType: "GLOBAL_ITEM", itemId: "item-1" },
+        "user-1"
+      ),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(201);

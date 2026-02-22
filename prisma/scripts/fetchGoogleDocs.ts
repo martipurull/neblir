@@ -23,24 +23,23 @@ async function main() {
   const outputFile = process.argv[2] || "./all-google-docs.json";
 
   // Get access token from environment variable or command-line argument
-  const accessToken =
-    process.argv[3] || process.env.GOOGLE_ACCESS_TOKEN;
+  const accessToken = process.argv[3] || process.env.GOOGLE_ACCESS_TOKEN;
 
   if (!accessToken) {
     throw new Error(
       "Missing access token!\n\n" +
-      "Get an access token from Google OAuth 2.0 Playground:\n" +
-      "1. Go to https://developers.google.com/oauthplayground/\n" +
-      "2. In the left panel, find 'Google Docs API v1'\n" +
-      "3. Check 'https://www.googleapis.com/auth/documents.readonly'\n" +
-      "4. Click 'Authorize APIs'\n" +
-      "5. Sign in and grant permissions\n" +
-      "6. Click 'Exchange authorization code for tokens'\n" +
-      "7. Copy the 'Access token' value\n\n" +
-      "Then run the script with:\n" +
-      "  GOOGLE_ACCESS_TOKEN=your-token npx tsx prisma/scripts/fetchGoogleDocs.ts\n" +
-      "  OR\n" +
-      "  npx tsx prisma/scripts/fetchGoogleDocs.ts [output-file] [access-token]"
+        "Get an access token from Google OAuth 2.0 Playground:\n" +
+        "1. Go to https://developers.google.com/oauthplayground/\n" +
+        "2. In the left panel, find 'Google Docs API v1'\n" +
+        "3. Check 'https://www.googleapis.com/auth/documents.readonly'\n" +
+        "4. Click 'Authorize APIs'\n" +
+        "5. Sign in and grant permissions\n" +
+        "6. Click 'Exchange authorization code for tokens'\n" +
+        "7. Copy the 'Access token' value\n\n" +
+        "Then run the script with:\n" +
+        "  GOOGLE_ACCESS_TOKEN=your-token npx tsx prisma/scripts/fetchGoogleDocs.ts\n" +
+        "  OR\n" +
+        "  npx tsx prisma/scripts/fetchGoogleDocs.ts [output-file] [access-token]"
     );
   }
 
@@ -91,12 +90,18 @@ async function main() {
     } catch (error: any) {
       const errorMsg = error.message || String(error);
       console.error(`  ✗ Error: ${errorMsg}`);
-      
+
       // Check if token expired
-      if (errorMsg.includes("401") || errorMsg.includes("Invalid Credentials") || errorMsg.includes("unauthorized")) {
-        console.error(`  ⚠️  Token may have expired. Get a new one from OAuth Playground.`);
+      if (
+        errorMsg.includes("401") ||
+        errorMsg.includes("Invalid Credentials") ||
+        errorMsg.includes("unauthorized")
+      ) {
+        console.error(
+          `  ⚠️  Token may have expired. Get a new one from OAuth Playground.`
+        );
       }
-      
+
       errors.push({
         name: docMeta.name,
         id: docMeta.id,

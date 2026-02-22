@@ -34,7 +34,10 @@ describe("/api/users POST", () => {
     });
     createUserMock.mockResolvedValue({ id: "u-1" });
     const { POST } = await import("@/app/api/users/route");
-    const response = await invokeRoute(POST, makeAuthedRequest({ email: "a@b.com", name: "A" }));
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ email: "a@b.com", name: "A" })
+    );
     expect(response.status).toBe(201);
   });
 });

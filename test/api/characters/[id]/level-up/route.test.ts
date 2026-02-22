@@ -51,7 +51,11 @@ describe("/api/characters/[id]/level-up POST", () => {
 
   it("returns 401 when unauthenticated", async () => {
     const { POST } = await import("@/app/api/characters/[id]/level-up/route");
-    const response = await invokeRoute(POST, makeUnauthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      POST,
+      makeUnauthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(401);
   });
 

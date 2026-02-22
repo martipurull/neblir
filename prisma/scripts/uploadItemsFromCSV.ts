@@ -61,9 +61,9 @@ function csvRowToItem(row: Record<string, string>): Item {
   const type = (parseOptionalString(row.type) ?? "").toUpperCase() as
     | "GENERAL_ITEM"
     | "WEAPON";
-  const accessType = (parseOptionalString(row.accessType) ?? "PLAYER").toUpperCase() as
-    | "PLAYER"
-    | "GAME_MASTER";
+  const accessType = (
+    parseOptionalString(row.accessType) ?? "PLAYER"
+  ).toUpperCase() as "PLAYER" | "GAME_MASTER";
 
   const base = {
     type,
@@ -112,8 +112,7 @@ function csvRowToItem(row: Record<string, string>): Item {
         ? {
             defenceReactionCost:
               parseOptionalInt(row.areaEffectDefenceReactionCost) ?? 0,
-            defenceRoll:
-              parseOptionalString(row.areaEffectDefenceRoll) ?? "",
+            defenceRoll: parseOptionalString(row.areaEffectDefenceRoll) ?? "",
             successfulDefenceResult:
               parseOptionalString(row.areaEffectSuccessfulDefenceResult) ?? "",
           }
@@ -123,8 +122,12 @@ function csvRowToItem(row: Record<string, string>): Item {
   return {
     ...base,
     type: "WEAPON",
-    attackRoll: parseAttackRoll(row.attackRoll) as
-      | ("RANGE" | "MELEE" | "GRID" | "THROW")[],
+    attackRoll: parseAttackRoll(row.attackRoll) as (
+      | "RANGE"
+      | "MELEE"
+      | "GRID"
+      | "THROW"
+    )[],
     attackBonus: attackBonus ?? 0,
     damage,
   };
@@ -172,7 +175,9 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
 async function main() {
   const csvPath = process.argv[2];
   if (!csvPath) {
-    console.error("Usage: npx tsx prisma/scripts/uploadItemsFromCSV.ts <path-to-items.csv>");
+    console.error(
+      "Usage: npx tsx prisma/scripts/uploadItemsFromCSV.ts <path-to-items.csv>"
+    );
     process.exit(1);
   }
 
@@ -238,7 +243,9 @@ async function main() {
       insertedIds.push(insertResult.insertedId as ObjectId);
     }
 
-    console.log(`Successfully added ${insertedIds.length} item(s) to ${ITEM_COLLECTION}.`);
+    console.log(
+      `Successfully added ${insertedIds.length} item(s) to ${ITEM_COLLECTION}.`
+    );
   } finally {
     await client.close();
   }

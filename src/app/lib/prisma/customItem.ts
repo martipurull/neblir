@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 
-export async function createCustomItem(data: Prisma.CustomItemUncheckedCreateInput) {
+export async function createCustomItem(
+  data: Prisma.CustomItemUncheckedCreateInput
+) {
   return prisma.customItem.create({ data });
 }
 

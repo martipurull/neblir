@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { invokeRoute, makeAuthedRequest, makeUnauthedRequest } from "../helpers";
+import {
+  invokeRoute,
+  makeAuthedRequest,
+  makeUnauthedRequest,
+} from "../helpers";
 
 const createItemMock = vi.fn();
 const getItemsMock = vi.fn();
@@ -38,11 +42,17 @@ describe("/api/items route handlers", () => {
   });
 
   it("POST returns 201 on success", async () => {
-    safeParseMock.mockReturnValue({ data: { name: "Sword" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "Sword" },
+      error: undefined,
+    });
     createItemMock.mockResolvedValue({ id: "item-1", name: "Sword" });
     const { POST } = await import("@/app/api/items/route");
 
-    const response = await invokeRoute(POST, makeAuthedRequest({ name: "Sword" }));
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "Sword" })
+    );
     expect(response.status).toBe(201);
     expect(createItemMock).toHaveBeenCalledWith({ name: "Sword" });
   });

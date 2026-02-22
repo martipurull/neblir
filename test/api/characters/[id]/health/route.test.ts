@@ -32,7 +32,11 @@ describe("/api/characters/[id]/health PATCH", () => {
       health: { maxPhysicalHealth: 10, maxMentalHealth: 10 },
     });
     const { PATCH } = await import("@/app/api/characters/[id]/health/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(400);
   });
 
@@ -41,19 +45,30 @@ describe("/api/characters/[id]/health PATCH", () => {
     safeParseMock.mockReturnValue({ data: {}, error: undefined });
     getCharacterMock.mockResolvedValue(null);
     const { PATCH } = await import("@/app/api/characters/[id]/health/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(404);
   });
 
   it("returns 200 on success", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({ data: { status: "ALIVE" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { status: "ALIVE" },
+      error: undefined,
+    });
     getCharacterMock.mockResolvedValue({
       health: { maxPhysicalHealth: 10, maxMentalHealth: 10, status: "ALIVE" },
     });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
     const { PATCH } = await import("@/app/api/characters/[id]/health/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(200);
   });
 });

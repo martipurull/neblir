@@ -27,14 +27,22 @@ describe("/api/characters/[id] handlers", () => {
 
   it("GET returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/characters/[id]/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(401);
   });
 
   it("GET returns 403 when character is not owned", async () => {
     characterBelongsToUserMock.mockResolvedValue(false);
     const { GET } = await import("@/app/api/characters/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(403);
   });
 
@@ -42,7 +50,11 @@ describe("/api/characters/[id] handlers", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getCharacterMock.mockResolvedValue(null);
     const { GET } = await import("@/app/api/characters/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(404);
   });
 
@@ -52,7 +64,11 @@ describe("/api/characters/[id] handlers", () => {
       new CharacterDeletionTransactionError("deleteCharacter")
     );
     const { DELETE } = await import("@/app/api/characters/[id]/route");
-    const response = await invokeRoute(DELETE, makeAuthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(500);
   });
 
@@ -60,7 +76,11 @@ describe("/api/characters/[id] handlers", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteCharacterMock.mockResolvedValue(undefined);
     const { DELETE } = await import("@/app/api/characters/[id]/route");
-    const response = await invokeRoute(DELETE, makeAuthedRequest(), makeParams({ id: "char-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(204);
   });
 });

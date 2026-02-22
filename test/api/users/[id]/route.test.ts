@@ -86,7 +86,11 @@ describe("/api/users/[id] handlers", () => {
 
   it("DELETE returns 401 when unauthenticated", async () => {
     const { DELETE } = await import("@/app/api/users/[id]/route");
-    const response = await invokeRoute(DELETE, makeUnauthedRequest(), makeParams({ id: "user-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeUnauthedRequest(),
+      makeParams({ id: "user-1" })
+    );
     expect(response.status).toBe(401);
   });
 });

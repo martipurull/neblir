@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { invokeRoute, makeAuthedRequest, makeUnauthedRequest } from "../helpers";
+import {
+  invokeRoute,
+  makeAuthedRequest,
+  makeUnauthedRequest,
+} from "../helpers";
 
 const getSignedUrlMock = vi.fn();
 const s3ClientCtorMock = vi.fn();
@@ -32,7 +36,9 @@ describe("/api/image-url GET", () => {
     const { GET } = await import("@/app/api/image-url/route");
     const request = {
       ...makeUnauthedRequest(),
-      nextUrl: { searchParams: new URLSearchParams("imageKey=characters/a.png") },
+      nextUrl: {
+        searchParams: new URLSearchParams("imageKey=characters/a.png"),
+      },
     } as any;
     const response = await invokeRoute(GET, request);
     expect(response.status).toBe(401);
@@ -54,7 +60,9 @@ describe("/api/image-url GET", () => {
     const { GET } = await import("@/app/api/image-url/route");
     const request = {
       ...makeAuthedRequest(undefined, "user-1"),
-      nextUrl: { searchParams: new URLSearchParams("imageKey=characters/a.png") },
+      nextUrl: {
+        searchParams: new URLSearchParams("imageKey=characters/a.png"),
+      },
     } as any;
     const response = await invokeRoute(GET, request);
     expect(response.status).toBe(500);
@@ -70,10 +78,14 @@ describe("/api/image-url GET", () => {
     const { GET } = await import("@/app/api/image-url/route");
     const request = {
       ...makeAuthedRequest(undefined, "user-1"),
-      nextUrl: { searchParams: new URLSearchParams("imageKey=characters/a.png") },
+      nextUrl: {
+        searchParams: new URLSearchParams("imageKey=characters/a.png"),
+      },
     } as any;
     const response = await invokeRoute(GET, request);
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ url: "https://signed/url" });
+    await expect(response.json()).resolves.toEqual({
+      url: "https://signed/url",
+    });
   });
 });

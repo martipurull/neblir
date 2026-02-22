@@ -28,13 +28,21 @@ describe("/api/items/[id] route handlers", () => {
 
   it("GET returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/items/[id]/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "item-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "item-1" })
+    );
     expect(response.status).toBe(401);
   });
 
   it("GET returns 400 on missing id", async () => {
     const { GET } = await import("@/app/api/items/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "" })
+    );
     expect(response.status).toBe(400);
   });
 
@@ -54,7 +62,10 @@ describe("/api/items/[id] route handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
-    safeParseMock.mockReturnValue({ data: { name: "Updated" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "Updated" },
+      error: undefined,
+    });
     updateItemMock.mockResolvedValue({ id: "item-1", name: "Updated" });
     const { PATCH } = await import("@/app/api/items/[id]/route");
 
@@ -71,7 +82,11 @@ describe("/api/items/[id] route handlers", () => {
     deleteItemMock.mockResolvedValue(undefined);
     const { DELETE } = await import("@/app/api/items/[id]/route");
 
-    const response = await invokeRoute(DELETE, makeAuthedRequest(), makeParams({ id: "item-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "item-1" })
+    );
     expect(response.status).toBe(204);
     expect(deleteItemMock).toHaveBeenCalledWith("item-1");
   });
@@ -80,7 +95,11 @@ describe("/api/items/[id] route handlers", () => {
     deleteItemMock.mockRejectedValue(new Error("db fail"));
     const { DELETE } = await import("@/app/api/items/[id]/route");
 
-    const response = await invokeRoute(DELETE, makeAuthedRequest(), makeParams({ id: "item-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "item-1" })
+    );
     expect(response.status).toBe(500);
   });
 });

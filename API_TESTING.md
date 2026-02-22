@@ -576,6 +576,7 @@ curl -X GET "${BASE_URL}/api/unique-items/${UNIQUE_ITEM_ID}" \
 ```
 
 **Response notes:** This endpoint now returns:
+
 - the persisted unique item fields (including override fields),
 - `templateItem` (the base item loaded from `itemId`), and
 - `resolvedItem` (template with overrides applied).

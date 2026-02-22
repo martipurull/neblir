@@ -7,6 +7,7 @@ This document describes how to set up all the required environment variables for
 ### Database
 
 #### `MONGODB_URI`
+
 - **Description**: MongoDB connection string for the shared development database
 - **Format**: `mongodb://[username:password@]host[:port][/database]`
 - **How to get**: Use the shared dev MongoDB connection string for the project
@@ -16,6 +17,7 @@ This document describes how to set up all the required environment variables for
 ### Google OAuth Authentication
 
 #### `AUTH_GOOGLE_ID`
+
 - **Description**: Google OAuth Client ID for NextAuth authentication
 - **How to get**:
   1. Go to [Google Cloud Console](https://console.cloud.google.com/)
@@ -30,8 +32,9 @@ This document describes how to set up all the required environment variables for
   8. Copy the **Client ID** value
 
 #### `AUTH_GOOGLE_SECRET`
+
 - **Description**: Google OAuth Client Secret for NextAuth authentication
-- **How to get**: 
+- **How to get**:
   1. After creating the OAuth client ID (see above), the **Client Secret** will be displayed
   2. Copy the **Client Secret** value
   3. ⚠️ **Important**: Store this securely - it won't be shown again after you leave the page
@@ -41,6 +44,7 @@ This document describes how to set up all the required environment variables for
 ### Cloudflare R2 Storage
 
 #### `R2_NEBLIR_ACCOUNT_ID`
+
 - **Description**: Cloudflare Account ID for R2 storage
 - **How to get**:
   1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/)
@@ -49,11 +53,13 @@ This document describes how to set up all the required environment variables for
   4. Alternatively, navigate to **R2** → any bucket → the Account ID is displayed
 
 #### `R2_NEBLIR_BUCKET_NAME`
+
 - **Description**: R2 bucket name for storing files
 - **Value**: `neblir`
 - **Note**: This is already set for this project
 
 #### `R2_NEBLIR_ACCOUNT_ACCESS_KEY`
+
 - **Description**: R2 API token access key ID
 - **How to get**:
   1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/)
@@ -70,6 +76,7 @@ This document describes how to set up all the required environment variables for
      - Copy the **Access Key ID** value
 
 #### `R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY`
+
 - **Description**: R2 API token secret access key
 - **How to get**:
   1. Follow the steps above to create an R2 API token
@@ -82,11 +89,13 @@ This document describes how to set up all the required environment variables for
 ## Optional Environment Variables
 
 ### `LOG_LEVEL`
+
 - **Description**: Logging level for the application logger
 - **Default**: `debug` in development, `info` in production
 - **Values**: `debug`, `info`, `warn`, `error`
 
 ### `NODE_ENV`
+
 - **Description**: Node.js environment mode
 - **Default**: Set automatically by Next.js
 - **Values**: `development`, `production`, `test`
@@ -96,6 +105,7 @@ This document describes how to set up all the required environment variables for
 ## Setup Instructions
 
 1. Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```
@@ -113,4 +123,3 @@ This document describes how to set up all the required environment variables for
 - Use different credentials for development and production environments
 - Rotate API keys and secrets regularly
 - If credentials are exposed, rotate them immediately
-

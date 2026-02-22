@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { invokeRoute, makeAuthedRequest, makeUnauthedRequest } from "../helpers";
+import {
+  invokeRoute,
+  makeAuthedRequest,
+  makeUnauthedRequest,
+} from "../helpers";
 
 const createPathMock = vi.fn();
 const getPathsMock = vi.fn();
@@ -36,10 +40,16 @@ describe("/api/paths handlers", () => {
   });
 
   it("POST returns 201 on success", async () => {
-    safeParseMock.mockReturnValue({ data: { name: "Alchemist" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "Alchemist" },
+      error: undefined,
+    });
     createPathMock.mockResolvedValue({ id: "p-1", name: "Alchemist" });
     const { POST } = await import("@/app/api/paths/route");
-    const response = await invokeRoute(POST, makeAuthedRequest({ name: "Alchemist" }));
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "Alchemist" })
+    );
     expect(response.status).toBe(201);
   });
 

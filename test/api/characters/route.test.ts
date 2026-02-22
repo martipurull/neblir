@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { invokeRoute, makeAuthedRequest, makeUnauthedRequest } from "../helpers";
+import {
+  invokeRoute,
+  makeAuthedRequest,
+  makeUnauthedRequest,
+} from "../helpers";
 import {
   CharacterCreationTransactionError,
   ValidationError,
@@ -51,7 +55,10 @@ describe("/api/characters POST", () => {
       error: { issues: [{ message: "invalid body" }] },
     });
     const { POST } = await import("@/app/api/characters/route");
-    const response = await invokeRoute(POST, makeAuthedRequest({ bad: true }, "user-1"));
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ bad: true }, "user-1")
+    );
     expect(response.status).toBe(400);
   });
 

@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 
-export async function createUniqueItem(data: Prisma.UniqueItemUncheckedCreateInput) {
+export async function createUniqueItem(
+  data: Prisma.UniqueItemUncheckedCreateInput
+) {
   return prisma.uniqueItem.create({ data });
 }
 
@@ -31,13 +33,21 @@ function applyUniqueItemOverrides(
     ...(uniqueItem.costInfoOverride != null && {
       costInfo: uniqueItem.costInfoOverride,
     }),
-    ...(uniqueItem.damageOverride != null && { damage: uniqueItem.damageOverride }),
+    ...(uniqueItem.damageOverride != null && {
+      damage: uniqueItem.damageOverride,
+    }),
     ...(uniqueItem.imageKeyOverride != null && {
       imageKey: uniqueItem.imageKeyOverride,
     }),
-    ...(uniqueItem.notesOverride != null && { notes: uniqueItem.notesOverride }),
-    ...(uniqueItem.usageOverride != null && { usage: uniqueItem.usageOverride }),
-    ...(uniqueItem.weightOverride != null && { weight: uniqueItem.weightOverride }),
+    ...(uniqueItem.notesOverride != null && {
+      notes: uniqueItem.notesOverride,
+    }),
+    ...(uniqueItem.usageOverride != null && {
+      usage: uniqueItem.usageOverride,
+    }),
+    ...(uniqueItem.weightOverride != null && {
+      weight: uniqueItem.weightOverride,
+    }),
   };
 }
 
@@ -50,7 +60,9 @@ export async function getResolvedUniqueItem(id: string) {
   const templateItem =
     uniqueItem.sourceType === "GLOBAL_ITEM"
       ? await prisma.item.findUnique({ where: { id: uniqueItem.itemId } })
-      : await prisma.customItem.findUnique({ where: { id: uniqueItem.itemId } });
+      : await prisma.customItem.findUnique({
+          where: { id: uniqueItem.itemId },
+        });
 
   if (!templateItem) {
     return {

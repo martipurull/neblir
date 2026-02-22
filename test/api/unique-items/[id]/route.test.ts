@@ -30,14 +30,22 @@ describe("/api/unique-items/[id] route handlers", () => {
 
   it("GET returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/unique-items/[id]/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "u-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "u-1" })
+    );
     expect(response.status).toBe(401);
   });
 
   it("GET returns 404 when item does not exist", async () => {
     getResolvedUniqueItemMock.mockResolvedValue(null);
     const { GET } = await import("@/app/api/unique-items/[id]/route");
-    const response = await invokeRoute(GET, makeAuthedRequest(), makeParams({ id: "u-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "u-1" })
+    );
     expect(response.status).toBe(404);
   });
 
@@ -59,7 +67,10 @@ describe("/api/unique-items/[id] route handlers", () => {
 
   it("PATCH returns 200 on success", async () => {
     getUniqueItemMock.mockResolvedValue({ id: "u-1" });
-    safeParseMock.mockReturnValue({ data: { notesOverride: "ok" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { notesOverride: "ok" },
+      error: undefined,
+    });
     updateUniqueItemMock.mockResolvedValue({ id: "u-1", notesOverride: "ok" });
     const { PATCH } = await import("@/app/api/unique-items/[id]/route");
 
@@ -76,7 +87,11 @@ describe("/api/unique-items/[id] route handlers", () => {
     deleteUniqueItemMock.mockResolvedValue(undefined);
     const { DELETE } = await import("@/app/api/unique-items/[id]/route");
 
-    const response = await invokeRoute(DELETE, makeAuthedRequest(), makeParams({ id: "u-1" }));
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "u-1" })
+    );
     expect(response.status).toBe(204);
   });
 });

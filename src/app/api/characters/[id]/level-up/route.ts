@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCharacter, levelUpCharacterWithRelations } from "@/app/lib/prisma/character";
+import {
+  getCharacter,
+  levelUpCharacterWithRelations,
+} from "@/app/lib/prisma/character";
 import { computeCharacterRequestData } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import {

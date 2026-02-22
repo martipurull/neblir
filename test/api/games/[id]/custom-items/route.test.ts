@@ -37,7 +37,11 @@ describe("/api/games/[id]/custom-items route handlers", () => {
 
   it("GET returns 401 when unauthenticated", async () => {
     const { GET } = await import("@/app/api/games/[id]/custom-items/route");
-    const response = await invokeRoute(GET, makeUnauthedRequest(), makeParams({ id: "g-1" }));
+    const response = await invokeRoute(
+      GET,
+      makeUnauthedRequest(),
+      makeParams({ id: "g-1" })
+    );
     expect(response.status).toBe(401);
   });
 

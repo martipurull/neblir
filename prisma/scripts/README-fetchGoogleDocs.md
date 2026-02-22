@@ -39,6 +39,7 @@ The script reads from `/Users/martipurull/Desktop/repos/neblir/items.json` which
 ```
 
 The `id` is the document ID from the Google Docs URL:
+
 - URL format: `https://docs.google.com/document/d/DOCUMENT_ID/edit`
 - Extract the `DOCUMENT_ID` part
 
@@ -58,6 +59,7 @@ npx tsx prisma/scripts/fetchGoogleDocs.ts [output-file] [access-token]
 ```
 
 Examples:
+
 ```bash
 # Default output file (./all-google-docs.json) with token as argument
 npx tsx prisma/scripts/fetchGoogleDocs.ts ./all-google-docs.json "ya29.a0AfH6SMC..."
@@ -104,6 +106,7 @@ The script creates a single JSON file containing all documents' JSON content. Th
 ```
 
 Each `result.document` contains the complete JSON representation of the Google Doc as returned by the Google Docs API, including:
+
 - Document structure (body, paragraphs, text runs, etc.)
 - Formatting information
 - All content and metadata
@@ -111,6 +114,7 @@ Each `result.document` contains the complete JSON representation of the Google D
 ## Next Steps
 
 After fetching the documents, you can:
+
 1. Extract specific information from the `document` field in each result
 2. Process the data and convert to CSV format
 3. Parse the document structure to extract text, tables, or other elements
@@ -118,14 +122,17 @@ After fetching the documents, you can:
 ## Troubleshooting
 
 **Token expired error:**
+
 - Access tokens from OAuth Playground expire after about 1 hour
 - Simply get a new token from the playground and run the script again
 
 **401 / Unauthorized errors:**
+
 - Make sure you're using a fresh token from OAuth Playground
 - Verify you signed in with the correct Google account that has access to the documents
 - Check that you selected the correct scope: `https://www.googleapis.com/auth/documents.readonly`
 
 **403 / Forbidden errors:**
+
 - Make sure the Google account you used has access to the documents
 - Verify the documents aren't restricted or private

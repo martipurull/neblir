@@ -28,8 +28,14 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       data: undefined,
       error: { issues: [{ message: "invalid combat payload" }] },
     });
-    const { PATCH } = await import("@/app/api/characters/[id]/combat-info/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const { PATCH } = await import(
+      "@/app/api/characters/[id]/combat-info/route"
+    );
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(400);
   });
 
@@ -37,14 +43,23 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({ data: {}, error: undefined });
     getCharacterMock.mockResolvedValue({ combatInformation: null });
-    const { PATCH } = await import("@/app/api/characters/[id]/combat-info/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const { PATCH } = await import(
+      "@/app/api/characters/[id]/combat-info/route"
+    );
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(400);
   });
 
   it("returns 200 on successful update", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({ data: { armourCurrentHP: 1 }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { armourCurrentHP: 1 },
+      error: undefined,
+    });
     getCharacterMock.mockResolvedValue({
       combatInformation: {
         armourCurrentHP: 2,
@@ -59,8 +74,14 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       learnedSkills: { generalSkills: { acrobatics: 1, melee: 1, GRID: 1 } },
     });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
-    const { PATCH } = await import("@/app/api/characters/[id]/combat-info/route");
-    const response = await invokeRoute(PATCH, makeAuthedRequest({}), makeParams({ id: "char-1" }));
+    const { PATCH } = await import(
+      "@/app/api/characters/[id]/combat-info/route"
+    );
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}),
+      makeParams({ id: "char-1" })
+    );
     expect(response.status).toBe(200);
   });
 });
