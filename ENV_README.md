@@ -123,5 +123,3 @@ This document describes how to set up all the required environment variables for
 - Use different credentials for development and production environments
 - Rotate API keys and secrets regularly
 - If credentials are exposed, rotate them immediately
-
-test
