@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "@/app/api/*/route": ["test/types/routes.d.ts"],
+      "@/*": ["src/*"]
+    },
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["**/*.ts", "types/**/*.d.ts"],
+  "exclude": ["../node_modules"]
+}

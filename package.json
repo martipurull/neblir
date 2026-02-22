@@ -12,6 +12,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "test": "vitest",
     "test:watch": "vitest --watch",
+    "test:file": "vitest --run",
+    "test:typecheck": "tsc -p tsconfig.test.json --noEmit",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "prisma:push": "npx prisma db push",
