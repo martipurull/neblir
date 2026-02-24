@@ -31,7 +31,7 @@ const TextInput: React.FC<TextInputProps> = ({
             type={type}
             id={name}
             placeholder={placeholder}
-            className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-customPrimaryHover"
+            className="min-h-11 w-full rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
           />
         )}
       />

@@ -1,20 +1,31 @@
-import { authSignIn } from "../serverActions/auth";
+"use client";
+
+import { signIn } from "next-auth/react";
 import Button from "./shared/Button";
 
 export default function SignIn() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div>
-        <h1 className="text-3xl font-bold uppercase mb-3">Neblir</h1>
-        <h2>A homebrewed sci-fi TTRPG set in a starless world</h2>
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-10 sm:px-8 sm:py-14">
+      <div className="w-full max-w-lg rounded-lg bg-white/90 p-6 shadow-md sm:p-8">
+        <h1 className="mb-3 text-center text-3xl font-bold uppercase text-customPrimary">
+          Neblir
+        </h1>
+        <h2 className="mb-6 text-center text-sm text-slate-700 sm:text-base">
+          A homebrewed sci-fi TTRPG set in a starless world
+        </h2>
       </div>
       <form
-        action={async () => {
-          await authSignIn("google", "/dashboard");
+        className="mt-6 w-full max-w-lg"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void signIn("google", { callbackUrl: "/dashboard" });
         }}
       >
-        <Button type="submit" text="Signin with Google" />
+        <Button type="submit" text="Sign in with Google" />
       </form>
+      <p className="mt-3 text-center text-xs text-slate-200">
+        Works in desktop browsers and installable as a PWA.
+      </p>
     </div>
   );
 }

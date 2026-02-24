@@ -1,8 +1,27 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const Dashboard: React.FC = () => {
+  const tabs = [
+    {
+      label: "Settings",
+      link: "/settings",
+    },
+    {
+      label: "Characters",
+      link: "/characters",
+    },
+    {
+      label: "Games",
+      link: "/games",
+    },
+    {
+      label: "Game Mechanics",
+      link: "/game-mechanics",
+    },
+  ];
   const [imageURL, setImageURL] = useState("");
   useEffect(() => {
     // const fetchData = async () => {
@@ -38,31 +57,22 @@ const Dashboard: React.FC = () => {
     fetchImageURL();
   }, []);
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-8 text-center">Dashboard</h2>
-      <section className="mb-8 p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">User Details</h3>
-        {/* Add user details here */}
-      </section>
-      <section className="mb-8 p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">Characters</h3>
-        {/* <div>
-          <h4>Testing pre-signed URL functionality</h4>
-          {imageURL && (
-            <Image
-              src={imageURL}
-              width={200}
-              height={200}
-              alt={"Testing pre-signed image URL"}
-            />
-          )}
-        </div> */}
-        {/* Add user characters here */}
-      </section>
-      <section className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">Games</h3>
-        {/* Add games here */}
-      </section>
+    <div className="min-h-screen bg-gray-100 px-4 py-6 sm:px-8 sm:py-8">
+      <h2 className="mb-6 text-center text-2xl font-bold sm:mb-8 sm:text-3xl">
+        Dashboard
+      </h2>
+      <div>
+        {tabs.map((tab) => (
+          <section
+            className="mb-6 rounded-lg bg-white p-4 shadow-md sm:mb-8 sm:p-6"
+            key={tab.label}
+          >
+            <Link href={tab.link} className="text-lg font-semibold sm:text-xl">
+              {tab.label}
+            </Link>
+          </section>
+        ))}
+      </div>
     </div>
   );
 };

@@ -7,7 +7,7 @@ const Button = ({ type, text }: ButtonProps) => {
   return (
     <button
       type={type}
-      className="w-full text-customSecondary py-2 px-4 rounded-md bg-customPrimary hover:bg-customPrimaryHover focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full min-h-11 rounded-md bg-customPrimary px-4 py-2 text-customSecondary transition-colors hover:bg-customPrimaryHover active:bg-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
     >
       {text}
     </button>
