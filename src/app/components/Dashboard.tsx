@@ -7,19 +7,23 @@ const Dashboard: React.FC = () => {
   const tabs = [
     {
       label: "Settings",
-      link: "/settings",
+      link: "/home/settings",
     },
     {
       label: "Characters",
-      link: "/characters",
+      link: "/home/characters",
     },
     {
       label: "Games",
-      link: "/games",
+      link: "/home/games",
     },
     {
-      label: "Game Mechanics",
-      link: "/game-mechanics",
+      label: "Mechanics",
+      link: "/home/mechanics",
+    },
+    {
+      label: "World",
+      link: "/home/world",
     },
   ];
   const [imageURL, setImageURL] = useState("");
@@ -57,7 +61,7 @@ const Dashboard: React.FC = () => {
     fetchImageURL();
   }, []);
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-6 sm:px-8 sm:py-8">
+    <div>
       <h2 className="mb-6 text-center text-2xl font-bold sm:mb-8 sm:text-3xl">
         Dashboard
       </h2>
