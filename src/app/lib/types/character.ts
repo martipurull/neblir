@@ -197,3 +197,16 @@ export const characterSchema = z.object({
 });
 
 export type Character = z.infer<typeof characterSchema>;
+
+export const characterListItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  surname: z.string(),
+  level: z.number(),
+  paths: z.array(z.string()),
+  avatarKey: z.string().nullable().optional(),
+});
+
+export const characterListSchema = z.array(characterListItemSchema);
+
+export type CharacterListItem = z.infer<typeof characterListItemSchema>;

@@ -5,7 +5,10 @@ import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
 import { Prisma } from "@prisma/client";
 import { getUser } from "@/app/lib/prisma/user";
-import { createCharacterWithRelations } from "@/app/lib/prisma/character";
+import {
+  createCharacterWithRelations,
+  getCharactersByUserId,
+} from "@/app/lib/prisma/character";
 import {
   CharacterCreationTransactionError,
   serializeError,
@@ -14,6 +17,46 @@ import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
 import logger from "@/logger";
 import { Currency } from "@/app/lib/types/item";
+
+export const GET = auth(async (request: AuthNextRequest) => {
+  try {
+    const userId = request.auth?.user?.id;
+    if (!userId) {
+      logger.error({
+        method: "GET",
+        route: "/api/characters",
+        message: "Unauthorised access attempt",
+      });
+      return errorResponse("Unauthorised", 401);
+    }
+
+    const characters = await getCharactersByUserId(userId);
+
+    return NextResponse.json(
+      characters.map((character) => ({
+        id: character.id,
+        name: character.generalInformation.name,
+        surname: character.generalInformation.surname,
+        level: character.generalInformation.level,
+        paths: character.paths.map((pathCharacter) => pathCharacter.path.name),
+        avatarKey: character.generalInformation.avatarKey,
+      })),
+      { status: 200 }
+    );
+  } catch (error) {
+    logger.error({
+      method: "GET",
+      route: "/api/characters",
+      message: "Error fetching user characters",
+      error,
+    });
+    return errorResponse(
+      "Error fetching user characters",
+      500,
+      serializeError(error)
+    );
+  }
+});
 
 export const POST = auth(async (request: AuthNextRequest) => {
   const user = request.auth?.user;

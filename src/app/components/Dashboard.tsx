@@ -1,7 +1,7 @@
 "use client";
-import Image from "next/image";
+
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const Dashboard: React.FC = () => {
   const tabs = [
@@ -25,41 +25,12 @@ const Dashboard: React.FC = () => {
       label: "World",
       link: "/home/world",
     },
+    {
+      label: "Dice Roller",
+      link: "/home/dice-roller",
+    },
   ];
-  const [imageURL, setImageURL] = useState("");
-  useEffect(() => {
-    // const fetchData = async () => {
-    //   try {
-    //     const response = await fetch(
-    //       "/api/characters/67e4911f62cb187d0adbd2d5",
-    //       {
-    //         method: "GET",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //       }
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error("Network response was not ok");
-    //     }
-    //     const data = await response.json();
-    //     console.log("User data:", data);
-    //   } catch (error) {
-    //     console.error("Error fetching character data:", error);
-    //   }
-    // };
 
-    // fetchData();
-
-    async function fetchImageURL() {
-      const response = await fetch(
-        "/api/image-url?imageKey=characters-dahlia_ters.png"
-      );
-      const data = await response.json();
-      setImageURL(data?.url);
-    }
-    fetchImageURL();
-  }, []);
   return (
     <div>
       <h2 className="mb-6 text-center text-2xl font-bold sm:mb-8 sm:text-3xl">

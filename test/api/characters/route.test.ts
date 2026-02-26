@@ -10,6 +10,7 @@ import {
 } from "@/app/api/shared/errors";
 
 const getUserMock = vi.fn();
+const getCharactersByUserIdMock = vi.fn();
 const createCharacterWithRelationsMock = vi.fn();
 const safeParseMock = vi.fn();
 const computeCharacterRequestDataMock = vi.fn();
@@ -19,6 +20,7 @@ vi.mock("@/app/lib/prisma/user", () => ({
 }));
 
 vi.mock("@/app/lib/prisma/character", () => ({
+  getCharactersByUserId: getCharactersByUserIdMock,
   createCharacterWithRelations: createCharacterWithRelationsMock,
 }));
 
@@ -102,5 +104,60 @@ describe("/api/characters POST", () => {
     const { POST } = await import("@/app/api/characters/route");
     const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
     expect(response.status).toBe(201);
+  });
+});
+
+describe("/api/characters GET", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(GET, makeUnauthedRequest());
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 200 with mapped character summaries", async () => {
+    getCharactersByUserIdMock.mockResolvedValue([
+      {
+        id: "char-1",
+        generalInformation: {
+          name: "Nova",
+          surname: "Voss",
+          level: 2,
+          avatarKey: null,
+        },
+        paths: [{ path: { name: "MEDIC" } }, { path: { name: "SNIPER" } }],
+      },
+    ]);
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+
+    expect(getCharactersByUserIdMock).toHaveBeenCalledWith("user-1");
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([
+      {
+        id: "char-1",
+        name: "Nova",
+        surname: "Voss",
+        level: 2,
+        paths: ["MEDIC", "SNIPER"],
+        avatarKey: null,
+      },
+    ]);
+  });
+
+  it("returns 500 when fetching characters throws", async () => {
+    getCharactersByUserIdMock.mockRejectedValue(new Error("db down"));
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(500);
   });
 });

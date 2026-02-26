@@ -12,6 +12,36 @@ export async function createCharacter(data: Prisma.CharacterCreateInput) {
   return prisma.character.create({ data });
 }
 
+export async function getCharactersByUserId(userId: string) {
+  return prisma.character.findMany({
+    where: {
+      users: {
+        some: { userId },
+      },
+    },
+    select: {
+      id: true,
+      generalInformation: {
+        select: {
+          name: true,
+          surname: true,
+          level: true,
+          avatarKey: true,
+        },
+      },
+      paths: {
+        select: {
+          path: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function createCharacterWithRelations({
   data,
   userId,
