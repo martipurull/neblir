@@ -9,6 +9,7 @@ import {
 const getCharacterMock = vi.fn();
 const levelUpCharacterWithRelationsMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
+const getCharacterPathsMock = vi.fn();
 const computeCharacterRequestDataMock = vi.fn();
 const safeParseMock = vi.fn();
 const parseAttributeChangesMock = vi.fn();
@@ -25,6 +26,10 @@ vi.mock("@/app/lib/prisma/character", () => ({
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: characterBelongsToUserMock,
+}));
+
+vi.mock("@/app/lib/prisma/pathCharacter", () => ({
+  getCharacterPaths: getCharacterPathsMock,
 }));
 
 vi.mock("@/app/api/characters/parsing", () => ({
@@ -139,6 +144,7 @@ describe("/api/characters/[id]/level-up POST", () => {
     computeCharacterRequestDataMock.mockReturnValue({});
     areFeaturesValidForLevelUpMock.mockResolvedValue(true);
     areIncrementFeaturesValidMock.mockResolvedValue(true);
+    getCharacterPathsMock.mockResolvedValue([]);
     levelUpCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
     const { POST } = await import("@/app/api/characters/[id]/level-up/route");
 
