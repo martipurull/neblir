@@ -20,31 +20,29 @@ const resolvedItemSchema = z
     usage: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
     imageKey: z.string().optional().nullable(),
-    confCost: z.number().optional(),
-    costInfo: z.string().optional().nullable(),
-    attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
-    attackBonus: z.number().optional().nullable(),
+    confCost: z.number().nullish(),
+    costInfo: z.string().nullish(),
+    attackRoll: z.array(weaponAttackRollTypeSchema).nullish(),
+    attackBonus: z.number().nullish(),
     damage: z
       .object({
         damageType: weaponDamageTypeSchema,
         diceType: z.number(),
         numberOfDice: z.number(),
-        primaryRadius: z.number().optional().nullable(),
-        secondaryRadius: z.number().optional().nullable(),
+        primaryRadius: z.number().nullish(),
+        secondaryRadius: z.number().nullish(),
         areaEffect: z
           .object({
             defenceReactionCost: z.number(),
             defenceRoll: z.string(),
             successfulDefenceResult: z.string(),
           })
-          .optional()
-          .nullable(),
+          .nullish(),
       })
-      .optional()
-      .nullable(),
-    specialTag: z.string().optional().nullable(),
+      .nullish(),
+    specialTag: z.string().nullish(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
-    _uniqueItemId: z.string().optional(),
+    _uniqueItemId: z.string().nullish(),
   })
   .passthrough();
 
@@ -93,7 +91,7 @@ export const healthSchema = z.object({
       successes: z.number().max(3).default(0),
       failures: z.number().max(3).default(0),
     })
-    .optional(),
+    .nullish(),
   status: z.nativeEnum(Status).default("ALIVE"),
 });
 
@@ -186,17 +184,34 @@ export const characterSchema = z.object({
   innateAttributes: innateAttributesSchema,
   learnedSkills: z.object({
     generalSkills: generalSkillsSchema,
-    specialSkills: z.array(z.string()).max(3).optional(),
+    specialSkills: z.array(z.string()).max(3).optional().nullish(),
   }),
-  wallet: z.lazy(() => walletSchema).optional(),
-  inventory: z.array(z.lazy(() => itemCharacterSchema)).optional(),
-  notes: characterNotesSchema.optional(),
-  paths: z.array(z.lazy(() => pathSchema)).optional(),
-  features: z.array(z.lazy(() => featureSchema)).optional(),
-  games: z.array(z.lazy(() => gameCharacterSchema)).optional(),
+  wallet: z
+    .lazy(() => walletSchema)
+    .optional()
+    .nullish(),
+  inventory: z
+    .array(z.lazy(() => itemCharacterSchema))
+    .optional()
+    .nullish(),
+  notes: characterNotesSchema.optional().nullish(),
+  paths: z
+    .array(z.lazy(() => pathSchema))
+    .optional()
+    .nullish(),
+  features: z.array(z.lazy(() => featureSchema)).nullish(),
+  games: z
+    .array(z.lazy(() => gameCharacterSchema))
+    .optional()
+    .nullish(),
 });
 
 export type Character = z.infer<typeof characterSchema>;
+
+export const characterDetailSchema = characterSchema.extend({
+  id: z.string(),
+});
+export type CharacterDetail = z.infer<typeof characterDetailSchema>;
 
 export const characterListItemSchema = z.object({
   id: z.string(),

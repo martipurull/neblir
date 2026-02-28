@@ -107,7 +107,8 @@ export async function getCharacter(id: string) {
 
   if (!character) return null;
 
-  const hydratedInventory = await hydrateItemCharacters(character.inventory);
+  const rawInventory = character.inventory ?? [];
+  const hydratedInventory = await hydrateItemCharacters(rawInventory);
 
   return {
     ...character,
@@ -115,7 +116,8 @@ export async function getCharacter(id: string) {
       currencyName: entry.currencyName,
       quantity: entry.quantity,
     })),
-    inventory: hydratedInventory,
+    inventory: hydratedInventory ?? [],
+    paths: character.paths.map((pc) => ({ ...pc.path, rank: pc.rank })),
   };
 }
 

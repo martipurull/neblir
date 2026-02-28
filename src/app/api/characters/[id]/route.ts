@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { deleteCharacter, getCharacter } from "@/app/lib/prisma/character";
-import { auth } from "@/auth";
 import { AuthNextRequest } from "@/app/lib/types/api";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import logger from "@/logger";
 import {

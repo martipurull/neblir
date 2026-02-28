@@ -61,7 +61,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       await Promise.all(
         character.paths.map(
           async (path) =>
-            await getFeaturesAvailableForPathCharacter(path.path.id, path.rank)
+            await getFeaturesAvailableForPathCharacter(path.id, path.rank)
         )
       )
     ).flat();

@@ -102,15 +102,44 @@ export function computeCharacterRequestData(
     );
   }
 
-  const { path: _path, ...requestWithoutPath } =
-    parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
-      path?: { pathId: string; rank: number };
-    };
+  const {
+    path: _path,
+    wallet: rawWallet,
+    ...requestWithoutPathAndWallet
+  } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
+    path?: { pathId: string; rank: number };
+    wallet?: Array<{ currencyName: string; quantity: number }>;
+  };
+
+  const learnedSkills = requestWithoutPathAndWallet.learnedSkills;
+  const learnedSkillsForPrisma =
+    learnedSkills != null
+      ? {
+          ...learnedSkills,
+          specialSkills:
+            learnedSkills.specialSkills === null
+              ? undefined
+              : learnedSkills.specialSkills,
+        }
+      : learnedSkills;
+
+  const wallet =
+    (rawWallet?.length ?? 0) > 0
+      ? {
+          create: (rawWallet ?? []).map((entry) => ({
+            currencyName: entry.currencyName,
+            quantity: entry.quantity,
+          })),
+        }
+      : undefined;
+
   return {
-    ...requestWithoutPath,
+    ...requestWithoutPathAndWallet,
+    learnedSkills: learnedSkillsForPrisma,
+    wallet,
     notes: [],
     health: {
-      ...requestWithoutPath.health,
+      ...requestWithoutPathAndWallet.health,
       innatePhysicalHealth: innatePhysicalHealth,
       maxPhysicalHealth: maxPhysicalHealth,
       currentPhysicalHealth: maxPhysicalHealth,
@@ -123,7 +152,7 @@ export function computeCharacterRequestData(
       },
     },
     combatInformation: {
-      ...requestWithoutPath.combatInformation,
+      ...requestWithoutPathAndWallet.combatInformation,
       initiativeMod:
         parsedCharacterCreationRequest.innateAttributes.personality.mentality +
         parsedCharacterCreationRequest.innateAttributes.dexterity.agility,

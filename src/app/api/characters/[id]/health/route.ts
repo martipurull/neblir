@@ -124,7 +124,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       newHealth = { ...newHealth, status: "DECEASED" };
     }
 
-    const updatedCharacter = await updateCharacter(id, { health: newHealth });
+    const deathSaves = newHealth.deathSaves ?? { successes: 0, failures: 0 };
+    const healthForPrisma = { ...newHealth, deathSaves };
+    const updatedCharacter = await updateCharacter(id, {
+      health: healthForPrisma,
+    });
 
     return NextResponse.json(updatedCharacter, { status: 200 });
   } catch (error) {

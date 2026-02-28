@@ -16,7 +16,6 @@ import {
 import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
 import logger from "@/logger";
-import { Currency } from "@/app/lib/types/item";
 
 export const GET = auth(async (request: AuthNextRequest) => {
   try {
@@ -128,23 +127,8 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
-    const { wallet = [], ...characterCreationDataWithoutWallet } =
-      characterCreationData as typeof characterCreationData & {
-        wallet?: Currency[];
-      };
-
-    const characterCreateData: Prisma.CharacterCreateInput = {
-      ...characterCreationDataWithoutWallet,
-      wallet:
-        wallet.length > 0
-          ? {
-              create: wallet.map((entry) => ({
-                currencyName: entry.currencyName,
-                quantity: entry.quantity,
-              })),
-            }
-          : undefined,
-    };
+    const characterCreateData =
+      characterCreationData as Prisma.CharacterCreateInput;
 
     const character = await createCharacterWithRelations({
       data: characterCreateData,

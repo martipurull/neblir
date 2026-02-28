@@ -3,6 +3,7 @@ import {
   getCharacter,
   levelUpCharacterWithRelations,
 } from "@/app/lib/prisma/character";
+import { getCharacterPaths } from "@/app/lib/prisma/pathCharacter";
 import { computeCharacterRequestData } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import {
@@ -205,12 +206,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
+    const existingPaths = await getCharacterPaths(id);
     let updatedCharacter;
     try {
       updatedCharacter = await levelUpCharacterWithRelations({
         characterId: id,
         pathId: parsedBody.pathId,
-        existingPaths: existingCharacter.paths,
+        existingPaths,
         existingFeatures: existingCharacter.features,
         incrementalFeatureIds: parsedBody.incrementalFeatureIds,
         newFeatureIds: parsedBody.newFeatureIds,

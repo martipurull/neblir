@@ -11,9 +11,9 @@ export const featureSchema = z.object({
   feature: z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
+    description: z.string().nullish(),
     minPathRank: z.number().min(1),
-    maxGrade: z.number().min(1).max(4),
+    maxGrade: z.number().min(1).max(6),
     examples: z.array(z.string()).optional().nullable(),
     applicablePaths: z.array(pathName),
   }),
