@@ -46,7 +46,9 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         </h2>
         <p className="mt-2 text-sm text-black">{description}</p>
         {errorMessage && (
-          <p className="mt-3 text-sm text-red-600">Error: {errorMessage}</p>
+          <p className="mt-3 text-sm text-neblirDanger-600">
+            Error: {errorMessage}
+          </p>
         )}
         <div className="mt-5 flex justify-end gap-3">
           <button

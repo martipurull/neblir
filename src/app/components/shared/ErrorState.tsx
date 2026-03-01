@@ -13,7 +13,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-red-600">Error: {message}</p>
+      <p className="text-sm text-neblirDanger-600">Error: {message}</p>
       {onRetry && (
         <button
           type="button"

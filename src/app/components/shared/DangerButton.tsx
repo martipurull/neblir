@@ -20,7 +20,7 @@ const DangerButton: React.FC<DangerButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-md border-2 border-yellow-300 bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 ${className}`.trim()}
+      className={`rounded-md border-2 border-neblirDanger-200 bg-neblirDanger-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-neblirDanger-700 disabled:cursor-not-allowed disabled:opacity-50 ${className}`.trim()}
     >
       {text}
     </button>

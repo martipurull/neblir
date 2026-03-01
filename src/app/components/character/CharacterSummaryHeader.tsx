@@ -1,8 +1,10 @@
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
-import Image from "next/image";
+import { useHealthStyles } from "@/hooks/use-health-styles";
 import React from "react";
+import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
+import { StatCell } from "./StatCell";
 
 interface CharacterSummaryHeaderProps {
   character: CharacterDetail;
@@ -12,98 +14,6 @@ interface CharacterSummaryHeaderProps {
   /** Called when user "uses" a reaction (click on Reactions, Melee Def or Range Def) */
   onUseReaction?: () => void;
   className?: string;
-}
-
-function StatCell({
-  label,
-  value,
-  subValue,
-  compact = false,
-  onClick,
-  disabled = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  subValue?: React.ReactNode;
-  compact?: boolean;
-  onClick?: () => void;
-  disabled?: boolean;
-}) {
-  const cellContent = (
-    <>
-      <span
-        className={
-          compact
-            ? "text-[10px] text-center font-medium uppercase tracking-wider text-black leading-tight"
-            : "text-xs text-center font-medium uppercase tracking-wider text-black leading-tight"
-        }
-      >
-        {label}
-      </span>
-      <span
-        className={
-          compact
-            ? "mt-0.5 min-w-0 truncate text-center text-xs font-bold text-black"
-            : "mt-1 min-w-0 truncate text-center text-sm font-bold text-black"
-        }
-      >
-        {value}
-      </span>
-      {subValue != null && (
-        <span
-          className={
-            compact
-              ? "mt-0.5 min-w-0 truncate text-center text-[10px] text-amber-600 leading-tight"
-              : "mt-0.5 min-w-0 truncate text-center text-xs text-amber-600 leading-tight"
-          }
-        >
-          {subValue}
-        </span>
-      )}
-    </>
-  );
-
-  const baseCompact =
-    "flex h-14 min-w-0 flex-col items-center justify-center rounded-lg border border-black bg-transparent p-1.5";
-  const baseDefault =
-    "flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border border-black bg-transparent p-2";
-  const disabledClass = disabled ? "cursor-not-allowed opacity-50" : "";
-  const clickableClass =
-    onClick && !disabled
-      ? "cursor-pointer transition hover:bg-black/10 active:bg-black/15"
-      : "";
-
-  if (compact) {
-    const className = `${baseCompact} ${disabledClass} ${clickableClass}`;
-    if (onClick != null) {
-      return (
-        <button
-          type="button"
-          onClick={disabled ? undefined : onClick}
-          disabled={disabled}
-          className={className}
-        >
-          {cellContent}
-        </button>
-      );
-    }
-    return <div className={className}>{cellContent}</div>;
-  }
-
-  const className = `${baseDefault} ${disabledClass} ${clickableClass}`;
-  if (onClick != null) {
-    return (
-      <button
-        type="button"
-        onClick={disabled ? undefined : onClick}
-        disabled={disabled}
-        className={className}
-      >
-        {cellContent}
-      </button>
-    );
-  }
-  return <div className={className}>{cellContent}</div>;
 }
 
 export function CharacterSummaryHeader({
@@ -120,11 +30,63 @@ export function CharacterSummaryHeader({
     character.paths && character.paths.length > 0
       ? character.paths.map((p) => String(p.name)).join(" / ")
       : "No path";
+  const initials =
+    generalInformation.name.charAt(0) +
+    (generalInformation.surname?.charAt(0) ?? "");
   const equippedWeapon =
     inventory?.find((i) => i.isEquipped && i.item?.type === "WEAPON")?.item
       ?.name ?? "—";
 
+  const { physicalStyles, mentalStyles } = useHealthStyles({
+    currentPhysical: health.currentPhysicalHealth,
+    maxPhysical: health.maxPhysicalHealth,
+    currentMental: health.currentMentalHealth,
+    maxMental: health.maxMentalHealth,
+  });
+
   const fmt = (n: number) => (n >= 0 ? `+${n}` : String(n));
+
+  const getArmourStyles = (current: number, max: number) => {
+    if (max <= 0) {
+      return {
+        borderClassName: undefined as string | undefined,
+        valueClassName: "text-neblirSafe-600",
+        subValueClassName: "text-black",
+      };
+    }
+    const ratio = current / max;
+    if (ratio >= 1) {
+      return {
+        borderClassName: undefined,
+        valueClassName: "text-neblirSafe-600",
+        subValueClassName: "text-black",
+      };
+    }
+    if (ratio >= 0.5) {
+      return {
+        borderClassName: "border-neblirWarning-200",
+        valueClassName: "text-neblirWarning-400",
+        subValueClassName: "text-black",
+      };
+    }
+    return {
+      borderClassName: "border-neblirDanger-200",
+      valueClassName: "text-neblirDanger-400",
+      subValueClassName: "text-black",
+    };
+  };
+
+  const armourStyles =
+    combatInformation.armourMaxHP > 0
+      ? getArmourStyles(
+          combatInformation.armourCurrentHP,
+          combatInformation.armourMaxHP
+        )
+      : {
+          borderClassName: undefined as string | undefined,
+          valueClassName: undefined,
+          subValueClassName: "text-black" as string,
+        };
 
   const maxReactions = combatInformation.reactionsPerRound;
   const isTrackingReactions = onUseReaction != null;
@@ -149,30 +111,13 @@ export function CharacterSummaryHeader({
       className={`sticky top-0 z-10 bg-transparent px-4 py-1 ${className ?? ""}`}
     >
       <div className="mx-auto flex max-w-2xl flex-col items-center">
-        <div className="flex items-center gap-3 pb-2">
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt={`${name} avatar`}
-                width={48}
-                height={48}
-                className="h-12 w-12 object-cover object-top"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-black">
-                {generalInformation.name.charAt(0)}
-                {generalInformation.surname?.charAt(0) ?? ""}
-              </div>
-            )}
-          </div>
-          <div className="text-center sm:text-left">
-            <h1 className="text-base font-bold text-black">{name}</h1>
-            <p className="text-sm text-black">
-              LVL {generalInformation.level} · {pathsLabel}
-            </p>
-          </div>
-        </div>
+        <CharacterHeaderInfo
+          avatarUrl={avatarUrl}
+          name={name}
+          level={generalInformation.level}
+          pathsLabel={pathsLabel}
+          initials={initials}
+        />
 
         <div className="mt-3 grid w-full max-w-xs grid-cols-3 gap-1.5">
           <StatCell
@@ -183,6 +128,8 @@ export function CharacterSummaryHeader({
                 ? `${health.seriousPhysicalInjuries} serious`
                 : undefined
             }
+            borderClassName={physicalStyles.borderClassName}
+            valueClassName={physicalStyles.valueClassName}
           />
           <StatCell
             label="Mental"
@@ -192,15 +139,20 @@ export function CharacterSummaryHeader({
                 ? `${health.seriousTrauma} trauma`
                 : undefined
             }
+            borderClassName={mentalStyles.borderClassName}
+            valueClassName={mentalStyles.valueClassName}
           />
           <StatCell
             label="Armour"
-            value={fmt(combatInformation.armourMod)}
-            subValue={
+            value={
               combatInformation.armourMaxHP > 0
-                ? `${combatInformation.armourCurrentHP}/${combatInformation.armourMaxHP} HP`
-                : undefined
+                ? `${combatInformation.armourCurrentHP}/${combatInformation.armourMaxHP}`
+                : "—"
             }
+            subValue={fmt(combatInformation.armourMod)}
+            borderClassName={armourStyles.borderClassName}
+            valueClassName={armourStyles.valueClassName}
+            subValueClassName={armourStyles.subValueClassName}
           />
           <StatCell
             label="Melee Atk"

@@ -1,0 +1,9 @@
+export { getGeneralSection } from "./general";
+export { getHealthSection } from "./health";
+export { getAttributesSection } from "./attributes";
+export { getSkillsSection } from "./skills";
+export { getCombatSection } from "./combat";
+export { getPathsSection } from "./paths";
+export { getInventorySection } from "./inventory";
+export { getWalletSection } from "./wallet";
+export { getNotesSection } from "./notes";
