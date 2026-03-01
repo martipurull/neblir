@@ -23,7 +23,7 @@ export function BackButton() {
     <button
       type="button"
       onClick={handleBack}
-      className="min-h-11 rounded-md bg-gray-200 px-3 text-sm font-semibold text-gray-800 transition-colors hover:cursor-pointer hover:bg-gray-300 active:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+      className="min-h-11 rounded-md bg-transparent px-3 text-sm font-semibold text-black transition-colors hover:cursor-pointer hover:bg-black/10 active:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
       aria-label="Go back"
     >
       ← Back

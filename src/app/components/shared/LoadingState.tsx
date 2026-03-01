@@ -5,7 +5,7 @@ interface LoadingStateProps {
 }
 
 const LoadingState: React.FC<LoadingStateProps> = ({ text = "Loading..." }) => {
-  return <p className="text-sm text-gray-600">{text}</p>;
+  return <p className="text-sm text-black">{text}</p>;
 };
 
 export default LoadingState;

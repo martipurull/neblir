@@ -33,19 +33,20 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h2 className="mb-6 text-center text-2xl font-bold sm:mb-8 sm:text-3xl">
+      <h2 className="mb-6 text-center text-2xl font-bold text-black sm:mb-8 sm:text-3xl">
         Dashboard
       </h2>
       <div>
         {tabs.map((tab) => (
-          <section
-            className="mb-6 rounded-lg bg-white p-4 shadow-md sm:mb-8 sm:p-6"
+          <Link
             key={tab.label}
+            href={tab.link}
+            className="text-lg font-semibold text-black sm:text-xl"
           >
-            <Link href={tab.link} className="text-lg font-semibold sm:text-xl">
+            <section className="mb-6 rounded-lg border border-black bg-transparent p-4 sm:mb-8 sm:p-6">
               {tab.label}
-            </Link>
-          </section>
+            </section>
+          </Link>
         ))}
       </div>
     </div>

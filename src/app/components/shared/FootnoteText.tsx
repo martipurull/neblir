@@ -10,7 +10,7 @@ const FootnoteText: React.FC<FootnoteTextProps> = ({
   className = "",
 }) => {
   return (
-    <small className={`text-xs text-gray-600 ${className}`.trim()}>
+    <small className={`text-xs text-black ${className}`.trim()}>
       {children}
     </small>
   );

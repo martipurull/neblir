@@ -109,6 +109,7 @@ export const combatInformationSchema = z.object({
   rangeDefenceMod: z.number(), // Needs to be computed
   meleeDefenceMod: z.number(), // Needs to be computed
   GridDefenceMod: z.number(), // Needs to be computed
+  maxCarryWeight: z.number().optional(),
 });
 
 const intelligenceSchema = z.object({

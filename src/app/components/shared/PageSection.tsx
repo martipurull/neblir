@@ -11,7 +11,7 @@ const PageSection: React.FC<PageSectionProps> = ({
 }) => {
   return (
     <section
-      className={`flex min-h-[70vh] flex-col rounded-lg bg-white p-4 shadow-md sm:p-6 ${className}`.trim()}
+      className={`flex min-h-[70vh] flex-col rounded-lg bg-transparent p-4 sm:p-6 ${className}`.trim()}
     >
       {children}
     </section>

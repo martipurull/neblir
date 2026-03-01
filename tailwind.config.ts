@@ -12,12 +12,25 @@ const config: Config = {
         sarpanch: ["Sarpanch", "sans-serif"],
         oxanium: ["Oxanium", "sans-serif"],
       },
-    },
-    colors: {
-      customPrimary: "#421161",
-      customPrimaryHover: "#6D597A",
-      customSecondary: "#F8ECFF",
-      customSecondaryHover: "#F5F0F9",
+      colors: {
+        customPrimary: "#421161",
+        customPrimaryHover: "#6D597A",
+        customSecondary: "#F8ECFF",
+        customSecondaryHover: "#F5F0F9",
+        // Inventory weight pill: transparent bg, very subtle pale border + text
+        inventorySafe: {
+          200: "#bbf7d0",
+          400: "#86efac",
+        },
+        inventoryWarning: {
+          200: "#fde68a",
+          400: "#fcd34d",
+        },
+        inventoryOver: {
+          200: "#fecaca",
+          400: "#fca5a5",
+        },
+      },
     },
   },
   plugins: [],

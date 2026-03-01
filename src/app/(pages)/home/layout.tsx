@@ -8,12 +8,14 @@ export default function HomeLayout({
 }) {
   return (
     <>
-      <main className="min-h-screen bg-gray-100 px-4 pb-6 pt-1 sm:px-8 sm:pb-8 sm:pt-3">
-        <nav className="mb-10 flex items-center justify-between sm:mb-16">
+      <main className="flex h-dvh flex-col overflow-hidden bg-transparent px-4 pb-6 pt-1 sm:px-8 sm:pb-8 sm:pt-3">
+        <nav className="mb-1 flex shrink-0 items-center justify-between sm:mb-2">
           <BackButton />
           <SignOut />
         </nav>
-        {children}
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          {children}
+        </div>
       </main>
     </>
   );

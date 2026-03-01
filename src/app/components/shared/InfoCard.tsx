@@ -13,7 +13,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
 }) => {
   return (
     <div
-      className={`mt-5 rounded-md ${border ? "border border-gray-200" : ""} p-4 ${className}`.trim()}
+      className={`mt-5 rounded-md ${border ? "border border-black" : ""} p-4 ${className}`.trim()}
     >
       {children}
     </div>

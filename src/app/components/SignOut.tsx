@@ -10,7 +10,7 @@ export function SignOut() {
     >
       <button
         type="submit"
-        className="min-h-11 rounded-md bg-red-500 text-sm font-semibold text-white transition-colors hover:bg-red-600 active:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 hover:cursor-pointer"
+        className="min-h-11 rounded-md bg-transparent text-sm font-semibold text-black transition-colors hover:bg-black/10 active:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black hover:cursor-pointer"
       >
         Sign Out
       </button>

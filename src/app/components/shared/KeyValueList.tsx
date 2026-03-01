@@ -11,7 +11,7 @@ interface KeyValueListProps {
 
 const KeyValueList: React.FC<KeyValueListProps> = ({ items }) => {
   return (
-    <div className="space-y-1 text-sm text-gray-800">
+    <div className="space-y-1 text-sm text-black">
       {items.map((item) => (
         <p key={item.label}>
           <span className="font-semibold">{item.label}:</span> {item.value}

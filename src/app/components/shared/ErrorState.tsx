@@ -18,7 +18,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+          className="rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10"
         >
           {retryLabel}
         </button>

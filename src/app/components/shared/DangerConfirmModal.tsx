@@ -37,14 +37,14 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
       aria-modal="true"
       aria-labelledby="danger-confirm-title"
     >
-      <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg sm:p-6">
+      <div className="w-full max-w-md rounded-lg border border-black bg-white/95 p-5 shadow-lg backdrop-blur-sm sm:p-6">
         <h2
           id="danger-confirm-title"
-          className="text-lg font-semibold text-gray-900"
+          className="text-lg font-semibold text-black"
         >
           {title}
         </h2>
-        <p className="mt-2 text-sm text-gray-600">{description}</p>
+        <p className="mt-2 text-sm text-black">{description}</p>
         {errorMessage && (
           <p className="mt-3 text-sm text-red-600">Error: {errorMessage}</p>
         )}
@@ -53,7 +53,7 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {cancelLabel}
           </button>

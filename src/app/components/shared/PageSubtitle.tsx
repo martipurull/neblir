@@ -5,7 +5,7 @@ interface PageSubtitleProps {
 }
 
 const PageSubtitle: React.FC<PageSubtitleProps> = ({ children }) => {
-  return <p className="mt-2 text-sm text-gray-600 sm:text-base">{children}</p>;
+  return <p className="mt-2 text-sm text-black sm:text-base">{children}</p>;
 };
 
 export default PageSubtitle;

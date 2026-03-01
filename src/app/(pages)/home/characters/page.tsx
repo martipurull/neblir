@@ -37,7 +37,7 @@ const CharactersPage: React.FC = () => {
         )}
 
         {!loading && !error && characters.length === 0 && (
-          <p className="text-sm text-gray-600">No characters found.</p>
+          <p className="text-sm text-black">No characters found.</p>
         )}
 
         {!loading && !error && characters.length > 0 && (

@@ -66,7 +66,7 @@ const DangerActionFooter: React.FC<DangerActionFooterProps> = ({
   return (
     <>
       <div
-        className={`mt-auto flex items-center justify-between border-t border-gray-200 pt-6 ${className}`.trim()}
+        className={`mt-auto flex items-center justify-between border-t border-black pt-6 ${className}`.trim()}
       >
         <FootnoteText className="pr-8">{note}</FootnoteText>
         <DangerButton
