@@ -33,6 +33,11 @@ const config: Config = {
           400: "#fca5a5",
           600: "#f87171",
         },
+        modalBackground: {
+          200: "#4a3d5e",
+          400: "#6b21a8",
+          600: "#8b5cf6",
+        },
       },
     },
   },

@@ -2,9 +2,19 @@
 
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useHealthStyles } from "@/hooks/use-health-styles";
-import React from "react";
+import React, { useState } from "react";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { StatCell } from "./StatCell";
+import { StatEditModal, type StatEditType } from "./StatEditModal";
+
+type HealthPartial = {
+  currentPhysicalHealth?: number;
+  currentMentalHealth?: number;
+  seriousPhysicalInjuries?: number;
+  seriousTrauma?: number;
+};
+
+type ArmourPartial = { armourCurrentHP?: number };
 
 interface CharacterSummaryHeaderProps {
   character: CharacterDetail;
@@ -13,6 +23,10 @@ interface CharacterSummaryHeaderProps {
   usedReactions?: number;
   /** Called when user "uses" a reaction (click on Reactions, Melee Def or Range Def) */
   onUseReaction?: () => void;
+  /** Called when user updates health (physical or mental); enables stat edit modal */
+  onHealthUpdate?: (partial: HealthPartial) => void;
+  /** Called when user updates armour; enables stat edit modal */
+  onArmourUpdate?: (partial: ArmourPartial) => void;
   className?: string;
 }
 
@@ -21,8 +35,11 @@ export function CharacterSummaryHeader({
   avatarUrl,
   usedReactions = 0,
   onUseReaction,
+  onHealthUpdate,
+  onArmourUpdate,
   className,
 }: CharacterSummaryHeaderProps) {
+  const [statModalOpen, setStatModalOpen] = useState<StatEditType | null>(null);
   const { generalInformation, health, combatInformation, inventory } =
     character;
   const name = `${generalInformation.name}${generalInformation.surname ? ` ${generalInformation.surname}` : ""}`;
@@ -64,14 +81,14 @@ export function CharacterSummaryHeader({
     }
     if (ratio >= 0.5) {
       return {
-        borderClassName: "border-neblirWarning-200",
-        valueClassName: "text-neblirWarning-400",
+        borderClassName: "border-neblirWarning-400",
+        valueClassName: "text-neblirWarning-600",
         subValueClassName: "text-black",
       };
     }
     return {
-      borderClassName: "border-neblirDanger-200",
-      valueClassName: "text-neblirDanger-400",
+      borderClassName: "border-neblirDanger-400",
+      valueClassName: "text-neblirDanger-600",
       subValueClassName: "text-black",
     };
   };
@@ -130,6 +147,9 @@ export function CharacterSummaryHeader({
             }
             borderClassName={physicalStyles.borderClassName}
             valueClassName={physicalStyles.valueClassName}
+            onClick={
+              onHealthUpdate ? () => setStatModalOpen("physical") : undefined
+            }
           />
           <StatCell
             label="Mental"
@@ -141,6 +161,9 @@ export function CharacterSummaryHeader({
             }
             borderClassName={mentalStyles.borderClassName}
             valueClassName={mentalStyles.valueClassName}
+            onClick={
+              onHealthUpdate ? () => setStatModalOpen("mental") : undefined
+            }
           />
           <StatCell
             label="Armour"
@@ -153,6 +176,9 @@ export function CharacterSummaryHeader({
             borderClassName={armourStyles.borderClassName}
             valueClassName={armourStyles.valueClassName}
             subValueClassName={armourStyles.subValueClassName}
+            onClick={
+              onArmourUpdate ? () => setStatModalOpen("armour") : undefined
+            }
           />
           <StatCell
             label="Melee Atk"
@@ -202,6 +228,61 @@ export function CharacterSummaryHeader({
             compact
           />
         </div>
+
+        {onHealthUpdate && (
+          <StatEditModal
+            isOpen={statModalOpen === "physical"}
+            onClose={() => setStatModalOpen(null)}
+            type="physical"
+            currentHP={health.currentPhysicalHealth}
+            maxHP={health.maxPhysicalHealth}
+            seriousInjuries={health.seriousPhysicalInjuries}
+            onUpdate={(u) =>
+              onHealthUpdate({
+                ...(u.currentHP != null && {
+                  currentPhysicalHealth: u.currentHP,
+                }),
+                ...(u.seriousInjuries != null && {
+                  seriousPhysicalInjuries: u.seriousInjuries,
+                }),
+              })
+            }
+          />
+        )}
+        {onHealthUpdate && (
+          <StatEditModal
+            isOpen={statModalOpen === "mental"}
+            onClose={() => setStatModalOpen(null)}
+            type="mental"
+            currentHP={health.currentMentalHealth}
+            maxHP={health.maxMentalHealth}
+            seriousTrauma={health.seriousTrauma}
+            onUpdate={(u) =>
+              onHealthUpdate({
+                ...(u.currentHP != null && {
+                  currentMentalHealth: u.currentHP,
+                }),
+                ...(u.seriousTrauma != null && {
+                  seriousTrauma: u.seriousTrauma,
+                }),
+              })
+            }
+          />
+        )}
+        {onArmourUpdate && (
+          <StatEditModal
+            isOpen={statModalOpen === "armour"}
+            onClose={() => setStatModalOpen(null)}
+            type="armour"
+            currentHP={combatInformation.armourCurrentHP}
+            maxHP={combatInformation.armourMaxHP}
+            onUpdate={(u) => {
+              if (u.currentHP != null) {
+                onArmourUpdate({ armourCurrentHP: u.currentHP });
+              }
+            }}
+          />
+        )}
       </div>
     </header>
   );

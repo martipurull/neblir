@@ -1,11 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 const SWIPE_THRESHOLD_PX = 40;
 const WHEEL_WRAP_THRESHOLD = 20;
 
-export function useCarousel(sectionCount: number) {
+/** When sectionKeys reference changes, we restore scroll to the last index (so mutate doesn't reset the slide). */
+export function useCarousel(
+  sectionCount: number,
+  sectionKeys?: readonly string[]
+) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const lastIndexRef = useRef(0);
   const touchState = useRef<{
     startX: number;
     startScrollLeft: number;
@@ -26,6 +37,7 @@ export function useCarousel(sectionCount: number) {
       const step = slideWidth + gap;
       const wrappedIndex =
         ((index % sectionCount) + sectionCount) % sectionCount;
+      lastIndexRef.current = wrappedIndex;
       const left = wrappedIndex * step;
       container.scrollTo({ left, behavior: "smooth" });
       setCurrentIndex(wrappedIndex);
@@ -46,6 +58,7 @@ export function useCarousel(sectionCount: number) {
       const scrollLeft = container.scrollLeft;
       const index = Math.round(scrollLeft / step);
       const clampedIndex = Math.max(0, Math.min(index, sectionCount - 1));
+      lastIndexRef.current = clampedIndex;
       setCurrentIndex(clampedIndex);
     };
 
@@ -129,6 +142,25 @@ export function useCarousel(sectionCount: number) {
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
   }, [sectionCount, scrollToIndex]);
+
+  useLayoutEffect(() => {
+    if (sectionKeys == null || sectionKeys.length === 0 || sectionCount === 0)
+      return;
+    const container = scrollRef.current;
+    if (!container) return;
+    const firstSlide = container.querySelector("[data-slide-index='0']");
+    if (!firstSlide) return;
+    const slideWidth = (firstSlide as HTMLElement).offsetWidth;
+    const gap = 16;
+    const step = slideWidth + gap;
+    const targetIndex = Math.max(
+      0,
+      Math.min(lastIndexRef.current, sectionCount - 1)
+    );
+    container.scrollLeft = targetIndex * step;
+    setCurrentIndex(targetIndex);
+    lastIndexRef.current = targetIndex;
+  }, [sectionKeys, sectionCount]);
 
   return { scrollRef, currentIndex, scrollToIndex };
 }

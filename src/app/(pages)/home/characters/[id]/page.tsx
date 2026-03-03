@@ -9,6 +9,7 @@ import ErrorState from "@/app/components/shared/ErrorState";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import { useCharacter } from "@/hooks/use-character";
+import { useCharacterStatUpdates } from "@/hooks/use-character-stat-updates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
 import { useParams } from "next/navigation";
@@ -28,7 +29,12 @@ import {
 export default function CharacterDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
-  const { character, loading, error, refetch } = useCharacter(id);
+  const { character, loading, error, refetch, mutate } = useCharacter(id);
+  const { updateHealth, updateArmour } = useCharacterStatUpdates(
+    id ?? "",
+    character,
+    mutate
+  );
   const reactionTracking = useReactionTracking(
     character?.combatInformation?.reactionsPerRound ?? 0
   );
@@ -68,7 +74,12 @@ export default function CharacterDetailPage() {
     const pathsSection = getPathsSection(character);
     if (pathsSection) list.push(pathsSection);
     list.push(getInventorySection(character));
-    const walletSection = getWalletSection(character, imageUrls);
+    const walletSection = getWalletSection(
+      character,
+      imageUrls,
+      character.id,
+      mutate
+    );
     if (walletSection) list.push(walletSection);
     const notesSection = getNotesSection(character);
     if (notesSection) list.push(notesSection);
@@ -76,6 +87,7 @@ export default function CharacterDetailPage() {
   }, [
     character,
     imageUrls,
+    mutate,
     reactionTracking.clearReactions,
     reactionTracking.usedReactions,
   ]);
@@ -115,6 +127,8 @@ export default function CharacterDetailPage() {
         avatarUrl={avatarUrl}
         usedReactions={reactionTracking.usedReactions}
         onUseReaction={reactionTracking.useReaction}
+        onHealthUpdate={updateHealth}
+        onArmourUpdate={updateArmour}
         className="shrink-0"
       />
       <CharacterSectionCarousel

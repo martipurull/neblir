@@ -4,7 +4,7 @@ import { CarouselArrows } from "@/app/components/shared/CarouselArrows";
 import { CarouselDots } from "@/app/components/shared/CarouselDots";
 import { CarouselTrack } from "@/app/components/shared/CarouselTrack";
 import { useCarousel } from "@/hooks/use-carousel";
-import React from "react";
+import React, { useMemo } from "react";
 
 export interface CharacterSectionSlide {
   id: string;
@@ -23,8 +23,10 @@ export function CharacterSectionCarousel({
   sections,
   className,
 }: CharacterSectionCarouselProps) {
+  const sectionKeys = useMemo(() => sections.map((s) => s.id), [sections]);
   const { scrollRef, currentIndex, scrollToIndex } = useCarousel(
-    sections.length
+    sections.length,
+    sectionKeys
   );
 
   return (

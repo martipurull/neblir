@@ -2,21 +2,58 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import {
+  WalletAdjustModal,
+  type WalletAdjustMode,
+} from "@/app/components/character/WalletAdjustModal";
+import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
+import type { KeyedMutator } from "swr";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 
-export function getWalletSection(
-  character: CharacterDetail,
-  imageUrls: Record<string, string | null>
-): CharacterSectionSlide | null {
-  const wallet = character.wallet;
-  if (!wallet || wallet.length === 0) return null;
+interface WalletSectionContentProps {
+  character: CharacterDetail;
+  characterId: string;
+  imageUrls: Record<string, string | null>;
+  mutate: KeyedMutator<CharacterDetail | null>;
+}
 
-  return {
-    id: "wallet",
-    title: "Wallet",
-    children: (
-      <ul className="divide-y divide-black border border-black rounded">
+function WalletSectionContent({
+  character,
+  characterId,
+  imageUrls,
+  mutate,
+}: WalletSectionContentProps) {
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    currencyName: string;
+    currentQuantity: number;
+    mode: WalletAdjustMode;
+  } | null>(null);
+
+  const handleSubmit = async (amount: number) => {
+    if (!modalState) return;
+    const wallet =
+      modalState.mode === "add"
+        ? await addWalletCurrency(characterId, modalState.currencyName, amount)
+        : await subtractWalletCurrency(
+            characterId,
+            modalState.currencyName,
+            amount
+          );
+    await mutate(
+      {
+        ...character,
+        wallet: wallet as CharacterDetail["wallet"],
+      },
+      false
+    );
+  };
+
+  const wallet = character.wallet ?? [];
+  return (
+    <>
+      <ul className="divide-y divide-black rounded border border-black">
         {wallet.map((entry) => {
           const currencyImageUrl = imageUrls[entry.currencyName] ?? null;
           return (
@@ -42,19 +79,35 @@ export function getWalletSection(
               <span className="text-sm font-medium tabular-nums text-black">
                 {entry.quantity}
               </span>
-              <span className="text-sm text-black min-w-0 truncate">
+              <span className="min-w-0 truncate text-sm text-black">
                 {entry.currencyName}
               </span>
               <div className="ml-auto flex shrink-0 gap-1.5">
                 <button
                   type="button"
-                  className="rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirSafe-400"
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      currencyName: entry.currencyName,
+                      currentQuantity: entry.quantity,
+                      mode: "add",
+                    })
+                  }
+                  className="rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30"
                 >
                   ADD
                 </button>
                 <button
                   type="button"
-                  className="rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirDanger-400"
+                  onClick={() =>
+                    setModalState({
+                      isOpen: true,
+                      currencyName: entry.currencyName,
+                      currentQuantity: entry.quantity,
+                      mode: "subtract",
+                    })
+                  }
+                  className="rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/30"
                 >
                   SUBTRACT
                 </button>
@@ -63,6 +116,40 @@ export function getWalletSection(
           );
         })}
       </ul>
+
+      {modalState && (
+        <WalletAdjustModal
+          isOpen={modalState.isOpen}
+          onClose={() => setModalState(null)}
+          mode={modalState.mode}
+          currencyName={modalState.currencyName}
+          currentQuantity={modalState.currentQuantity}
+          onSubmit={handleSubmit}
+        />
+      )}
+    </>
+  );
+}
+
+export function getWalletSection(
+  character: CharacterDetail,
+  imageUrls: Record<string, string | null>,
+  characterId: string,
+  mutate: KeyedMutator<CharacterDetail | null>
+): CharacterSectionSlide | null {
+  const wallet = character.wallet;
+  if (!wallet || wallet.length === 0) return null;
+
+  return {
+    id: "wallet",
+    title: "Wallet",
+    children: (
+      <WalletSectionContent
+        character={character}
+        characterId={characterId}
+        imageUrls={imageUrls}
+        mutate={mutate}
+      />
     ),
   };
 }

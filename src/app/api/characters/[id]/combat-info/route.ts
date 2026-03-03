@@ -132,11 +132,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         armourMaxHP: 0,
       };
     }
-    const updatedCharacter = await updateCharacter(id, {
+    await updateCharacter(id, {
       combatInformation: updateBody,
     });
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      return errorResponse("Character not found after update", 500);
+    }
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

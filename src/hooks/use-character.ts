@@ -7,6 +7,7 @@ type UseCharacterResult = {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  mutate: ReturnType<typeof useSWR<CharacterDetail | null>>["mutate"];
 };
 
 export function useCharacter(id: string | null): UseCharacterResult {
@@ -24,5 +25,6 @@ export function useCharacter(id: string | null): UseCharacterResult {
     loading: isLoading,
     error: error instanceof Error ? error.message : null,
     refetch,
+    mutate,
   };
 }
