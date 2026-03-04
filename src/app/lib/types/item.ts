@@ -53,8 +53,13 @@ export const weaponDamageTypeSchema = z.enum([
   "ICE",
   "BLUDGEONING",
   "ELECTRICITY",
+  "NERVE",
+  "POISON",
   "OTHER",
 ]);
+
+export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
+export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;
 
 export const itemSourceTypeSchema = z.enum([
   "GLOBAL_ITEM",
@@ -62,6 +67,13 @@ export const itemSourceTypeSchema = z.enum([
   "UNIQUE_ITEM",
 ]);
 export type ItemSourceType = z.infer<typeof itemSourceTypeSchema>;
+
+export const itemStatusSchema = z.enum([
+  "FUNCTIONAL",
+  "BROKEN",
+  "BEYOND_REPAIR",
+]);
+export type ItemStatus = z.infer<typeof itemStatusSchema>;
 
 /** Source type for UniqueItem template (only GLOBAL_ITEM or CUSTOM_ITEM) */
 export const uniqueItemSourceTypeSchema = z.enum([
@@ -77,9 +89,11 @@ const areaEffectSchema = z.object({
 });
 
 export const itemDamageSchema = z.object({
-  damageType: weaponDamageTypeSchema,
+  damageType: z.array(weaponDamageTypeSchema),
   diceType: z.number(),
   numberOfDice: z.number(),
+  areaType: itemAreaTypeSchema.optional(),
+  coneLength: z.number().optional(),
   primaryRadius: z.number().optional(),
   secondaryRadius: z.number().optional(),
   areaEffect: areaEffectSchema.optional(),
@@ -101,6 +115,11 @@ const baseItemSchema = z.object({
   description: z.string(),
   notes: z.string().optional(),
   weight: z.number(), // required for global Item model
+  equippable: z.boolean().optional().default(false),
+  defenceMeleeBonus: z.number().optional(),
+  defenceRangeBonus: z.number().optional(),
+  gridAttackBonus: z.number().optional(),
+  gridDefenceBonus: z.number().optional(),
 });
 
 export const generalItemSchema = baseItemSchema.extend({
@@ -113,7 +132,9 @@ export type GeneralItem = z.infer<typeof generalItemSchema>;
 export const weaponSchema = baseItemSchema.extend({
   type: z.literal("WEAPON"),
   attackRoll: z.array(weaponAttackRollTypeSchema),
-  attackBonus: z.number(),
+  attackMeleeBonus: z.number().optional(),
+  attackRangeBonus: z.number().optional(),
+  attackThrowBonus: z.number().optional(),
   damage: itemDamageSchema,
 });
 
@@ -138,7 +159,13 @@ export const customItemCreateSchema = z.object({
   weight: z.number(),
   type: z.enum(["GENERAL_ITEM", "WEAPON"]).optional().default("GENERAL_ITEM"),
   attackRoll: z.array(weaponAttackRollTypeSchema).optional().default([]),
-  attackBonus: z.number().optional(),
+  attackMeleeBonus: z.number().optional(),
+  attackRangeBonus: z.number().optional(),
+  attackThrowBonus: z.number().optional(),
+  defenceMeleeBonus: z.number().optional(),
+  defenceRangeBonus: z.number().optional(),
+  gridAttackBonus: z.number().optional(),
+  gridDefenceBonus: z.number().optional(),
   confCost: z.number().optional(),
   costInfo: z.string().optional(),
   damage: itemDamageSchema.optional(),
@@ -146,6 +173,7 @@ export const customItemCreateSchema = z.object({
   imageKey: z.string().optional(),
   notes: z.string().optional(),
   usage: z.string().optional(),
+  equippable: z.boolean().optional(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -160,7 +188,13 @@ const uniqueItemOverrideFieldsSchema = z.object({
   sourceType: uniqueItemSourceTypeSchema,
   itemId: z.string(),
   attackRollOverride: z.array(weaponAttackRollTypeSchema).optional(),
-  attackBonusOverride: z.number().optional(),
+  attackMeleeBonusOverride: z.number().optional(),
+  attackRangeBonusOverride: z.number().optional(),
+  attackThrowBonusOverride: z.number().optional(),
+  defenceMeleeBonusOverride: z.number().optional(),
+  defenceRangeBonusOverride: z.number().optional(),
+  gridAttackBonusOverride: z.number().optional(),
+  gridDefenceBonusOverride: z.number().optional(),
   confCostOverride: z.number().optional(),
   costInfoOverride: z.string().optional(),
   damageOverride: itemDamageSchema.optional(),
@@ -171,6 +205,7 @@ const uniqueItemOverrideFieldsSchema = z.object({
   weightOverride: z.number().optional(),
   notesOverride: z.string().optional(),
   specialTag: z.string().optional(),
+  equippableOverride: z.boolean().optional(),
 });
 
 export const uniqueItemCreateSchema = uniqueItemOverrideFieldsSchema;

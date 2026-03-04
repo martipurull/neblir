@@ -39,7 +39,19 @@ export const POST = auth(async (request: AuthNextRequest) => {
       sourceType: parsedBody.sourceType,
       itemId: parsedBody.itemId,
       attackRollOverride: parsedBody.attackRollOverride ?? [],
-      attackBonusOverride: parsedBody.attackBonusOverride ?? undefined,
+      attackMeleeBonusOverride:
+        parsedBody.attackMeleeBonusOverride ?? undefined,
+      attackRangeBonusOverride:
+        parsedBody.attackRangeBonusOverride ?? undefined,
+      attackThrowBonusOverride:
+        parsedBody.attackThrowBonusOverride ?? undefined,
+      defenceMeleeBonusOverride:
+        parsedBody.defenceMeleeBonusOverride ?? undefined,
+      defenceRangeBonusOverride:
+        parsedBody.defenceRangeBonusOverride ?? undefined,
+      gridAttackBonusOverride: parsedBody.gridAttackBonusOverride ?? undefined,
+      gridDefenceBonusOverride:
+        parsedBody.gridDefenceBonusOverride ?? undefined,
       confCostOverride: parsedBody.confCostOverride ?? undefined,
       costInfoOverride: parsedBody.costInfoOverride ?? undefined,
       damageOverride: parsedBody.damageOverride ?? undefined,
@@ -50,6 +62,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       weightOverride: parsedBody.weightOverride ?? undefined,
       notesOverride: parsedBody.notesOverride ?? undefined,
       specialTag: parsedBody.specialTag ?? undefined,
+      equippableOverride: parsedBody.equippableOverride ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

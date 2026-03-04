@@ -42,8 +42,26 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.attackRollOverride?.length && {
           attackRoll: uniqueItem.attackRollOverride,
         }),
-        ...(uniqueItem.attackBonusOverride != null && {
-          attackBonus: uniqueItem.attackBonusOverride,
+        ...(uniqueItem.attackMeleeBonusOverride != null && {
+          attackMeleeBonus: uniqueItem.attackMeleeBonusOverride,
+        }),
+        ...(uniqueItem.attackRangeBonusOverride != null && {
+          attackRangeBonus: uniqueItem.attackRangeBonusOverride,
+        }),
+        ...(uniqueItem.attackThrowBonusOverride != null && {
+          attackThrowBonus: uniqueItem.attackThrowBonusOverride,
+        }),
+        ...(uniqueItem.defenceMeleeBonusOverride != null && {
+          defenceMeleeBonus: uniqueItem.defenceMeleeBonusOverride,
+        }),
+        ...(uniqueItem.defenceRangeBonusOverride != null && {
+          defenceRangeBonus: uniqueItem.defenceRangeBonusOverride,
+        }),
+        ...(uniqueItem.gridAttackBonusOverride != null && {
+          gridAttackBonus: uniqueItem.gridAttackBonusOverride,
+        }),
+        ...(uniqueItem.gridDefenceBonusOverride != null && {
+          gridDefenceBonus: uniqueItem.gridDefenceBonusOverride,
         }),
         ...(uniqueItem.confCostOverride != null && {
           confCost: uniqueItem.confCostOverride,
@@ -65,6 +83,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         }),
         ...(uniqueItem.weightOverride != null && {
           weight: uniqueItem.weightOverride,
+        }),
+        ...(uniqueItem.equippableOverride != null && {
+          equippable: uniqueItem.equippableOverride,
         }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,
