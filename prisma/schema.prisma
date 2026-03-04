@@ -112,6 +112,7 @@ type CharacterCombatInformation {
   meleeDefenceMod   Int
   rangeAttackMod    Int
   rangeDefenceMod   Int
+  throwAttackMod   Int
   speed             Int
   reactionsPerRound Int
   maxCarryWeight    Int

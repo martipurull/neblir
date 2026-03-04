@@ -1,9 +1,12 @@
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
+import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
+import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import React, { useState } from "react";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
+import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
 import { StatCell } from "./StatCell";
 import { StatEditModal, type StatEditType } from "./StatEditModal";
 
@@ -40,8 +43,7 @@ export function CharacterSummaryHeader({
   className,
 }: CharacterSummaryHeaderProps) {
   const [statModalOpen, setStatModalOpen] = useState<StatEditType | null>(null);
-  const { generalInformation, health, combatInformation, inventory } =
-    character;
+  const { generalInformation, health, combatInformation } = character;
   const name = `${generalInformation.name}${generalInformation.surname ? ` ${generalInformation.surname}` : ""}`;
   const pathsLabel =
     character.paths && character.paths.length > 0
@@ -50,9 +52,6 @@ export function CharacterSummaryHeader({
   const initials =
     generalInformation.name.charAt(0) +
     (generalInformation.surname?.charAt(0) ?? "");
-  const equippedWeapon =
-    inventory?.find((i) => i.isEquipped && i.item?.type === "WEAPON")?.item
-      ?.name ?? "—";
 
   const { physicalStyles, mentalStyles } = useHealthStyles({
     currentPhysical: health.currentPhysicalHealth,
@@ -61,67 +60,19 @@ export function CharacterSummaryHeader({
     maxMental: health.maxMentalHealth,
   });
 
-  const fmt = (n: number) => (n >= 0 ? `+${n}` : String(n));
-
-  const getArmourStyles = (current: number, max: number) => {
-    if (max <= 0) {
-      return {
-        borderClassName: undefined as string | undefined,
-        valueClassName: "text-neblirSafe-600",
-        subValueClassName: "text-black",
-      };
-    }
-    const ratio = current / max;
-    if (ratio >= 1) {
-      return {
-        borderClassName: undefined,
-        valueClassName: "text-neblirSafe-600",
-        subValueClassName: "text-black",
-      };
-    }
-    if (ratio >= 0.5) {
-      return {
-        borderClassName: "border-neblirWarning-400",
-        valueClassName: "text-neblirWarning-600",
-        subValueClassName: "text-black",
-      };
-    }
-    return {
-      borderClassName: "border-neblirDanger-400",
-      valueClassName: "text-neblirDanger-600",
-      subValueClassName: "text-black",
-    };
-  };
-
-  const armourStyles =
-    combatInformation.armourMaxHP > 0
-      ? getArmourStyles(
-          combatInformation.armourCurrentHP,
-          combatInformation.armourMaxHP
-        )
-      : {
-          borderClassName: undefined as string | undefined,
-          valueClassName: undefined,
-          subValueClassName: "text-black" as string,
-        };
-
-  const maxReactions = combatInformation.reactionsPerRound;
-  const isTrackingReactions = onUseReaction != null;
-  const reactionsDisabled =
-    isTrackingReactions && usedReactions >= maxReactions;
-  const reactionsValue = isTrackingReactions ? (
-    <span className="mt-1 flex flex-wrap items-center justify-center gap-1">
-      {Array.from({ length: maxReactions }, (_, i) => (
-        <span
-          key={i}
-          className={`h-2.5 w-2.5 shrink-0 rounded-sm border border-black ${i < usedReactions ? "bg-black" : "bg-transparent"}`}
-          aria-hidden
-        />
-      ))}
-    </span>
-  ) : (
-    maxReactions
+  const armourStyles = useArmourStyles(
+    combatInformation.armourCurrentHP,
+    combatInformation.armourMaxHP
   );
+
+  const { value: reactionsValue, disabled: reactionsDisabled } =
+    useReactionDisplay({
+      reactionsPerRound: combatInformation.reactionsPerRound,
+      usedReactions,
+      onUseReaction,
+    });
+
+  const fmt = (n: number) => (n >= 0 ? `+${n}` : String(n));
 
   return (
     <header
@@ -190,7 +141,11 @@ export function CharacterSummaryHeader({
             value={fmt(combatInformation.rangeAttackMod)}
             compact
           />
-          <StatCell label="Equipped Weapon" value={equippedWeapon} compact />
+          <StatCell
+            label="Throw Atk"
+            value={fmt(combatInformation.throwAttackMod)}
+            compact
+          />
           <StatCell
             label="Melee Def"
             value={fmt(combatInformation.meleeDefenceMod)}
@@ -212,22 +167,12 @@ export function CharacterSummaryHeader({
             onClick={onUseReaction}
             disabled={reactionsDisabled}
           />
-          <StatCell
-            label="GRID Atk"
-            value={fmt(combatInformation.GridAttackMod)}
-            compact
-          />
-          <StatCell
-            label="GRID Def"
-            value={fmt(combatInformation.GridDefenceMod)}
-            compact
-          />
-          <StatCell
-            label="GRID Mod"
-            value={fmt(combatInformation.GridMod)}
-            compact
-          />
         </div>
+
+        <HeaderStatsCarouselRow
+          combatInformation={combatInformation}
+          fmt={fmt}
+        />
 
         {onHealthUpdate && (
           <StatEditModal

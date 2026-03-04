@@ -31,41 +31,32 @@ export function StatCell({
   const borderClass = borderClassName ?? "border-black";
   const valueClass =
     (compact
-      ? "mt-0.5 min-w-0 truncate text-center text-xs font-bold"
-      : "mt-1 min-w-0 truncate text-center text-sm font-bold") +
+      ? "mt-0.5 min-w-0 break-words text-center text-xs font-bold"
+      : "mt-1 min-w-0 break-words text-center text-sm font-bold") +
     " " +
     (valueClassName ?? "text-black");
 
+  const labelClass = compact
+    ? "text-[10px] text-center font-medium uppercase tracking-wider text-black leading-tight break-words"
+    : "text-xs text-center font-medium uppercase tracking-wider text-black leading-tight break-words";
+
+  const subValueClass =
+    (compact
+      ? "mt-0.5 min-w-0 break-words text-center text-[10px] leading-tight"
+      : "mt-0.5 min-w-0 break-words text-center text-xs leading-tight") +
+    " " +
+    (subValueClassName ?? "text-neblirWarning-600");
+
   const cellContent = (
     <>
-      <span
-        className={
-          compact
-            ? "text-[10px] text-center font-medium uppercase tracking-wider text-black leading-tight"
-            : "text-xs text-center font-medium uppercase tracking-wider text-black leading-tight"
-        }
-      >
-        {label}
-      </span>
+      <span className={labelClass}>{label}</span>
       <span className={valueClass}>{value}</span>
-      {subValue != null && (
-        <span
-          className={
-            (compact
-              ? "mt-0.5 min-w-0 truncate text-center text-[10px] leading-tight"
-              : "mt-0.5 min-w-0 truncate text-center text-xs leading-tight") +
-            " " +
-            (subValueClassName ?? "text-neblirWarning-600")
-          }
-        >
-          {subValue}
-        </span>
-      )}
+      {subValue != null && <span className={subValueClass}>{subValue}</span>}
     </>
   );
 
   const baseCompact =
-    "flex h-14 min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-1.5";
+    "flex min-h-14 min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-1.5";
   const baseDefault =
     "flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-2";
   const disabledClass = disabled ? "cursor-not-allowed opacity-50" : "";

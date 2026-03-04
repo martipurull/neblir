@@ -5,15 +5,18 @@ import {
   type CharacterSectionSlide,
 } from "@/app/components/character/CharacterSectionCarousel";
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
+import { DiceRollModal } from "@/app/components/character/DiceRollModal";
 import ErrorState from "@/app/components/shared/ErrorState";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
+import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
+import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import { useCharacter } from "@/hooks/use-character";
 import { useCharacterStatUpdates } from "@/hooks/use-character-stat-updates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
 import { useParams } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   getGeneralSection,
   getHealthSection,
@@ -40,6 +43,26 @@ export default function CharacterDetailPage() {
     character?.combatInformation?.reactionsPerRound ?? 0
   );
 
+  const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);
+
+  const handleDiceSelect = useCallback((item: DiceSelectionItem) => {
+    setDiceSelection((prev) => {
+      const idx = prev.findIndex((s) => isSameDiceSelection(s, item));
+      if (idx >= 0) {
+        return prev.filter((_, i) => i !== idx);
+      }
+      if (prev.length >= 2) return prev;
+      if (
+        prev.length === 1 &&
+        prev[0].type === "skill" &&
+        item.type === "skill"
+      ) {
+        return prev;
+      }
+      return [...prev, item];
+    });
+  }, []);
+
   const imageEntries = useMemo(
     () =>
       character
@@ -65,8 +88,8 @@ export default function CharacterDetailPage() {
     const list: CharacterSectionSlide[] = [
       getGeneralSection(character),
       getHealthSection(character),
-      getAttributesSection(character),
-      getSkillsSection(character),
+      getAttributesSection(character, diceSelection, handleDiceSelect),
+      getSkillsSection(character, diceSelection, handleDiceSelect),
       getCombatSection(character, {
         onClearReactions: reactionTracking.clearReactions,
         usedReactions: reactionTracking.usedReactions,
@@ -89,6 +112,8 @@ export default function CharacterDetailPage() {
     return list;
   }, [
     character,
+    diceSelection,
+    handleDiceSelect,
     imageUrls,
     mutate,
     reactionTracking.clearReactions,
@@ -138,6 +163,15 @@ export default function CharacterDetailPage() {
         sections={sections}
         className="min-h-0 flex-1"
       />
+
+      {character && diceSelection.length === 2 && (
+        <DiceRollModal
+          isOpen
+          onClose={() => setDiceSelection([])}
+          character={character}
+          selection={[diceSelection[0], diceSelection[1]]}
+        />
+      )}
     </div>
   );
 }

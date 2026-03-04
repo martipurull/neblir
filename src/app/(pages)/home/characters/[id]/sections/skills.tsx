@@ -2,6 +2,8 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
+import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import React from "react";
 
 function formatLabel(key: string) {
@@ -12,12 +14,19 @@ function formatLabel(key: string) {
 }
 
 export function getSkillsSection(
-  character: CharacterDetail
+  character: CharacterDetail,
+  diceSelection?: DiceSelectionItem[],
+  onDiceSelect?: (item: DiceSelectionItem) => void
 ): CharacterSectionSlide {
   const skills = character.learnedSkills;
   const generalSkillsEntries =
     skills.generalSkills &&
     (Object.entries(skills.generalSkills) as [string, number][]);
+
+  const selection = diceSelection ?? [];
+  const hasTwo = selection.length === 2;
+  const firstIsSkill = selection[0]?.type === "skill";
+  const skillsDisabledWhenOneSkill = selection.length === 1 && firstIsSkill;
 
   return {
     id: "skills",
@@ -31,23 +40,40 @@ export function getSkillsSection(
           </span>
           {generalSkillsEntries ? (
             <ul className="divide-y divide-black rounded border border-black">
-              {generalSkillsEntries.map(([skillKey, value]) => (
-                <li key={skillKey}>
-                  <button
-                    type="button"
-                    data-skill-type="general"
-                    data-skill={skillKey}
-                    className="flex w-full items-baseline justify-between gap-4 px-3 py-2.5 text-left transition hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset"
-                  >
-                    <span className="text-sm text-black">
-                      {formatLabel(skillKey)}
-                    </span>
-                    <span className="text-sm font-medium tabular-nums text-black">
-                      {value}
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {generalSkillsEntries.map(([skillKey, value]) => {
+                const item: DiceSelectionItem = {
+                  type: "skill",
+                  skillKey,
+                };
+                const isSelected = selection.some((s) =>
+                  isSameDiceSelection(s, item)
+                );
+                const isDisabled =
+                  (hasTwo && !isSelected) ||
+                  (skillsDisabledWhenOneSkill && !isSelected);
+                const handleClick = () => {
+                  if (onDiceSelect) onDiceSelect(item);
+                };
+                return (
+                  <li key={skillKey}>
+                    <button
+                      type="button"
+                      data-skill-type="general"
+                      data-skill={skillKey}
+                      disabled={isDisabled}
+                      onClick={handleClick}
+                      className={`flex w-full items-baseline justify-between gap-4 px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
+                    >
+                      <span className="text-sm text-black">
+                        {formatLabel(skillKey)}
+                      </span>
+                      <span className="text-sm font-medium tabular-nums text-black">
+                        {value}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="text-sm text-black">No general skills.</p>

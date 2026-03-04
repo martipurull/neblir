@@ -172,6 +172,9 @@ export function computeCharacterRequestData(
         parsedCharacterCreationRequest.combatInformation.GridMod +
         parsedCharacterCreationRequest.innateAttributes.personality.mentality +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,
+      throwAttackMod:
+        parsedCharacterCreationRequest.innateAttributes.strength.athletics +
+        parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
       rangeDefenceMod:
         parsedCharacterCreationRequest.combatInformation.armourMod +
         parsedCharacterCreationRequest.innateAttributes.dexterity.agility +

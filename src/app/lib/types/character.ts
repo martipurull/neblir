@@ -118,6 +118,11 @@ export const combatInformationSchema = z.object({
   GridMod: z.number().default(0),
   rangeAttackMod: z.number(), // Needs to be computed
   meleeAttackMod: z.number(), // Needs to be computed
+  throwAttackMod: z
+    .number()
+    .optional()
+    .nullable()
+    .transform((v) => v ?? 0),
   GridAttackMod: z.number(), // Needs to be computed
   rangeDefenceMod: z.number(), // Needs to be computed
   meleeDefenceMod: z.number(), // Needs to be computed
