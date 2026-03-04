@@ -111,7 +111,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       weight: createData.weight,
       type: createData.type ?? "GENERAL_ITEM",
       attackRoll: createData.attackRoll ?? [],
-      attackBonus: createData.attackBonus ?? undefined,
+      attackMeleeBonus: createData.attackMeleeBonus ?? undefined,
+      attackRangeBonus: createData.attackRangeBonus ?? undefined,
+      attackThrowBonus: createData.attackThrowBonus ?? undefined,
+      defenceMeleeBonus: createData.defenceMeleeBonus ?? undefined,
+      defenceRangeBonus: createData.defenceRangeBonus ?? undefined,
+      gridAttackBonus: createData.gridAttackBonus ?? undefined,
+      gridDefenceBonus: createData.gridDefenceBonus ?? undefined,
       confCost: createData.confCost ?? undefined,
       costInfo: createData.costInfo ?? undefined,
       damage: createData.damage ?? undefined,
@@ -119,6 +125,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       imageKey: createData.imageKey ?? undefined,
       notes: createData.notes ?? undefined,
       usage: createData.usage ?? undefined,
+      equippable: createData.equippable ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

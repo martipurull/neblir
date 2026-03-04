@@ -7,16 +7,20 @@
  * Usage: npx tsx prisma/scripts/uploadItemsFromCSV.ts <path-to-items.csv>
  *
  * CSV columns (order flexible via header): name, type, accessType, confCost,
- * costInfo, description, notes, weight, usage, imageKey, attackRoll,
- * attackBonus, damageDiceType, damageNumberOfDice, damageType,
- * damagePrimaryRadius, damageSecondaryRadius, areaEffectDefenceReactionCost,
- * areaEffectDefenceRoll, areaEffectSuccessfulDefenceResult
+ * costInfo, description, notes, weight, usage, imageKey, equippable,
+ * attackRoll, attackMeleeBonus, attackRangeBonus, attackThrowBonus,
+ * defenceMeleeBonus, defenceRangeBonus, gridAttackBonus, gridDefenceBonus,
+ * damageDiceType, damageNumberOfDice, damageType, areaType, coneLength,
+ * primaryRadius, secondaryRadius (or damagePrimaryRadius, damageSecondaryRadius),
+ * areaEffectDefenceReactionCost, areaEffectDefenceRoll, areaEffectSuccessfulDefenceResult
  *
  * - weight is required (number). Use 0 if not applicable.
  * - accessType defaults to PLAYER if missing.
+ * - equippable: optional; "true", "1", "yes" (case-insensitive) = true, otherwise false.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
- * - damageType: one of BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, OTHER.
+ * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
+ * - areaType: optional; RADIUS or CONE. primaryRadius/secondaryRadius/coneLength apply when area is used.
  */
 
 import "dotenv/config";
@@ -57,6 +61,39 @@ function parseAttackRoll(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
+function parseBoolean(value: string | undefined): boolean {
+  if (value === undefined || value === null) return false;
+  const s = String(value).trim().toLowerCase();
+  return s === "true" || s === "1" || s === "yes";
+}
+
+const VALID_DAMAGE_TYPES = [
+  "BULLET",
+  "BLADE",
+  "SIIKE",
+  "ACID",
+  "FIRE",
+  "ICE",
+  "BLUDGEONING",
+  "ELECTRICITY",
+  "NERVE",
+  "POISON",
+  "OTHER",
+] as const;
+
+function parseDamageTypes(
+  value: string | undefined
+): (typeof VALID_DAMAGE_TYPES)[number][] {
+  if (value === undefined || value === null || String(value).trim() === "")
+    return ["OTHER"];
+  return String(value)
+    .split(/[;,]/)
+    .map((s) => s.trim().toUpperCase())
+    .filter((s): s is (typeof VALID_DAMAGE_TYPES)[number] =>
+      (VALID_DAMAGE_TYPES as readonly string[]).includes(s)
+    ) as (typeof VALID_DAMAGE_TYPES)[number][];
+}
+
 function csvRowToItem(row: Record<string, string>): Item {
   const type = (parseOptionalString(row.type) ?? "").toUpperCase() as
     | "GENERAL_ITEM"
@@ -75,6 +112,11 @@ function csvRowToItem(row: Record<string, string>): Item {
     description: parseOptionalString(row.description) ?? "",
     notes: parseOptionalString(row.notes),
     weight: parseOptionalFloat(row.weight) ?? 0,
+    equippable: parseBoolean(row.equippable),
+    defenceMeleeBonus: parseOptionalInt(row.defenceMeleeBonus),
+    defenceRangeBonus: parseOptionalInt(row.defenceRangeBonus),
+    gridAttackBonus: parseOptionalInt(row.gridAttackBonus),
+    gridDefenceBonus: parseOptionalInt(row.gridDefenceBonus),
   };
 
   if (type === "GENERAL_ITEM") {
@@ -85,26 +127,29 @@ function csvRowToItem(row: Record<string, string>): Item {
     };
   }
 
-  const attackBonus = parseOptionalInt(row.attackBonus);
   const diceType = parseOptionalInt(row.damageDiceType);
   const numberOfDice = parseOptionalInt(row.damageNumberOfDice);
-  const damageType = parseOptionalString(row.damageType)?.toUpperCase();
+  const damageTypeArr = parseDamageTypes(row.damageType);
+  const areaType = parseOptionalString(row.areaType)?.toUpperCase() as
+    | "RADIUS"
+    | "CONE"
+    | undefined;
+  const primaryRadius =
+    parseOptionalInt(row.primaryRadius) ??
+    parseOptionalInt(row.damagePrimaryRadius);
+  const secondaryRadius =
+    parseOptionalInt(row.secondaryRadius) ??
+    parseOptionalInt(row.damageSecondaryRadius);
 
   const damage = {
     diceType: diceType ?? 0,
     numberOfDice: numberOfDice ?? 0,
-    damageType: (damageType ?? "OTHER") as
-      | "BULLET"
-      | "BLADE"
-      | "SIIKE"
-      | "ACID"
-      | "FIRE"
-      | "ICE"
-      | "BLUDGEONING"
-      | "ELECTRICITY"
-      | "OTHER",
-    primaryRadius: parseOptionalInt(row.damagePrimaryRadius),
-    secondaryRadius: parseOptionalInt(row.damageSecondaryRadius),
+    damageType: damageTypeArr,
+    areaType:
+      areaType === "RADIUS" || areaType === "CONE" ? areaType : undefined,
+    coneLength: parseOptionalInt(row.coneLength),
+    primaryRadius,
+    secondaryRadius,
     areaEffect:
       parseOptionalInt(row.areaEffectDefenceReactionCost) !== undefined ||
       parseOptionalString(row.areaEffectDefenceRoll) !== undefined ||
@@ -128,7 +173,9 @@ function csvRowToItem(row: Record<string, string>): Item {
       | "GRID"
       | "THROW"
     )[],
-    attackBonus: attackBonus ?? 0,
+    attackMeleeBonus: parseOptionalInt(row.attackMeleeBonus),
+    attackRangeBonus: parseOptionalInt(row.attackRangeBonus),
+    attackThrowBonus: parseOptionalInt(row.attackThrowBonus),
     damage,
   };
 }
@@ -144,13 +191,20 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     notes: item.notes ?? null,
     type: item.type,
     weight: item.weight,
+    equippable: item.equippable ?? false,
+    defenceMeleeBonus: item.defenceMeleeBonus ?? null,
+    defenceRangeBonus: item.defenceRangeBonus ?? null,
+    gridAttackBonus: item.gridAttackBonus ?? null,
+    gridDefenceBonus: item.gridDefenceBonus ?? null,
   };
 
   if (item.type === "GENERAL_ITEM") {
     return {
       ...base,
       attackRoll: [],
-      attackBonus: 0,
+      attackMeleeBonus: null,
+      attackRangeBonus: null,
+      attackThrowBonus: null,
       damage: null,
       usage: item.usage ?? null,
     };
@@ -159,11 +213,15 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
   return {
     ...base,
     attackRoll: item.attackRoll,
-    attackBonus: item.attackBonus,
+    attackMeleeBonus: item.attackMeleeBonus ?? null,
+    attackRangeBonus: item.attackRangeBonus ?? null,
+    attackThrowBonus: item.attackThrowBonus ?? null,
     damage: {
       damageType: item.damage.damageType,
       diceType: item.damage.diceType,
       numberOfDice: item.damage.numberOfDice,
+      areaType: item.damage.areaType ?? null,
+      coneLength: item.damage.coneLength ?? null,
       primaryRadius: item.damage.primaryRadius ?? null,
       secondaryRadius: item.damage.secondaryRadius ?? null,
       areaEffect: item.damage.areaEffect ?? null,
