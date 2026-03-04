@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { featureSchema, pathSchema } from "./path";
 import {
+  itemAreaTypeSchema,
   itemSourceTypeSchema,
+  itemStatusSchema,
   walletSchema,
   weaponAttackRollTypeSchema,
   weaponDamageTypeSchema,
@@ -23,12 +25,20 @@ const resolvedItemSchema = z
     confCost: z.number().optional(),
     costInfo: z.string().optional().nullable(),
     attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
-    attackBonus: z.number().optional().nullable(),
+    attackMeleeBonus: z.number().optional().nullable(),
+    attackRangeBonus: z.number().optional().nullable(),
+    attackThrowBonus: z.number().optional().nullable(),
+    defenceMeleeBonus: z.number().optional().nullable(),
+    defenceRangeBonus: z.number().optional().nullable(),
+    gridAttackBonus: z.number().optional().nullable(),
+    gridDefenceBonus: z.number().optional().nullable(),
     damage: z
       .object({
-        damageType: weaponDamageTypeSchema,
+        damageType: z.array(weaponDamageTypeSchema),
         diceType: z.number(),
         numberOfDice: z.number(),
+        areaType: itemAreaTypeSchema.optional().nullable(),
+        coneLength: z.number().optional().nullable(),
         primaryRadius: z.number().optional().nullable(),
         secondaryRadius: z.number().optional().nullable(),
         areaEffect: z
@@ -43,6 +53,7 @@ const resolvedItemSchema = z
       .optional()
       .nullable(),
     specialTag: z.string().optional().nullable(),
+    equippable: z.boolean().optional(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
     _uniqueItemId: z.string().optional(),
   })
@@ -58,6 +69,7 @@ export const itemCharacterSchema = z.object({
   currentCharges: z.number().optional().nullable(),
   isEquipped: z.boolean(),
   customName: z.string().optional().nullable(),
+  status: itemStatusSchema,
   item: resolvedItemSchema.nullable(),
 });
 

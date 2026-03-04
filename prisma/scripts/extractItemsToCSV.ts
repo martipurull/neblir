@@ -25,11 +25,20 @@ interface ParsedItem {
   weight: string;
   usage: string;
   imageKey: string;
-  // Weapon fields
+  // Weapon / item bonus fields
   attackRoll: string;
+  attackMeleeBonus: string;
+  attackRangeBonus: string;
+  attackThrowBonus: string;
+  defenceMeleeBonus: string;
+  defenceRangeBonus: string;
+  gridAttackBonus: string;
+  gridDefenceBonus: string;
   damageDiceType: string;
   damageNumberOfDice: string;
   damageType: string;
+  areaType: string;
+  coneLength: string;
   damagePrimaryRadius: string;
   damageSecondaryRadius: string;
   areaEffectDefenceReactionCost: string;
@@ -249,6 +258,8 @@ function parseDamage(text: string): {
     upper.includes("COLD")
   )
     result.damageType = "ICE";
+  else if (upper.includes("NERVE")) result.damageType = "NERVE";
+  else if (upper.includes("POISON")) result.damageType = "POISON";
 
   // Parse radius (e.g., "15m", "20 metres", "15m cone")
   const radiusMatch = text.match(/(\d+)\s*m(?:\s|$|,|\.)/i);
@@ -303,9 +314,18 @@ function parseItem(result: GoogleDocResult): ParsedItem {
     usage: "",
     imageKey: "",
     attackRoll: "",
+    attackMeleeBonus: "",
+    attackRangeBonus: "",
+    attackThrowBonus: "",
+    defenceMeleeBonus: "",
+    defenceRangeBonus: "",
+    gridAttackBonus: "",
+    gridDefenceBonus: "",
     damageDiceType: "",
     damageNumberOfDice: "",
     damageType: "",
+    areaType: "",
+    coneLength: "",
     damagePrimaryRadius: "",
     damageSecondaryRadius: "",
     areaEffectDefenceReactionCost: "",
@@ -420,9 +440,18 @@ async function main() {
     "usage",
     "imageKey",
     "attackRoll",
+    "attackMeleeBonus",
+    "attackRangeBonus",
+    "attackThrowBonus",
+    "defenceMeleeBonus",
+    "defenceRangeBonus",
+    "gridAttackBonus",
+    "gridDefenceBonus",
     "damageDiceType",
     "damageNumberOfDice",
     "damageType",
+    "areaType",
+    "coneLength",
     "damagePrimaryRadius",
     "damageSecondaryRadius",
     "areaEffectDefenceReactionCost",

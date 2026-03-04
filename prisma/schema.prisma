@@ -34,7 +34,20 @@ enum ItemWeaponDamageType {
   ICE
   BLUDGEONING
   ELECTRICITY
+  NERVE
+  POISON
   OTHER
+}
+
+enum ItemAreaType {
+  RADIUS
+  CONE
+}
+
+enum ItemStatus {
+  FUNCTIONAL
+  BROKEN
+  BEYOND_REPAIR
 }
 
 enum PathName {
@@ -214,9 +227,11 @@ type AreaEffect {
 }
 
 type ItemDamage {
-  damageType      ItemWeaponDamageType
+  damageType      ItemWeaponDamageType[]
   diceType        Int
   numberOfDice    Int
+  areaType        ItemAreaType?
+  coneLength      Int?
   primaryRadius   Int?
   secondaryRadius Int?
   areaEffect      AreaEffect?
@@ -277,7 +292,7 @@ model ItemCharacter {
   currentCharges  Int?
   isEquipped      Boolean    @default(false)
   customName      String?
-
+  status          ItemStatus @default(FUNCTIONAL)
 
   @@index([characterId])
   @@index([sourceType,itemId])
@@ -323,38 +338,52 @@ model GameCharacter {
 }
 
 model Item {
-  id          String                     @id @default(auto()) @map("_id") @db.ObjectId
-  accessType  ItemAccessType
-  attackRoll  ItemWeaponAttackRollType[]
-  attackBonus Int?
-  confCost    Int
-  costInfo    String?
-  damage      ItemDamage?
-  description String
-  imageKey    String?
-  name        String
-  notes       String?
-  type        ItemType
-  usage       String?
-  weight      Float
+  id                   String                     @id @default(auto()) @map("_id") @db.ObjectId
+  accessType           ItemAccessType
+  attackRoll           ItemWeaponAttackRollType[]
+  attackMeleeBonus     Int?
+  attackRangeBonus     Int?
+  attackThrowBonus     Int?
+  defenceMeleeBonus    Int?
+  defenceRangeBonus    Int?
+  gridAttackBonus      Int?
+  gridDefenceBonus     Int?
+  confCost             Int
+  costInfo             String?
+  damage               ItemDamage?
+  description          String
+  imageKey             String?
+  name                 String
+  notes                String?
+  type                 ItemType
+  usage                String?
+  weight               Float
+  equippable           Boolean                    @default(false)
 }
 
 model CustomItem {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  gameId      String @db.ObjectId
-  game        Game   @relation(fields: [gameId], references: [id])
-  attackRoll  ItemWeaponAttackRollType[]
-  attackBonus Int?
-  confCost    Int?
-  costInfo    String?
-  damage      ItemDamage?
-  description String?
-  imageKey    String?
-  name        String
-  notes       String?
-  type        ItemType
-  usage       String?
-  weight      Float
+  id                   String                     @id @default(auto()) @map("_id") @db.ObjectId
+  gameId               String                     @db.ObjectId
+  game                 Game                       @relation(fields: [gameId], references: [id])
+  attackRoll           ItemWeaponAttackRollType[]
+  attackMeleeBonus     Int?
+  attackRangeBonus     Int?
+  attackThrowBonus     Int?
+  defenceMeleeBonus    Int?
+  defenceRangeBonus    Int?
+  gridAttackBonus      Int?
+  gridDefenceBonus     Int?
+  confCost             Int?
+  costInfo             String?
+  damage               ItemDamage?
+  description          String?
+  imageKey             String?
+  name                 String
+  notes                String?
+  type                 ItemType
+  usage                String?
+  weight               Float
+  equippable           Boolean? @default(false)
 }
 
 model UniqueItem {
@@ -364,18 +393,25 @@ model UniqueItem {
   sourceType  ItemSourceType // GLOBAL_ITEM | CUSTOM_ITEM
   itemId      String         @db.ObjectId
 
-  attackRollOverride  ItemWeaponAttackRollType[]
-  attackBonusOverride Int?
-  confCostOverride    Int?
-  costInfoOverride    String?
-  damageOverride      ItemDamage?
-  descriptionOverride String?
-  imageKeyOverride    String?
-  nameOverride        String?
-  usageOverride       String?
-  weightOverride      Float?
-  notesOverride       String?
-  specialTag          String?  // e.g. "AMPLIFIED", "PROTOTYPE"
+  attackRollOverride        ItemWeaponAttackRollType[]
+  attackMeleeBonusOverride Int?
+  attackRangeBonusOverride Int?
+  attackThrowBonusOverride Int?
+  defenceMeleeBonusOverride Int?
+  defenceRangeBonusOverride Int?
+  gridAttackBonusOverride  Int?
+  gridDefenceBonusOverride Int?
+  confCostOverride         Int?
+  costInfoOverride         String?
+  damageOverride           ItemDamage?
+  descriptionOverride      String?
+  imageKeyOverride        String?
+  nameOverride             String?
+  usageOverride            String?
+  weightOverride           Float?
+  notesOverride            String?
+  specialTag               String?  // e.g. "AMPLIFIED", "PROTOTYPE"
+  equippableOverride       Boolean?
 }
 
 model Feature {

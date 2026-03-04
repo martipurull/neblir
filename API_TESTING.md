@@ -387,11 +387,11 @@ curl -X POST "${BASE_URL}/api/items" \
     "costInfo": "Restricted item, requires permit",
     "weight": 1,
     "attackRoll": ["RANGE"],
-    "attackBonus": 2,
+    "attackRangeBonus": 2,
     "damage": {
       "diceType": 6,
       "numberOfDice": 2,
-      "damageType": "FIRE",
+      "damageType": ["FIRE"],
       "primaryRadius": 0,
       "secondaryRadius": 0
     },
@@ -414,11 +414,12 @@ curl -X POST "${BASE_URL}/api/items" \
     "costInfo": "Illegal in most sectors",
     "weight": 1,
     "attackRoll": ["THROW"],
-    "attackBonus": 0,
+    "attackThrowBonus": 0,
     "damage": {
       "diceType": 6,
       "numberOfDice": 5,
-      "damageType": "FIRE",
+      "damageType": ["FIRE"],
+      "areaType": "RADIUS",
       "primaryRadius": 5,
       "secondaryRadius": 10,
       "areaEffect": {
@@ -502,7 +503,7 @@ curl -X POST "${BASE_URL}/api/games/${GAME_ID}/custom-items" \
   }'
 ```
 
-**Optional fields:** `type` (default: `GENERAL_ITEM`), `attackRoll` (default: `[]`), `attackBonus`, `confCost`, `costInfo`, `damage`, `description`, `imageKey`, `notes`, `usage`.
+**Optional fields:** `type` (default: `GENERAL_ITEM`), `attackRoll` (default: `[]`), `attackMeleeBonus`, `attackRangeBonus`, `attackThrowBonus`, `defenceMeleeBonus`, `defenceRangeBonus`, `gridAttackBonus`, `gridDefenceBonus`, `confCost`, `costInfo`, `damage`, `description`, `imageKey`, `notes`, `usage`, `equippable`.
 
 ### Get Custom Item by ID
 
@@ -559,12 +560,12 @@ curl -X POST "${BASE_URL}/api/unique-items" \
     "itemId": "your-template-item-id-here",
     "nameOverride": "John'\''s Plasma Pistol",
     "specialTag": "AMPLIFIED",
-    "attackBonusOverride": 4,
+    "attackRangeBonusOverride": 4,
     "notesOverride": "Upgraded by the blacksmith in Sector 3"
   }'
 ```
 
-**Override fields (all optional):** `nameOverride`, `descriptionOverride`, `attackRollOverride`, `attackBonusOverride`, `confCostOverride`, `costInfoOverride`, `damageOverride`, `imageKeyOverride`, `usageOverride`, `weightOverride`, `notesOverride`, `specialTag` (e.g. "AMPLIFIED", "PROTOTYPE").
+**Override fields (all optional):** `nameOverride`, `descriptionOverride`, `attackRollOverride`, `attackMeleeBonusOverride`, `attackRangeBonusOverride`, `attackThrowBonusOverride`, `defenceMeleeBonusOverride`, `defenceRangeBonusOverride`, `gridAttackBonusOverride`, `gridDefenceBonusOverride`, `confCostOverride`, `costInfoOverride`, `damageOverride`, `imageKeyOverride`, `usageOverride`, `weightOverride`, `notesOverride`, `specialTag` (e.g. "AMPLIFIED", "PROTOTYPE"), `equippableOverride`.
 
 ### Get Unique Item by ID
 
@@ -885,7 +886,16 @@ Here's a suggested workflow for comprehensive testing:
 - `ICE`
 - `BLUDGEONING`
 - `ELECTRICITY`
+- `NERVE`
+- `POISON`
 - `OTHER`
+
+Weapon damage uses an array of these types. Item damage object may also include `areaType` (`RADIUS` | `CONE`), `coneLength`, `primaryRadius`, `secondaryRadius`, and `areaEffect`.
+
+### ItemAreaType (optional, for area damage)
+
+- `RADIUS`
+- `CONE`
 
 ### ItemSourceType (for inventory and unique item template)
 
