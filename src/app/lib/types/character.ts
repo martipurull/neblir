@@ -15,14 +15,14 @@ import { Race, Religion, Status } from "@prisma/client";
 const resolvedItemSchema = z
   .object({
     id: z.string().optional(),
-    name: z.string(),
-    type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+    name: z.string().optional().nullable(),
+    type: z.enum(["GENERAL_ITEM", "WEAPON"]).optional().nullable(),
     description: z.string().optional().nullable(),
     weight: z.number().optional().nullable(),
     usage: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
     imageKey: z.string().optional().nullable(),
-    confCost: z.number().optional(),
+    confCost: z.number().optional().nullable(),
     costInfo: z.string().optional().nullable(),
     attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
     attackMeleeBonus: z.number().optional().nullable(),
@@ -52,7 +52,7 @@ const resolvedItemSchema = z
       .optional()
       .nullable(),
     specialTag: z.string().optional().nullable(),
-    equippable: z.boolean().optional(),
+    equippable: z.boolean().optional().nullable(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
     _uniqueItemId: z.string().nullish(),
   })

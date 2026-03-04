@@ -21,6 +21,7 @@ import {
   getSkillsSection,
   getCombatSection,
   getPathsSection,
+  getFeaturesSection,
   getInventorySection,
   getWalletSection,
   getNotesSection,
@@ -73,6 +74,8 @@ export default function CharacterDetailPage() {
     ];
     const pathsSection = getPathsSection(character);
     if (pathsSection) list.push(pathsSection);
+    const featuresSection = getFeaturesSection(character);
+    if (featuresSection) list.push(featuresSection);
     list.push(getInventorySection(character));
     const walletSection = getWalletSection(
       character,
