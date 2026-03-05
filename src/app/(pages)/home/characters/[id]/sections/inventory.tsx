@@ -2,10 +2,104 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import React from "react";
+import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
+import type { KeyedMutator } from "swr";
+import React, { useState } from "react";
+
+interface InventorySectionContentProps {
+  character: CharacterDetail;
+  mutate: KeyedMutator<CharacterDetail | null>;
+}
+
+function InventorySectionContent({
+  character,
+  mutate,
+}: InventorySectionContentProps) {
+  const [browseModalOpen, setBrowseModalOpen] = useState(false);
+  const inventory = character.inventory ?? [];
+
+  return (
+    <div className="space-y-0">
+      <div className="flex items-center justify-end pb-2">
+        <button
+          type="button"
+          onClick={() => setBrowseModalOpen(true)}
+          className="rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30"
+        >
+          Browse items
+        </button>
+      </div>
+      {inventory.length === 0 ? (
+        <p className="py-4 text-center text-sm text-black">No items</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="h-3 w-px shrink-0 bg-black" aria-hidden />
+              Item
+            </span>
+            <span className="text-right">Qty</span>
+            <span className="text-right">Weight</span>
+          </div>
+          <ul className="divide-y divide-black">
+            {inventory.map((entry) => {
+              const name =
+                entry.customName ?? entry.item?.name ?? "Unknown item";
+              const description = entry.item?.description ?? null;
+              const weight = entry.item?.weight;
+              return (
+                <li
+                  key={entry.id}
+                  className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 py-2.5 items-start"
+                >
+                  <div className="min-w-0 overflow-x-auto">
+                    <div className="flex items-baseline gap-1">
+                      <span className="shrink-0 text-sm text-black whitespace-nowrap">
+                        {name}
+                      </span>
+                      {entry.isEquipped && (
+                        <span className="shrink-0 text-xs text-black">
+                          (equipped)
+                        </span>
+                      )}
+                    </div>
+                    {description && (
+                      <div
+                        className="mt-0.5 max-h-[3.75rem] overflow-y-auto text-xs leading-relaxed text-black"
+                        style={{ scrollbarWidth: "thin" }}
+                      >
+                        {description}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-right text-sm tabular-nums text-black">
+                    {entry.quantity ?? 1}
+                  </span>
+                  <span className="text-right text-sm tabular-nums text-black">
+                    {weight != null ? `${weight}kg` : "—"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {browseModalOpen && (
+        <AddItemToInventoryModal
+          isOpen={browseModalOpen}
+          onClose={() => setBrowseModalOpen(false)}
+          character={character}
+          mutate={mutate}
+        />
+      )}
+    </div>
+  );
+}
 
 export function getInventorySection(
-  character: CharacterDetail
+  character: CharacterDetail,
+  mutate: KeyedMutator<CharacterDetail | null>
 ): CharacterSectionSlide {
   const inventory = character.inventory ?? [];
   const totalInventoryWeight = inventory.reduce(
@@ -40,64 +134,6 @@ export function getInventorySection(
     id: "inventory",
     title: "Inventory",
     titleSupplement,
-    children: (
-      <div className="space-y-0">
-        {inventory.length === 0 ? (
-          <p className="py-4 text-center text-sm text-black">No items</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black">
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="h-3 w-px shrink-0 bg-black" aria-hidden />
-                Item
-              </span>
-              <span className="text-right">Qty</span>
-              <span className="text-right">Weight</span>
-            </div>
-            <ul className="divide-y divide-black">
-              {inventory.map((entry) => {
-                const name =
-                  entry.customName ?? entry.item?.name ?? "Unknown item";
-                const description = entry.item?.description ?? null;
-                const weight = entry.item?.weight;
-                return (
-                  <li
-                    key={entry.id}
-                    className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 py-2.5 items-start"
-                  >
-                    <div className="min-w-0 overflow-x-auto">
-                      <div className="flex items-baseline gap-1">
-                        <span className="shrink-0 text-sm text-black whitespace-nowrap">
-                          {name}
-                        </span>
-                        {entry.isEquipped && (
-                          <span className="shrink-0 text-xs text-black">
-                            (equipped)
-                          </span>
-                        )}
-                      </div>
-                      {description && (
-                        <div
-                          className="mt-0.5 max-h-[3.75rem] overflow-y-auto text-xs leading-relaxed text-black"
-                          style={{ scrollbarWidth: "thin" }}
-                        >
-                          {description}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-right text-sm tabular-nums text-black">
-                      {entry.quantity ?? 1}
-                    </span>
-                    <span className="text-right text-sm tabular-nums text-black">
-                      {weight != null ? `${weight}kg` : "—"}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )}
-      </div>
-    ),
+    children: <InventorySectionContent character={character} mutate={mutate} />,
   };
 }

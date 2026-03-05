@@ -99,7 +99,7 @@ export default function CharacterDetailPage() {
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
     if (featuresSection) list.push(featuresSection);
-    list.push(getInventorySection(character));
+    list.push(getInventorySection(character, mutate));
     const walletSection = getWalletSection(
       character,
       imageUrls,
