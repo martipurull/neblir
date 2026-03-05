@@ -157,6 +157,7 @@ export default function CharacterDetailPage() {
         onUseReaction={reactionTracking.useReaction}
         onHealthUpdate={updateHealth}
         onArmourUpdate={updateArmour}
+        mutate={mutate}
         className="shrink-0"
       />
       <CharacterSectionCarousel

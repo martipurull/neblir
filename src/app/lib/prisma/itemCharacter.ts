@@ -121,6 +121,13 @@ export async function hydrateItemCharacters(records: ItemCharacter[]) {
   );
 }
 
+export async function updateItemCharacter(
+  id: string,
+  data: Prisma.ItemCharacterUpdateInput
+) {
+  return prisma.itemCharacter.update({ where: { id }, data });
+}
+
 export async function deleteItemCharacter(id: string) {
   return prisma.itemCharacter.delete({ where: { id } });
 }

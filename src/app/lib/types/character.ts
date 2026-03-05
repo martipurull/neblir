@@ -58,6 +58,9 @@ const resolvedItemSchema = z
   })
   .passthrough();
 
+export const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY"]);
+export type EquipSlot = z.infer<typeof equipSlotSchema>;
+
 export const itemCharacterSchema = z.object({
   id: z.string(),
   characterId: z.string(),
@@ -67,6 +70,7 @@ export const itemCharacterSchema = z.object({
   currentAmmo: z.number().optional().nullable(),
   currentCharges: z.number().optional().nullable(),
   isEquipped: z.boolean(),
+  equipSlot: equipSlotSchema.nullable().optional(),
   customName: z.string().optional().nullable(),
   status: itemStatusSchema,
   item: resolvedItemSchema.nullable(),

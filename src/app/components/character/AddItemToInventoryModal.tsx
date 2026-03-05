@@ -58,10 +58,12 @@ export function AddItemToInventoryModal({
     }
   }, [isOpen, fetchItems]);
 
-  const filteredItems = useMemo(
-    () => filterItems(items, searchQuery),
-    [items, searchQuery]
-  );
+  const filteredItems = useMemo(() => {
+    const filtered = filterItems(items, searchQuery);
+    return [...filtered].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
+  }, [items, searchQuery]);
 
   const characterInventoryItemIds = useMemo(
     () => new Set((character.inventory ?? []).map((e) => e.itemId)),

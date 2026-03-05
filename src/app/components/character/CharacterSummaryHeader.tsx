@@ -4,6 +4,7 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
+import type { KeyedMutator } from "swr";
 import React, { useState } from "react";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
@@ -30,6 +31,8 @@ interface CharacterSummaryHeaderProps {
   onHealthUpdate?: (partial: HealthPartial) => void;
   /** Called when user updates armour; enables stat edit modal */
   onArmourUpdate?: (partial: ArmourPartial) => void;
+  /** When provided, Hand/Foot/Body equip cells show equipped items and are clickable to equip */
+  mutate?: KeyedMutator<CharacterDetail | null>;
   className?: string;
 }
 
@@ -40,6 +43,7 @@ export function CharacterSummaryHeader({
   onUseReaction,
   onHealthUpdate,
   onArmourUpdate,
+  mutate,
   className,
 }: CharacterSummaryHeaderProps) {
   const [statModalOpen, setStatModalOpen] = useState<StatEditType | null>(null);
@@ -172,6 +176,8 @@ export function CharacterSummaryHeader({
         <HeaderStatsCarouselRow
           combatInformation={combatInformation}
           fmt={fmt}
+          character={character}
+          mutate={mutate}
         />
 
         {onHealthUpdate && (

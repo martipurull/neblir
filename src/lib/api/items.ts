@@ -61,3 +61,54 @@ export async function addItemToCharacterInventory(
     throw new Error(errorMessage);
   }
 }
+
+export type EquipSlot = "HAND" | "FOOT" | "BODY";
+
+export async function updateCharacterInventoryEntry(
+  characterId: string,
+  itemCharacterId: string,
+  body: { equipSlot: EquipSlot | null }
+): Promise<void> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/inventory/${encodeURIComponent(itemCharacterId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let errorMessage = "Failed to update inventory entry";
+    try {
+      const errorPayload = (await response.json()) as ApiErrorPayload;
+      errorMessage =
+        errorPayload.details || errorPayload.message || errorMessage;
+    } catch {
+      // keep fallback
+    }
+    throw new Error(errorMessage);
+  }
+}
+
+export async function deleteCharacterInventoryEntry(
+  characterId: string,
+  itemCharacterId: string
+): Promise<void> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/inventory/${encodeURIComponent(itemCharacterId)}`,
+    { method: "DELETE" }
+  );
+
+  if (!response.ok) {
+    let errorMessage = "Failed to remove item from inventory";
+    try {
+      const errorPayload = (await response.json()) as ApiErrorPayload;
+      errorMessage =
+        errorPayload.details || errorPayload.message || errorMessage;
+    } catch {
+      // keep fallback
+    }
+    throw new Error(errorMessage);
+  }
+}

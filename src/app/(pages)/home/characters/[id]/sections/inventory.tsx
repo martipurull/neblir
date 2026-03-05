@@ -2,9 +2,16 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { EquipSlot } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
+import { EquipSlotChoiceModal } from "@/app/components/character/EquipSlotChoiceModal";
+import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
+import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+
+const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY"];
+const MAX_PER_SLOT = 2;
 
 interface InventorySectionContentProps {
   character: CharacterDetail;
@@ -16,15 +23,54 @@ function InventorySectionContent({
   mutate,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
-  const inventory = character.inventory ?? [];
+  const [detailEntry, setDetailEntry] = useState<
+    NonNullable<CharacterDetail["inventory"]>[number] | null
+  >(null);
+  const [equipEntry, setEquipEntry] = useState<
+    NonNullable<CharacterDetail["inventory"]>[number] | null
+  >(null);
+
+  const inventory = useMemo(
+    () => character.inventory ?? [],
+    [character.inventory]
+  );
+
+  const slotCounts = useMemo(() => {
+    const counts: Record<EquipSlot, number> = {
+      HAND: 0,
+      FOOT: 0,
+      BODY: 0,
+    };
+    for (const entry of inventory) {
+      if (entry.equipSlot && SLOTS.includes(entry.equipSlot)) {
+        counts[entry.equipSlot]++;
+      }
+    }
+    return counts;
+  }, [inventory]);
+
+  const handleEquipSelect = async (
+    entry: NonNullable<CharacterDetail["inventory"]>[number],
+    slot: EquipSlot
+  ) => {
+    try {
+      await updateCharacterInventoryEntry(character.id, entry.id, {
+        equipSlot: slot,
+      });
+      await mutate();
+      setEquipEntry(null);
+    } catch {
+      setEquipEntry(null);
+    }
+  };
 
   return (
     <div className="space-y-0">
-      <div className="flex items-center justify-end pb-2">
+      <div className="mb-2 flex items-center justify-start pb-2">
         <button
           type="button"
           onClick={() => setBrowseModalOpen(true)}
-          className="rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30"
+          className="rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10"
         >
           Browse items
         </button>
@@ -33,51 +79,64 @@ function InventorySectionContent({
         <p className="py-4 text-center text-sm text-black">No items</p>
       ) : (
         <>
-          <div className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black">
+          <div className="grid grid-cols-[1fr_2.5rem_3rem_4.5rem] gap-3 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black">
             <span className="flex min-w-0 items-center gap-2">
               <span className="h-3 w-px shrink-0 bg-black" aria-hidden />
               Item
             </span>
             <span className="text-right">Qty</span>
             <span className="text-right">Weight</span>
+            <span className="text-right">Equip</span>
           </div>
           <ul className="divide-y divide-black">
             {inventory.map((entry) => {
               const name =
                 entry.customName ?? entry.item?.name ?? "Unknown item";
-              const description = entry.item?.description ?? null;
               const weight = entry.item?.weight;
+              const equippable = entry.item?.equippable === true;
               return (
                 <li
                   key={entry.id}
-                  className="grid grid-cols-[1fr_2.5rem_3rem] gap-3 py-2.5 items-start"
+                  className="grid grid-cols-[1fr_2.5rem_3rem_4.5rem] gap-3 items-start py-2.5"
                 >
-                  <div className="min-w-0 overflow-x-auto">
-                    <div className="flex items-baseline gap-1">
-                      <span className="shrink-0 text-sm text-black whitespace-nowrap">
+                  <button
+                    type="button"
+                    onClick={() => setDetailEntry(entry)}
+                    className="min-w-0 cursor-pointer text-left hover:opacity-80"
+                  >
+                    <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                      <span className="break-words text-sm text-black">
                         {name}
                       </span>
-                      {entry.isEquipped && (
+                      {entry.equipSlot && (
                         <span className="shrink-0 text-xs text-black">
-                          (equipped)
+                          ({entry.equipSlot.toLowerCase()})
                         </span>
                       )}
                     </div>
-                    {description && (
-                      <div
-                        className="mt-0.5 max-h-[3.75rem] overflow-y-auto text-xs leading-relaxed text-black"
-                        style={{ scrollbarWidth: "thin" }}
-                      >
-                        {description}
-                      </div>
-                    )}
-                  </div>
+                  </button>
                   <span className="text-right text-sm tabular-nums text-black">
                     {entry.quantity ?? 1}
                   </span>
                   <span className="text-right text-sm tabular-nums text-black">
                     {weight != null ? `${weight}kg` : "—"}
                   </span>
+                  <div className="flex justify-end">
+                    {equippable ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEquipEntry(entry);
+                        }}
+                        className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10"
+                      >
+                        Equip
+                      </button>
+                    ) : (
+                      <span className="text-xs text-black/50">—</span>
+                    )}
+                  </div>
                 </li>
               );
             })}
@@ -91,6 +150,25 @@ function InventorySectionContent({
           onClose={() => setBrowseModalOpen(false)}
           character={character}
           mutate={mutate}
+        />
+      )}
+
+      {detailEntry && (
+        <ItemDetailModal
+          isOpen={!!detailEntry}
+          onClose={() => setDetailEntry(null)}
+          entry={detailEntry}
+          characterId={character.id}
+          mutate={mutate}
+        />
+      )}
+
+      {equipEntry && (
+        <EquipSlotChoiceModal
+          isOpen={!!equipEntry}
+          onClose={() => setEquipEntry(null)}
+          slotCounts={slotCounts}
+          onSelect={(slot) => handleEquipSelect(equipEntry, slot)}
         />
       )}
     </div>

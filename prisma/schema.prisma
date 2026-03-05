@@ -50,6 +50,12 @@ enum ItemStatus {
   BEYOND_REPAIR
 }
 
+enum EquipSlot {
+  HAND
+  FOOT
+  BODY
+}
+
 enum PathName {
   SCIENTIST_DOCTOR
   SURVIVALIST
@@ -281,22 +287,23 @@ model CharacterUser {
 
 model ItemCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
-  
-  characterId String @db.ObjectId
-  character Character @relation(fields: [characterId], references: [id])
-  
-  sourceType ItemSourceType
-  itemId      String @db.ObjectId
 
-  quantity        Int        @default(1)
-  currentAmmo     Int?
-  currentCharges  Int?
-  isEquipped      Boolean    @default(false)
-  customName      String?
-  status          ItemStatus @default(FUNCTIONAL)
+  characterId String   @db.ObjectId
+  character   Character @relation(fields: [characterId], references: [id])
+
+  sourceType ItemSourceType
+  itemId     String   @db.ObjectId
+
+  quantity       Int         @default(1)
+  currentAmmo    Int?
+  currentCharges Int?
+  isEquipped     Boolean     @default(false)
+  equipSlot      EquipSlot?
+  customName     String?
+  status         ItemStatus  @default(FUNCTIONAL)
 
   @@index([characterId])
-  @@index([sourceType,itemId])
+  @@index([sourceType, itemId])
   @@unique([characterId, sourceType, itemId])
 }
 
