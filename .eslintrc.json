@@ -20,9 +20,15 @@
   },
   "overrides": [
     {
-      "files": ["test/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
+      "files": [
+        "test/**/*.ts",
+        "test/**/*.tsx",
+        "**/*.test.ts",
+        "**/*.spec.ts"
+      ],
       "rules": {
-        "@typescript-eslint/prefer-nullish-coalescing": "off"
+        "@typescript-eslint/prefer-nullish-coalescing": "off",
+        "@typescript-eslint/no-explicit-any": "off"
       }
     }
   ]
