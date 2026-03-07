@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";

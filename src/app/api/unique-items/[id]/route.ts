@@ -5,7 +5,7 @@ import {
   updateUniqueItem,
 } from "@/app/lib/prisma/uniqueItem";
 import { uniqueItemUpdateSchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";

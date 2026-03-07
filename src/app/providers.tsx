@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { apiFetcher } from "@/lib/api/fetcher";

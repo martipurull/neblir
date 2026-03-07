@@ -20,7 +20,7 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -54,7 +54,7 @@ export async function addItemToCharacterInventory(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -62,12 +62,17 @@ export async function addItemToCharacterInventory(
   }
 }
 
-export type EquipSlot = "HAND" | "FOOT" | "BODY";
+export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD";
+
+export type UpdateInventoryEntryBody =
+  | { action: "equip"; slot: EquipSlot }
+  | { action: "unequip"; slot: EquipSlot }
+  | { action: "unequipAll" };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,
   itemCharacterId: string,
-  body: { equipSlot: EquipSlot | null }
+  body: UpdateInventoryEntryBody
 ): Promise<void> {
   const response = await fetch(
     `/api/characters/${encodeURIComponent(characterId)}/inventory/${encodeURIComponent(itemCharacterId)}`,
@@ -83,7 +88,7 @@ export async function updateCharacterInventoryEntry(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -105,7 +110,7 @@ export async function deleteCharacterInventoryEntry(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }

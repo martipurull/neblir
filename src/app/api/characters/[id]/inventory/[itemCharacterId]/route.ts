@@ -1,9 +1,14 @@
+import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import {
   deleteItemCharacter,
   getCharacterInventory,
   updateItemCharacter,
 } from "@/app/lib/prisma/itemCharacter";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import {
+  type CharacterForCombatSync,
+  computeCombatInfoUpdateForCharacter,
+} from "@/app/lib/equipCombatUtils";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -12,12 +17,40 @@ import { errorResponse } from "../../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { z } from "zod";
 
-const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY"]);
-const patchBodySchema = z.object({
-  equipSlot: equipSlotSchema.nullable(),
-});
+const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+const patchBodySchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("equip"), slot: equipSlotSchema }),
+  z.object({ action: z.literal("unequip"), slot: equipSlotSchema }),
+  z.object({ action: z.literal("unequipAll") }),
+]);
 
-const MAX_ITEMS_PER_SLOT = 2;
+const SLOT_CAPACITY = 2;
+
+type InventoryEntry = {
+  equipSlots?: string[];
+  item?: { equipSlotTypes?: string[]; equipSlotCost?: number | null } | null;
+};
+
+function getUsedCapacityInSlot(
+  inventory: InventoryEntry[],
+  slot: string
+): number {
+  let sum = 0;
+  for (const entry of inventory) {
+    const cost = entry.item?.equipSlotCost ?? 1;
+    const count = (entry.equipSlots ?? []).filter((s) => s === slot).length;
+    sum += count * cost;
+  }
+  return sum;
+}
+
+function slotAllowsItem(
+  slot: string,
+  equipSlotTypes: string[] | undefined
+): boolean {
+  if (!equipSlotTypes?.length) return true;
+  return equipSlotTypes.includes(slot);
+}
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -62,30 +95,74 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Item not found in character inventory", 404);
     }
 
-    const equippable =
-      entry.item != null &&
-      "equippable" in entry.item &&
-      entry.item.equippable === true;
-    if (parsed.data.equipSlot != null && !equippable) {
-      return errorResponse("This item is not equippable", 400);
-    }
+    const equipSlots = (entry.equipSlots ?? []) as string[];
+    const action = parsed.data.action;
 
-    if (parsed.data.equipSlot != null) {
-      const inSlot = inventory.filter(
-        (e) => e.equipSlot === parsed.data.equipSlot && e.id !== itemCharacterId
+    if (action === "equip") {
+      const equippable =
+        entry.item != null &&
+        "equippable" in entry.item &&
+        entry.item.equippable === true;
+      if (!equippable) {
+        return errorResponse("This item is not equippable", 400);
+      }
+      const slot = parsed.data.slot;
+      const itemWithEquip = entry.item as {
+        equipSlotTypes?: string[];
+        equipSlotCost?: number | null;
+      } | null;
+      if (!slotAllowsItem(slot, itemWithEquip?.equipSlotTypes)) {
+        return errorResponse("This item cannot be equipped in that slot", 400);
+      }
+      const itemCost = itemWithEquip?.equipSlotCost ?? 1;
+      const usedCapacity = getUsedCapacityInSlot(
+        inventory as InventoryEntry[],
+        slot
       );
-      if (inSlot.length >= MAX_ITEMS_PER_SLOT) {
+      if (usedCapacity + itemCost > SLOT_CAPACITY) {
+        return errorResponse("That slot does not have enough space", 400);
+      }
+      if (equipSlots.length >= entry.quantity) {
         return errorResponse(
-          `That slot already has ${MAX_ITEMS_PER_SLOT} items`,
+          "All copies of this item are already equipped",
           400
         );
       }
+      const updatedSlots: string[] = [...equipSlots, slot];
+      await updateItemCharacter(itemCharacterId, {
+        equipSlots: updatedSlots,
+        isEquipped: updatedSlots.length > 0,
+      });
+    } else if (action === "unequip") {
+      const slot = parsed.data.slot;
+      const idx = equipSlots.indexOf(slot);
+      if (idx < 0) {
+        return errorResponse("Item is not equipped in that slot", 400);
+      }
+      const updatedSlots = equipSlots.filter((_, i) => i !== idx);
+      await updateItemCharacter(itemCharacterId, {
+        equipSlots: updatedSlots,
+        isEquipped: updatedSlots.length > 0,
+      });
+    } else {
+      await updateItemCharacter(itemCharacterId, {
+        equipSlots: [],
+        isEquipped: false,
+      });
     }
 
-    await updateItemCharacter(itemCharacterId, {
-      equipSlot: parsed.data.equipSlot,
-      isEquipped: parsed.data.equipSlot != null,
-    });
+    const character = await getCharacter(id);
+    if (character?.combatInformation) {
+      const combatUpdate = computeCombatInfoUpdateForCharacter(
+        character as CharacterForCombatSync
+      );
+      await updateCharacter(id, {
+        combatInformation: {
+          ...character.combatInformation,
+          ...combatUpdate,
+        },
+      });
+    }
 
     const updated = await getCharacterInventory(id);
     const updatedEntry = updated.find((e) => e.id === itemCharacterId);
@@ -158,6 +235,19 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         500
       );
     });
+
+    const character = await getCharacter(id);
+    if (character?.combatInformation) {
+      const combatUpdate = computeCombatInfoUpdateForCharacter(
+        character as CharacterForCombatSync
+      );
+      await updateCharacter(id, {
+        combatInformation: {
+          ...character.combatInformation,
+          ...combatUpdate,
+        },
+      });
+    }
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

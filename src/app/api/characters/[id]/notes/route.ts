@@ -1,7 +1,7 @@
 import { updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { characterNotesSchema } from "@/app/lib/types/character";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";

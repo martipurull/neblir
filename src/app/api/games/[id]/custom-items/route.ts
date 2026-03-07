@@ -7,7 +7,7 @@ import {
   customItemCreateSchema,
   type CustomItemCreate,
 } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -126,6 +126,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       notes: createData.notes ?? undefined,
       usage: createData.usage ?? undefined,
       equippable: createData.equippable ?? undefined,
+      equipSlotTypes: createData.equipSlotTypes ?? undefined,
+      equipSlotCost: createData.equipSlotCost ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

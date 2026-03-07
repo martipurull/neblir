@@ -1,6 +1,6 @@
 import { ValidationError } from "../shared/errors";
-import { LevelUpCharacterBody } from "./[id]/level-up/schema";
-import { CharacterCreationRequest } from "./schemas";
+import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
+import type { CharacterCreationRequest } from "./schemas";
 
 function calculateReactionsPerRound(level: number): number {
   if (level === 3) {

@@ -1,7 +1,5 @@
-import {
-  CharacterListItem,
-  characterListSchema,
-} from "@/app/lib/types/character";
+import type { CharacterListItem } from "@/app/lib/types/character";
+import { characterListSchema } from "@/app/lib/types/character";
 import useSWR from "swr";
 
 type UseCharactersResult = {
@@ -28,7 +26,7 @@ export function useCharacters(): UseCharactersResult {
   return {
     characters: parseResult.success ? parseResult.data : [],
     loading: isLoading,
-    error: payloadError || (error instanceof Error ? error.message : null),
+    error: payloadError ?? (error instanceof Error ? error.message : null),
     refetch,
   };
 }

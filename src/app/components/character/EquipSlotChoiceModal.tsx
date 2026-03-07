@@ -1,27 +1,51 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
+import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";
+import {
+  API_SLOT_CAPACITY,
+  getItemCost,
+  getUsedCapacityInApiSlot,
+  itemCanEquipInSlot,
+} from "@/app/lib/equipUtils";
 import React from "react";
 
-const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY"];
+const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY", "HEAD"];
+
+type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
 export interface EquipSlotChoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Count of items already in each slot (so we can disable when >= 2) */
-  slotCounts: Record<EquipSlot, number>;
+  /** The item being equipped - used to filter slots by equipSlotTypes and check capacity */
+  entry: InventoryEntry;
+  /** Inventory for computing used capacity per slot */
+  inventory: InventoryEntry[];
   onSelect: (slot: EquipSlot) => void;
 }
 
-const MAX_PER_SLOT = 2;
+const slotLabels: Record<EquipSlot, string> = {
+  HAND: "Hand",
+  FOOT: "Foot",
+  BODY: "Body",
+  HEAD: "Head",
+};
 
 export function EquipSlotChoiceModal({
   isOpen,
   onClose,
-  slotCounts,
+  entry,
+  inventory,
   onSelect,
 }: EquipSlotChoiceModalProps) {
   if (!isOpen) return null;
+
+  const itemCost = getItemCost(entry.item?.equipSlotCost);
+
+  const slotsToShow = SLOTS.filter((slot) =>
+    itemCanEquipInSlot(slot, entry.item?.equipSlotTypes ?? undefined)
+  );
 
   return (
     <div
@@ -52,8 +76,9 @@ export function EquipSlotChoiceModal({
           </button>
         </div>
         <div className="mt-4 flex flex-col gap-2">
-          {SLOTS.map((slot) => {
-            const full = slotCounts[slot] >= MAX_PER_SLOT;
+          {slotsToShow.map((slot) => {
+            const used = getUsedCapacityInApiSlot(inventory, slot);
+            const full = used + itemCost > API_SLOT_CAPACITY;
             return (
               <button
                 key={slot}
@@ -67,7 +92,7 @@ export function EquipSlotChoiceModal({
                 disabled={full}
                 className="rounded border-2 border-white bg-transparent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
               >
-                {slot === "HAND" ? "Hand" : slot === "FOOT" ? "Foot" : "Body"}
+                {slotLabels[slot]}
                 {full && " (full)"}
               </button>
             );

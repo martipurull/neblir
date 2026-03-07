@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { addItemToCharacterInventory } from "@/lib/api/items";
@@ -54,7 +55,7 @@ export function AddItemToInventoryModal({
       setSearchQuery("");
       setAddingId(null);
       setError(null);
-      fetchItems();
+      void fetchItems();
     }
   }, [isOpen, fetchItems]);
 
@@ -64,11 +65,6 @@ export function AddItemToInventoryModal({
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
     );
   }, [items, searchQuery]);
-
-  const characterInventoryItemIds = useMemo(
-    () => new Set((character.inventory ?? []).map((e) => e.itemId)),
-    [character.inventory]
-  );
 
   const handleAdd = useCallback(
     async (item: ItemWithId) => {
@@ -152,7 +148,6 @@ export function AddItemToInventoryModal({
           ) : (
             <ul className="divide-y divide-white/20">
               {filteredItems.map((item) => {
-                const isInInventory = characterInventoryItemIds.has(item.id);
                 const isAdding = addingId === item.id;
                 return (
                   <li
@@ -175,15 +170,13 @@ export function AddItemToInventoryModal({
                     <div className="shrink-0">
                       <button
                         type="button"
-                        onClick={() => handleAdd(item)}
-                        disabled={isInInventory || isAdding}
+                        onClick={() => {
+                          void handleAdd(item);
+                        }}
+                        disabled={isAdding}
                         className="rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {isInInventory
-                          ? "In inventory"
-                          : isAdding
-                            ? "Adding…"
-                            : "Add"}
+                        {isAdding ? "Adding…" : "Add"}
                       </button>
                     </div>
                   </li>

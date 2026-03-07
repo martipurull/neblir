@@ -1,5 +1,5 @@
 import { prisma } from "./client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { hydrateItemCharacters } from "./itemCharacter";
 import {
   CharacterCreationTransactionError,

@@ -23,7 +23,7 @@ export async function getCharacterById(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -76,7 +76,7 @@ export async function updateCharacterHealth(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -109,7 +109,7 @@ export async function updateCharacterCombatInfo(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -145,7 +145,7 @@ export async function addWalletCurrency(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }
@@ -181,7 +181,7 @@ export async function subtractWalletCurrency(
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // keep fallback
     }

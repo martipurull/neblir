@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -60,7 +61,7 @@ export function useCharacterStatUpdates(
       if (!character) return;
       const newHealth = { ...character.health, ...partial };
       const newCharacter = { ...character, health: newHealth };
-      mutate(newCharacter, false);
+      void mutate(newCharacter, false);
 
       pendingHealthRef.current = {
         currentPhysicalHealth: newHealth.currentPhysicalHealth,
@@ -91,7 +92,7 @@ export function useCharacterStatUpdates(
         ...character,
         combatInformation: newCombat,
       };
-      mutate(newCharacter, false);
+      void mutate(newCharacter, false);
 
       pendingArmourRef.current = {
         armourCurrentHP: newCombat.armourCurrentHP,

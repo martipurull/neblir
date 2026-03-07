@@ -1,4 +1,4 @@
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";

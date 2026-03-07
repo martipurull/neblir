@@ -1,6 +1,6 @@
 import { createUniqueItem } from "@/app/lib/prisma/uniqueItem";
 import { uniqueItemCreateSchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -63,6 +63,8 @@ export const POST = auth(async (request: AuthNextRequest) => {
       notesOverride: parsedBody.notesOverride ?? undefined,
       specialTag: parsedBody.specialTag ?? undefined,
       equippableOverride: parsedBody.equippableOverride ?? undefined,
+      equipSlotTypesOverride: parsedBody.equipSlotTypesOverride ?? undefined,
+      equipSlotCostOverride: parsedBody.equipSlotCostOverride ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

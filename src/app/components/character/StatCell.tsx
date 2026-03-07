@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import React from "react";
@@ -15,6 +16,8 @@ export interface StatCellProps {
   valueClassName?: string;
   /** Override subValue text color (default: text-neblirWarning-600) */
   subValueClassName?: string;
+  /** When compact, align content to top instead of center (e.g. for equip cells) */
+  alignTop?: boolean;
 }
 
 export function StatCell({
@@ -27,11 +30,12 @@ export function StatCell({
   borderClassName,
   valueClassName,
   subValueClassName,
+  alignTop = false,
 }: StatCellProps) {
   const borderClass = borderClassName ?? "border-black";
   const valueClass =
     (compact
-      ? "mt-0.5 min-w-0 break-words text-center text-xs font-bold"
+      ? "mt-0.5 min-w-0 w-full max-w-full overflow-hidden text-center text-xs font-bold"
       : "mt-1 min-w-0 break-words text-center text-sm font-bold") +
     " " +
     (valueClassName ?? "text-black");
@@ -50,13 +54,14 @@ export function StatCell({
   const cellContent = (
     <>
       <span className={labelClass}>{label}</span>
-      <span className={valueClass}>{value}</span>
+      <div className={valueClass}>{value}</div>
       {subValue != null && <span className={subValueClass}>{subValue}</span>}
     </>
   );
 
   const baseCompact =
-    "flex min-h-14 min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-1.5";
+    "flex min-h-14 min-w-0 flex-col items-center overflow-hidden rounded-lg border bg-transparent p-1.5 " +
+    (alignTop ? "justify-start" : "justify-center");
   const baseDefault =
     "flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-2";
   const disabledClass = disabled ? "cursor-not-allowed opacity-50" : "";

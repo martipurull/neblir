@@ -1,5 +1,5 @@
 import { deleteUser, getUser } from "@/app/lib/prisma/user";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { serializeError } from "../../shared/errors";

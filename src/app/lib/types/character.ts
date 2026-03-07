@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { featureSchema, pathSchema } from "./path";
 import {
+  equipSlotCostSchema,
+  equipSlotTypeSchema,
   itemAreaTypeSchema,
   itemSourceTypeSchema,
   itemStatusSchema,
@@ -53,12 +55,14 @@ const resolvedItemSchema = z
       .nullable(),
     specialTag: z.string().optional().nullable(),
     equippable: z.boolean().optional().nullable(),
+    equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
+    equipSlotCost: equipSlotCostSchema.optional().nullable(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
     _uniqueItemId: z.string().nullish(),
   })
   .passthrough();
 
-export const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY"]);
+export const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
 export type EquipSlot = z.infer<typeof equipSlotSchema>;
 
 export const itemCharacterSchema = z.object({
@@ -70,7 +74,7 @@ export const itemCharacterSchema = z.object({
   currentAmmo: z.number().optional().nullable(),
   currentCharges: z.number().optional().nullable(),
   isEquipped: z.boolean(),
-  equipSlot: equipSlotSchema.nullable().optional(),
+  equipSlots: z.array(equipSlotSchema).optional().default([]),
   customName: z.string().optional().nullable(),
   status: itemStatusSchema,
   item: resolvedItemSchema.nullable(),

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
@@ -9,9 +10,6 @@ import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
 import React, { useMemo, useState } from "react";
-
-const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY"];
-const MAX_PER_SLOT = 2;
 
 interface InventorySectionContentProps {
   character: CharacterDetail;
@@ -29,25 +27,12 @@ function InventorySectionContent({
   const [equipEntry, setEquipEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
+  const [unequippingId, setUnequippingId] = useState<string | null>(null);
 
   const inventory = useMemo(
     () => character.inventory ?? [],
     [character.inventory]
   );
-
-  const slotCounts = useMemo(() => {
-    const counts: Record<EquipSlot, number> = {
-      HAND: 0,
-      FOOT: 0,
-      BODY: 0,
-    };
-    for (const entry of inventory) {
-      if (entry.equipSlot && SLOTS.includes(entry.equipSlot)) {
-        counts[entry.equipSlot]++;
-      }
-    }
-    return counts;
-  }, [inventory]);
 
   const handleEquipSelect = async (
     entry: NonNullable<CharacterDetail["inventory"]>[number],
@@ -55,12 +40,28 @@ function InventorySectionContent({
   ) => {
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
-        equipSlot: slot,
+        action: "equip",
+        slot,
       });
       await mutate();
       setEquipEntry(null);
     } catch {
       setEquipEntry(null);
+    }
+  };
+
+  const handleUnequip = async (
+    entry: NonNullable<CharacterDetail["inventory"]>[number]
+  ) => {
+    if (!entry.equipSlots?.length) return;
+    setUnequippingId(entry.id);
+    try {
+      await updateCharacterInventoryEntry(character.id, entry.id, {
+        action: "unequipAll",
+      });
+      await mutate();
+    } finally {
+      setUnequippingId(null);
     }
   };
 
@@ -108,9 +109,13 @@ function InventorySectionContent({
                       <span className="break-words text-sm text-black">
                         {name}
                       </span>
-                      {entry.equipSlot && (
+                      {(entry.equipSlots?.length ?? 0) > 0 && (
                         <span className="shrink-0 text-xs text-black">
-                          ({entry.equipSlot.toLowerCase()})
+                          (
+                          {entry
+                            .equipSlots!.map((s) => s.toLowerCase())
+                            .join(", ")}
+                          )
                         </span>
                       )}
                     </div>
@@ -123,16 +128,32 @@ function InventorySectionContent({
                   </span>
                   <div className="flex justify-end">
                     {equippable ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEquipEntry(entry);
-                        }}
-                        className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10"
-                      >
-                        Equip
-                      </button>
+                      (entry.equipSlots?.length ?? 0) > 0 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleUnequip(entry);
+                          }}
+                          disabled={unequippingId === entry.id}
+                          className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
+                        >
+                          {unequippingId === entry.id
+                            ? "Unequipping…"
+                            : "Unequip"}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEquipEntry(entry);
+                          }}
+                          className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10"
+                        >
+                          Equip
+                        </button>
+                      )
                     ) : (
                       <span className="text-xs text-black/50">—</span>
                     )}
@@ -167,8 +188,11 @@ function InventorySectionContent({
         <EquipSlotChoiceModal
           isOpen={!!equipEntry}
           onClose={() => setEquipEntry(null)}
-          slotCounts={slotCounts}
-          onSelect={(slot) => handleEquipSelect(equipEntry, slot)}
+          entry={equipEntry}
+          inventory={inventory}
+          onSelect={(slot) => {
+            void handleEquipSelect(equipEntry, slot);
+          }}
         />
       )}
     </div>

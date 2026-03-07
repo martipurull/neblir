@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { createUser, getUserByEmail } from "./app/lib/prisma/user";
-import { AdapterUser } from "next-auth/adapters";
+import type { AdapterUser } from "next-auth/adapters";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],

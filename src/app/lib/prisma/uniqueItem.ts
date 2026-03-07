@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 
 export async function createUniqueItem(
@@ -69,6 +69,16 @@ function applyUniqueItemOverrides(
     ...(uniqueItem.equippableOverride != null && {
       equippable: uniqueItem.equippableOverride,
     }),
+    ...("equipSlotTypesOverride" in uniqueItem &&
+      uniqueItem.equipSlotTypesOverride != null && {
+        equipSlotTypes: Array.isArray(uniqueItem.equipSlotTypesOverride)
+          ? (uniqueItem.equipSlotTypesOverride as string[])
+          : [],
+      }),
+    ...("equipSlotCostOverride" in uniqueItem &&
+      uniqueItem.equipSlotCostOverride != null && {
+        equipSlotCost: uniqueItem.equipSlotCostOverride as number,
+      }),
   };
 }
 

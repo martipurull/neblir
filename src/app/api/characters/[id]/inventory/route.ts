@@ -1,9 +1,9 @@
 import {
-  createItemCharacter,
+  addOrIncrementItemCharacter,
   getCharacterInventory,
 } from "@/app/lib/prisma/itemCharacter";
 import { addToInventorySchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -106,11 +106,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    await createItemCharacter({
-      characterId: id,
-      sourceType: data.sourceType,
-      itemId: data.itemId,
-    });
+    await addOrIncrementItemCharacter(id, data.sourceType, data.itemId);
 
     return NextResponse.json("Item added to inventory", { status: 201 });
   } catch (error) {

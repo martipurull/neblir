@@ -17,7 +17,9 @@ const ErrorState: React.FC<ErrorStateProps> = ({
       {onRetry && (
         <button
           type="button"
-          onClick={onRetry}
+          onClick={() => {
+            void onRetry?.();
+          }}
           className="rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10"
         >
           {retryLabel}

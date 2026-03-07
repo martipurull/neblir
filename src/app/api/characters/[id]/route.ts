@@ -1,5 +1,5 @@
 import { deleteCharacter, getCharacter } from "@/app/lib/prisma/character";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";

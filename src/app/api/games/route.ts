@@ -1,5 +1,5 @@
 import { createGame, getUserGames } from "@/app/lib/prisma/game";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameCreateSchema } from "@/app/lib/types/game";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";

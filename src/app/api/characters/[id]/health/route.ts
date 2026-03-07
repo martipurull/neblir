@@ -2,7 +2,7 @@ import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { healthUpdateSchema } from "./schema";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";

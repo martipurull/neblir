@@ -1,8 +1,8 @@
 import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import logger from "@/logger";
 import { serializeError } from "../../shared/errors";

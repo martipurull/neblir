@@ -1,18 +1,13 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
-import type { EquipSlot } from "@/app/lib/types/character";
+import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
+import { DISPLAY_SLOTS, getApiSlotsForDisplay } from "@/app/lib/equipUtils";
 import type { KeyedMutator } from "swr";
 import React, { useMemo, useRef, useState } from "react";
 import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
-
-const EQUIP_SLOTS: { slot: EquipSlot; label: string }[] = [
-  { slot: "HAND", label: "Hand Equip" },
-  { slot: "FOOT", label: "Foot Equip" },
-  { slot: "BODY", label: "Body Equip" },
-];
-const MAX_PER_SLOT = 2;
 
 export interface HeaderStatsCarouselRowProps {
   combatInformation: CharacterDetail["combatInformation"];
@@ -29,42 +24,58 @@ export function HeaderStatsCarouselRow({
 }: HeaderStatsCarouselRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pickerSlot, setPickerSlot] = useState<EquipSlot | null>(null);
+  const [pickerSlot, setPickerSlot] = useState<DisplayEquipSlot | null>(null);
 
-  const slotValues = useMemo(() => {
+  const slotValues = useMemo((): Record<DisplayEquipSlot, React.ReactNode> => {
     if (!character?.inventory) {
-      return { HAND: "—", FOOT: "—", BODY: "—" } as const;
+      return { HAND: "—", FOOT: "—", BODY_HEAD: "—" };
     }
-    const values: Record<EquipSlot, string> = {
+    const values: Record<DisplayEquipSlot, React.ReactNode> = {
       HAND: "—",
       FOOT: "—",
-      BODY: "—",
+      BODY_HEAD: "—",
     };
-    for (const slot of ["HAND", "FOOT", "BODY"] as const) {
-      const inSlot = character.inventory!.filter((e) => e.equipSlot === slot);
-      const names = inSlot
-        .slice(0, MAX_PER_SLOT)
-        .map((e) => e.customName ?? e.item?.name ?? "?");
-      values[slot] = names.length > 0 ? names.join(", ") : "—";
-    }
-    return values;
-  }, [character?.inventory]);
-
-  const slotCounts = useMemo(() => {
-    if (!character?.inventory) {
-      return { HAND: 0, FOOT: 0, BODY: 0 } as const;
-    }
-    const counts: Record<EquipSlot, number> = {
-      HAND: 0,
-      FOOT: 0,
-      BODY: 0,
-    };
-    for (const entry of character.inventory) {
-      if (entry.equipSlot && counts[entry.equipSlot] !== undefined) {
-        counts[entry.equipSlot]++;
+    for (const displaySlot of ["HAND", "FOOT", "BODY_HEAD"] as const) {
+      const apiSlots = getApiSlotsForDisplay(displaySlot);
+      const maxItems = displaySlot === "BODY_HEAD" ? 4 : 2;
+      const names: string[] = [];
+      for (const entry of character.inventory!) {
+        const name = entry.customName ?? entry.item?.name ?? "?";
+        for (const apiSlot of apiSlots) {
+          const count = (entry.equipSlots ?? []).filter(
+            (s) => s === apiSlot
+          ).length;
+          for (let i = 0; i < count && names.length < maxItems; i++) {
+            names.push(name);
+          }
+        }
+      }
+      if (names.length === 0) {
+        values[displaySlot] = "—";
+      } else {
+        const maxLen = Math.max(...names.map((n) => n.length));
+        const textSize =
+          maxLen > 14 || names.length > 3
+            ? "text-[9px]"
+            : maxLen > 8 || names.length > 1
+              ? "text-[10px]"
+              : "text-xs";
+        values[displaySlot] = (
+          <div className="flex min-w-0 w-full max-w-full flex-col items-center gap-0 overflow-hidden">
+            {names.map((name, i) => (
+              <span
+                key={i}
+                className={`block w-full min-w-0 truncate text-center ${textSize}`}
+                title={name}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        );
       }
     }
-    return counts;
+    return values;
   }, [character?.inventory]);
 
   const handleScroll = () => {
@@ -78,7 +89,7 @@ export function HeaderStatsCarouselRow({
   const canEquip = !!character && !!mutate;
 
   return (
-    <div className="mt-1.5 w-full max-w-xs">
+    <div className="mt-1.5 w-full max-w-xs overflow-hidden">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -102,22 +113,17 @@ export function HeaderStatsCarouselRow({
             compact
           />
         </div>
-        <div className="grid min-w-full shrink-0 grid-cols-3 gap-1.5 snap-start snap-always">
-          {EQUIP_SLOTS.map(({ slot, label }) => {
-            const full = canEquip && slotCounts[slot] >= MAX_PER_SLOT;
-            return (
-              <StatCell
-                key={slot}
-                label={label}
-                value={slotValues[slot]}
-                compact
-                onClick={
-                  canEquip && !full ? () => setPickerSlot(slot) : undefined
-                }
-                disabled={canEquip && full}
-              />
-            );
-          })}
+        <div className="grid min-w-full shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 overflow-hidden snap-start snap-always [&>*]:min-w-0">
+          {DISPLAY_SLOTS.map(({ slot, label }) => (
+            <StatCell
+              key={slot}
+              label={label}
+              value={slotValues[slot]}
+              compact
+              alignTop
+              onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+            />
+          ))}
         </div>
       </div>
       <div className="mt-1 flex justify-center gap-1" aria-hidden>

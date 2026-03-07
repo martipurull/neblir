@@ -13,7 +13,7 @@ export async function deleteCurrentUser(): Promise<void> {
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // Keep fallback error when response body is not JSON.
     }

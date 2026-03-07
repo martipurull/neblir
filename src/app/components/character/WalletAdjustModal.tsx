@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -158,7 +159,9 @@ export function WalletAdjustModal({
 
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => {
+            void handleSubmit();
+          }}
           disabled={!isValid || subtractExceedsBalance || isSubmitting}
           className="mt-5 w-full rounded-md border-2 border-white bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
         >

@@ -1,5 +1,5 @@
 import { createItem, getItems } from "@/app/lib/prisma/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";

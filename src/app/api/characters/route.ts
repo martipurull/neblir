@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { characterCreationRequestSchema } from "./schemas";
 import { computeCharacterRequestData } from "./parsing";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
-import { Prisma } from "@prisma/client";
+import type { AuthNextRequest } from "@/app/lib/types/api";
+import type { Prisma } from "@prisma/client";
 import { getUser } from "@/app/lib/prisma/user";
 import {
   createCharacterWithRelations,
@@ -61,7 +61,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
   const user = request.auth?.user;
 
   try {
-    if (!user || !user.id) {
+    if (!user?.id) {
       logger.error({
         method: "POST",
         route: "/api/characters",

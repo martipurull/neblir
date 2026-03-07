@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./client";
-import { PathName } from "@prisma/client";
+import type { PathName } from "@prisma/client";
 
 export async function createFeature(data: Prisma.FeatureUncheckedCreateInput) {
   return prisma.feature.create({ data });

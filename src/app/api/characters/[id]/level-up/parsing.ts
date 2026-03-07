@@ -1,11 +1,12 @@
-import { levelUpCharacterBodySchema, LevelUpRequest } from "./schema";
+import type { LevelUpRequest } from "./schema";
+import { levelUpCharacterBodySchema } from "./schema";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import {
   getCharacterFeatures,
   getFeatureCharacterByFeatureId,
 } from "@/app/lib/prisma/featureCharacter";
 import { getCharacterPaths } from "@/app/lib/prisma/pathCharacter";
-import { Character } from "@/app/lib/types/character";
+import type { Character } from "@/app/lib/types/character";
 
 /**
  * Character shape used by level-up parsing. Only the fields actually read are required,
@@ -26,7 +27,7 @@ export async function areFeaturesValidForLevelUp(
   characterId: string,
   featureIds?: string[]
 ) {
-  if (!featureIds || !featureIds.length) {
+  if (!featureIds?.length) {
     return false;
   }
   const existingFeatures = await getFeatures(featureIds);
@@ -49,7 +50,7 @@ export async function areIncrementFeaturesValid(
   characterId: string,
   featureIds?: string[]
 ) {
-  if (!featureIds || !featureIds.length) {
+  if (!featureIds?.length) {
     return false;
   }
   const existingFeatures = await getFeatures(featureIds);
@@ -69,7 +70,7 @@ export async function areIncrementFeaturesValid(
 export function parseAttributeChanges(
   attributeChanges: LevelUpRequest["attributeChanges"]
 ) {
-  if (!attributeChanges || !attributeChanges.length) {
+  if (!attributeChanges?.length) {
     return undefined;
   }
   return attributeChanges.map((change) => {
@@ -175,36 +176,34 @@ export function parseCharacterBodyToCompute(
       }
     : existingCharacter.learnedSkills;
 
-  const innateAttributes =
-    attributeChanges && attributeChanges.length
-      ? {
-          ...existingCharacter.innateAttributes,
-          ...attributeChanges.reduce(
-            (acc, change) => {
-              const fromCurrent =
-                (
-                  existingCharacter.innateAttributes[
-                    change.from
-                      .attribute as keyof typeof existingCharacter.innateAttributes
-                  ] as Record<string, number>
-                )[change.from.property] ?? 2;
-              const toCurrent =
-                (
-                  existingCharacter.innateAttributes[
-                    change.to
-                      .attribute as keyof typeof existingCharacter.innateAttributes
-                  ] as Record<string, number>
-                )[change.to.property] ?? 1;
-              acc[`${change.from.attribute}.${change.from.property}`] =
-                fromCurrent - 1;
-              acc[`${change.to.attribute}.${change.to.property}`] =
-                toCurrent + 1;
-              return acc;
-            },
-            {} as Record<string, number>
-          ),
-        }
-      : existingCharacter.innateAttributes;
+  const innateAttributes = attributeChanges?.length
+    ? {
+        ...existingCharacter.innateAttributes,
+        ...attributeChanges.reduce(
+          (acc, change) => {
+            const fromCurrent =
+              (
+                existingCharacter.innateAttributes[
+                  change.from
+                    .attribute as keyof typeof existingCharacter.innateAttributes
+                ] as Record<string, number>
+              )[change.from.property] ?? 2;
+            const toCurrent =
+              (
+                existingCharacter.innateAttributes[
+                  change.to
+                    .attribute as keyof typeof existingCharacter.innateAttributes
+                ] as Record<string, number>
+              )[change.to.property] ?? 1;
+            acc[`${change.from.attribute}.${change.from.property}`] =
+              fromCurrent - 1;
+            acc[`${change.to.attribute}.${change.to.property}`] = toCurrent + 1;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
+      }
+    : existingCharacter.innateAttributes;
 
   const updateBody = {
     generalInformation: {

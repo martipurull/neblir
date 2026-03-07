@@ -1,6 +1,6 @@
 import { getGame, deleteGame, updateGame } from "@/app/lib/prisma/game";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
 import logger from "@/logger";

@@ -1,4 +1,5 @@
-import { CurrentUser, currentUserSchema } from "@/app/lib/types/user";
+import type { CurrentUser } from "@/app/lib/types/user";
+import { currentUserSchema } from "@/app/lib/types/user";
 import useSWR from "swr";
 
 type UseUserResult = {
@@ -25,7 +26,7 @@ export function useUser(): UseUserResult {
   return {
     user: parseResult.success ? parseResult.data : null,
     loading: isLoading,
-    error: payloadError || (error instanceof Error ? error.message : null),
+    error: payloadError ?? (error instanceof Error ? error.message : null),
     refetch,
   };
 }

@@ -1,11 +1,29 @@
-import { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
-import { ObjectId } from "mongodb";
+import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
 import { prisma } from "./client";
 
 export async function createItemCharacter(
   data: Prisma.ItemCharacterUncheckedCreateInput
 ) {
   return prisma.itemCharacter.create({ data });
+}
+
+export async function addOrIncrementItemCharacter(
+  characterId: string,
+  sourceType: ItemSourceType,
+  itemId: string
+) {
+  const existing = await prisma.itemCharacter.findFirst({
+    where: { characterId, sourceType, itemId },
+  });
+  if (existing) {
+    return prisma.itemCharacter.update({
+      where: { id: existing.id },
+      data: { quantity: { increment: 1 } },
+    });
+  }
+  return prisma.itemCharacter.create({
+    data: { characterId, sourceType, itemId, quantity: 1 },
+  });
 }
 
 async function resolveItem(sourceType: ItemSourceType, itemId: string) {
@@ -87,6 +105,16 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.equippableOverride != null && {
           equippable: uniqueItem.equippableOverride,
         }),
+        ...("equipSlotTypesOverride" in uniqueItem &&
+          uniqueItem.equipSlotTypesOverride != null && {
+            equipSlotTypes: Array.isArray(uniqueItem.equipSlotTypesOverride)
+              ? (uniqueItem.equipSlotTypesOverride as string[])
+              : [],
+          }),
+        ...("equipSlotCostOverride" in uniqueItem &&
+          uniqueItem.equipSlotCostOverride != null && {
+            equipSlotCost: uniqueItem.equipSlotCostOverride as number,
+          }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,
         _uniqueItemId: uniqueItem.id,

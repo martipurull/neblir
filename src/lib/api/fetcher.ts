@@ -16,7 +16,7 @@ export async function apiFetcher<T>(url: string): Promise<T> {
     try {
       const errorPayload = (await response.json()) as ApiErrorPayload;
       errorMessage =
-        errorPayload.details || errorPayload.message || errorMessage;
+        errorPayload.details ?? errorPayload.message ?? errorMessage;
     } catch {
       // Keep fallback error message when response body is not JSON.
     }

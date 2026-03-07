@@ -1,6 +1,12 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
+import {
+  getArmourDisplayFromInventory,
+  getAttackModifierArrays,
+  getEffectiveCombatMods,
+} from "@/app/lib/equipCombatUtils";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
@@ -10,6 +16,7 @@ import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
 import { StatCell } from "./StatCell";
 import { StatEditModal, type StatEditType } from "./StatEditModal";
+import { AttackRollModal, type AttackType } from "./AttackRollModal";
 
 type HealthPartial = {
   currentPhysicalHealth?: number;
@@ -47,6 +54,9 @@ export function CharacterSummaryHeader({
   className,
 }: CharacterSummaryHeaderProps) {
   const [statModalOpen, setStatModalOpen] = useState<StatEditType | null>(null);
+  const [attackRollModal, setAttackRollModal] = useState<AttackType | null>(
+    null
+  );
   const { generalInformation, health, combatInformation } = character;
   const name = `${generalInformation.name}${generalInformation.surname ? ` ${generalInformation.surname}` : ""}`;
   const pathsLabel =
@@ -64,9 +74,18 @@ export function CharacterSummaryHeader({
     maxMental: health.maxMentalHealth,
   });
 
+  const armourDisplay = getArmourDisplayFromInventory(
+    character.inventory ?? undefined,
+    combatInformation.armourCurrentHP
+  );
+  const effectiveMods = getEffectiveCombatMods(character);
+  const attackModArrays = getAttackModifierArrays(character);
+
+  const formatAttackMod = (options: { mod: number }[]) =>
+    options.map((o) => fmt(o.mod)).join(" / ");
   const armourStyles = useArmourStyles(
-    combatInformation.armourCurrentHP,
-    combatInformation.armourMaxHP
+    armourDisplay.armourCurrentHP,
+    armourDisplay.armourMaxHP
   );
 
   const { value: reactionsValue, disabled: reactionsDisabled } =
@@ -122,44 +141,45 @@ export function CharacterSummaryHeader({
           />
           <StatCell
             label="Armour"
-            value={
-              combatInformation.armourMaxHP > 0
-                ? `${combatInformation.armourCurrentHP}/${combatInformation.armourMaxHP}`
-                : "—"
-            }
-            subValue={fmt(combatInformation.armourMod)}
+            value={`${armourDisplay.armourCurrentHP}/${armourDisplay.armourMaxHP}`}
+            subValue={fmt(armourDisplay.armourMod)}
             borderClassName={armourStyles.borderClassName}
             valueClassName={armourStyles.valueClassName}
             subValueClassName={armourStyles.subValueClassName}
             onClick={
-              onArmourUpdate ? () => setStatModalOpen("armour") : undefined
+              armourDisplay.armourMaxHP > 0 && onArmourUpdate
+                ? () => setStatModalOpen("armour")
+                : undefined
             }
           />
           <StatCell
             label="Melee Atk"
-            value={fmt(combatInformation.meleeAttackMod)}
+            value={formatAttackMod(attackModArrays.melee)}
             compact
+            onClick={() => setAttackRollModal("melee")}
           />
           <StatCell
             label="Range Atk"
-            value={fmt(combatInformation.rangeAttackMod)}
+            value={formatAttackMod(attackModArrays.range)}
             compact
+            onClick={() => setAttackRollModal("range")}
           />
           <StatCell
             label="Throw Atk"
-            value={fmt(combatInformation.throwAttackMod)}
+            value={formatAttackMod(attackModArrays.throw)}
             compact
+            onClick={() => setAttackRollModal("throw")}
           />
           <StatCell
             label="Melee Def"
-            value={fmt(combatInformation.meleeDefenceMod)}
+            value={fmt(effectiveMods.meleeDefenceMod)}
             compact
             onClick={onUseReaction}
             disabled={reactionsDisabled}
           />
           <StatCell
             label="Range Def"
-            value={fmt(combatInformation.rangeDefenceMod)}
+            value={fmt(effectiveMods.rangeDefenceMod)}
             compact
             onClick={onUseReaction}
             disabled={reactionsDisabled}
@@ -220,13 +240,13 @@ export function CharacterSummaryHeader({
             }
           />
         )}
-        {onArmourUpdate && (
+        {onArmourUpdate && armourDisplay.armourMaxHP > 0 && (
           <StatEditModal
             isOpen={statModalOpen === "armour"}
             onClose={() => setStatModalOpen(null)}
             type="armour"
-            currentHP={combatInformation.armourCurrentHP}
-            maxHP={combatInformation.armourMaxHP}
+            currentHP={armourDisplay.armourCurrentHP}
+            maxHP={armourDisplay.armourMaxHP}
             onUpdate={(u) => {
               if (u.currentHP != null) {
                 onArmourUpdate({ armourCurrentHP: u.currentHP });
@@ -234,6 +254,18 @@ export function CharacterSummaryHeader({
             }}
           />
         )}
+        <AttackRollModal
+          isOpen={attackRollModal !== null}
+          onClose={() => setAttackRollModal(null)}
+          attackType={attackRollModal ?? "melee"}
+          options={
+            attackRollModal === "melee"
+              ? attackModArrays.melee
+              : attackRollModal === "range"
+                ? attackModArrays.range
+                : attackModArrays.throw
+          }
+        />
       </div>
     </header>
   );

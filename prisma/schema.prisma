@@ -54,6 +54,7 @@ enum EquipSlot {
   HAND
   FOOT
   BODY
+  HEAD
 }
 
 enum PathName {
@@ -298,7 +299,7 @@ model ItemCharacter {
   currentAmmo    Int?
   currentCharges Int?
   isEquipped     Boolean     @default(false)
-  equipSlot      EquipSlot?
+  equipSlots     String[]    @default([])
   customName     String?
   status         ItemStatus  @default(FUNCTIONAL)
 
@@ -367,6 +368,8 @@ model Item {
   usage                String?
   weight               Float
   equippable           Boolean                    @default(false)
+  equipSlotTypes       String[]                   @default([])
+  equipSlotCost        Int?
 }
 
 model CustomItem {
@@ -392,6 +395,8 @@ model CustomItem {
   usage                String?
   weight               Float
   equippable           Boolean? @default(false)
+  equipSlotTypes       String[]                   @default([])
+  equipSlotCost        Int?
 }
 
 model UniqueItem {
@@ -420,6 +425,8 @@ model UniqueItem {
   notesOverride            String?
   specialTag               String?  // e.g. "AMPLIFIED", "PROTOTYPE"
   equippableOverride       Boolean?
+  equipSlotTypesOverride   Json?  // String[] when set; null = use template
+  equipSlotCostOverride    Int?
 }
 
 model Feature {

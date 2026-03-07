@@ -61,6 +61,18 @@ export const weaponDamageTypeSchema = z.enum([
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
 export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;
 
+/** Slot types an item can be equipped to (HAND, FOOT, BODY, HEAD) */
+export const equipSlotTypeSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+export type EquipSlotType = z.infer<typeof equipSlotTypeSchema>;
+
+/** Cost in slots when equipping (0, 1, or 2) */
+export const equipSlotCostSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+]);
+export type EquipSlotCost = z.infer<typeof equipSlotCostSchema>;
+
 export const itemSourceTypeSchema = z.enum([
   "GLOBAL_ITEM",
   "CUSTOM_ITEM",
@@ -116,6 +128,8 @@ const baseItemSchema = z.object({
   notes: z.string().optional(),
   weight: z.number(), // required for global Item model
   equippable: z.boolean().optional().default(false),
+  equipSlotTypes: z.array(equipSlotTypeSchema).optional().default([]),
+  equipSlotCost: equipSlotCostSchema.optional(),
   defenceMeleeBonus: z.number().optional(),
   defenceRangeBonus: z.number().optional(),
   gridAttackBonus: z.number().optional(),
@@ -174,6 +188,8 @@ export const customItemCreateSchema = z.object({
   notes: z.string().optional(),
   usage: z.string().optional(),
   equippable: z.boolean().optional(),
+  equipSlotTypes: z.array(equipSlotTypeSchema).optional(),
+  equipSlotCost: equipSlotCostSchema.optional(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -206,6 +222,8 @@ const uniqueItemOverrideFieldsSchema = z.object({
   notesOverride: z.string().optional(),
   specialTag: z.string().optional(),
   equippableOverride: z.boolean().optional(),
+  equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
+  equipSlotCostOverride: equipSlotCostSchema.optional(),
 });
 
 export const uniqueItemCreateSchema = uniqueItemOverrideFieldsSchema;
