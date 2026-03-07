@@ -77,6 +77,7 @@ export const itemCharacterSchema = z.object({
   equipSlots: z.array(equipSlotSchema).optional().default([]),
   customName: z.string().optional().nullable(),
   status: itemStatusSchema,
+  itemLocation: z.string().optional(),
   item: resolvedItemSchema.nullable(),
 });
 

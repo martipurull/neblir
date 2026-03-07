@@ -1,4 +1,5 @@
 import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
+import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
 
 export async function createItemCharacter(
@@ -22,7 +23,13 @@ export async function addOrIncrementItemCharacter(
     });
   }
   return prisma.itemCharacter.create({
-    data: { characterId, sourceType, itemId, quantity: 1 },
+    data: {
+      characterId,
+      sourceType,
+      itemId,
+      quantity: 1,
+      itemLocation: ITEM_LOCATION_CARRIED,
+    },
   });
 }
 

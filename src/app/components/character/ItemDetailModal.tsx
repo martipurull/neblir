@@ -1,8 +1,15 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import {
+  ITEM_LOCATION_CARRIED,
+  isItemCarried,
+} from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import { deleteCharacterInventoryEntry } from "@/lib/api/items";
+import {
+  deleteCharacterInventoryEntry,
+  updateCharacterInventoryEntry,
+} from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
 import React, { useState } from "react";
 
@@ -29,6 +36,31 @@ export function ItemDetailModal({
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [isSettingLocation, setIsSettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [leaveLocationInput, setLeaveLocationInput] = useState("");
+
+  const carried = isItemCarried(entry);
+  const displayLocation = carried ? "On hand" : (entry.itemLocation ?? "—");
+
+  const handleSetLocation = async (itemLocation: string) => {
+    setLocationError(null);
+    setIsSettingLocation(true);
+    try {
+      await updateCharacterInventoryEntry(characterId, entry.id, {
+        action: "setLocation",
+        itemLocation,
+      });
+      await mutate();
+      setLeaveLocationInput("");
+    } catch (e) {
+      setLocationError(
+        e instanceof Error ? e.message : "Failed to update location"
+      );
+    } finally {
+      setIsSettingLocation(false);
+    }
+  };
 
   const handleRemove = async () => {
     setRemoveError(null);
@@ -121,6 +153,52 @@ export function ItemDetailModal({
               </span>
               <p className="mt-0.5 text-white">{entry.status}</p>
             </div>
+            <div>
+              <span className="text-white/60 uppercase tracking-wider">
+                Location
+              </span>
+              <p className="mt-0.5 text-white">{displayLocation}</p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-col gap-2 rounded border border-white/20 p-3">
+            <span className="block text-xs font-medium uppercase tracking-wider text-white/70">
+              Change location
+            </span>
+            {carried ? (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={leaveLocationInput}
+                  onChange={(e) => setLeaveLocationInput(e.target.value)}
+                  placeholder="e.g. Safe house, Car trunk"
+                  className="rounded border border-white/30 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+                  aria-label="Where you left the item"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const loc = leaveLocationInput.trim();
+                    if (loc) void handleSetLocation(loc);
+                  }}
+                  disabled={!leaveLocationInput.trim() || isSettingLocation}
+                  className="rounded border border-white/30 bg-transparent px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+                >
+                  {isSettingLocation ? "Updating…" : "Leave somewhere"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void handleSetLocation(ITEM_LOCATION_CARRIED)}
+                disabled={isSettingLocation}
+                className="rounded border border-white/30 bg-transparent px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+              >
+                {isSettingLocation ? "Updating…" : "Take with you"}
+              </button>
+            )}
+            {locationError && (
+              <p className="text-sm text-neblirDanger-400">{locationError}</p>
+            )}
           </div>
           {item?.equippable && (
             <div>

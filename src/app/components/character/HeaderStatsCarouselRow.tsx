@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import { DISPLAY_SLOTS, getApiSlotsForDisplay } from "@/app/lib/equipUtils";
@@ -27,7 +28,8 @@ export function HeaderStatsCarouselRow({
   const [pickerSlot, setPickerSlot] = useState<DisplayEquipSlot | null>(null);
 
   const slotValues = useMemo((): Record<DisplayEquipSlot, React.ReactNode> => {
-    if (!character?.inventory) {
+    const carried = getCarriedInventory(character?.inventory ?? undefined);
+    if (!carried.length) {
       return { HAND: "—", FOOT: "—", BODY_HEAD: "—" };
     }
     const values: Record<DisplayEquipSlot, React.ReactNode> = {
@@ -39,7 +41,7 @@ export function HeaderStatsCarouselRow({
       const apiSlots = getApiSlotsForDisplay(displaySlot);
       const maxItems = displaySlot === "BODY_HEAD" ? 4 : 2;
       const names: string[] = [];
-      for (const entry of character.inventory!) {
+      for (const entry of carried) {
         const name = entry.customName ?? entry.item?.name ?? "?";
         for (const apiSlot of apiSlots) {
           const count = (entry.equipSlots ?? []).filter(
@@ -89,14 +91,14 @@ export function HeaderStatsCarouselRow({
   const canEquip = !!character && !!mutate;
 
   return (
-    <div className="mt-1.5 w-full max-w-xs overflow-hidden">
+    <div className="mt-1.5 w-full max-w-xs min-w-0 overflow-hidden">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory gap-1.5 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
+        className="flex w-full min-w-0 overflow-x-auto snap-x snap-mandatory gap-1.5 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
         style={{ scrollSnapType: "x mandatory" }}
       >
-        <div className="grid min-w-full shrink-0 grid-cols-3 gap-1.5 snap-start snap-always">
+        <div className="grid w-full min-w-0 shrink-0 grid-cols-3 gap-1.5 snap-start snap-always">
           <StatCell
             label="GRID Atk"
             value={fmt(combatInformation.GridAttackMod)}
@@ -113,7 +115,7 @@ export function HeaderStatsCarouselRow({
             compact
           />
         </div>
-        <div className="grid min-w-full shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 overflow-hidden snap-start snap-always [&>*]:min-w-0">
+        <div className="grid w-full min-w-0 shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 overflow-hidden snap-start snap-always [&>*]:min-w-0 [&>*]:overflow-hidden">
           {DISPLAY_SLOTS.map(({ slot, label }) => (
             <StatCell
               key={slot}

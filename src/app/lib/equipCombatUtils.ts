@@ -1,7 +1,9 @@
+import { getCarriedInventory } from "./constants/inventory";
 import type { CharacterDetail } from "./types/character";
 
 type InventoryEntry = {
   equipSlots?: string[];
+  itemLocation?: string | null;
   item?: {
     attackRoll?: string[] | readonly string[];
     attackMeleeBonus?: number | null;
@@ -46,6 +48,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
   throw: AttackModifierOption[];
 } {
   const { innateAttributes, learnedSkills, inventory } = character;
+  const carried = getCarriedInventory(inventory ?? undefined);
   const gs = learnedSkills.generalSkills;
   const baseMelee = innateAttributes.strength.bruteForce + gs.melee;
   const baseRange = innateAttributes.dexterity.manual + gs.aim;
@@ -79,7 +82,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
   const range: AttackModifierOption[] = [improvisedRange];
   const throwMods: AttackModifierOption[] = [unarmedThrow];
 
-  if (!inventory?.length) {
+  if (!carried.length) {
     return {
       melee: [unarmedMelee],
       range: [improvisedRange],
@@ -87,7 +90,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
     };
   }
 
-  for (const entry of inventory) {
+  for (const entry of carried) {
     const slots = entry.equipSlots ?? [];
     const handCount = slots.filter((s) => s === "HAND").length;
     if (handCount === 0 || !entry.item) continue;
@@ -139,14 +142,15 @@ export function getAttackModifierArrays(character: CharacterDetail): {
   };
 }
 
-/** Armour defence bonuses from BODY/HEAD-equipped items */
+/** Armour defence bonuses from BODY/HEAD-equipped items (carried only) */
 export function getArmourBonusesFromInventory(
   inventory: InventoryEntry[] | undefined
 ): { melee: number; range: number } {
   const result = { melee: 0, range: 0 };
-  if (!inventory?.length) return result;
+  const carried = getCarriedInventory(inventory);
+  if (!carried.length) return result;
 
-  for (const entry of inventory) {
+  for (const entry of carried) {
     const slots = entry.equipSlots ?? [];
     const bodyHeadCount = slots.filter(
       (s) => s === "BODY" || s === "HEAD"
@@ -216,6 +220,7 @@ export type CharacterForCombatSync = {
   learnedSkills: CharacterDetail["learnedSkills"];
   combatInformation?: { armourCurrentHP?: number };
   inventory?: Array<{
+    itemLocation?: string | null;
     equipSlots?: string[];
     item?: {
       attackRoll?: string[] | readonly string[];
@@ -241,8 +246,9 @@ export function computeCombatInfoUpdateForCharacter(
   meleeDefenceMod: number;
   rangeDefenceMod: number;
 } {
+  const carried = getCarriedInventory(character.inventory ?? undefined);
   const armourDisplay = getArmourDisplayFromInventory(
-    character.inventory ?? undefined,
+    carried,
     character.combatInformation?.armourCurrentHP ?? 0
   );
   const mods = getEffectiveCombatMods(character as CharacterDetail);

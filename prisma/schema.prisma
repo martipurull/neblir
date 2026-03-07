@@ -302,6 +302,7 @@ model ItemCharacter {
   equipSlots     String[]    @default([])
   customName     String?
   status         ItemStatus  @default(FUNCTIONAL)
+  itemLocation   String      @default("carried")
 
   @@index([characterId])
   @@index([sourceType, itemId])

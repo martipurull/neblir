@@ -67,7 +67,8 @@ export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD";
 export type UpdateInventoryEntryBody =
   | { action: "equip"; slot: EquipSlot }
   | { action: "unequip"; slot: EquipSlot }
-  | { action: "unequipAll" };
+  | { action: "unequipAll" }
+  | { action: "setLocation"; itemLocation: string };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,

@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
@@ -59,22 +60,22 @@ export function EquipItemPickerModal({
 }: EquipItemPickerModalProps) {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
-  const inventory = useMemo(
-    () => character.inventory ?? [],
+  const carriedInventory = useMemo(
+    () => getCarriedInventory(character.inventory ?? undefined),
     [character.inventory]
   );
   const apiSlots = getApiSlotsForDisplay(slot);
 
   const equippableEntries = useMemo(
     () =>
-      inventory.filter(
+      carriedInventory.filter(
         (entry) =>
           entry.item?.equippable === true &&
           apiSlots.some((s) =>
             itemCanEquipInSlot(s, entry.item?.equipSlotTypes ?? undefined)
           )
       ),
-    [inventory, apiSlots]
+    [carriedInventory, apiSlots]
   );
 
   const equippedInstances: { entry: InventoryEntry; apiSlot: EquipSlot }[] = [];
@@ -89,10 +90,10 @@ export function EquipItemPickerModal({
   const _usedCapacity = useMemo(
     () =>
       apiSlots.reduce(
-        (sum, s) => sum + getUsedCapacityInApiSlot(inventory, s),
+        (sum, s) => sum + getUsedCapacityInApiSlot(carriedInventory, s),
         0
       ),
-    [inventory, apiSlots]
+    [carriedInventory, apiSlots]
   );
 
   const entriesAvailableToEquip = equippableEntries.filter(
@@ -107,7 +108,7 @@ export function EquipItemPickerModal({
     for (const apiSlot of apiSlots) {
       if (!itemCanEquipInSlot(apiSlot, entry.item?.equipSlotTypes ?? undefined))
         continue;
-      const used = getUsedCapacityInApiSlot(inventory, apiSlot);
+      const used = getUsedCapacityInApiSlot(carriedInventory, apiSlot);
       if (used + itemCost <= API_SLOT_CAPACITY) return apiSlot;
     }
     return null;

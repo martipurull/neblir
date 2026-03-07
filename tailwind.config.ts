@@ -17,7 +17,6 @@ const config: Config = {
         customPrimaryHover: "#6D597A",
         customSecondary: "#F8ECFF",
         customSecondaryHover: "#F5F0F9",
-        // Inventory weight pill: transparent bg, very subtle pale border + text
         neblirSafe: {
           200: "#bbf7d0",
           400: "#86efac",

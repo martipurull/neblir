@@ -1,3 +1,4 @@
+import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import {
   deleteItemCharacter,
@@ -22,6 +23,10 @@ const patchBodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("equip"), slot: equipSlotSchema }),
   z.object({ action: z.literal("unequip"), slot: equipSlotSchema }),
   z.object({ action: z.literal("unequipAll") }),
+  z.object({
+    action: z.literal("setLocation"),
+    itemLocation: z.string().min(1, "Location is required"),
+  }),
 ]);
 
 const SLOT_CAPACITY = 2;
@@ -29,6 +34,7 @@ const SLOT_CAPACITY = 2;
 type InventoryEntry = {
   equipSlots?: string[];
   item?: { equipSlotTypes?: string[]; equipSlotCost?: number | null } | null;
+  itemLocation?: string | null;
 };
 
 function getUsedCapacityInSlot(
@@ -99,6 +105,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const action = parsed.data.action;
 
     if (action === "equip") {
+      const isCarried =
+        (entry as InventoryEntry).itemLocation === ITEM_LOCATION_CARRIED ||
+        (entry as InventoryEntry).itemLocation == null;
+      if (!isCarried) {
+        return errorResponse(
+          "Only items you are carrying can be equipped",
+          400
+        );
+      }
       const equippable =
         entry.item != null &&
         "equippable" in entry.item &&
@@ -115,10 +130,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         return errorResponse("This item cannot be equipped in that slot", 400);
       }
       const itemCost = itemWithEquip?.equipSlotCost ?? 1;
-      const usedCapacity = getUsedCapacityInSlot(
-        inventory as InventoryEntry[],
-        slot
+      const carriedInventory = (inventory as InventoryEntry[]).filter(
+        (e) =>
+          e.itemLocation === ITEM_LOCATION_CARRIED || e.itemLocation == null
       );
+      const usedCapacity = getUsedCapacityInSlot(carriedInventory, slot);
       if (usedCapacity + itemCost > SLOT_CAPACITY) {
         return errorResponse("That slot does not have enough space", 400);
       }
@@ -144,6 +160,23 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         equipSlots: updatedSlots,
         isEquipped: updatedSlots.length > 0,
       });
+    } else if (action === "setLocation") {
+      const { itemLocation } = parsed.data;
+      const updateData: {
+        itemLocation: string;
+        equipSlots?: string[];
+        isEquipped?: boolean;
+      } = {
+        itemLocation,
+      };
+      if (
+        itemLocation !== ITEM_LOCATION_CARRIED &&
+        (equipSlots?.length ?? 0) > 0
+      ) {
+        updateData.equipSlots = [];
+        updateData.isEquipped = false;
+      }
+      await updateItemCharacter(itemCharacterId, updateData);
     } else {
       await updateItemCharacter(itemCharacterId, {
         equipSlots: [],
