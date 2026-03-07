@@ -22,15 +22,61 @@ export async function addOrIncrementItemCharacter(
       data: { quantity: { increment: 1 } },
     });
   }
+  const maxUses = await getMaxUsesForItem(sourceType, itemId);
   return prisma.itemCharacter.create({
     data: {
       characterId,
       sourceType,
       itemId,
       quantity: 1,
+      currentUses: maxUses ?? 0,
       itemLocation: ITEM_LOCATION_CARRIED,
     },
   });
+}
+
+/** Resolve effective maxUses for an item (template or unique override). */
+export async function getMaxUsesForItem(
+  sourceType: ItemSourceType,
+  itemId: string
+): Promise<number | null> {
+  switch (sourceType) {
+    case "GLOBAL_ITEM": {
+      const item = await prisma.item.findUnique({
+        where: { id: itemId },
+        select: { maxUses: true },
+      });
+      return item?.maxUses ?? null;
+    }
+    case "CUSTOM_ITEM": {
+      const item = await prisma.customItem.findUnique({
+        where: { id: itemId },
+        select: { maxUses: true },
+      });
+      return item?.maxUses ?? null;
+    }
+    case "UNIQUE_ITEM": {
+      const uniqueItem = await prisma.uniqueItem.findUnique({
+        where: { id: itemId },
+        select: { maxUsesOverride: true, itemId: true, sourceType: true },
+      });
+      if (!uniqueItem) return null;
+      if (uniqueItem.maxUsesOverride != null) return uniqueItem.maxUsesOverride;
+      const template =
+        uniqueItem.sourceType === "GLOBAL_ITEM"
+          ? await prisma.item.findUnique({
+              where: { id: uniqueItem.itemId },
+              select: { maxUses: true },
+            })
+          : await prisma.customItem.findUnique({
+              where: { id: uniqueItem.itemId },
+              select: { maxUses: true },
+            });
+      return template?.maxUses ?? null;
+    }
+    default:
+      return null;
+  }
 }
 
 async function resolveItem(sourceType: ItemSourceType, itemId: string) {
@@ -122,6 +168,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
           uniqueItem.equipSlotCostOverride != null && {
             equipSlotCost: uniqueItem.equipSlotCostOverride as number,
           }),
+        ...(uniqueItem.maxUsesOverride != null && {
+          maxUses: uniqueItem.maxUsesOverride,
+        }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,
         _uniqueItemId: uniqueItem.id,

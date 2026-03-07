@@ -2,6 +2,8 @@ import { getCarriedInventory } from "./constants/inventory";
 import type { CharacterDetail } from "./types/character";
 
 type InventoryEntry = {
+  id?: string;
+  currentUses?: number;
   equipSlots?: string[];
   itemLocation?: string | null;
   item?: {
@@ -11,6 +13,7 @@ type InventoryEntry = {
     attackThrowBonus?: number | null;
     defenceMeleeBonus?: number | null;
     defenceRangeBonus?: number | null;
+    maxUses?: number | null;
   } | null;
 };
 
@@ -23,6 +26,8 @@ export type AttackModifierOption = {
   numberOfDice: number;
   /** Dice type (e.g. 6 for d6) */
   diceType: number;
+  /** When set, weapon has limited uses; decrement on attack */
+  itemCharacterId?: string;
 };
 
 function formatWeaponDamage(
@@ -95,6 +100,10 @@ export function getAttackModifierArrays(character: CharacterDetail): {
     const handCount = slots.filter((s) => s === "HAND").length;
     if (handCount === 0 || !entry.item) continue;
 
+    const itemMaxUses = entry.item.maxUses ?? null;
+    const currentUses = entry.currentUses ?? 0;
+    if (itemMaxUses != null && currentUses <= 0) continue;
+
     const roll = entry.item.attackRoll ?? [];
     const meleeBonus = entry.item.attackMeleeBonus ?? 0;
     const rangeBonus = entry.item.attackRangeBonus ?? 0;
@@ -106,6 +115,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
     const damageText = formatWeaponDamage(dmg);
     const numberOfDice = dmg?.numberOfDice ?? 1;
     const diceType = dmg?.diceType ?? 4;
+    const itemCharacterId = entry.id;
 
     for (let i = 0; i < handCount; i++) {
       if (roll.includes("MELEE"))
@@ -115,6 +125,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
           damageText,
           numberOfDice,
           diceType,
+          itemCharacterId,
         });
       if (roll.includes("RANGE"))
         range.push({
@@ -123,6 +134,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
           damageText,
           numberOfDice,
           diceType,
+          itemCharacterId,
         });
       if (roll.includes("THROW"))
         throwMods.push({
@@ -131,6 +143,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
           damageText,
           numberOfDice,
           diceType,
+          itemCharacterId,
         });
     }
   }

@@ -10,8 +10,18 @@ import {
   deleteCharacterInventoryEntry,
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
+import { useImageUrls } from "@/hooks/use-image-urls";
 import type { KeyedMutator } from "swr";
-import React, { useState } from "react";
+import Image from "next/image";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+const USES_DEBOUNCE_MS = 2500;
 
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
@@ -40,8 +50,65 @@ export function ItemDetailModal({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [leaveLocationInput, setLeaveLocationInput] = useState("");
 
+  const rawMax =
+    entry.item && "maxUses" in entry.item
+      ? (entry.item as { maxUses?: number | null }).maxUses
+      : null;
+  const maxUses: number | null = typeof rawMax === "number" ? rawMax : null;
+  const [displayUses, setDisplayUses] = useState(entry.currentUses ?? 0);
+  const usesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingUsesRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setDisplayUses(entry.currentUses ?? 0);
+  }, [entry.currentUses, entry.id]);
+
+  const saveUses = useCallback(async () => {
+    const value = pendingUsesRef.current;
+    pendingUsesRef.current = null;
+    if (value === null || !characterId) return;
+    try {
+      await updateCharacterInventoryEntry(characterId, entry.id, {
+        action: "setCurrentUses",
+        currentUses: value,
+      });
+      await mutate();
+    } catch {
+      await mutate();
+    }
+  }, [characterId, entry.id, mutate]);
+
+  const updateUses = useCallback(
+    (delta: number) => {
+      if (maxUses == null) return;
+      const next = Math.max(0, Math.min(maxUses, (displayUses ?? 0) + delta));
+      setDisplayUses(next);
+      pendingUsesRef.current = next;
+      if (usesTimeoutRef.current) clearTimeout(usesTimeoutRef.current);
+      usesTimeoutRef.current = setTimeout(() => {
+        usesTimeoutRef.current = null;
+        void saveUses();
+      }, USES_DEBOUNCE_MS);
+    },
+    [maxUses, displayUses, saveUses]
+  );
+
   const carried = isItemCarried(entry);
   const displayLocation = carried ? "On hand" : (entry.itemLocation ?? "—");
+
+  const itemImageKey =
+    entry.item && "imageKey" in entry.item
+      ? (entry.item as { imageKey?: string | null }).imageKey
+      : null;
+  const imageEntries = useMemo(
+    () =>
+      itemImageKey ? [{ id: `item-${entry.id}`, imageKey: itemImageKey }] : [],
+    [entry.id, itemImageKey]
+  );
+  const imageUrls = useImageUrls(imageEntries);
+  const itemImageUrl = itemImageKey
+    ? (imageUrls[`item-${entry.id}`] ?? null)
+    : null;
 
   const handleSetLocation = async (itemLocation: string) => {
     setLocationError(null);
@@ -112,9 +179,25 @@ export function ItemDetailModal({
         </div>
 
         <div className="mt-4 space-y-3 text-sm">
-          <div>
-            <span className="text-white/60 uppercase tracking-wider">Name</span>
-            <p className="mt-0.5 text-white">{name}</p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <span className="text-white/60 uppercase tracking-wider">
+                Name
+              </span>
+              <p className="mt-0.5 text-white">{name}</p>
+            </div>
+            {itemImageUrl && (
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
+                <Image
+                  src={itemImageUrl}
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 object-cover object-center"
+                  unoptimized
+                />
+              </div>
+            )}
           </div>
           {item?.description && (
             <div>
@@ -160,6 +243,39 @@ export function ItemDetailModal({
               <p className="mt-0.5 text-white">{displayLocation}</p>
             </div>
           </div>
+          {maxUses != null && (
+            <div className="mt-3 flex flex-col gap-2 rounded border border-white/20 p-3">
+              <span className="block text-xs font-medium uppercase tracking-wider text-white/70">
+                Uses
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateUses(-1)}
+                  disabled={displayUses <= 0}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
+                  aria-label="Decrease uses"
+                >
+                  −
+                </button>
+                <span className="min-w-[4rem] text-center text-lg font-semibold tabular-nums text-white">
+                  {displayUses} / {maxUses}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => updateUses(1)}
+                  disabled={displayUses >= maxUses}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
+                  aria-label="Increase uses"
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-xs text-white/60">
+                Changes save automatically after a short delay.
+              </p>
+            </div>
+          )}
           <div className="mt-3 flex flex-col gap-2 rounded border border-white/20 p-3">
             <span className="block text-xs font-medium uppercase tracking-wider text-white/70">
               Change location

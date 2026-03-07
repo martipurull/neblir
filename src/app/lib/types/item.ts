@@ -130,6 +130,7 @@ const baseItemSchema = z.object({
   equippable: z.boolean().optional().default(false),
   equipSlotTypes: z.array(equipSlotTypeSchema).optional().default([]),
   equipSlotCost: equipSlotCostSchema.optional(),
+  maxUses: z.number().int().positive().optional().nullable(),
   defenceMeleeBonus: z.number().optional(),
   defenceRangeBonus: z.number().optional(),
   gridAttackBonus: z.number().optional(),
@@ -190,6 +191,7 @@ export const customItemCreateSchema = z.object({
   equippable: z.boolean().optional(),
   equipSlotTypes: z.array(equipSlotTypeSchema).optional(),
   equipSlotCost: equipSlotCostSchema.optional(),
+  maxUses: z.number().int().positive().optional().nullable(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -224,6 +226,7 @@ const uniqueItemOverrideFieldsSchema = z.object({
   equippableOverride: z.boolean().optional(),
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
   equipSlotCostOverride: equipSlotCostSchema.optional(),
+  maxUsesOverride: z.number().int().positive().optional().nullable(),
 });
 
 export const uniqueItemCreateSchema = uniqueItemOverrideFieldsSchema;

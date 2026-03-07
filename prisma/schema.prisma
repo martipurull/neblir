@@ -296,8 +296,7 @@ model ItemCharacter {
   itemId     String   @db.ObjectId
 
   quantity       Int         @default(1)
-  currentAmmo    Int?
-  currentCharges Int?
+  currentUses    Int         @default(0)
   isEquipped     Boolean     @default(false)
   equipSlots     String[]    @default([])
   customName     String?
@@ -371,6 +370,7 @@ model Item {
   equippable           Boolean                    @default(false)
   equipSlotTypes       String[]                   @default([])
   equipSlotCost        Int?
+  maxUses              Int?
 }
 
 model CustomItem {
@@ -398,6 +398,7 @@ model CustomItem {
   equippable           Boolean? @default(false)
   equipSlotTypes       String[]                   @default([])
   equipSlotCost        Int?
+  maxUses              Int?
 }
 
 model UniqueItem {
@@ -428,6 +429,7 @@ model UniqueItem {
   equippableOverride       Boolean?
   equipSlotTypesOverride   Json?  // String[] when set; null = use template
   equipSlotCostOverride    Int?
+  maxUsesOverride          Int?
 }
 
 model Feature {

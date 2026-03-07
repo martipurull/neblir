@@ -3,6 +3,7 @@ import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import {
   deleteItemCharacter,
   getCharacterInventory,
+  getMaxUsesForItem,
   updateItemCharacter,
 } from "@/app/lib/prisma/itemCharacter";
 import {
@@ -27,6 +28,11 @@ const patchBodySchema = z.discriminatedUnion("action", [
     action: z.literal("setLocation"),
     itemLocation: z.string().min(1, "Location is required"),
   }),
+  z.object({
+    action: z.literal("setCurrentUses"),
+    currentUses: z.number().int().min(0),
+  }),
+  z.object({ action: z.literal("decrementUse") }),
 ]);
 
 const SLOT_CAPACITY = 2;
@@ -177,6 +183,20 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         updateData.isEquipped = false;
       }
       await updateItemCharacter(itemCharacterId, updateData);
+    } else if (action === "setCurrentUses") {
+      const { currentUses } = parsed.data;
+      const maxUses = await getMaxUsesForItem(entry.sourceType, entry.itemId);
+      if (maxUses != null && currentUses > maxUses) {
+        return errorResponse(
+          `currentUses cannot exceed maxUses (${maxUses})`,
+          400
+        );
+      }
+      await updateItemCharacter(itemCharacterId, { currentUses });
+    } else if (action === "decrementUse") {
+      const current = entry.currentUses ?? 0;
+      const next = Math.max(0, current - 1);
+      await updateItemCharacter(itemCharacterId, { currentUses: next });
     } else {
       await updateItemCharacter(itemCharacterId, {
         equipSlots: [],

@@ -11,12 +11,13 @@ import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
 import { StatCell } from "./StatCell";
 import { StatEditModal, type StatEditType } from "./StatEditModal";
 import { AttackRollModal, type AttackType } from "./AttackRollModal";
+import { updateCharacterInventoryEntry } from "@/lib/api/items";
 
 type HealthPartial = {
   currentPhysicalHealth?: number;
@@ -80,6 +81,21 @@ export function CharacterSummaryHeader({
   );
   const effectiveMods = getEffectiveCombatMods(character);
   const attackModArrays = getAttackModifierArrays(character);
+
+  const handleWeaponUsed = useCallback(
+    async (itemCharacterId: string) => {
+      if (!mutate) return;
+      try {
+        await updateCharacterInventoryEntry(character.id, itemCharacterId, {
+          action: "decrementUse",
+        });
+        await mutate();
+      } catch {
+        await mutate();
+      }
+    },
+    [character.id, mutate]
+  );
 
   const formatAttackMod = (options: { mod: number }[]) =>
     options.map((o) => fmt(o.mod)).join(" / ");
@@ -265,6 +281,7 @@ export function CharacterSummaryHeader({
                 ? attackModArrays.range
                 : attackModArrays.throw
           }
+          onWeaponUsed={handleWeaponUsed}
         />
       </div>
     </header>

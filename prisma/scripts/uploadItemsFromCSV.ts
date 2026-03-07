@@ -8,7 +8,7 @@
  *
  * CSV columns (order flexible via header): name, type, accessType, confCost,
  * costInfo, description, notes, weight, usage, imageKey, equippable,
- * equipSlotTypes, equipSlotCost,
+ * equipSlotTypes, equipSlotCost, maxUses,
  * attackRoll, attackMeleeBonus, attackRangeBonus, attackThrowBonus,
  * defenceMeleeBonus, defenceRangeBonus, gridAttackBonus, gridDefenceBonus,
  * damageDiceType, damageNumberOfDice, damageType, areaType, coneLength,
@@ -20,6 +20,7 @@
  * - equippable: optional; "true", "1", "yes" (case-insensitive) = true, otherwise false.
  * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD.
  * - equipSlotCost: optional; 0, 1, or 2. Omit or leave empty for no value.
+ * - maxUses: optional; positive integer. Omit or leave empty for unlimited/no value.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
  * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
@@ -163,6 +164,9 @@ function csvRowToItem(row: Record<string, string>): Item {
     equipSlotCost: parseEquipSlotCost(
       getColumn(row, "equipSlotCost", "equip_slot_cost", "Equip Slot Cost")
     ),
+    maxUses: parseOptionalInt(
+      getColumn(row, "maxUses", "max_uses", "Max Uses")
+    ),
     defenceMeleeBonus: parseOptionalInt(row.defenceMeleeBonus),
     defenceRangeBonus: parseOptionalInt(row.defenceRangeBonus),
     gridAttackBonus: parseOptionalInt(
@@ -257,6 +261,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     equippable: item.equippable ?? false,
     equipSlotTypes: itemWithEquip.equipSlotTypes ?? [],
     equipSlotCost: itemWithEquip.equipSlotCost ?? null,
+    maxUses: item.maxUses ?? null,
     defenceMeleeBonus: item.defenceMeleeBonus ?? null,
     defenceRangeBonus: item.defenceRangeBonus ?? null,
     gridAttackBonus: item.gridAttackBonus ?? null,

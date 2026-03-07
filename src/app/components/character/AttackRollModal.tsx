@@ -17,6 +17,8 @@ export interface AttackRollModalProps {
   onClose: () => void;
   attackType: AttackType;
   options: AttackModifierOption[];
+  /** When the user rolls with a limited-use weapon, call with its ItemCharacter id to decrement uses */
+  onWeaponUsed?: (itemCharacterId: string) => void | Promise<void>;
 }
 
 function rollD10(): number {
@@ -51,6 +53,7 @@ export function AttackRollModal({
   onClose,
   attackType,
   options,
+  onWeaponUsed,
 }: AttackRollModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [extraDice, setExtraDice] = useState(0);
@@ -81,12 +84,15 @@ export function AttackRollModal({
     }
   }, [isOpen, options]);
 
-  const handleRoll = useCallback(() => {
+  const handleRoll = useCallback(async () => {
+    if (selected?.itemCharacterId && onWeaponUsed) {
+      await onWeaponUsed(selected.itemCharacterId);
+    }
     const count = Math.max(0, selectedMod + extraDice);
     const results = Array.from({ length: count }, () => rollD10());
     results.sort((a, b) => b - a);
     setRollResult(results);
-  }, [selectedMod, extraDice]);
+  }, [selectedMod, extraDice, selected?.itemCharacterId, onWeaponUsed]);
 
   const baseDamageDice = selected?.numberOfDice ?? 0;
   const baseDamageType = selected?.diceType ?? 4;
@@ -282,7 +288,7 @@ export function AttackRollModal({
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={handleRoll}
+              onClick={() => void handleRoll()}
               disabled={totalDice === 0}
               className="flex-1 rounded-md border-2 border-white bg-white py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
             >

@@ -68,7 +68,9 @@ export type UpdateInventoryEntryBody =
   | { action: "equip"; slot: EquipSlot }
   | { action: "unequip"; slot: EquipSlot }
   | { action: "unequipAll" }
-  | { action: "setLocation"; itemLocation: string };
+  | { action: "setLocation"; itemLocation: string }
+  | { action: "setCurrentUses"; currentUses: number }
+  | { action: "decrementUse" };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,

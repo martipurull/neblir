@@ -6,6 +6,7 @@ import type { ItemWithId } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
 
 export interface AddItemToInventoryModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export function AddItemToInventoryModal({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ItemWithId | null>(null);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -54,10 +56,30 @@ export function AddItemToInventoryModal({
     if (isOpen) {
       setSearchQuery("");
       setAddingId(null);
+      setSelectedItem(null);
       setError(null);
       void fetchItems();
     }
   }, [isOpen, fetchItems]);
+
+  const handleAddFromDetail = useCallback(
+    async (item: ItemWithId) => {
+      setAddingId(item.id);
+      try {
+        await addItemToCharacterInventory(character.id, {
+          sourceType: "GLOBAL_ITEM",
+          itemId: item.id,
+        });
+        await mutate();
+        setSelectedItem(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to add item");
+      } finally {
+        setAddingId(null);
+      }
+    },
+    [character.id, mutate]
+  );
 
   const filteredItems = useMemo(() => {
     const filtered = filterItems(items, searchQuery);
@@ -154,7 +176,11 @@ export function AddItemToInventoryModal({
                     key={item.id}
                     className="flex items-center gap-3 py-2.5 first:pt-0"
                   >
-                    <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedItem(item)}
+                      className="min-w-0 flex-1 text-left hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent rounded"
+                    >
                       <p className="text-sm font-medium text-white truncate">
                         {item.name}
                       </p>
@@ -166,7 +192,7 @@ export function AddItemToInventoryModal({
                       <p className="mt-0.5 text-xs text-white/50">
                         {item.weight != null ? `${item.weight} kg` : "—"}
                       </p>
-                    </div>
+                    </button>
                     <div className="shrink-0">
                       <button
                         type="button"
@@ -186,6 +212,14 @@ export function AddItemToInventoryModal({
           )}
         </div>
       </div>
+
+      <BrowseItemDetailModal
+        isOpen={selectedItem != null}
+        onClose={() => setSelectedItem(null)}
+        item={selectedItem}
+        onAddToInventory={handleAddFromDetail}
+        isAdding={addingId === selectedItem?.id}
+      />
     </div>
   );
 }
