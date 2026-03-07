@@ -33,7 +33,7 @@ export function BrowseItemDetailModal({
       item && itemImageKey
         ? [{ id: `browse-${item.id}`, imageKey: itemImageKey }]
         : [],
-    [item?.id, itemImageKey]
+    [item, itemImageKey]
   );
   const imageUrls = useImageUrls(imageEntries);
   const itemImageUrl =

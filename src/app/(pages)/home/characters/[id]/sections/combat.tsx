@@ -3,6 +3,11 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import {
+  getCarriedWeight,
+  getEffectiveMaxCarryWeight,
+  getEffectiveSpeed,
+} from "@/app/lib/carryWeightUtils";
 import React from "react";
 import { KeyValueRow } from "./section-shared";
 
@@ -17,12 +22,40 @@ export function getCombatSection(
   options: CombatSectionOptions
 ): CharacterSectionSlide {
   const combat = character.combatInformation;
+  const inventory = character.inventory ?? undefined;
+  const carriedWeight = getCarriedWeight(inventory);
+  const maxCarryWeight = getEffectiveMaxCarryWeight(
+    character.combatInformation?.maxCarryWeight,
+    character.inventory ?? undefined
+  );
+  const { effectiveSpeed, showStrikethrough } = getEffectiveSpeed(
+    combat.speed,
+    carriedWeight,
+    maxCarryWeight,
+    combat.armourMod ?? 0
+  );
+  const speedValue =
+    showStrikethrough && effectiveSpeed !== combat.speed ? (
+      <span className="inline-flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-baseline gap-1.5">
+          <span className="tabular-nums line-through text-black/60">
+            {combat.speed} m
+          </span>
+          <span className="tabular-nums text-black">{effectiveSpeed} m</span>
+        </span>
+        <span className="rounded border border-neblirDanger-400 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neblirDanger-600">
+          Speed reduced
+        </span>
+      </span>
+    ) : (
+      `${effectiveSpeed} m`
+    );
   const entries = [
     {
       label: "Initiative",
       value: `${combat.initiativeMod >= 0 ? "+" : ""}${combat.initiativeMod}`,
     },
-    { label: "Speed", value: `${combat.speed} m` },
+    { label: "Speed", value: speedValue },
     {
       label: "Reactions per round",
       value: String(combat.reactionsPerRound),

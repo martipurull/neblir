@@ -11,6 +11,11 @@ import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
 } from "@/app/lib/constants/inventory";
+import {
+  getCarriedWeight,
+  getEffectiveMaxCarryWeight,
+  isOverCarryLimit,
+} from "@/app/lib/carryWeightUtils";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
 import React, { useEffect, useMemo, useState } from "react";
@@ -145,11 +150,14 @@ function InventoryList({
 interface InventorySectionContentProps {
   character: CharacterDetail;
   mutate: KeyedMutator<CharacterDetail | null>;
+  /** When false, user cannot add items (e.g. over 150% carry weight) */
+  canAddItems?: boolean;
 }
 
 function InventorySectionContent({
   character,
   mutate,
+  canAddItems = true,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [detailEntry, setDetailEntry] = useState<
@@ -218,14 +226,20 @@ function InventorySectionContent({
 
   return (
     <div className="space-y-0">
-      <div className="mb-2 flex items-center justify-start pb-2">
+      <div className="mb-2 flex flex-col gap-1.5 pb-2">
         <button
           type="button"
           onClick={() => setBrowseModalOpen(true)}
-          className="rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10"
+          disabled={!canAddItems}
+          className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Browse items
         </button>
+        {!canAddItems && (
+          <p className="text-xs text-neblirDanger-600">
+            At 150%+ carry weight you cannot add items. Store some first.
+          </p>
+        )}
       </div>
       {inventory.length === 0 ? (
         <p className="py-4 text-center text-sm text-black">No items</p>
@@ -290,34 +304,67 @@ function InventorySectionContent({
   );
 }
 
+const CARRY_WEIGHT_TOOLTIP = (
+  <span className="block text-left text-xs font-normal normal-case text-white">
+    <strong className="block mb-1.5">Weight & Speed</strong>
+    <span className="block space-y-1">
+      <span className="block">≤50% = normal speed</span>
+      <span className="block">51–75% = −1 speed</span>
+      <span className="block">76–100% = −2 speed</span>
+      <span className="block">100–150% = half speed</span>
+      <span className="block">
+        &gt;150% = 0 speed (cannot move and cannot add items until you store
+        some)
+      </span>
+    </span>
+    <strong className="block mt-2 mb-1.5">Armour speed penalty</strong>
+    <span className="block space-y-1">
+      <span className="block">Grade 2–3: −1 speed</span>
+      <span className="block">Grade 4: −2 speed</span>
+      <span className="block">Grade 5: −3 speed</span>
+    </span>
+  </span>
+);
+
 export function getInventorySection(
   character: CharacterDetail,
   mutate: KeyedMutator<CharacterDetail | null>
 ): CharacterSectionSlide {
   const inventory = character.inventory ?? [];
-  const carried = getCarriedInventory(inventory);
-  const totalInventoryWeight = carried.reduce(
-    (sum, entry) => sum + (entry.item?.weight ?? 0) * (entry.quantity ?? 1),
-    0
+  const totalInventoryWeight = getCarriedWeight(inventory);
+  const maxCarryWeight = getEffectiveMaxCarryWeight(
+    character.combatInformation?.maxCarryWeight,
+    inventory
   );
-  const maxCarryWeight = character.combatInformation?.maxCarryWeight;
+  const overCarryLimit = isOverCarryLimit(totalInventoryWeight, maxCarryWeight);
+  const ratio =
+    maxCarryWeight != null && maxCarryWeight > 0
+      ? totalInventoryWeight / maxCarryWeight
+      : 0;
 
   const titleSupplement =
     maxCarryWeight != null ? (
-      (() => {
-        const ratio = totalInventoryWeight / maxCarryWeight;
-        const className =
-          ratio > 1
-            ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
-            : ratio >= 0.5
-              ? "rounded border border-neblirWarning-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirWarning-400"
-              : "rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirSafe-400";
-        return (
-          <span className={className}>
-            {totalInventoryWeight} / {maxCarryWeight} kg
-          </span>
-        );
-      })()
+      <span className="group relative inline-block">
+        <span
+          className={
+            overCarryLimit
+              ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
+              : ratio > 1
+                ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
+                : ratio >= 0.5
+                  ? "rounded border border-neblirWarning-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirWarning-400"
+                  : "rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirSafe-400"
+          }
+        >
+          {totalInventoryWeight} / {maxCarryWeight} kg
+        </span>
+        <span
+          className="pointer-events-none absolute top-full right-0 z-10 mt-1 hidden max-h-[40vh] w-72 overflow-y-auto rounded border border-white/30 bg-modalBackground-200 px-2.5 py-2 shadow-lg group-hover:block"
+          role="tooltip"
+        >
+          {CARRY_WEIGHT_TOOLTIP}
+        </span>
+      </span>
     ) : totalInventoryWeight > 0 ? (
       <span className="rounded border border-black bg-transparent px-2 py-0.5 text-sm tabular-nums text-black">
         {totalInventoryWeight} kg
@@ -328,6 +375,12 @@ export function getInventorySection(
     id: "inventory",
     title: "Inventory",
     titleSupplement,
-    children: <InventorySectionContent character={character} mutate={mutate} />,
+    children: (
+      <InventorySectionContent
+        character={character}
+        mutate={mutate}
+        canAddItems={!overCarryLimit}
+      />
+    ),
   };
 }

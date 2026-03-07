@@ -218,7 +218,7 @@ export function AddItemToInventoryModal({
         onClose={() => setSelectedItem(null)}
         item={selectedItem}
         onAddToInventory={handleAddFromDetail}
-        isAdding={addingId === selectedItem?.id}
+        isAdding={selectedItem?.id === addingId}
       />
     </div>
   );
