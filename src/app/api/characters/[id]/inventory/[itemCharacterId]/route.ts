@@ -222,7 +222,9 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("This is not one of your characters.", 403);
     }
 
-    await deleteItemCharacter(itemCharacterId).catch((error) => {
+    try {
+      await deleteItemCharacter(itemCharacterId);
+    } catch (error) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]/equipment/[itemCharacterId]",
@@ -231,10 +233,11 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         error,
       });
       return errorResponse(
-        `Error while deleting itemCharacter with id ${itemCharacterId}`,
-        500
+        "Failed to remove item. Please try again.",
+        500,
+        serializeError(error)
       );
-    });
+    }
 
     const character = await getCharacter(id);
     if (character?.combatInformation) {
