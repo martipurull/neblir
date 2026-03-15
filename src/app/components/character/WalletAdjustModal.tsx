@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState, useEffect } from "react";
 
 export type WalletAdjustMode = "add" | "subtract";
@@ -67,7 +68,7 @@ export function WalletAdjustModal({
       await onSubmit(amount);
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(getUserSafeErrorMessage(e, "Something went wrong"));
     } finally {
       setIsSubmitting(false);
     }

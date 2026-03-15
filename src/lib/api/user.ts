@@ -1,7 +1,6 @@
-type ApiErrorPayload = {
-  message?: string;
-  details?: string;
-};
+import { getUserSafeApiError } from "@/lib/userSafeError";
+
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function deleteCurrentUser(): Promise<void> {
   const response = await fetch("/api/users/me", {
@@ -9,14 +8,14 @@ export async function deleteCurrentUser(): Promise<void> {
   });
 
   if (!response.ok) {
-    let errorMessage = "Failed to delete account";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // Keep fallback error when response body is not JSON.
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to delete account")
+    );
   }
 }

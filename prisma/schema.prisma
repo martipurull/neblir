@@ -309,15 +309,34 @@ model ItemCharacter {
 }
 
 model Game {
-  id         String          @id @default(auto()) @map("_id") @db.ObjectId
-  gameMaster String          @db.ObjectId
-  imageKey   String?
-  name       String
-  users      GameUser[]
-  characters GameCharacter[]
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster  String          @db.ObjectId
+  imageKey    String?
+  name        String
+  nextSession DateTime?
+  lore        String?
+  users       GameUser[]
+  characters  GameCharacter[]
   customItems CustomItem[]
+  invites     GameInvite[]
 
   @@index([gameMaster])
+}
+
+model GameInvite {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId          String   @db.ObjectId
+  invitedUserId   String   @db.ObjectId
+  invitedByUserId String   @db.ObjectId
+  createdAt       DateTime @default(now())
+
+  game       Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  invitedUser User @relation("GameInviteInvited", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy   User @relation("GameInviteInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, invitedUserId])
+  @@index([gameId])
+  @@index([invitedUserId])
 }
 
 model GameUser {
@@ -504,6 +523,8 @@ model User {
   email String @unique
   name  String
 
-  games      GameUser[]
-  characters CharacterUser[]
+  games               GameUser[]
+  characters          CharacterUser[]
+  gameInvitesReceived GameInvite[] @relation("GameInviteInvited")
+  gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
 }

@@ -37,6 +37,10 @@ const config: Config = {
           400: "#6b21a8",
           600: "#8b5cf6",
         },
+        paleBlue: {
+          DEFAULT: "#dbeafe",
+          hover: "#bfdbfe",
+        },
       },
     },
   },

@@ -1,7 +1,6 @@
-type ApiErrorPayload = {
-  message?: string;
-  details?: string;
-};
+import { getUserSafeApiError } from "@/lib/userSafeError";
+
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function getImageUrl(imageKey: string): Promise<string> {
   const response = await fetch(
@@ -9,15 +8,15 @@ export async function getImageUrl(imageKey: string): Promise<string> {
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to fetch image URL";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // Keep fallback error when response body is not JSON.
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch image URL")
+    );
   }
 
   const payload = (await response.json()) as { url?: string };

@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState } from "react";
 import DangerButton from "./DangerButton";
 import DangerConfirmModal from "./DangerConfirmModal";
@@ -57,7 +58,7 @@ const DangerActionFooter: React.FC<DangerActionFooterProps> = ({
       setIsModalOpen(false);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to complete action"
+        getUserSafeErrorMessage(error, "Failed to complete action")
       );
     } finally {
       setIsSubmitting(false);

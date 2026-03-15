@@ -11,6 +11,7 @@ import {
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
 import React, {
@@ -121,9 +122,7 @@ export function ItemDetailModal({
       await mutate();
       setLeaveLocationInput("");
     } catch (e) {
-      setLocationError(
-        e instanceof Error ? e.message : "Failed to update location"
-      );
+      setLocationError(getUserSafeErrorMessage(e, "Failed to update location"));
     } finally {
       setIsSettingLocation(false);
     }
@@ -137,7 +136,7 @@ export function ItemDetailModal({
       await mutate();
       onClose();
     } catch (e) {
-      setRemoveError(e instanceof Error ? e.message : "Failed to remove item");
+      setRemoveError(getUserSafeErrorMessage(e, "Failed to remove item"));
     } finally {
       setIsRemoving(false);
     }

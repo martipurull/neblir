@@ -2,11 +2,9 @@ import {
   characterDetailSchema,
   type CharacterDetail,
 } from "@/app/lib/types/character";
+import { getUserSafeApiError } from "@/lib/userSafeError";
 
-type ApiErrorPayload = {
-  message?: string;
-  details?: string;
-};
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function getCharacterById(
   id: string,
@@ -19,15 +17,15 @@ export async function getCharacterById(
   });
 
   if (!response.ok) {
-    let errorMessage = "Failed to fetch character";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch character")
+    );
   }
 
   const json = await response.json();
@@ -72,15 +70,15 @@ export async function updateCharacterHealth(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to update health";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update health")
+    );
   }
 
   const json = await response.json();
@@ -105,15 +103,15 @@ export async function updateCharacterCombatInfo(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to update combat info";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update combat info")
+    );
   }
 
   const json = await response.json();
@@ -141,15 +139,15 @@ export async function addWalletCurrency(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to add currency";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to add currency")
+    );
   }
 
   const json = (await response.json()) as Array<{
@@ -177,15 +175,15 @@ export async function subtractWalletCurrency(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to subtract currency";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to subtract currency")
+    );
   }
 
   const json = (await response.json()) as Array<{

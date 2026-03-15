@@ -1,12 +1,10 @@
 import type { Item } from "@/app/lib/types/item";
+import { getUserSafeApiError } from "@/lib/userSafeError";
 
 /** Item as returned from GET /api/items (includes id) */
 export type ItemWithId = Item & { id: string };
 
-type ApiErrorPayload = {
-  message?: string;
-  details?: string;
-};
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   const response = await fetch("/api/items", {
@@ -16,15 +14,15 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   });
 
   if (!response.ok) {
-    let errorMessage = "Failed to fetch items";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch items")
+    );
   }
 
   const json = await response.json();
@@ -50,15 +48,19 @@ export async function addItemToCharacterInventory(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to add item to inventory";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        body,
+        "Failed to add item to inventory"
+      )
+    );
   }
 }
 
@@ -87,15 +89,19 @@ export async function updateCharacterInventoryEntry(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to update inventory entry";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        body,
+        "Failed to update inventory entry"
+      )
+    );
   }
 }
 
@@ -109,14 +115,18 @@ export async function deleteCharacterInventoryEntry(
   );
 
   if (!response.ok) {
-    let errorMessage = "Failed to remove item from inventory";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // keep fallback
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        body,
+        "Failed to remove item from inventory"
+      )
+    );
   }
 }

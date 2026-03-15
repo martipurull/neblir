@@ -3,6 +3,7 @@
 
 import { addItemToCharacterInventory } from "@/lib/api/items";
 import type { ItemWithId } from "@/lib/api/items";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -46,7 +47,7 @@ export function AddItemToInventoryModal({
       const data = await getItems();
       setItems(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load items");
+      setError(getUserSafeErrorMessage(e, "Failed to load items"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +74,7 @@ export function AddItemToInventoryModal({
         await mutate();
         setSelectedItem(null);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to add item");
+        setError(getUserSafeErrorMessage(e, "Failed to add item"));
       } finally {
         setAddingId(null);
       }
@@ -98,7 +99,7 @@ export function AddItemToInventoryModal({
         });
         await mutate();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to add item");
+        setError(getUserSafeErrorMessage(e, "Failed to add item"));
       } finally {
         setAddingId(null);
       }

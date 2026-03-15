@@ -1,7 +1,6 @@
-type ApiErrorPayload = {
-  message?: string;
-  details?: string;
-};
+import { getUserSafeApiError } from "@/lib/userSafeError";
+
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function apiFetcher<T>(url: string): Promise<T> {
   const response = await fetch(url, {
@@ -12,15 +11,15 @@ export async function apiFetcher<T>(url: string): Promise<T> {
   });
 
   if (!response.ok) {
-    let errorMessage = "Request failed";
+    let body: ApiErrorPayload | undefined;
     try {
-      const errorPayload = (await response.json()) as ApiErrorPayload;
-      errorMessage =
-        errorPayload.details ?? errorPayload.message ?? errorMessage;
+      body = (await response.json()) as ApiErrorPayload;
     } catch {
-      // Keep fallback error message when response body is not JSON.
+      // ignore
     }
-    throw new Error(errorMessage);
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Request failed")
+    );
   }
 
   return (await response.json()) as T;

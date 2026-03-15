@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
 import DangerButton from "./DangerButton";
 
@@ -47,8 +48,8 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         </h2>
         <p className="mt-2 text-sm text-black">{description}</p>
         {errorMessage && (
-          <p className="mt-3 text-sm text-neblirDanger-600">
-            Error: {errorMessage}
+          <p className="mt-3 break-words text-sm text-neblirDanger-600">
+            Error: {getUserSafeErrorMessage(errorMessage)}
           </p>
         )}
         <div className="mt-5 flex justify-end gap-3">

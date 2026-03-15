@@ -1,3 +1,4 @@
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
 
 interface ErrorStateProps {
@@ -11,9 +12,12 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   retryLabel = "Retry",
   onRetry,
 }) => {
+  const safeMessage = getUserSafeErrorMessage(message);
   return (
     <div className="space-y-3">
-      <p className="text-sm text-neblirDanger-600">Error: {message}</p>
+      <p className="break-words text-sm text-neblirDanger-600">
+        Error: {safeMessage}
+      </p>
       {onRetry && (
         <button
           type="button"

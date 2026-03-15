@@ -1,0 +1,249 @@
+"use client";
+
+import ErrorState from "@/app/components/shared/ErrorState";
+import InfoCard from "@/app/components/shared/InfoCard";
+import LoadingState from "@/app/components/shared/LoadingState";
+import PageSection from "@/app/components/shared/PageSection";
+import PageTitle from "@/app/components/shared/PageTitle";
+import InviteUsersModal from "@/app/components/games/InviteUsersModal";
+import Image from "next/image";
+import Link from "next/link";
+import { useGame } from "@/hooks/use-game";
+import { useImageUrls } from "@/hooks/use-image-urls";
+import { updateGame } from "@/lib/api/game";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import { useParams } from "next/navigation";
+import React, { useMemo, useState } from "react";
+import useSWR from "swr";
+
+export default function GameDetailPage() {
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : null;
+  const { game, loading, error, refetch, mutate } = useGame(id);
+
+  const [nextSessionBusy, setNextSessionBusy] = useState(false);
+  const [nextSessionError, setNextSessionError] = useState<string | null>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+
+  type PendingInvite = {
+    invitedUserId: string;
+    invitedUserName: string;
+    invitedUserEmail: string;
+    createdAt: string;
+  };
+  const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
+    PendingInvite[]
+  >(
+    game?.isGameMaster && id
+      ? `/api/games/${encodeURIComponent(id)}/invites`
+      : null
+  );
+
+  const imageEntries = useMemo(
+    () =>
+      game
+        ? [
+            { id: game.id, imageKey: game.imageKey },
+            ...(game.characters ?? []).map((gc) => ({
+              id: gc.character.id,
+              imageKey: gc.character.avatarKey,
+            })),
+          ]
+        : [],
+    [game]
+  );
+  const imageUrls = useImageUrls(imageEntries);
+
+  const gameImageUrl = game?.imageKey
+    ? (imageUrls[game.id] ?? undefined)
+    : null;
+
+  const nextSessionValue =
+    game?.nextSession != null
+      ? new Date(game.nextSession).toISOString().slice(0, 10)
+      : "";
+
+  const handleNextSessionChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!game?.isGameMaster || !id) return;
+    const value = e.target.value || null;
+    setNextSessionError(null);
+    setNextSessionBusy(true);
+    try {
+      const updated = await updateGame(id, {
+        nextSession: value ? `${value}T12:00:00.000Z` : null,
+      });
+      await mutate(updated, false);
+    } catch (err) {
+      setNextSessionError(
+        getUserSafeErrorMessage(err, "Failed to update date")
+      );
+    } finally {
+      setNextSessionBusy(false);
+    }
+  };
+
+  if (loading || (!game && !error)) {
+    return (
+      <PageSection>
+        <LoadingState text="Loading game..." />
+      </PageSection>
+    );
+  }
+
+  if (error || !game) {
+    return (
+      <PageSection>
+        <ErrorState
+          message={error ?? "Game not found"}
+          onRetry={refetch}
+          retryLabel="Retry"
+        />
+      </PageSection>
+    );
+  }
+
+  const isGameMaster = game.isGameMaster === true;
+
+  return (
+    <PageSection>
+      <div className="flex flex-col gap-6">
+        {/* Header: game name + thumbnail */}
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-black bg-white/20">
+            {gameImageUrl ? (
+              <Image
+                src={gameImageUrl}
+                alt=""
+                width={64}
+                height={64}
+                className="h-full w-full object-cover object-top"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-black">
+                {game.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <PageTitle>{game.name}</PageTitle>
+        </div>
+
+        {/* Next session */}
+        <InfoCard border>
+          <h2 className="text-sm font-semibold text-black">Next session</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input
+              type="date"
+              value={nextSessionValue}
+              onChange={(e) => void handleNextSessionChange(e)}
+              disabled={!isGameMaster || nextSessionBusy}
+              className="rounded border border-black/20 bg-paleBlue/80 px-3 py-2 text-sm text-black placeholder:text-black/50 focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-paleBlue/60 disabled:text-black/60"
+              aria-label="Next session date"
+            />
+            {nextSessionError && (
+              <p className="text-sm text-red-600">{nextSessionError}</p>
+            )}
+          </div>
+        </InfoCard>
+
+        {/* GM actions */}
+        {isGameMaster && (
+          <>
+            <InfoCard border>
+              <h2 className="text-sm font-semibold text-black">Game master</h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInviteModalOpen(true)}
+                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
+                >
+                  Invite users
+                </button>
+                <a
+                  href={`/home/games/${game.id}/custom-items/new`}
+                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
+                >
+                  Create custom item
+                </a>
+                <a
+                  href={`/home/games/${game.id}/unique-items/new`}
+                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
+                >
+                  Create unique item
+                </a>
+              </div>
+            </InfoCard>
+
+            {pendingInvites.length > 0 && (
+              <InfoCard border className="bg-paleBlue/20">
+                <h2 className="text-sm font-semibold text-black">
+                  Pending invites
+                </h2>
+                <p className="mt-1 text-xs text-black/70">
+                  Invites you’ve sent that haven’t been accepted or declined
+                  yet.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {pendingInvites.map((inv) => (
+                    <li
+                      key={inv.invitedUserId}
+                      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-black/10 bg-white/50 px-3 py-2 text-sm text-black"
+                    >
+                      <span className="font-medium">{inv.invitedUserName}</span>
+                      <span className="truncate text-xs text-black/70">
+                        {inv.invitedUserEmail}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </InfoCard>
+            )}
+          </>
+        )}
+
+        {/* Characters, Custom items, Lore: clickable section boxes */}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Link
+            href={`/home/games/${game.id}/characters`}
+            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+          >
+            <span className="text-sm font-semibold text-black">Characters</span>
+            <span className="mt-1 text-xs text-black/70">
+              {game.characters?.length ?? 0} linked
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/custom-items`}
+            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+          >
+            <span className="text-sm font-semibold text-black">
+              Custom items
+            </span>
+            <span className="mt-1 text-xs text-black/70">
+              {game.customItems?.length ?? 0} items
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/lore`}
+            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+          >
+            <span className="text-sm font-semibold text-black">Lore</span>
+            <span className="mt-1 text-xs text-black/70">World & story</span>
+          </Link>
+        </div>
+      </div>
+
+      <InviteUsersModal
+        isOpen={inviteModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setInviteModalOpen(false)}
+        onSuccess={() => {
+          void mutate();
+          void mutatePendingInvites();
+        }}
+      />
+    </PageSection>
+  );
+}
