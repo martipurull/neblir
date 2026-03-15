@@ -5,6 +5,8 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
+import CreateCustomItemModal from "@/app/components/games/CreateCustomItemModal";
+import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import InviteUsersModal from "@/app/components/games/InviteUsersModal";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,6 +26,8 @@ export default function GameDetailPage() {
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
+  const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
 
   type PendingInvite = {
     invitedUserId: string;
@@ -160,18 +164,20 @@ export default function GameDetailPage() {
                 >
                   Invite users
                 </button>
-                <a
-                  href={`/home/games/${game.id}/custom-items/new`}
+                <button
+                  type="button"
+                  onClick={() => setCustomItemModalOpen(true)}
                   className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
                 >
                   Create custom item
-                </a>
-                <a
-                  href={`/home/games/${game.id}/unique-items/new`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUniqueItemModalOpen(true)}
                   className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
                 >
                   Create unique item
-                </a>
+                </button>
               </div>
             </InfoCard>
 
@@ -243,6 +249,20 @@ export default function GameDetailPage() {
           void mutate();
           void mutatePendingInvites();
         }}
+      />
+      <CreateCustomItemModal
+        isOpen={customItemModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setCustomItemModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <CreateUniqueItemModal
+        isOpen={uniqueItemModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setUniqueItemModalOpen(false)}
+        onSuccess={() => void mutate()}
       />
     </PageSection>
   );

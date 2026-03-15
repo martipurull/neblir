@@ -9,8 +9,18 @@ import ResourceListCard from "@/app/components/shared/ResourceListCard";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <>
+      <dt className="text-black/60">{label}</dt>
+      <dd>{value}</dd>
+    </>
+  );
+}
 
 export default function GameCharactersPage() {
   const params = useParams();
@@ -98,16 +108,75 @@ export default function GameCharactersPage() {
                 const initials =
                   char.name.charAt(0).toUpperCase() +
                   (char.surname?.charAt(0).toUpperCase() ?? "");
+
+                if (char.isOwnedByCurrentUser) {
+                  return (
+                    <ResourceListCard
+                      key={gc.id}
+                      href={`/home/characters/${char.id}`}
+                      title={name}
+                      subtitle="View character sheet"
+                      imageUrl={avatarUrl}
+                      imageAlt={`${name} avatar`}
+                      placeholder={initials}
+                      className="!border-neblirSafe-200"
+                    />
+                  );
+                }
+
+                const gi = char.generalInformation;
                 return (
-                  <ResourceListCard
+                  <div
                     key={gc.id}
-                    href={`/home/characters/${char.id}`}
-                    title={name}
-                    subtitle="View character sheet"
-                    imageUrl={avatarUrl}
-                    imageAlt={`${name} avatar`}
-                    placeholder={initials}
-                  />
+                    className="rounded-md border border-black/15 bg-white p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      {avatarUrl ? (
+                        <Image
+                          src={avatarUrl}
+                          alt=""
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-black/10 text-sm font-medium text-black"
+                          aria-hidden
+                        >
+                          {initials}
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-black">{name}</p>
+                        {gi && (
+                          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-black/80 sm:grid-cols-3">
+                            <InfoRow label="Level" value={String(gi.level)} />
+                            <InfoRow label="Race" value={gi.race} />
+                            <InfoRow label="Profession" value={gi.profession} />
+                            <InfoRow label="Religion" value={gi.religion} />
+                            <InfoRow label="Birthplace" value={gi.birthplace} />
+                            <InfoRow label="Age" value={String(gi.age)} />
+                            <InfoRow label="Height" value={`${gi.height} cm`} />
+                            <InfoRow label="Weight" value={`${gi.weight} kg`} />
+                          </dl>
+                        )}
+                        {char.backstory != null && char.backstory !== "" && (
+                          <div className="mt-3 border-t border-black/10 pt-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-black/60">
+                              Backstory
+                            </p>
+                            <div
+                              className="prose prose-sm mt-1 max-w-none text-black/80"
+                              dangerouslySetInnerHTML={{
+                                __html: char.backstory,
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 );
               })
             )}

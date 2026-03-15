@@ -2,6 +2,7 @@ import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { generalInformationSchema } from "@/app/lib/types/character";
 import { auth } from "@/auth";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
@@ -40,9 +41,14 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    const { data: parsedBody, error } = generalInformationSchema
+    const generalInfoWithBackstorySchema = generalInformationSchema
       .partial()
-      .safeParse(requestBody);
+      .extend({
+        /** TipTap rich text stored as HTML string */
+        backstory: z.string().optional().nullable(),
+      });
+    const { data: parsedBody, error } =
+      generalInfoWithBackstorySchema.safeParse(requestBody);
     if (error) {
       logger.error({
         method: "PATCH",
@@ -66,14 +72,20 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Character not found", 404);
     }
+    const { backstory, ...generalInfoUpdates } = parsedBody;
     const newGeneralInformation = {
       ...existingCharacter.generalInformation,
-      ...parsedBody,
+      ...generalInfoUpdates,
     };
 
-    const updatedCharacter = await updateCharacter(id, {
+    const updateData: Parameters<typeof updateCharacter>[1] = {
       generalInformation: newGeneralInformation,
-    });
+    };
+    if (Object.prototype.hasOwnProperty.call(parsedBody, "backstory")) {
+      updateData.backstory = backstory ?? null;
+    }
+
+    const updatedCharacter = await updateCharacter(id, updateData);
 
     return NextResponse.json(updatedCharacter, { status: 200 });
   } catch (error) {

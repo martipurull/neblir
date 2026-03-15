@@ -18,15 +18,42 @@ function shapeGameForResponse(
 ) {
   if (!game) return null;
   const isGameMaster = game.gameMaster === userId;
-  const characters = game.characters?.map((gc) => ({
-    ...gc,
-    character: {
-      id: gc.character.id,
-      name: gc.character.generalInformation?.name ?? "",
-      surname: gc.character.generalInformation?.surname ?? null,
-      avatarKey: gc.character.generalInformation?.avatarKey ?? null,
-    },
-  }));
+  const characters = game.characters?.map((gc) => {
+    const gi = gc.character.generalInformation;
+    const isOwnedByCurrentUser = gc.character.users.some(
+      (u) => u.userId === userId
+    );
+    return {
+      ...gc,
+      character: {
+        id: gc.character.id,
+        name: gi?.name ?? "",
+        surname: gi?.surname ?? null,
+        avatarKey: gi?.avatarKey ?? null,
+        isOwnedByCurrentUser,
+        ...(isOwnedByCurrentUser
+          ? {}
+          : {
+              generalInformation: gi
+                ? {
+                    name: gi.name,
+                    surname: gi.surname,
+                    age: gi.age,
+                    religion: gi.religion,
+                    profession: gi.profession,
+                    race: gi.race,
+                    birthplace: gi.birthplace,
+                    level: gi.level,
+                    avatarKey: gi.avatarKey ?? null,
+                    height: gi.height,
+                    weight: gi.weight,
+                  }
+                : undefined,
+              backstory: gc.character.backstory ?? null,
+            }),
+      },
+    };
+  });
   return { ...game, isGameMaster, characters: characters ?? game.characters };
 }
 

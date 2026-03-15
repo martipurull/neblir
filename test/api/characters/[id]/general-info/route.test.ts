@@ -23,7 +23,9 @@ vi.mock("@/app/lib/types/character", () => ({
 describe("/api/characters/[id]/general-info PATCH", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    partialMock.mockReturnValue({ safeParse: safeParseMock });
+    partialMock.mockReturnValue({
+      extend: () => ({ safeParse: safeParseMock }),
+    });
   });
 
   it("returns 400 on invalid body", async () => {
@@ -72,5 +74,32 @@ describe("/api/characters/[id]/general-info PATCH", () => {
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
+  });
+
+  it("calls updateCharacter with backstory when body includes backstory", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { backstory: "<p>New backstory</p>" },
+      error: undefined,
+    });
+    getCharacterMock.mockResolvedValue({
+      generalInformation: { name: "A", surname: "B" },
+    });
+    updateCharacterMock.mockResolvedValue({ id: "char-1" });
+    const { PATCH } = await import(
+      "@/app/api/characters/[id]/general-info/route"
+    );
+    await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ backstory: "<p>New backstory</p>" }),
+      makeParams({ id: "char-1" })
+    );
+    expect(updateCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      expect.objectContaining({
+        generalInformation: { name: "A", surname: "B" },
+        backstory: "<p>New backstory</p>",
+      })
+    );
   });
 });

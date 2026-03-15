@@ -1,3 +1,4 @@
+import { Race, Religion } from "@prisma/client";
 import { z } from "zod";
 
 // Base schema for create/update operations (without relations)
@@ -54,6 +55,21 @@ export const gameCharacterSchema = z.object({
   characterId: z.string(),
 });
 
+/** Full general information for display (e.g. non-owned characters in game). */
+const gameDetailGeneralInformationSchema = z.object({
+  name: z.string(),
+  surname: z.string(),
+  age: z.number(),
+  religion: z.nativeEnum(Religion),
+  profession: z.string(),
+  race: z.nativeEnum(Race),
+  birthplace: z.string(),
+  level: z.number(),
+  avatarKey: z.string().nullable().optional(),
+  height: z.number(),
+  weight: z.number(),
+});
+
 /** Character summary as included in game detail. */
 export const gameDetailCharacterSchema = gameCharacterSchema.extend({
   character: z.object({
@@ -61,6 +77,11 @@ export const gameDetailCharacterSchema = gameCharacterSchema.extend({
     name: z.string(),
     surname: z.string().nullable().optional(),
     avatarKey: z.string().nullable().optional(),
+    isOwnedByCurrentUser: z.boolean(),
+    /** Present for non-owned characters (for display). */
+    generalInformation: gameDetailGeneralInformationSchema.optional(),
+    /** TipTap rich text (HTML string). Present for non-owned characters. */
+    backstory: z.string().nullable().optional(),
   }),
 });
 

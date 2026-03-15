@@ -65,6 +65,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       equippableOverride: parsedBody.equippableOverride ?? undefined,
       equipSlotTypesOverride: parsedBody.equipSlotTypesOverride ?? undefined,
       equipSlotCostOverride: parsedBody.equipSlotCostOverride ?? undefined,
+      maxUsesOverride: parsedBody.maxUsesOverride ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

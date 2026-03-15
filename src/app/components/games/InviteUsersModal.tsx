@@ -127,15 +127,28 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
       aria-labelledby="invite-users-title"
     >
       <div className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg sm:p-6">
-        <h2
-          id="invite-users-title"
-          className="text-lg font-semibold text-white"
-        >
-          Invite users to {gameName}
-        </h2>
-        <p className="mt-1 text-sm text-white/80">
-          Add email addresses below. They must already have an account.
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2
+              id="invite-users-title"
+              className="text-lg font-semibold text-white"
+            >
+              Invite users to {gameName}
+            </h2>
+            <p className="mt-1 text-sm text-white/80">
+              Add email addresses below. They must already have an account.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={submitting}
+            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            aria-label="Close"
+          >
+            <span className="text-xl leading-none">×</span>
+          </button>
+        </div>
 
         <div className="mt-4 flex gap-2">
           <input

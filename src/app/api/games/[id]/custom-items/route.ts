@@ -128,6 +128,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       equippable: createData.equippable ?? undefined,
       equipSlotTypes: createData.equipSlotTypes ?? undefined,
       equipSlotCost: createData.equipSlotCost ?? undefined,
+      maxUses: createData.maxUses ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

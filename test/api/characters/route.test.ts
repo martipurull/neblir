@@ -105,6 +105,25 @@ describe("/api/characters POST", () => {
     const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
     expect(response.status).toBe(201);
   });
+
+  it("passes backstory to createCharacterWithRelations when provided", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 1 }, backstory: "<p>Story</p>" },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({
+      backstory: "<p>Story</p>",
+    });
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ backstory: "<p>Story</p>" }),
+      })
+    );
+  });
 });
 
 describe("/api/characters GET", () => {
