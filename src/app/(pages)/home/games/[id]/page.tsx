@@ -5,6 +5,7 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
+import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
@@ -46,11 +47,9 @@ export default function GameDetailPage() {
       ? new Date(game.nextSession).toISOString().slice(0, 10)
       : "";
 
-  const handleNextSessionChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleNextSessionChange = async (dateString: string) => {
     if (!game?.isGameMaster || !id) return;
-    const value = e.target.value || null;
+    const value = dateString || null;
     setNextSessionError(null);
     setNextSessionBusy(true);
     try {
@@ -116,13 +115,14 @@ export default function GameDetailPage() {
         <InfoCard border>
           <h2 className="text-sm font-semibold text-black">Next Session</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <input
-              type="date"
+            <ThemedDatePicker
               value={nextSessionValue}
-              onChange={(e) => void handleNextSessionChange(e)}
+              onChange={(dateString) =>
+                void handleNextSessionChange(dateString)
+              }
               disabled={!isGameMaster || nextSessionBusy}
-              className="rounded border border-black/20 bg-paleBlue/80 px-3 py-2 text-sm text-black placeholder:text-black/50 focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-paleBlue/60 disabled:text-black/60"
-              aria-label="Next session date"
+              ariaLabel="Next session date"
+              placeholder="Set date"
             />
             {nextSessionError && (
               <p className="text-sm text-red-600">{nextSessionError}</p>
