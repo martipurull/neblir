@@ -72,3 +72,39 @@ export async function updateGame(
   }
   return parsed.data;
 }
+
+export type GiveItemToCharacterBody = {
+  characterId: string;
+  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
+  itemId: string;
+};
+
+export async function giveItemToCharacter(
+  gameId: string,
+  body: GiveItemToCharacterBody
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/give-item`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to give item to character"
+      )
+    );
+  }
+}

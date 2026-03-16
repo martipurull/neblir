@@ -5,9 +5,6 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
-import CreateCustomItemModal from "@/app/components/games/CreateCustomItemModal";
-import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
-import InviteUsersModal from "@/app/components/games/InviteUsersModal";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
@@ -16,7 +13,6 @@ import { updateGame } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
-import useSWR from "swr";
 
 export default function GameDetailPage() {
   const params = useParams();
@@ -25,23 +21,6 @@ export default function GameDetailPage() {
 
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
-  const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
-
-  type PendingInvite = {
-    invitedUserId: string;
-    invitedUserName: string;
-    invitedUserEmail: string;
-    createdAt: string;
-  };
-  const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
-    PendingInvite[]
-  >(
-    game?.isGameMaster && id
-      ? `/api/games/${encodeURIComponent(id)}/invites`
-      : null
-  );
 
   const imageEntries = useMemo(
     () =>
@@ -135,7 +114,7 @@ export default function GameDetailPage() {
 
         {/* Next session */}
         <InfoCard border>
-          <h2 className="text-sm font-semibold text-black">Next session</h2>
+          <h2 className="text-sm font-semibold text-black">Next Session</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input
               type="date"
@@ -151,65 +130,21 @@ export default function GameDetailPage() {
           </div>
         </InfoCard>
 
-        {/* GM actions */}
-        {isGameMaster && (
-          <>
-            <InfoCard border>
-              <h2 className="text-sm font-semibold text-black">Game master</h2>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setInviteModalOpen(true)}
-                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
-                >
-                  Invite users
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCustomItemModalOpen(true)}
-                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
-                >
-                  Create custom item
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUniqueItemModalOpen(true)}
-                  className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
-                >
-                  Create unique item
-                </button>
-              </div>
-            </InfoCard>
-
-            {pendingInvites.length > 0 && (
-              <InfoCard border className="bg-paleBlue/20">
-                <h2 className="text-sm font-semibold text-black">
-                  Pending invites
-                </h2>
-                <p className="mt-1 text-xs text-black/70">
-                  Invites you’ve sent that haven’t been accepted or declined
-                  yet.
-                </p>
-                <ul className="mt-3 space-y-2">
-                  {pendingInvites.map((inv) => (
-                    <li
-                      key={inv.invitedUserId}
-                      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-black/10 bg-white/50 px-3 py-2 text-sm text-black"
-                    >
-                      <span className="font-medium">{inv.invitedUserName}</span>
-                      <span className="truncate text-xs text-black/70">
-                        {inv.invitedUserEmail}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </InfoCard>
-            )}
-          </>
-        )}
-
-        {/* Characters, Custom items, Lore: clickable section boxes */}
+        {/* Section boxes: GM (only for GM), Characters, Custom items, Lore */}
         <div className="grid gap-3 sm:grid-cols-3">
+          {isGameMaster && (
+            <Link
+              href={`/home/games/${game.id}/gm`}
+              className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+            >
+              <span className="text-sm font-semibold text-black">
+                Game Master
+              </span>
+              <span className="mt-1 text-xs text-black/70">
+                Invites, items, give items
+              </span>
+            </Link>
+          )}
           <Link
             href={`/home/games/${game.id}/characters`}
             className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
@@ -224,7 +159,7 @@ export default function GameDetailPage() {
             className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
           >
             <span className="text-sm font-semibold text-black">
-              Custom items
+              Custom Items
             </span>
             <span className="mt-1 text-xs text-black/70">
               {game.customItems?.length ?? 0} items
@@ -239,31 +174,6 @@ export default function GameDetailPage() {
           </Link>
         </div>
       </div>
-
-      <InviteUsersModal
-        isOpen={inviteModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        onClose={() => setInviteModalOpen(false)}
-        onSuccess={() => {
-          void mutate();
-          void mutatePendingInvites();
-        }}
-      />
-      <CreateCustomItemModal
-        isOpen={customItemModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        onClose={() => setCustomItemModalOpen(false)}
-        onSuccess={() => void mutate()}
-      />
-      <CreateUniqueItemModal
-        isOpen={uniqueItemModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        onClose={() => setUniqueItemModalOpen(false)}
-        onSuccess={() => void mutate()}
-      />
     </PageSection>
   );
 }

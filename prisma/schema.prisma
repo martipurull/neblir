@@ -310,16 +310,17 @@ model ItemCharacter {
 }
 
 model Game {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  gameMaster  String          @db.ObjectId
-  imageKey    String?
-  name        String
-  nextSession DateTime?
-  lore        String?
-  users       GameUser[]
-  characters  GameCharacter[]
-  customItems CustomItem[]
-  invites     GameInvite[]
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster   String       @db.ObjectId
+  imageKey     String?
+  name         String
+  nextSession  DateTime?
+  lore         String?
+  users        GameUser[]
+  characters   GameCharacter[]
+  customItems  CustomItem[]
+  uniqueItems  UniqueItem[]
+  invites      GameInvite[]
 
   @@index([gameMaster])
 }
@@ -423,6 +424,8 @@ model CustomItem {
 
 model UniqueItem {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId      String?  @db.ObjectId
+  game        Game?    @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   // template it’s based on
   sourceType  ItemSourceType // GLOBAL_ITEM | CUSTOM_ITEM
@@ -450,6 +453,7 @@ model UniqueItem {
   equipSlotTypesOverride   Json?  // String[] when set; null = use template
   equipSlotCostOverride    Int?
   maxUsesOverride          Int?
+  @@index([gameId])
 }
 
 model Feature {

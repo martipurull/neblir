@@ -203,6 +203,7 @@ export type CustomItemUpdate = z.infer<typeof customItemUpdateSchema>;
 // ---- Unique Item ----
 
 const uniqueItemOverrideFieldsSchema = z.object({
+  gameId: z.string(),
   sourceType: uniqueItemSourceTypeSchema,
   itemId: z.string(),
   attackRollOverride: z.array(weaponAttackRollTypeSchema).optional(),

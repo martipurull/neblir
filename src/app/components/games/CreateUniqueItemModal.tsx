@@ -220,6 +220,7 @@ export default function CreateUniqueItemModal({
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {
+        gameId,
         sourceType,
         itemId: selectedTemplate.id,
       };

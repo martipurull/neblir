@@ -1,3 +1,4 @@
+import { getGame } from "@/app/lib/prisma/game";
 import { createUniqueItem } from "@/app/lib/prisma/uniqueItem";
 import { uniqueItemCreateSchema } from "@/app/lib/types/item";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -18,6 +19,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    const userId = request.auth.user.id;
+    if (!userId) return errorResponse("User ID not found", 400);
+
     const requestBody = await request.json();
     const { data: parsedBody, error } =
       uniqueItemCreateSchema.safeParse(requestBody);
@@ -35,7 +39,17 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
+    const game = await getGame(parsedBody.gameId);
+    if (!game) return errorResponse("Game not found", 404);
+    if (game.gameMaster !== userId) {
+      return errorResponse(
+        "Only the game master can create unique items for this game",
+        403
+      );
+    }
+
     const item = await createUniqueItem({
+      gameId: parsedBody.gameId,
       sourceType: parsedBody.sourceType,
       itemId: parsedBody.itemId,
       attackRollOverride: parsedBody.attackRollOverride ?? [],

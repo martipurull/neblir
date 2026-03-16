@@ -14,3 +14,13 @@ export async function getCharacterGames(characterId: string) {
 export async function deleteGameCharacter(id: string) {
   return prisma.gameCharacter.delete({ where: { id } });
 }
+
+export async function characterIsInGame(
+  gameId: string,
+  characterId: string
+): Promise<boolean> {
+  const gc = await prisma.gameCharacter.findFirst({
+    where: { gameId, characterId },
+  });
+  return !!gc;
+}

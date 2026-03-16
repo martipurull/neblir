@@ -11,6 +11,44 @@ export async function getUniqueItem(id: string) {
   return prisma.uniqueItem.findUnique({ where: { id } });
 }
 
+/** List unique items for a game with display name (nameOverride or template name). */
+export async function getUniqueItemsByGameId(gameId: string) {
+  const items = await prisma.uniqueItem.findMany({
+    where: { game: { is: { id: gameId } } },
+    select: {
+      id: true,
+      nameOverride: true,
+      sourceType: true,
+      itemId: true,
+    },
+    orderBy: { id: "asc" },
+  });
+
+  const withName = await Promise.all(
+    items.map(async (u) => {
+      const name =
+        u.nameOverride != null && u.nameOverride !== ""
+          ? u.nameOverride
+          : u.sourceType === "GLOBAL_ITEM"
+            ? ((
+                await prisma.item.findUnique({
+                  where: { id: u.itemId },
+                  select: { name: true },
+                })
+              )?.name ?? "Unknown")
+            : ((
+                await prisma.customItem.findUnique({
+                  where: { id: u.itemId },
+                  select: { name: true },
+                })
+              )?.name ?? "Unknown");
+      return { id: u.id, name };
+    })
+  );
+
+  return withName;
+}
+
 function applyUniqueItemOverrides(
   uniqueItem: NonNullable<Awaited<ReturnType<typeof getUniqueItem>>>,
   templateItem: Record<string, unknown>

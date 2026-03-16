@@ -8,7 +8,10 @@ import {
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import {
+  modalInputClass,
+  modalSelectClass,
+} from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import {
   getUserSafeApiError,
@@ -323,7 +326,7 @@ export default function CreateCustomItemModal({
               onChange={(e) =>
                 setType(e.target.value as "GENERAL_ITEM" | "WEAPON")
               }
-              className={modalInputClass}
+              className={modalSelectClass}
               disabled={submitting}
             >
               {ITEM_TYPES.map((t) => (

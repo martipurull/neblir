@@ -10,19 +10,21 @@ type GameListCardProps = {
   imageUrl?: string | null;
 };
 
-function gameMasterName(game: GameListItem): string {
-  const row = game.users.find((u) => u.userId === game.gameMaster);
-  return row?.user.name ?? "Unknown";
+function gameMasterRow(game: GameListItem) {
+  return game.users.find((u) => u.userId === game.gameMaster);
 }
 
-function sortedGameUsers(game: GameListItem) {
-  return [...game.users].sort((a, b) => a.user.name.localeCompare(b.user.name));
+function sortedPlayers(game: GameListItem) {
+  return [...game.users]
+    .filter((u) => u.userId !== game.gameMaster)
+    .sort((a, b) => a.user.name.localeCompare(b.user.name));
 }
 
 const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
   const [open, setOpen] = useState(false);
-  const gm = gameMasterName(game);
-  const players = sortedGameUsers(game);
+  const gmRow = gameMasterRow(game);
+  const gm = gmRow?.user.name ?? "Unknown";
+  const players = sortedPlayers(game);
   const initials = game.name.charAt(0).toUpperCase();
   const showImage =
     imageUrl && typeof imageUrl === "string" && imageUrl.length > 0;
@@ -74,26 +76,35 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
           }}
           className="shrink-0 rounded p-1 text-xs text-black hover:bg-black/10"
           aria-expanded={open}
-          aria-label={open ? "Collapse players" : "Expand players"}
+          aria-label={
+            open ? "Collapse GM and players" : "Expand GM and players"
+          }
         >
           {open ? "▲" : "▼"}
         </button>
       </div>
-      {open && players.length > 0 && (
-        <div className="border-t border-black/10 px-5 py-3 pl-[4.25rem]">
-          <p className="text-xs font-medium text-black/70">Players</p>
-          <ul className="mt-1 list-inside list-disc text-sm text-black">
-            {players.map((row) => (
-              <li key={row.userId} className="truncate">
-                {row.user.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {open && players.length === 0 && (
-        <div className="border-t border-black/10 px-5 py-3 pl-[4.25rem] text-sm text-black/60">
-          No players linked yet.
+      {open && (
+        <div className="border-t border-black/10 px-5 py-3 pl-[4.25rem] space-y-3">
+          <div>
+            <p className="text-xs font-medium text-black/70">Game Master</p>
+            <p className="mt-0.5 text-sm text-black">{gm}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-black/70">Players</p>
+            {players.length > 0 ? (
+              <ul className="mt-1 list-inside list-disc text-sm text-black">
+                {players.map((row) => (
+                  <li key={row.userId} className="truncate">
+                    {row.user.name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-0.5 text-sm text-black/60">
+                No players linked yet.
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
