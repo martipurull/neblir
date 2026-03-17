@@ -13,6 +13,7 @@ const serializeErrorMock = vi.fn((e: unknown) =>
 
 const characterUserFindManyMock = vi.fn();
 const gameCharacterCreateMock = vi.fn();
+const gameCharacterDeleteManyMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   userIsInGame: userIsInGameMock,
@@ -21,7 +22,10 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/client", () => ({
   prisma: {
     characterUser: { findMany: characterUserFindManyMock },
-    gameCharacter: { create: gameCharacterCreateMock },
+    gameCharacter: {
+      create: gameCharacterCreateMock,
+      deleteMany: gameCharacterDeleteManyMock,
+    },
   },
 }));
 
@@ -197,5 +201,107 @@ describe("POST /api/games/[id]/characters", () => {
     ]);
     expect(body.success).toBe(false);
     expect(serializeErrorMock).toHaveBeenCalled();
+  });
+});
+
+describe("DELETE /api/games/[id]/characters", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeUnauthedRequest({ characterId: "c-1" }),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 403 when user is not part of the game", async () => {
+    userIsInGameMock.mockResolvedValue(false);
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest({ characterId: "c-1" }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(403);
+    expect(characterUserFindManyMock).not.toHaveBeenCalled();
+    expect(gameCharacterDeleteManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 on invalid body", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest({ characterId: "" }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(400);
+    expect(gameCharacterDeleteManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when character is not owned by the user", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    characterUserFindManyMock.mockResolvedValue([]);
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest({ characterId: "c-1" }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(403);
+    expect(gameCharacterDeleteManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns removed=false when character link did not exist", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    characterUserFindManyMock.mockResolvedValue([{ characterId: "c-1" }]);
+    gameCharacterDeleteManyMock.mockResolvedValue({ count: 0 });
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest({ characterId: "c-1" }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as any;
+    expect(body.success).toBe(true);
+    expect(body.removed).toBe(false);
+    expect(body.removedCount).toBe(0);
+    expect(body.characterId).toBe("c-1");
+    expect(gameCharacterDeleteManyMock).toHaveBeenCalledWith({
+      where: { gameId: "g-1", characterId: "c-1" },
+    });
+  });
+
+  it("returns removed=true when link was deleted", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    characterUserFindManyMock.mockResolvedValue([{ characterId: "c-1" }]);
+    gameCharacterDeleteManyMock.mockResolvedValue({ count: 1 });
+    const { DELETE } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest({ characterId: "c-1" }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as any;
+    expect(body.removed).toBe(true);
+    expect(body.removedCount).toBe(1);
+    expect(body.characterId).toBe("c-1");
   });
 });

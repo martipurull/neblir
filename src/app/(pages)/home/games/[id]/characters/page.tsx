@@ -7,6 +7,7 @@ import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import AddCharactersToGameModal from "@/app/components/games/AddCharactersToGameModal";
 import ResourceListCard from "@/app/components/shared/ResourceListCard";
+import RemoveCharacterFromGameButton from "@/app/components/games/RemoveCharacterFromGameButton";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
@@ -165,6 +166,12 @@ export default function GameCharactersPage() {
                       View character sheet
                     </p>
                     {summaryBlock}
+                    <RemoveCharacterFromGameButton
+                      className="pt-2"
+                      gameId={game.id}
+                      characterId={char.id}
+                      onRemoved={refetch}
+                    />
                   </div>
                 ) : (
                   <p className="text-sm text-black/70">View character sheet</p>

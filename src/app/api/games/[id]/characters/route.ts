@@ -13,6 +13,10 @@ const addCharactersSchema = z.object({
   characterIds: z.array(z.string()).min(1),
 });
 
+const removeCharacterSchema = z.object({
+  characterId: z.string().min(1),
+});
+
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
     if (!request.auth?.user) {
@@ -147,6 +151,113 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     });
     return errorResponse(
       "Error linking characters to game",
+      500,
+      serializeError(error)
+    );
+  }
+});
+
+export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user) {
+      logger.error({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "Unauthorised access attempt",
+      });
+      return errorResponse("Unauthorised", 401);
+    }
+
+    const userId = request.auth.user.id;
+    if (!userId) {
+      logger.error({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "User ID not found on session",
+      });
+      return errorResponse("User ID not found", 400);
+    }
+
+    const { id: gameId } = (await params) as { id: string };
+    if (!gameId || typeof gameId !== "string") {
+      logger.error({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "Invalid game ID",
+        gameId,
+      });
+      return errorResponse("Invalid game ID", 400);
+    }
+
+    const inGame = await userIsInGame(gameId, userId);
+    if (!inGame) {
+      logger.warn({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "User is not part of game",
+        gameId,
+        userId,
+      });
+      return errorResponse("You are not part of this game", 403);
+    }
+
+    const requestBody = await request.json();
+    const parsed = removeCharacterSchema.safeParse(requestBody);
+    if (!parsed.success) {
+      logger.warn({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "Invalid request body",
+        gameId,
+        userId,
+        details: parsed.error.issues,
+      });
+      return errorResponse(
+        "Invalid request body",
+        400,
+        parsed.error.issues.map((i) => i.message).join(". ")
+      );
+    }
+
+    const characterId = parsed.data.characterId;
+    const owned = await prisma.characterUser.findMany({
+      where: { userId, characterId: { in: [characterId] } },
+      select: { characterId: true },
+    });
+    if (owned.length === 0) {
+      logger.warn({
+        method: "DELETE",
+        route: "/api/games/[id]/characters",
+        message: "Attempt to unlink non-owned character",
+        gameId,
+        userId,
+        characterId,
+      });
+      return errorResponse("This character is not owned by you", 403);
+    }
+
+    const result = await prisma.gameCharacter.deleteMany({
+      where: { gameId, characterId },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        removed: result.count > 0,
+        removedCount: result.count,
+        characterId,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    logger.error({
+      method: "DELETE",
+      route: "/api/games/[id]/characters",
+      message: "Error unlinking character from game",
+      error,
+    });
+    return errorResponse(
+      "Error unlinking character from game",
       500,
       serializeError(error)
     );
