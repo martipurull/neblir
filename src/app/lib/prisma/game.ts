@@ -25,7 +25,6 @@ export function getGameWithDetails(id: string) {
           character: {
             select: {
               id: true,
-              backstory: true,
               generalInformation: true,
               users: { select: { userId: true } },
             },

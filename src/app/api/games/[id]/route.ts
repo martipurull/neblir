@@ -31,26 +31,7 @@ function shapeGameForResponse(
         surname: gi?.surname ?? null,
         avatarKey: gi?.avatarKey ?? null,
         isOwnedByCurrentUser,
-        ...(isOwnedByCurrentUser
-          ? {}
-          : {
-              generalInformation: gi
-                ? {
-                    name: gi.name,
-                    surname: gi.surname,
-                    age: gi.age,
-                    religion: gi.religion,
-                    profession: gi.profession,
-                    race: gi.race,
-                    birthplace: gi.birthplace,
-                    level: gi.level,
-                    avatarKey: gi.avatarKey ?? null,
-                    height: gi.height,
-                    weight: gi.weight,
-                  }
-                : undefined,
-              backstory: gc.character.backstory ?? null,
-            }),
+        generalInformation: gi ?? undefined,
       },
     };
   });

@@ -10,6 +10,8 @@ interface ResourceListCardProps {
   placeholder?: React.ReactNode;
   className?: string;
   href?: string;
+  rightAccessory?: React.ReactNode;
+  body?: React.ReactNode;
 }
 
 const ResourceListCard: React.FC<ResourceListCardProps> = ({
@@ -20,37 +22,45 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   placeholder = null,
   className = "",
   href,
+  rightAccessory,
+  body,
 }) => {
   const showImage =
     imageUrl && typeof imageUrl === "string" && imageUrl.length > 0;
   const showLoading = imageUrl === undefined;
 
   const cardContent = (
-    <>
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
-        {showImage ? (
-          <Image
-            src={imageUrl}
-            alt={imageAlt}
-            width={48}
-            height={48}
-            className="h-12 w-12 object-cover object-top"
-          />
-        ) : showLoading ? (
-          <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
-            ...
-          </div>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
-            {placeholder ?? "N/A"}
-          </div>
-        )}
+    <div className="w-full">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
+          {showImage ? (
+            <Image
+              src={imageUrl}
+              alt={imageAlt}
+              width={48}
+              height={48}
+              className="h-12 w-12 object-cover object-top"
+            />
+          ) : showLoading ? (
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
+              ...
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
+              {placeholder ?? "N/A"}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-black">{title}</p>
+          <p className="truncate text-xs text-black">{subtitle}</p>
+        </div>
+        {rightAccessory ? (
+          <div className="shrink-0">{rightAccessory}</div>
+        ) : null}
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-black">{title}</p>
-        <p className="truncate text-xs text-black">{subtitle}</p>
-      </div>
-    </>
+      {body ? <div className="mt-2 text-sm text-black/80">{body}</div> : null}
+    </div>
   );
 
   const baseClassName =

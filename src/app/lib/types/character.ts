@@ -90,6 +90,10 @@ export const generalInformationSchema = z.object({
   profession: z.string(),
   race: z.nativeEnum(Race),
   birthplace: z.string(),
+  /** TipTap rich text stored as HTML string */
+  backstory: z.string().optional().nullable(),
+  /** TipTap rich text stored as HTML string */
+  summary: z.string().optional().nullable(),
   level: z.number(),
   avatarKey: z.string().optional().nullable(),
   height: z.number().int(),

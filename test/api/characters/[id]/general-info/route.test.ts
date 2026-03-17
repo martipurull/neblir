@@ -24,7 +24,7 @@ describe("/api/characters/[id]/general-info PATCH", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     partialMock.mockReturnValue({
-      extend: () => ({ safeParse: safeParseMock }),
+      safeParse: safeParseMock,
     });
   });
 
@@ -76,7 +76,7 @@ describe("/api/characters/[id]/general-info PATCH", () => {
     expect(response.status).toBe(200);
   });
 
-  it("calls updateCharacter with backstory when body includes backstory", async () => {
+  it("updates generalInformation.backstory when body includes backstory", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({
       data: { backstory: "<p>New backstory</p>" },
@@ -97,8 +97,11 @@ describe("/api/characters/[id]/general-info PATCH", () => {
     expect(updateCharacterMock).toHaveBeenCalledWith(
       "char-1",
       expect.objectContaining({
-        generalInformation: { name: "A", surname: "B" },
-        backstory: "<p>New backstory</p>",
+        generalInformation: {
+          name: "A",
+          surname: "B",
+          backstory: "<p>New backstory</p>",
+        },
       })
     );
   });

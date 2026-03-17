@@ -64,6 +64,10 @@ const gameDetailGeneralInformationSchema = z.object({
   profession: z.string(),
   race: z.nativeEnum(Race),
   birthplace: z.string(),
+  /** TipTap rich text stored as HTML string */
+  backstory: z.string().nullable().optional(),
+  /** TipTap rich text stored as HTML string */
+  summary: z.string().nullable().optional(),
   level: z.number(),
   avatarKey: z.string().nullable().optional(),
   height: z.number(),
@@ -80,8 +84,6 @@ export const gameDetailCharacterSchema = gameCharacterSchema.extend({
     isOwnedByCurrentUser: z.boolean(),
     /** Present for non-owned characters (for display). */
     generalInformation: gameDetailGeneralInformationSchema.optional(),
-    /** TipTap rich text (HTML string). Present for non-owned characters. */
-    backstory: z.string().nullable().optional(),
   }),
 });
 

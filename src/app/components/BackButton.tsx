@@ -12,6 +12,11 @@ export function BackButton() {
   }
 
   const handleBack = () => {
+    // From any game subpage (e.g. game detail, GM, create), go to Games list
+    if (pathname.startsWith("/home/games/")) {
+      router.push("/home/games");
+      return;
+    }
     if (window.history.length <= 1) {
       router.push("/home");
       return;

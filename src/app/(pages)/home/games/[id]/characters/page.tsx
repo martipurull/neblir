@@ -5,28 +5,37 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
+import AddCharactersToGameModal from "@/app/components/games/AddCharactersToGameModal";
 import ResourceListCard from "@/app/components/shared/ResourceListCard";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <dt className="text-black/60">{label}</dt>
-      <dd>{value}</dd>
-    </>
-  );
+function stripHtml(html: string): string {
+  if (!html) return "";
+  // Browser-safe: this file is a client component.
+  const el = document.createElement("div");
+  el.innerHTML = html;
+  return (el.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 export default function GameCharactersPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
   const { game, loading, error, refetch } = useGame(id);
-  const [listOpen, setListOpen] = useState(true);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [expandedByCharacterId, setExpandedByCharacterId] = useState<
+    Record<string, boolean>
+  >({});
+
+  const characters = useMemo(() => game?.characters ?? [], [game?.characters]);
+  const count = characters.length;
+  const alreadyLinkedCharacterIds = useMemo(
+    () => characters.map((gc) => gc.character.id),
+    [characters]
+  );
 
   const imageEntries = useMemo(
     () =>
@@ -34,7 +43,7 @@ export default function GameCharactersPage() {
         id: gc.character.id,
         imageKey: gc.character.avatarKey,
       })) ?? [],
-    [game]
+    [game?.characters]
   );
   const imageUrls = useImageUrls(imageEntries);
 
@@ -58,9 +67,6 @@ export default function GameCharactersPage() {
     );
   }
 
-  const characters = game.characters ?? [];
-  const count = characters.length;
-
   return (
     <PageSection>
       <div className="mb-4 flex items-center gap-2">
@@ -71,115 +77,123 @@ export default function GameCharactersPage() {
           ← {game.name}
         </Link>
       </div>
-      <PageTitle>Characters</PageTitle>
-      <p className="mt-1 text-sm text-black/70">
-        Characters linked to this game ({count})
-      </p>
-
-      <InfoCard border={false} className="mt-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <PageTitle>Characters</PageTitle>
+          <p className="mt-1 text-sm text-black/70">
+            Characters linked to this game ({count})
+          </p>
+        </div>
         <button
           type="button"
-          onClick={() => setListOpen((o) => !o)}
-          className="flex w-full items-center justify-between rounded-md border border-black px-4 py-3 text-left hover:bg-black/5"
-          aria-expanded={listOpen}
+          onClick={() => setAddModalOpen(true)}
+          className="inline-flex items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
         >
-          <span className="text-sm font-semibold text-black">
-            {count > 0
-              ? `${count} character${count === 1 ? "" : "s"}`
-              : "No characters"}
-          </span>
-          <span className="text-xs text-black" aria-hidden>
-            {listOpen ? "▲" : "▼"}
-          </span>
+          Add characters
         </button>
-        {listOpen && (
-          <div className="mt-2 space-y-2 border-t border-black/10 pt-2">
-            {characters.length === 0 ? (
-              <p className="py-2 text-sm text-black/60">
-                No characters linked to this game yet.
-              </p>
-            ) : (
-              characters.map((gc) => {
-                const char = gc.character;
-                const name = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
-                const avatarUrl = char.avatarKey
-                  ? (imageUrls[char.id] ?? undefined)
-                  : null;
-                const initials =
-                  char.name.charAt(0).toUpperCase() +
-                  (char.surname?.charAt(0).toUpperCase() ?? "");
+      </div>
 
-                if (char.isOwnedByCurrentUser) {
-                  return (
-                    <ResourceListCard
-                      key={gc.id}
-                      href={`/home/characters/${char.id}`}
-                      title={name}
-                      subtitle="View character sheet"
-                      imageUrl={avatarUrl}
-                      imageAlt={`${name} avatar`}
-                      placeholder={initials}
-                      className="!border-neblirSafe-200"
-                    />
-                  );
-                }
+      <AddCharactersToGameModal
+        isOpen={addModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        alreadyLinkedCharacterIds={alreadyLinkedCharacterIds}
+        onClose={() => setAddModalOpen(false)}
+        onSuccess={() => void refetch()}
+      />
 
-                const gi = char.generalInformation;
-                return (
-                  <div
-                    key={gc.id}
-                    className="rounded-md border border-black/15 bg-white p-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      {avatarUrl ? (
-                        <Image
-                          src={avatarUrl}
-                          alt=""
-                          width={48}
-                          height={48}
-                          className="h-12 w-12 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span
-                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-black/10 text-sm font-medium text-black"
-                          aria-hidden
-                        >
-                          {initials}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-black">{name}</p>
-                        {gi && (
-                          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-black/80 sm:grid-cols-3">
-                            <InfoRow label="Level" value={String(gi.level)} />
-                            <InfoRow label="Race" value={gi.race} />
-                            <InfoRow label="Profession" value={gi.profession} />
-                            <InfoRow label="Religion" value={gi.religion} />
-                            <InfoRow label="Birthplace" value={gi.birthplace} />
-                            <InfoRow label="Age" value={String(gi.age)} />
-                            <InfoRow label="Height" value={`${gi.height} cm`} />
-                            <InfoRow label="Weight" value={`${gi.weight} kg`} />
-                          </dl>
-                        )}
-                        {char.backstory != null && char.backstory !== "" && (
-                          <div className="mt-3 border-t border-black/10 pt-3">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-black/60">
-                              Backstory
-                            </p>
-                            <div
-                              className="prose prose-sm mt-1 max-w-none text-black/80"
-                              dangerouslySetInnerHTML={{
-                                __html: char.backstory,
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+      <InfoCard border={false} className="mt-4">
+        {characters.length === 0 ? (
+          <p className="py-2 text-sm text-black/60">
+            No characters linked to this game yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {characters.map((gc) => {
+              const char = gc.character;
+              const gi = char.generalInformation;
+              const title = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
+              const imageUrl = char.avatarKey
+                ? (imageUrls[char.id] ?? undefined)
+                : null;
+              const initials =
+                char.name.charAt(0).toUpperCase() +
+                (char.surname?.charAt(0).toUpperCase() ??
+                  char.name.charAt(1)?.toUpperCase() ??
+                  "");
+
+              const summaryHtml = gi?.summary ?? "";
+              const summaryText = stripHtml(summaryHtml);
+              const expanded = expandedByCharacterId[char.id] === true;
+              const canExpand = summaryText.length > 180;
+
+              const rightAccessory = canExpand ? (
+                <button
+                  type="button"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/15 text-black/70 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                  aria-label={expanded ? "Collapse summary" : "Expand summary"}
+                  aria-expanded={expanded}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpandedByCharacterId((prev) => ({
+                      ...prev,
+                      [char.id]: !expanded,
+                    }));
+                  }}
+                >
+                  <span aria-hidden>{expanded ? "▾" : "▸"}</span>
+                </button>
+              ) : null;
+
+              const summaryBlock = summaryHtml ? (
+                <div
+                  className={[
+                    "prose prose-sm max-w-none text-black/80",
+                    expanded ? "" : "line-clamp-2",
+                  ].join(" ")}
+                  dangerouslySetInnerHTML={{ __html: summaryHtml }}
+                />
+              ) : (
+                <p className="text-sm text-black/60">No summary yet.</p>
+              );
+
+              const body = char.isOwnedByCurrentUser ? (
+                expanded ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-black/70">
+                      View character sheet
+                    </p>
+                    {summaryBlock}
                   </div>
-                );
-              })
-            )}
+                ) : (
+                  <p className="text-sm text-black/70">View character sheet</p>
+                )
+              ) : (
+                summaryBlock
+              );
+
+              return (
+                <ResourceListCard
+                  key={gc.id}
+                  href={
+                    char.isOwnedByCurrentUser
+                      ? `/home/characters/${char.id}`
+                      : undefined
+                  }
+                  title={title}
+                  subtitle={<>LVL {gi?.level ?? "—"}</>}
+                  imageUrl={imageUrl}
+                  imageAlt={`${char.name} avatar`}
+                  placeholder={initials}
+                  className={
+                    char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
+                  }
+                  rightAccessory={rightAccessory}
+                  body={body}
+                />
+              );
+            })}
           </div>
         )}
       </InfoCard>

@@ -46,8 +46,6 @@ export const characterCreationRequestSchema = z
       pathId: z.string(),
       rank: z.number().min(1),
     }),
-    /** TipTap rich text stored as HTML string */
-    backstory: z.string().optional().nullable(),
   })
   .strict();
 

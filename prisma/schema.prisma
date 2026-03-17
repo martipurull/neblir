@@ -129,6 +129,10 @@ type CharacterGeneralInformation {
   age        Int
   avatarKey  String?
   birthplace String
+  /** TipTap rich text stored as HTML string */
+  backstory  String?
+  /** TipTap rich text stored as HTML string */
+  summary    String?
   level      Int
   name       String
   surname    String
@@ -255,7 +259,6 @@ model Character {
   wallet             CharacterCurrency[]
   inventory          ItemCharacter[]
   notes              String[]
-  backstory          String?                     // TipTap rich text stored as HTML string
   paths              PathCharacter[]
   features           FeatureCharacter[]
   games              GameCharacter[]

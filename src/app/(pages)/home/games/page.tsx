@@ -11,6 +11,7 @@ import PageTitle from "@/app/components/shared/PageTitle";
 import { useGameInvites } from "@/hooks/use-game-invites";
 import { useGames } from "@/hooks/use-games";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
@@ -63,11 +64,21 @@ const GamesPage: React.FC = () => {
 
   return (
     <PageSection>
-      <PageTitle>Games</PageTitle>
-      <PageSubtitle>
-        Campaigns you’re part of—see who’s at the table and who’s running the
-        game.
-      </PageSubtitle>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div>
+          <PageTitle>Games</PageTitle>
+          <PageSubtitle>
+            Campaigns you’re part of—see who’s at the table and who’s running
+            the game.
+          </PageSubtitle>
+        </div>
+        <Link
+          href="/home/games/create"
+          className="inline-flex shrink-0 items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+        >
+          Create Game
+        </Link>
+      </div>
 
       <GameInvitesReceivedBlock
         invites={invites}
