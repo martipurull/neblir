@@ -42,6 +42,19 @@ export const characterCreationRequestSchema = z
       })
       .strict(),
     wallet: walletSchema.optional(),
+    /**
+     * Optional initial feature grades used to create FeatureCharacter relations.
+     * This key is not part of the persisted character schema, so it should be
+     * stripped before Prisma create.
+     */
+    initialFeatures: z
+      .array(
+        z.object({
+          featureId: z.string(),
+          grade: z.number().int().min(1),
+        })
+      )
+      .optional(),
     path: z.strictObject({
       pathId: z.string(),
       rank: z.number().min(1),

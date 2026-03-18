@@ -3,26 +3,28 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
+/**
+ * Returns the parent path in the app hierarchy (one level above the current path).
+ * e.g. /home/games/123/gm → /home/games/123, /home/games/create → /home/games, /home → null
+ */
+function getParentPath(pathname: string): string | null {
+  const trimmed = pathname.replace(/\/$/, "") || "/";
+  if (trimmed === "/home" || trimmed === "/") return null;
+  const parent = trimmed.replace(/\/[^/]+$/, "");
+  return parent && parent !== trimmed ? parent : null;
+}
+
 export function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
+  const parentPath = getParentPath(pathname ?? "");
 
-  if (pathname === "/home") {
+  if (parentPath === null) {
     return <div />;
   }
 
   const handleBack = () => {
-    // From any game subpage (e.g. game detail, GM, create), go to Games list
-    if (pathname.startsWith("/home/games/")) {
-      router.push("/home/games");
-      return;
-    }
-    if (window.history.length <= 1) {
-      router.push("/home");
-      return;
-    }
-
-    router.back();
+    router.push(parentPath);
   };
 
   return (

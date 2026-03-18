@@ -1,3 +1,7 @@
+import {
+  getAllFeaturesAvailableForPath,
+  getAllFeaturesAvailableForPathAndRank,
+} from "@/app/lib/prisma/feature";
 import { getPath } from "@/app/lib/prisma/path";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -5,7 +9,6 @@ import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-import { getAllFeaturesAvailableForPath } from "@/app/lib/prisma/feature";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -40,7 +43,12 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Path not found", 404);
     }
 
-    const availableFeatures = await getAllFeaturesAvailableForPath(path.name);
+    const rankParam = request.nextUrl.searchParams.get("rank");
+    const rank = rankParam ? parseInt(rankParam, 10) : null;
+    const availableFeatures =
+      rank != null && !Number.isNaN(rank) && rank >= 1
+        ? await getAllFeaturesAvailableForPathAndRank(path.name, rank)
+        : await getAllFeaturesAvailableForPath(path.name);
 
     return NextResponse.json(availableFeatures, { status: 200 });
   } catch (error) {

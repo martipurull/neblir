@@ -25,6 +25,8 @@ export function getR2Config() {
 export const ALLOWED_UPLOAD_PREFIXES = [
   "custom_items-",
   "unique_items-",
+  "games-",
+  "characters-",
 ] as const;
 
 export function isDeletableImageKey(key: string): boolean {

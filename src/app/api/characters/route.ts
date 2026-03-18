@@ -9,6 +9,8 @@ import {
   createCharacterWithRelations,
   getCharactersByUserId,
 } from "@/app/lib/prisma/character";
+import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
+import { getPath } from "@/app/lib/prisma/path";
 import {
   CharacterCreationTransactionError,
   serializeError,
@@ -130,11 +132,69 @@ export const POST = auth(async (request: AuthNextRequest) => {
     const characterCreateData =
       characterCreationData as Prisma.CharacterCreateInput;
 
+    const pathId = parseResult.data.path.pathId;
+    const pathRank = parseResult.data.path.rank;
+    const rawInitialFeatures = (
+      requestBody as {
+        initialFeatures?: { featureId: string; grade: number }[];
+      }
+    ).initialFeatures;
+    let initialFeatures: { featureId: string; grade: number }[] = [];
+
+    if (Array.isArray(rawInitialFeatures) && rawInitialFeatures.length > 0) {
+      const path = await getPath(pathId);
+      if (!path) {
+        return errorResponse("Path not found", 400);
+      }
+      const availableFeatures = await getAllFeaturesAvailableForPathAndRank(
+        path.name,
+        pathRank
+      );
+      const availableIds = new Set(availableFeatures.map((f) => f.id));
+      const featureMap = new Map(availableFeatures.map((f) => [f.id, f]));
+      let gradeSum = 0;
+      for (const entry of rawInitialFeatures) {
+        if (
+          typeof entry?.featureId !== "string" ||
+          typeof entry?.grade !== "number" ||
+          entry.grade < 1
+        ) {
+          return errorResponse("Invalid initialFeatures entry", 400);
+        }
+        if (!availableIds.has(entry.featureId)) {
+          return errorResponse(
+            "One or more features are not available for the selected path and rank",
+            400
+          );
+        }
+        const feature = featureMap.get(entry.featureId);
+        if (feature && entry.grade > feature.maxGrade) {
+          return errorResponse(
+            `Feature ${feature.name} grade exceeds max (${feature.maxGrade})`,
+            400
+          );
+        }
+        gradeSum += entry.grade;
+        initialFeatures.push({
+          featureId: entry.featureId,
+          grade: entry.grade,
+        });
+      }
+      const featureSlots = Math.max(0, 2 * (pathRank - 1));
+      if (gradeSum > featureSlots) {
+        return errorResponse(
+          "Total feature grades cannot exceed character feature slots",
+          400
+        );
+      }
+    }
+
     const character = await createCharacterWithRelations({
       data: characterCreateData,
       userId: user.id,
-      pathId: parseResult.data.path.pathId,
-      pathRank: parseResult.data.path.rank,
+      pathId,
+      pathRank,
+      initialFeatures,
     });
 
     return NextResponse.json(character, { status: 201 });

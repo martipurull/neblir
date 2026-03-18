@@ -4,6 +4,7 @@ import { z } from "zod";
 // Base schema for create/update operations (without relations)
 const gameBaseSchema = z.object({
   name: z.string(),
+  premise: z.string().optional(),
   imageKey: z.string().optional(),
 });
 
@@ -42,6 +43,7 @@ export const gameListUserSchema = gameUserSchema.extend({
 export const gameListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
+  premise: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
   gameMaster: z.string(),
   users: z.array(gameListUserSchema),
@@ -98,6 +100,7 @@ export const gameDetailCustomItemSchema = z.object({
 export const gameDetailSchema = z.object({
   id: z.string(),
   name: z.string(),
+  premise: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
   gameMaster: z.string(),
   isGameMaster: z.boolean().optional(),

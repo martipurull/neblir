@@ -105,10 +105,12 @@ export function computeCharacterRequestData(
   const {
     path: _path,
     wallet: rawWallet,
+    initialFeatures: _initialFeatures,
     ...requestWithoutPathAndWallet
   } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
     path?: { pathId: string; rank: number };
     wallet?: Array<{ currencyName: string; quantity: number }>;
+    initialFeatures?: Array<{ featureId: string; grade: number }>;
   };
 
   const learnedSkills = requestWithoutPathAndWallet.learnedSkills;

@@ -14,6 +14,8 @@ const getCharactersByUserIdMock = vi.fn();
 const createCharacterWithRelationsMock = vi.fn();
 const safeParseMock = vi.fn();
 const computeCharacterRequestDataMock = vi.fn();
+const getPathMock = vi.fn();
+const getAllFeaturesAvailableForPathAndRankMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/user", () => ({
   getUser: getUserMock,
@@ -30,6 +32,15 @@ vi.mock("@/app/api/characters/schemas", () => ({
 
 vi.mock("@/app/api/characters/parsing", () => ({
   computeCharacterRequestData: computeCharacterRequestDataMock,
+}));
+
+vi.mock("@/app/lib/prisma/path", () => ({
+  getPath: getPathMock,
+}));
+
+vi.mock("@/app/lib/prisma/feature", () => ({
+  getAllFeaturesAvailableForPathAndRank:
+    getAllFeaturesAvailableForPathAndRankMock,
 }));
 
 describe("/api/characters POST", () => {
@@ -104,6 +115,92 @@ describe("/api/characters POST", () => {
     const { POST } = await import("@/app/api/characters/route");
     const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
     expect(response.status).toBe(201);
+  });
+
+  it("rejects initialFeatures when grade sum exceeds feature slots (rank=1)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 1 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 5, minPathRank: 1 },
+    ]);
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 1 },
+          initialFeatures: [{ featureId: "feat-1", grade: 1 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/feature slots/i);
+  });
+
+  it("accepts initialFeatures when grade sum equals feature slots (rank=8)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 8 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 14, minPathRank: 1 },
+    ]);
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 8 },
+          initialFeatures: [{ featureId: "feat-1", grade: 14 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(201);
+  });
+
+  it("rejects initialFeatures when grade sum exceeds feature slots (rank=8)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 8 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 15, minPathRank: 1 },
+    ]);
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 8 },
+          initialFeatures: [{ featureId: "feat-1", grade: 15 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/feature slots/i);
   });
 
   it("passes generalInformation.backstory to createCharacterWithRelations when provided", async () => {

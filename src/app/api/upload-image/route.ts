@@ -6,7 +6,12 @@ import logger from "@/logger";
 import { NextResponse } from "next/server";
 import { errorResponse } from "../shared/responses";
 
-const ALLOWED_TYPES = ["custom_items", "unique_items"] as const;
+const ALLOWED_TYPES = [
+  "custom_items",
+  "unique_items",
+  "games",
+  "characters",
+] as const;
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
 
@@ -53,7 +58,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, unique_items",
+        "Query param 'type' must be one of: custom_items, unique_items, games, characters",
         400
       );
     }

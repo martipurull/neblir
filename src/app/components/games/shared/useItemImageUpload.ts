@@ -3,7 +3,11 @@
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useState } from "react";
 
-export type ItemImageUploadType = "custom_items" | "unique_items";
+export type ItemImageUploadType =
+  | "custom_items"
+  | "unique_items"
+  | "games"
+  | "characters";
 
 export function useItemImageUpload(type: ItemImageUploadType) {
   const [imageKey, setImageKey] = useState("");

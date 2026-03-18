@@ -317,6 +317,7 @@ model Game {
   gameMaster   String       @db.ObjectId
   imageKey     String?
   name         String
+  premise      String?
   nextSession  DateTime?
   lore         String?
   users        GameUser[]

@@ -6,6 +6,7 @@ interface TextInputProps {
   placeholder?: string;
   label: string;
   type?: string;
+  className?: string;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -13,6 +14,7 @@ const TextInput: React.FC<TextInputProps> = ({
   placeholder,
   label,
   type = "text",
+  className = "",
 }) => {
   const { control } = useFormContext();
 
@@ -31,7 +33,7 @@ const TextInput: React.FC<TextInputProps> = ({
             type={type}
             id={name}
             placeholder={placeholder}
-            className="min-h-11 w-full rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+            className={`min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover ${className}`.trim()}
           />
         )}
       />
