@@ -32,11 +32,14 @@ describe("r2 helper", () => {
     });
 
     it("returns false for other key prefixes", () => {
-      expect(isDeletableImageKey("characters-alexandra.png")).toBe(false);
-      expect(isDeletableImageKey("games-cover.png")).toBe(false);
       expect(isDeletableImageKey("items-siike_gun.png")).toBe(false);
       expect(isDeletableImageKey("custom-items-old.png")).toBe(false);
       expect(isDeletableImageKey("unique-items-old.png")).toBe(false);
+    });
+
+    it("returns true for keys starting with games- and characters-", () => {
+      expect(isDeletableImageKey("characters-alexandra.png")).toBe(true);
+      expect(isDeletableImageKey("games-cover.png")).toBe(true);
     });
 
     it("returns false for empty or unrelated keys", () => {

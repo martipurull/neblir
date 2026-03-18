@@ -43,7 +43,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Path not found", 404);
     }
 
-    const rankParam = request.nextUrl.searchParams.get("rank");
+    const rankParam = request.nextUrl?.searchParams?.get("rank") ?? null;
     const rank = rankParam ? parseInt(rankParam, 10) : null;
     const availableFeatures =
       rank != null && !Number.isNaN(rank) && rank >= 1

@@ -248,7 +248,7 @@ describe("/api/upload-image DELETE", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("returns 403 when imageKey is not deletable (wrong prefix)", async () => {
+  it("returns 204 when imageKey is characters- prefixed", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -259,13 +259,16 @@ describe("/api/upload-image DELETE", () => {
       imageKey: "characters-alexandra.png",
     });
     const response = await invokeRoute(DELETE, request);
-    expect(response.status).toBe(403);
-    const data = await response.json();
-    expect(data.message).toMatch(/Not allowed|delete/i);
-    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+    expect(deleteObjectCommandCtorMock).toHaveBeenCalledTimes(1);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("bucket");
+    expect(deleteArgs.Key).toBe("characters-alexandra.png");
   });
 
-  it("returns 403 when imageKey is games- prefixed", async () => {
+  it("returns 204 when imageKey is games- prefixed", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -276,8 +279,13 @@ describe("/api/upload-image DELETE", () => {
       imageKey: "games-cover.png",
     });
     const response = await invokeRoute(DELETE, request);
-    expect(response.status).toBe(403);
-    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+    expect(deleteObjectCommandCtorMock).toHaveBeenCalledTimes(1);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("bucket");
+    expect(deleteArgs.Key).toBe("games-cover.png");
   });
 
   it("returns 500 when R2 credentials are missing", async () => {
