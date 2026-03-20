@@ -7,6 +7,7 @@ import {
   WalletAdjustModal,
   type WalletAdjustMode,
 } from "@/app/components/character/WalletAdjustModal";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
@@ -15,7 +16,7 @@ import React, { useState } from "react";
 interface WalletSectionContentProps {
   character: CharacterDetail;
   characterId: string;
-  imageUrls: Record<string, string | null>;
+  imageUrls: Record<string, string | null | undefined>;
   mutate: KeyedMutator<CharacterDetail | null>;
 }
 
@@ -56,7 +57,7 @@ function WalletSectionContent({
     <>
       <ul className="divide-y divide-black rounded border border-black">
         {wallet.map((entry) => {
-          const currencyImageUrl = imageUrls[entry.currencyName] ?? null;
+          const currencyImageUrl = imageUrls[entry.currencyName];
           return (
             <li
               key={entry.currencyName}
@@ -71,6 +72,8 @@ function WalletSectionContent({
                     height={32}
                     className="h-8 w-8 object-cover object-center"
                   />
+                ) : currencyImageUrl === undefined ? (
+                  <ImageLoadingSkeleton variant="currency" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
                     {entry.currencyName.charAt(0)}
@@ -134,7 +137,7 @@ function WalletSectionContent({
 
 export function getWalletSection(
   character: CharacterDetail,
-  imageUrls: Record<string, string | null>,
+  imageUrls: Record<string, string | null | undefined>,
   characterId: string,
   mutate: KeyedMutator<CharacterDetail | null>
 ): CharacterSectionSlide | null {

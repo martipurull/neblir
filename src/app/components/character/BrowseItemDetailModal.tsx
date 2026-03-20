@@ -2,6 +2,7 @@
 "use client";
 
 import type { ItemWithId } from "@/lib/api/items";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import React, { useMemo } from "react";
@@ -37,7 +38,7 @@ export function BrowseItemDetailModal({
   );
   const imageUrls = useImageUrls(imageEntries);
   const itemImageUrl =
-    item && itemImageKey ? (imageUrls[`browse-${item.id}`] ?? null) : null;
+    item && itemImageKey ? imageUrls[`browse-${item.id}`] : null;
 
   if (!isOpen || !item) return null;
 
@@ -80,18 +81,22 @@ export function BrowseItemDetailModal({
               </span>
               <p className="mt-0.5 text-white">{item.name}</p>
             </div>
-            {itemImageUrl && (
+            {itemImageKey ? (
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg">
-                <Image
-                  src={itemImageUrl}
-                  alt=""
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 object-cover object-center"
-                  unoptimized
-                />
+                {itemImageUrl ? (
+                  <Image
+                    src={itemImageUrl}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover object-center"
+                    unoptimized
+                  />
+                ) : itemImageUrl === undefined ? (
+                  <ImageLoadingSkeleton variant="item" />
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
 
           {item.description && (

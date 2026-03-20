@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import {
@@ -246,6 +247,8 @@ export default function AddCharactersToGameModal({
                             alt=""
                             className="h-full w-full object-cover object-top"
                           />
+                        ) : avatarUrl === undefined ? (
+                          <ImageLoadingSkeleton variant="avatar" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/90">
                             {initials}

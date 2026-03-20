@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 
 interface ResourceListCardProps {
   title: string;
@@ -42,9 +43,7 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
               className="h-12 w-12 object-cover object-top"
             />
           ) : showLoading ? (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
-              ...
-            </div>
+            <ImageLoadingSkeleton variant="avatar" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
               {placeholder ?? "N/A"}

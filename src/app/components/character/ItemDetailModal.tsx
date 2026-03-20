@@ -10,6 +10,7 @@ import {
   deleteCharacterInventoryEntry,
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
@@ -107,9 +108,7 @@ export function ItemDetailModal({
     [entry.id, itemImageKey]
   );
   const imageUrls = useImageUrls(imageEntries);
-  const itemImageUrl = itemImageKey
-    ? (imageUrls[`item-${entry.id}`] ?? null)
-    : null;
+  const itemImageUrl = itemImageKey ? imageUrls[`item-${entry.id}`] : null;
 
   const handleSetLocation = async (itemLocation: string) => {
     setLocationError(null);
@@ -185,18 +184,22 @@ export function ItemDetailModal({
               </span>
               <p className="mt-0.5 text-white">{name}</p>
             </div>
-            {itemImageUrl && (
+            {itemImageKey ? (
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
-                <Image
-                  src={itemImageUrl}
-                  alt=""
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 object-cover object-center"
-                  unoptimized
-                />
+                {itemImageUrl ? (
+                  <Image
+                    src={itemImageUrl}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover object-center"
+                    unoptimized
+                  />
+                ) : itemImageUrl === undefined ? (
+                  <ImageLoadingSkeleton variant="item" />
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
           {item?.description && (
             <div>
