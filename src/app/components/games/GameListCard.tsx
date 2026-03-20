@@ -53,7 +53,7 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
                 className="h-12 w-12 object-cover object-top"
               />
             ) : showLoading ? (
-              <ImageLoadingSkeleton variant="avatar" />
+              <ImageLoadingSkeleton variant="cityscape" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
                 {initials}

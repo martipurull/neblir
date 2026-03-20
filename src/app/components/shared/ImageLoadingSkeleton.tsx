@@ -1,6 +1,6 @@
 import React from "react";
 
-type ImageLoadingSkeletonVariant = "avatar" | "item" | "currency";
+type ImageLoadingSkeletonVariant = "avatar" | "item" | "currency" | "cityscape";
 
 interface ImageLoadingSkeletonProps {
   variant?: ImageLoadingSkeletonVariant;
@@ -11,6 +11,7 @@ const variantSvgClassName: Record<ImageLoadingSkeletonVariant, string> = {
   avatar: "h-9 w-9 text-black/25",
   item: "h-9 w-9 text-black/25",
   currency: "h-6 w-6 text-black/25",
+  cityscape: "h-7 w-7 text-black/25",
 };
 
 const variantBackgroundClassName: Record<ImageLoadingSkeletonVariant, string> =
@@ -18,6 +19,7 @@ const variantBackgroundClassName: Record<ImageLoadingSkeletonVariant, string> =
     avatar: "bg-black/10",
     item: "bg-black/10",
     currency: "bg-black/10",
+    cityscape: "bg-black/10",
   };
 
 const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
@@ -53,7 +55,7 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
             <path d="M12 18v12l12 8 12-8V18" />
             <path d="M24 26v12" />
           </svg>
-        ) : (
+        ) : variant === "currency" ? (
           <svg
             viewBox="0 0 48 48"
             className={variantSvgClassName.currency}
@@ -65,6 +67,44 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
           >
             <path d="M26 9v30" />
             <path d="M32 14c-2-2-5-3-8-3-5 0-9 3-9 7 0 9 18 4 18 13 0 4-4 7-9 7-3 0-6-1-8-3" />
+          </svg>
+        ) : (
+          <svg
+            viewBox="0 0 48 48"
+            className={variantSvgClassName.cityscape}
+            fill="currentColor"
+          >
+            <rect x="8" y="23" width="8" height="17" rx="1" />
+            <rect x="18" y="14" width="10" height="26" rx="1" />
+            <rect x="30" y="19" width="10" height="21" rx="1" />
+            <rect
+              x="10"
+              y="26"
+              width="2"
+              height="2"
+              fill="rgba(255,255,255,0.25)"
+            />
+            <rect
+              x="21"
+              y="18"
+              width="2"
+              height="2"
+              fill="rgba(255,255,255,0.25)"
+            />
+            <rect
+              x="25"
+              y="24"
+              width="2"
+              height="2"
+              fill="rgba(255,255,255,0.25)"
+            />
+            <rect
+              x="33"
+              y="23"
+              width="2"
+              height="2"
+              fill="rgba(255,255,255,0.25)"
+            />
           </svg>
         )}
       </div>

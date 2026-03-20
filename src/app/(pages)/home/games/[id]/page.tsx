@@ -1,6 +1,7 @@
 "use client";
 
 import ErrorState from "@/app/components/shared/ErrorState";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
@@ -102,6 +103,8 @@ export default function GameDetailPage() {
                 height={64}
                 className="h-full w-full object-cover object-top"
               />
+            ) : gameImageUrl === undefined ? (
+              <ImageLoadingSkeleton variant="cityscape" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-black">
                 {game.name.charAt(0).toUpperCase()}
