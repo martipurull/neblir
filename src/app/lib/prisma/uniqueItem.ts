@@ -1,4 +1,5 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, UniqueItem } from "@prisma/client";
+import type { UniqueItemCreate } from "@/app/lib/types/item";
 import { prisma } from "./client";
 
 export async function createUniqueItem(
@@ -11,10 +12,118 @@ export async function getUniqueItem(id: string) {
   return prisma.uniqueItem.findUnique({ where: { id } });
 }
 
-/** List unique items for a game with display name (nameOverride or template name). */
-export async function getUniqueItemsByGameId(gameId: string) {
+/** Resolved item shape for inventory / API when there is no global/custom template. */
+export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
+  const name =
+    uniqueItem.nameOverride?.trim() !== ""
+      ? (uniqueItem.nameOverride ?? "Unknown item")
+      : "Unknown item";
+  const weight = uniqueItem.weightOverride ?? 0;
+
+  const equipSlotTypes =
+    uniqueItem.equipSlotTypesOverride != null &&
+    Array.isArray(uniqueItem.equipSlotTypesOverride)
+      ? (uniqueItem.equipSlotTypesOverride as string[])
+      : [];
+
+  return {
+    id: uniqueItem.id,
+    type: "GENERAL_ITEM" as const,
+    accessType: "PLAYER" as const,
+    name,
+    imageKey: uniqueItem.imageKeyOverride ?? null,
+    confCost: uniqueItem.confCostOverride ?? 0,
+    costInfo: uniqueItem.costInfoOverride ?? null,
+    description: uniqueItem.descriptionOverride ?? "",
+    notes: uniqueItem.notesOverride ?? null,
+    weight,
+    usage: uniqueItem.usageOverride ?? null,
+    attackRoll:
+      uniqueItem.attackRollOverride?.length &&
+      uniqueItem.attackRollOverride.length > 0
+        ? uniqueItem.attackRollOverride
+        : null,
+    attackMeleeBonus: uniqueItem.attackMeleeBonusOverride ?? null,
+    attackRangeBonus: uniqueItem.attackRangeBonusOverride ?? null,
+    attackThrowBonus: uniqueItem.attackThrowBonusOverride ?? null,
+    defenceMeleeBonus: uniqueItem.defenceMeleeBonusOverride ?? null,
+    defenceRangeBonus: uniqueItem.defenceRangeBonusOverride ?? null,
+    gridAttackBonus: uniqueItem.gridAttackBonusOverride ?? null,
+    gridDefenceBonus: uniqueItem.gridDefenceBonusOverride ?? null,
+    damage: uniqueItem.damageOverride ?? null,
+    equippable: uniqueItem.equippableOverride ?? false,
+    equipSlotTypes,
+    equipSlotCost: uniqueItem.equipSlotCostOverride ?? null,
+    maxUses: uniqueItem.maxUsesOverride ?? null,
+    specialTag: uniqueItem.specialTag,
+    _resolvedFrom: "UNIQUE_ITEM" as const,
+    _uniqueItemId: uniqueItem.id,
+  };
+}
+
+export function prismaDataFromUniqueItemCreate(
+  ownerUserId: string,
+  gameId: string | undefined,
+  parsed: UniqueItemCreate
+): Prisma.UniqueItemUncheckedCreateInput {
+  const mutable: Omit<
+    Prisma.UniqueItemUncheckedCreateInput,
+    "ownerUserId" | "gameId" | "sourceType" | "itemId"
+  > = {
+    attackRollOverride: parsed.attackRollOverride ?? [],
+    attackMeleeBonusOverride: parsed.attackMeleeBonusOverride ?? undefined,
+    attackRangeBonusOverride: parsed.attackRangeBonusOverride ?? undefined,
+    attackThrowBonusOverride: parsed.attackThrowBonusOverride ?? undefined,
+    defenceMeleeBonusOverride: parsed.defenceMeleeBonusOverride ?? undefined,
+    defenceRangeBonusOverride: parsed.defenceRangeBonusOverride ?? undefined,
+    gridAttackBonusOverride: parsed.gridAttackBonusOverride ?? undefined,
+    gridDefenceBonusOverride: parsed.gridDefenceBonusOverride ?? undefined,
+    confCostOverride: parsed.confCostOverride ?? undefined,
+    costInfoOverride: parsed.costInfoOverride ?? undefined,
+    damageOverride: parsed.damageOverride ?? undefined,
+    descriptionOverride: parsed.descriptionOverride ?? undefined,
+    imageKeyOverride: parsed.imageKeyOverride ?? undefined,
+    nameOverride: parsed.nameOverride ?? undefined,
+    usageOverride: parsed.usageOverride ?? undefined,
+    weightOverride: parsed.weightOverride ?? undefined,
+    notesOverride: parsed.notesOverride ?? undefined,
+    specialTag: parsed.specialTag ?? undefined,
+    equippableOverride: parsed.equippableOverride ?? undefined,
+    equipSlotTypesOverride: parsed.equipSlotTypesOverride ?? undefined,
+    equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
+    maxUsesOverride: parsed.maxUsesOverride ?? undefined,
+  };
+
+  if (parsed.sourceType === "STANDALONE") {
+    return {
+      ownerUserId,
+      gameId,
+      sourceType: "STANDALONE",
+      ...mutable,
+    };
+  }
+
+  return {
+    ownerUserId,
+    gameId,
+    sourceType: parsed.sourceType,
+    itemId: parsed.itemId,
+    ...mutable,
+  } satisfies Prisma.UniqueItemUncheckedCreateInput;
+}
+
+/** List unique items visible for a user in a game with display name. */
+export async function getUniqueItemsByGameId(
+  gameId: string,
+  ownerUserId?: string
+) {
   const items = await prisma.uniqueItem.findMany({
-    where: { game: { is: { id: gameId } } },
+    where: ownerUserId
+      ? {
+          ownerUserId,
+          OR: [{ gameId }, { gameId: null }],
+        }
+      : { game: { is: { id: gameId } } },
     select: {
       id: true,
       nameOverride: true,
@@ -29,19 +138,21 @@ export async function getUniqueItemsByGameId(gameId: string) {
       const name =
         u.nameOverride != null && u.nameOverride !== ""
           ? u.nameOverride
-          : u.sourceType === "GLOBAL_ITEM"
-            ? ((
-                await prisma.item.findUnique({
-                  where: { id: u.itemId },
-                  select: { name: true },
-                })
-              )?.name ?? "Unknown")
-            : ((
-                await prisma.customItem.findUnique({
-                  where: { id: u.itemId },
-                  select: { name: true },
-                })
-              )?.name ?? "Unknown");
+          : u.sourceType === "STANDALONE"
+            ? "Unnamed item"
+            : u.sourceType === "GLOBAL_ITEM"
+              ? ((
+                  await prisma.item.findUnique({
+                    where: { id: u.itemId! },
+                    select: { name: true },
+                  })
+                )?.name ?? "Unknown")
+              : ((
+                  await prisma.customItem.findUnique({
+                    where: { id: u.itemId! },
+                    select: { name: true },
+                  })
+                )?.name ?? "Unknown");
       return { id: u.id, name };
     })
   );
@@ -124,6 +235,22 @@ export async function getResolvedUniqueItem(id: string) {
   const uniqueItem = await getUniqueItem(id);
   if (!uniqueItem) {
     return null;
+  }
+
+  if (uniqueItem.sourceType === "STANDALONE") {
+    return {
+      ...uniqueItem,
+      templateItem: null,
+      resolvedItem: buildStandaloneResolvedItem(uniqueItem),
+    };
+  }
+
+  if (!uniqueItem.itemId) {
+    return {
+      ...uniqueItem,
+      templateItem: null,
+      resolvedItem: null,
+    };
   }
 
   const templateItem =

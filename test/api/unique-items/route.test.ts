@@ -15,6 +15,15 @@ vi.mock("@/app/lib/prisma/game", () => ({
 
 vi.mock("@/app/lib/prisma/uniqueItem", () => ({
   createUniqueItem: createUniqueItemMock,
+  prismaDataFromUniqueItemCreate: (
+    ownerUserId: string,
+    gameId: string | undefined,
+    parsed: Record<string, unknown>
+  ) => ({
+    ownerUserId,
+    gameId,
+    ...parsed,
+  }),
 }));
 
 vi.mock("@/app/lib/types/item", () => ({
@@ -110,6 +119,70 @@ describe("/api/unique-items POST", () => {
         gameId: "g-1",
         sourceType: "GLOBAL_ITEM",
         itemId: "item-1",
+      })
+    );
+  });
+
+  it("returns 201 for STANDALONE without gameId (no getGame call)", async () => {
+    safeParseMock.mockReturnValue({
+      data: {
+        sourceType: "STANDALONE",
+        nameOverride: "Bracelet",
+        weightOverride: 0.2,
+      },
+      error: undefined,
+    });
+    createUniqueItemMock.mockResolvedValue({ id: "u-standalone" });
+    const { POST } = await import("@/app/api/unique-items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        sourceType: "STANDALONE",
+        nameOverride: "Bracelet",
+        weightOverride: 0.2,
+      })
+    );
+    expect(response.status).toBe(201);
+    expect(getGameMock).not.toHaveBeenCalled();
+    expect(createUniqueItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceType: "STANDALONE",
+        nameOverride: "Bracelet",
+        weightOverride: 0.2,
+      })
+    );
+  });
+
+  it("returns 201 for STANDALONE with gameId when user is GM", async () => {
+    safeParseMock.mockReturnValue({
+      data: {
+        sourceType: "STANDALONE",
+        nameOverride: "Bracelet",
+        weightOverride: 0.2,
+        gameId: "g-1",
+      },
+      error: undefined,
+    });
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "user-1" });
+    createUniqueItemMock.mockResolvedValue({ id: "u-2" });
+    const { POST } = await import("@/app/api/unique-items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        sourceType: "STANDALONE",
+        nameOverride: "Bracelet",
+        weightOverride: 0.2,
+        gameId: "g-1",
+      })
+    );
+    expect(response.status).toBe(201);
+    expect(getGameMock).toHaveBeenCalledWith("g-1");
+    expect(createUniqueItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameId: "g-1",
+        sourceType: "STANDALONE",
       })
     );
   });

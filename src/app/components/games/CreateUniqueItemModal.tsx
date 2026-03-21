@@ -4,6 +4,7 @@ import type { ItemWithId } from "@/lib/api/items";
 import {
   equipSlotCostSchema,
   itemDamageSchema,
+  type UniqueItemCreate,
   type ItemDamage,
 } from "@/app/lib/types/item";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
@@ -11,10 +12,8 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
-import {
-  getUserSafeApiError,
-  getUserSafeErrorMessage,
-} from "@/lib/userSafeError";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 const ATTACK_ROLL_TYPES = [
@@ -45,32 +44,52 @@ const EQUIP_SLOTS = [
   { value: "HEAD", label: "Head" },
 ] as const;
 
+/** Matches modal checkboxes elsewhere (CreateCustomItemModal, AddCharactersToGameModal) */
+const modalCheckboxClass =
+  "h-4 w-4 shrink-0 rounded border border-white/50 bg-paleBlue text-customPrimary accent-customPrimary focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-50";
+
 type TemplateItem = { id: string; name: string; type?: string };
+
+function templateOptionLabel(t: TemplateItem) {
+  return t.type ? `${t.name} (${t.type})` : t.name;
+}
 
 type CreateUniqueItemModalProps = {
   isOpen: boolean;
-  gameId: string;
-  gameName: string;
+  /**
+   * Games whose custom items are listed when "Game custom item" is selected.
+   * Can be empty (only global templates will be available).
+   */
+  customTemplateGameIds: string[];
+  /**
+   * If set, included as `gameId` on create (e.g. GM creating in a game).
+   * Omit for character flow — the API derives game from the custom template when needed.
+   */
+  gameIdForSubmit?: string;
+  /** Optional; shown after an em dash in the modal title (e.g. game name on GM page). */
+  titleSuffix?: string;
+  submitEndpoint?: string;
   onClose: () => void;
   onSuccess?: () => void;
 };
 
 export default function CreateUniqueItemModal({
   isOpen,
-  gameId,
-  gameName,
+  customTemplateGameIds,
+  gameIdForSubmit,
+  titleSuffix,
+  submitEndpoint,
   onClose,
   onSuccess,
 }: CreateUniqueItemModalProps) {
-  const [sourceType, setSourceType] = useState<"GLOBAL_ITEM" | "CUSTOM_ITEM">(
-    "GLOBAL_ITEM"
-  );
+  const [sourceType, setSourceType] = useState<
+    "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE"
+  >("GLOBAL_ITEM");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(
     null
   );
   const [globalItems, setGlobalItems] = useState<ItemWithId[]>([]);
   const [customItems, setCustomItems] = useState<TemplateItem[]>([]);
-  const [templateSearch, setTemplateSearch] = useState("");
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   const [nameOverride, setNameOverride] = useState("");
@@ -119,17 +138,26 @@ export default function CreateUniqueItemModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const templates = sourceType === "GLOBAL_ITEM" ? globalItems : customItems;
-  const filteredTemplates = useMemo(() => {
-    const q = templateSearch.trim().toLowerCase();
-    if (!q) return templates;
-    return templates.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) || t.type?.toLowerCase().includes(q)
-    );
-  }, [templates, templateSearch]);
+  const templates =
+    sourceType === "GLOBAL_ITEM"
+      ? globalItems
+      : sourceType === "CUSTOM_ITEM"
+        ? customItems
+        : [];
+  const templateOptions = useMemo(
+    () =>
+      templates.map((t) => ({
+        value: t.id,
+        label: templateOptionLabel(t),
+      })),
+    [templates]
+  );
 
   const fetchTemplates = useCallback(async () => {
+    if (sourceType === "STANDALONE") {
+      setLoadingTemplates(false);
+      return;
+    }
     setLoadingTemplates(true);
     setError(null);
     try {
@@ -138,32 +166,38 @@ export default function CreateUniqueItemModal({
         const data = await getItems();
         setGlobalItems(data);
       } else {
-        const res = await fetch(
-          `/api/games/${encodeURIComponent(gameId)}/custom-items`
+        const { fetchGameCustomItemsForBrowse } = await import(
+          "@/lib/api/customItems"
         );
-        if (!res.ok) throw new Error("Failed to load custom items");
-        const data = await res.json();
-        setCustomItems(
-          Array.isArray(data)
-            ? data.map((c: { id: string; name: string; type?: string }) => ({
-                id: c.id,
-                name: c.name,
-                type: c.type,
-              }))
-            : []
-        );
+        if (customTemplateGameIds.length === 0) {
+          setCustomItems([]);
+        } else {
+          const lists = await Promise.all(
+            customTemplateGameIds.map((gid) =>
+              fetchGameCustomItemsForBrowse(gid)
+            )
+          );
+          const byId = new Map<string, TemplateItem>();
+          for (const data of lists) {
+            for (const c of data) {
+              if (!byId.has(c.id)) {
+                byId.set(c.id, { id: c.id, name: c.name, type: c.type });
+              }
+            }
+          }
+          setCustomItems(Array.from(byId.values()));
+        }
       }
     } catch (e) {
       setError(getUserSafeErrorMessage(e, "Failed to load templates"));
     } finally {
       setLoadingTemplates(false);
     }
-  }, [gameId, sourceType]);
+  }, [customTemplateGameIds, sourceType]);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedTemplate(null);
-      setTemplateSearch("");
       void fetchTemplates();
     }
   }, [isOpen, sourceType, fetchTemplates]);
@@ -212,18 +246,40 @@ export default function CreateUniqueItemModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!selectedTemplate) {
+    if (sourceType !== "STANDALONE" && !selectedTemplate) {
       setError("Please select a template item.");
       return;
+    }
+    if (sourceType === "STANDALONE") {
+      const trimmedName = nameOverride.trim();
+      if (!trimmedName) {
+        setError("Please enter a name for this item.");
+        return;
+      }
+      const w = parseFloat(weightOverride);
+      if (weightOverride.trim() === "" || Number.isNaN(w) || w < 0) {
+        setError("Please enter a valid weight (0 or greater).");
+        return;
+      }
     }
 
     setSubmitting(true);
     try {
-      const body: Record<string, unknown> = {
-        gameId,
-        sourceType,
-        itemId: selectedTemplate.id,
-      };
+      const body: Record<string, unknown> = {};
+      if (gameIdForSubmit) {
+        body.gameId = gameIdForSubmit;
+      }
+
+      if (sourceType === "STANDALONE") {
+        const w = parseFloat(weightOverride);
+        body.sourceType = "STANDALONE";
+        body.nameOverride = nameOverride.trim();
+        body.weightOverride = w;
+      } else {
+        body.sourceType = sourceType;
+        body.itemId = selectedTemplate!.id;
+      }
+
       const setStr = (key: string, val: string) => {
         if (val.trim()) (body as Record<string, string>)[key] = val.trim();
       };
@@ -238,7 +294,9 @@ export default function CreateUniqueItemModal({
         if (!Number.isNaN(n)) (body as Record<string, number>)[key] = n;
       };
 
-      setStr("nameOverride", nameOverride);
+      if (sourceType !== "STANDALONE") {
+        setStr("nameOverride", nameOverride);
+      }
       setStr("imageKeyOverride", imageKeyOverride);
       setStr("descriptionOverride", descriptionOverride);
       setStr("notesOverride", notesOverride);
@@ -246,7 +304,9 @@ export default function CreateUniqueItemModal({
       setStr("costInfoOverride", costInfoOverride);
       setStr("specialTag", specialTag);
       setInt("confCostOverride", confCostOverride);
-      setNum("weightOverride", weightOverride);
+      if (sourceType !== "STANDALONE") {
+        setNum("weightOverride", weightOverride);
+      }
       if (equippableOverride !== "") {
         (body as Record<string, boolean>).equippableOverride =
           equippableOverride as boolean;
@@ -287,26 +347,11 @@ export default function CreateUniqueItemModal({
       const damage = buildDamageOverride();
       if (damage) body.damageOverride = damage;
 
-      const res = await fetch("/api/unique-items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (pendingImageKey) {
-          await deleteUploadedImage(pendingImageKey);
-          setPendingImageKey("");
-        }
-        setError(
-          getUserSafeApiError(
-            res.status,
-            data as { message?: string; details?: string },
-            "Failed to create unique item."
-          )
-        );
-        return;
-      }
+      const { createUniqueItem } = await import("@/lib/api/uniqueItems");
+      await createUniqueItem(
+        body as UniqueItemCreate,
+        submitEndpoint ?? "/api/unique-items"
+      );
       setPendingImageKey("");
       onSuccess?.();
       void handleClose(true);
@@ -354,7 +399,6 @@ export default function CreateUniqueItemModal({
     }
     setSelectedTemplate(null);
     setSourceType("GLOBAL_ITEM");
-    setTemplateSearch("");
     resetOverrides();
     setError(null);
     onClose();
@@ -363,8 +407,16 @@ export default function CreateUniqueItemModal({
   return (
     <GameFormModal
       isOpen={isOpen}
-      title={`Create unique item — ${gameName}`}
-      subtitle="Choose a template (global or game custom item), then optionally set overrides. All override fields are optional."
+      title={
+        titleSuffix?.trim()
+          ? `Create unique item — ${titleSuffix.trim()}`
+          : "Create unique item"
+      }
+      subtitle={
+        sourceType === "STANDALONE"
+          ? "Enter a name and weight, then add any extra details below — all fields except name and weight are optional."
+          : "Choose a template (global catalog or a game’s custom item), then optionally set overrides. All override fields are optional."
+      }
       titleId="create-unique-item-title"
       error={error}
       onClose={() => void handleClose()}
@@ -372,12 +424,21 @@ export default function CreateUniqueItemModal({
       submitting={submitting}
       submitLabel="Create unique item"
       submittingLabel="Creating…"
-      submitDisabled={!selectedTemplate}
+      submitDisabled={
+        sourceType === "STANDALONE"
+          ? !nameOverride.trim() ||
+            weightOverride.trim() === "" ||
+            Number.isNaN(parseFloat(weightOverride)) ||
+            parseFloat(weightOverride) < 0
+          : !selectedTemplate
+      }
     >
-      {/* Template selection */}
+      {/* Template or standalone basics */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">
-          Template (required)
+          {sourceType === "STANDALONE"
+            ? "Custom item (no template)"
+            : "Template (required)"}
         </h3>
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
@@ -402,11 +463,20 @@ export default function CreateUniqueItemModal({
               Global item
             </label>
             <label
-              className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                customTemplateGameIds.length === 0
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              } ${
                 sourceType === "CUSTOM_ITEM"
                   ? "bg-modalBackground-400 text-white"
                   : "bg-paleBlue text-gray-900"
               }`}
+              title={
+                customTemplateGameIds.length === 0
+                  ? "No games available for custom templates"
+                  : undefined
+              }
             >
               <input
                 type="radio"
@@ -416,68 +486,108 @@ export default function CreateUniqueItemModal({
                   setSourceType("CUSTOM_ITEM");
                   setSelectedTemplate(null);
                 }}
+                disabled={submitting || customTemplateGameIds.length === 0}
+                className="sr-only"
+              />
+              Game custom item
+            </label>
+            <label
+              className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
+                sourceType === "STANDALONE"
+                  ? "bg-modalBackground-400 text-white"
+                  : "bg-paleBlue text-gray-900"
+              }`}
+            >
+              <input
+                type="radio"
+                name="sourceType"
+                checked={sourceType === "STANDALONE"}
+                onChange={() => {
+                  setSourceType("STANDALONE");
+                  setSelectedTemplate(null);
+                }}
                 disabled={submitting}
                 className="sr-only"
               />
-              Custom item (this game)
+              No template
             </label>
           </div>
-          <div>
-            <label
-              htmlFor="template-search"
-              className="mb-1 block text-sm font-medium text-white"
-            >
-              Search
-            </label>
-            <input
-              id="template-search"
-              type="text"
-              value={templateSearch}
-              onChange={(e) => setTemplateSearch(e.target.value)}
-              className={modalInputClass}
-              placeholder="Filter by name or type"
-              disabled={submitting}
-            />
-          </div>
-          {loadingTemplates ? (
-            <p className="text-sm text-white/70">Loading templates…</p>
-          ) : (
-            <div className="max-h-40 overflow-y-auto rounded border border-white/30 bg-white/5 p-2">
-              {filteredTemplates.length === 0 ? (
-                <p className="text-sm text-white/60">
-                  {templates.length === 0
-                    ? "No templates available."
-                    : "No matching items."}
-                </p>
-              ) : (
-                <ul className="space-y-1">
-                  {filteredTemplates.map((t) => (
-                    <li key={t.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTemplate(t)}
-                        className={`w-full rounded px-2 py-1.5 text-left text-sm transition-colors ${
-                          selectedTemplate?.id === t.id
-                            ? "bg-white/20 text-white"
-                            : "text-white/90 hover:bg-white/10"
-                        }`}
-                        disabled={submitting}
-                      >
-                        {t.name}
-                        {t.type && (
-                          <span className="ml-2 text-white/60">{t.type}</span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+
+          {sourceType === "STANDALONE" ? (
+            <div className="space-y-3 rounded border border-white/20 bg-white/5 p-3">
+              <p className="text-sm text-white/80">
+                For found objects, gifts, or anything that is not in the
+                catalogs — only a name and weight are required.
+              </p>
+              <div>
+                <ModalFieldLabel
+                  id="standalone-unique-name"
+                  label="Name"
+                  required
+                />
+                <input
+                  id="standalone-unique-name"
+                  type="text"
+                  value={nameOverride}
+                  onChange={(e) => setNameOverride(e.target.value)}
+                  className={modalInputClass}
+                  placeholder='e.g. "Mysterious bracelet"'
+                  disabled={submitting}
+                />
+              </div>
+              <div>
+                <ModalFieldLabel
+                  id="standalone-unique-weight"
+                  label="Weight (kg)"
+                  required
+                />
+                <input
+                  id="standalone-unique-weight"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  value={weightOverride}
+                  onChange={(e) => setWeightOverride(e.target.value)}
+                  className={modalInputClass}
+                  placeholder="0"
+                  disabled={submitting}
+                />
+              </div>
             </div>
-          )}
-          {selectedTemplate && (
-            <p className="text-sm text-neblirSafe-400">
-              Template: <strong>{selectedTemplate.name}</strong>
-            </p>
+          ) : (
+            <>
+              {loadingTemplates ? (
+                <p className="text-sm text-white/70">Loading templates…</p>
+              ) : (
+                <>
+                  <SelectDropdown
+                    id="unique-item-template"
+                    label="Template"
+                    placeholder="Select a template…"
+                    value={selectedTemplate?.id ?? ""}
+                    options={templateOptions}
+                    disabled={submitting || templateOptions.length === 0}
+                    onChange={(id) => {
+                      if (!id) {
+                        setSelectedTemplate(null);
+                        return;
+                      }
+                      const t = templates.find((x) => x.id === id);
+                      setSelectedTemplate(t ?? null);
+                    }}
+                  />
+                  {templateOptions.length === 0 && (
+                    <p className="mt-2 text-sm text-white/60">
+                      {sourceType === "CUSTOM_ITEM" &&
+                      customTemplateGameIds.length === 0
+                        ? "Link this character to a game to use custom item templates, or choose a global item above."
+                        : "No templates available."}
+                    </p>
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -485,21 +595,28 @@ export default function CreateUniqueItemModal({
       {/* Overrides */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">
-          Overrides (all optional)
+          {sourceType === "STANDALONE"
+            ? "Extra details (all optional)"
+            : "Overrides (all optional)"}
         </h3>
         <div className="space-y-3">
-          <div>
-            <ModalFieldLabel id="unique-name-override" label="Name override" />
-            <input
-              id="unique-name-override"
-              type="text"
-              value={nameOverride}
-              onChange={(e) => setNameOverride(e.target.value)}
-              className={modalInputClass}
-              placeholder="Override display name"
-              disabled={submitting}
-            />
-          </div>
+          {sourceType !== "STANDALONE" && (
+            <div>
+              <ModalFieldLabel
+                id="unique-name-override"
+                label="Name override"
+              />
+              <input
+                id="unique-name-override"
+                type="text"
+                value={nameOverride}
+                onChange={(e) => setNameOverride(e.target.value)}
+                className={modalInputClass}
+                placeholder="Override display name"
+                disabled={submitting}
+              />
+            </div>
+          )}
           <div>
             <ModalFieldLabel
               id="unique-desc-override"
@@ -555,23 +672,31 @@ export default function CreateUniqueItemModal({
               disabled={submitting}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <ModalFieldLabel
-                id="unique-weight-override"
-                label="Weight override"
-              />
-              <input
-                id="unique-weight-override"
-                type="number"
-                min={0}
-                step={0.1}
-                value={weightOverride}
-                onChange={(e) => setWeightOverride(e.target.value)}
-                className={modalInputClass}
-                disabled={submitting}
-              />
-            </div>
+          <div
+            className={
+              sourceType === "STANDALONE"
+                ? "grid grid-cols-1 gap-2"
+                : "grid grid-cols-2 gap-2"
+            }
+          >
+            {sourceType !== "STANDALONE" && (
+              <div>
+                <ModalFieldLabel
+                  id="unique-weight-override"
+                  label="Weight override"
+                />
+                <input
+                  id="unique-weight-override"
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={weightOverride}
+                  onChange={(e) => setWeightOverride(e.target.value)}
+                  className={modalInputClass}
+                  disabled={submitting}
+                />
+              </div>
+            )}
             <div>
               <ModalFieldLabel
                 id="unique-conf-cost-override"
@@ -620,7 +745,7 @@ export default function CreateUniqueItemModal({
                     checked={attackRollOverride.includes(t.value)}
                     onChange={() => toggleAttackRoll(t.value)}
                     disabled={submitting}
-                    className="rounded border-white/50"
+                    className={modalCheckboxClass}
                   />
                   {t.label}
                 </label>
@@ -736,7 +861,7 @@ export default function CreateUniqueItemModal({
                     checked={damageTypesOverride.includes(d)}
                     onChange={() => toggleDamageType(d)}
                     disabled={submitting}
-                    className="rounded border-white/50"
+                    className={modalCheckboxClass}
                   />
                   {d}
                 </label>
@@ -753,7 +878,7 @@ export default function CreateUniqueItemModal({
                     checked={damageTypesOverride.includes(d)}
                     onChange={() => toggleDamageType(d)}
                     disabled={submitting}
-                    className="rounded border-white/50"
+                    className={modalCheckboxClass}
                   />
                   {d}
                 </label>
@@ -871,7 +996,7 @@ export default function CreateUniqueItemModal({
                         checked={equipSlotTypesOverride.includes(s.value)}
                         onChange={() => toggleEquipSlot(s.value)}
                         disabled={submitting}
-                        className="rounded border-white/50"
+                        className={modalCheckboxClass}
                       />
                       {s.label}
                     </label>

@@ -1,5 +1,8 @@
 import { getGame } from "@/app/lib/prisma/game";
-import { createUniqueItem } from "@/app/lib/prisma/uniqueItem";
+import {
+  createUniqueItem,
+  prismaDataFromUniqueItemCreate,
+} from "@/app/lib/prisma/uniqueItem";
 import { uniqueItemCreateSchema } from "@/app/lib/types/item";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -39,50 +42,29 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const game = await getGame(parsedBody.gameId);
-    if (!game) return errorResponse("Game not found", 404);
-    if (game.gameMaster !== userId) {
-      return errorResponse(
-        "Only the game master can create unique items for this game",
-        403
-      );
+    if (parsedBody.gameId) {
+      const game = await getGame(parsedBody.gameId);
+      if (!game) return errorResponse("Game not found", 404);
+      if (game.gameMaster !== userId) {
+        return errorResponse(
+          "Only the game master can create unique items for this game",
+          403
+        );
+      }
     }
 
-    const item = await createUniqueItem({
-      gameId: parsedBody.gameId,
-      sourceType: parsedBody.sourceType,
-      itemId: parsedBody.itemId,
-      attackRollOverride: parsedBody.attackRollOverride ?? [],
-      attackMeleeBonusOverride:
-        parsedBody.attackMeleeBonusOverride ?? undefined,
-      attackRangeBonusOverride:
-        parsedBody.attackRangeBonusOverride ?? undefined,
-      attackThrowBonusOverride:
-        parsedBody.attackThrowBonusOverride ?? undefined,
-      defenceMeleeBonusOverride:
-        parsedBody.defenceMeleeBonusOverride ?? undefined,
-      defenceRangeBonusOverride:
-        parsedBody.defenceRangeBonusOverride ?? undefined,
-      gridAttackBonusOverride: parsedBody.gridAttackBonusOverride ?? undefined,
-      gridDefenceBonusOverride:
-        parsedBody.gridDefenceBonusOverride ?? undefined,
-      confCostOverride: parsedBody.confCostOverride ?? undefined,
-      costInfoOverride: parsedBody.costInfoOverride ?? undefined,
-      damageOverride: parsedBody.damageOverride ?? undefined,
-      descriptionOverride: parsedBody.descriptionOverride ?? undefined,
-      imageKeyOverride: parsedBody.imageKeyOverride ?? undefined,
-      nameOverride: parsedBody.nameOverride ?? undefined,
-      usageOverride: parsedBody.usageOverride ?? undefined,
-      weightOverride: parsedBody.weightOverride ?? undefined,
-      notesOverride: parsedBody.notesOverride ?? undefined,
-      specialTag: parsedBody.specialTag ?? undefined,
-      equippableOverride: parsedBody.equippableOverride ?? undefined,
-      equipSlotTypesOverride: parsedBody.equipSlotTypesOverride ?? undefined,
-      equipSlotCostOverride: parsedBody.equipSlotCostOverride ?? undefined,
-      maxUsesOverride: parsedBody.maxUsesOverride ?? undefined,
-    });
+    const effectiveGameId = parsedBody.gameId;
+    if (parsedBody.sourceType === "CUSTOM_ITEM" && !effectiveGameId) {
+      return errorResponse(
+        "gameId is required when creating from a custom item.",
+        400
+      );
+    }
+    const item = await createUniqueItem(
+      prismaDataFromUniqueItemCreate(userId, effectiveGameId, parsedBody)
+    );
 
-    return NextResponse.json(item, { status: 201 });
+    return NextResponse.json({ id: item.id }, { status: 201 });
   } catch (error) {
     logger.error({
       method: "POST",

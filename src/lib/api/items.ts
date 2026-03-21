@@ -1,12 +1,12 @@
 import {
+  type ItemResponse,
   itemResponseSchema,
   itemListResponseSchema,
-  type Item,
 } from "@/app/lib/types/item";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 /** Item as returned from GET /api/items (includes id) */
-export type ItemWithId = Item & { id: string };
+export type ItemWithId = ItemResponse;
 
 type ApiErrorPayload = { message?: string; details?: string };
 

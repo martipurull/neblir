@@ -10,6 +10,7 @@ import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { prisma } from "@/app/lib/prisma/client";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -104,6 +105,20 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         400,
         error.issues.map((issue) => issue.message).join(". ")
       );
+    }
+
+    if (data.sourceType === "UNIQUE_ITEM") {
+      const uniqueItem = await prisma.uniqueItem.findUnique({
+        where: { id: data.itemId },
+        select: { ownerUserId: true },
+      });
+      if (
+        !uniqueItem ||
+        ("ownerUserId" in uniqueItem &&
+          uniqueItem.ownerUserId !== request.auth.user.id)
+      ) {
+        return errorResponse("You can only add your own unique items.", 403);
+      }
     }
 
     await addOrIncrementItemCharacter(id, data.sourceType, data.itemId);

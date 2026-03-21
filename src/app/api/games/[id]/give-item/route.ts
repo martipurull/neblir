@@ -73,9 +73,15 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (sourceType === "UNIQUE_ITEM") {
       const uniqueItem = await prisma.uniqueItem.findUnique({
         where: { id: itemId },
-        select: { gameId: true },
+        select: { ownerUserId: true, gameId: true },
       });
-      if (uniqueItem?.gameId !== gameId) {
+      if (
+        !uniqueItem ||
+        ("ownerUserId" in uniqueItem && uniqueItem.ownerUserId !== userId)
+      ) {
+        return errorResponse("Unique item does not belong to you", 403);
+      }
+      if (uniqueItem.gameId != null && uniqueItem.gameId !== gameId) {
         return errorResponse("Unique item does not belong to this game", 403);
       }
     }

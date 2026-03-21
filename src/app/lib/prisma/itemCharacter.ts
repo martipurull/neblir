@@ -1,6 +1,7 @@
 import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
+import { buildStandaloneResolvedItem } from "./uniqueItem";
 
 export async function createItemCharacter(
   data: Prisma.ItemCharacterUncheckedCreateInput
@@ -62,6 +63,9 @@ export async function getMaxUsesForItem(
       });
       if (!uniqueItem) return null;
       if (uniqueItem.maxUsesOverride != null) return uniqueItem.maxUsesOverride;
+      if (uniqueItem.sourceType === "STANDALONE" || uniqueItem.itemId == null) {
+        return null;
+      }
       const template =
         uniqueItem.sourceType === "GLOBAL_ITEM"
           ? await prisma.item.findUnique({
@@ -92,6 +96,12 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         where: { id: itemId },
       });
       if (!uniqueItem) return null;
+
+      if (uniqueItem.sourceType === "STANDALONE") {
+        return buildStandaloneResolvedItem(uniqueItem);
+      }
+
+      if (uniqueItem.itemId == null) return uniqueItem;
 
       const template =
         uniqueItem.sourceType === "GLOBAL_ITEM"

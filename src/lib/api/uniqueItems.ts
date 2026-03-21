@@ -1,6 +1,9 @@
 import {
+  uniqueItemCreateResponseSchema,
   uniqueItemListResponseSchema,
   uniqueItemResolvedResponseSchema,
+  type UniqueItemCreate,
+  type UniqueItemCreateResponse,
   type UniqueItemResolvedResponse,
 } from "@/app/lib/types/item";
 import { getUserSafeApiError } from "@/lib/userSafeError";
@@ -45,6 +48,45 @@ export async function getGameUniqueItems(
       .join("; ");
     throw new Error(
       `Unique items response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function createUniqueItem(
+  body: UniqueItemCreate,
+  endpoint = "/api/unique-items"
+): Promise<UniqueItemCreateResponse> {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to create unique item"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = uniqueItemCreateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Create unique item response did not match expected shape: ${details}`
     );
   }
   return parsed.data;

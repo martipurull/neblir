@@ -1,4 +1,29 @@
-import type { ItemDamage } from "./item";
+export type ItemBrowseDamage = {
+  damageType: Array<
+    | "BULLET"
+    | "BLADE"
+    | "SIIKE"
+    | "ACID"
+    | "FIRE"
+    | "ICE"
+    | "BLUDGEONING"
+    | "ELECTRICITY"
+    | "NERVE"
+    | "POISON"
+    | "OTHER"
+  >;
+  diceType: number;
+  numberOfDice: number;
+  areaType?: "RADIUS" | "CONE" | null;
+  coneLength?: number | null;
+  primaryRadius?: number | null;
+  secondaryRadius?: number | null;
+  areaEffect?: {
+    defenceReactionCost: number;
+    defenceRoll: string;
+    successfulDefenceResult: string;
+  } | null;
+};
 
 /** Shape used by `BrowseItemDetailModal` for global + custom items */
 export type ItemBrowseDetailFields = {
@@ -22,7 +47,7 @@ export type ItemBrowseDetailFields = {
   defenceRangeBonus?: number | null;
   gridAttackBonus?: number | null;
   gridDefenceBonus?: number | null;
-  damage?: ItemDamage | null;
+  damage?: ItemBrowseDamage | null;
   usage?: string | null;
   notes?: string | null;
 };

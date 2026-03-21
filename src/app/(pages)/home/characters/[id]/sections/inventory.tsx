@@ -7,6 +7,7 @@ import type { EquipSlot } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
 import { EquipSlotChoiceModal } from "@/app/components/character/EquipSlotChoiceModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
+import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
@@ -160,6 +161,7 @@ function InventorySectionContent({
   canAddItems = true,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
+  const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
   const [detailEntry, setDetailEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
@@ -177,6 +179,10 @@ function InventorySectionContent({
   const inventory = useMemo(
     () => character.inventory ?? [],
     [character.inventory]
+  );
+  const characterGames = useMemo(
+    () => Array.from(new Set((character.games ?? []).map((g) => g.gameId))),
+    [character.games]
   );
   const carriedInventory = useMemo(
     () => getCarriedInventory(inventory),
@@ -224,17 +230,38 @@ function InventorySectionContent({
     }
   };
 
+  const openCreateUnique = () => {
+    setCreateUniqueOpen(true);
+  };
+
   return (
     <div className="space-y-0">
       <div className="mb-2 flex flex-col gap-1.5 pb-2">
-        <button
-          type="button"
-          onClick={() => setBrowseModalOpen(true)}
-          disabled={!canAddItems}
-          className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Browse items
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setBrowseModalOpen(true)}
+            disabled={!canAddItems}
+            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Browse items
+          </button>
+          <button
+            type="button"
+            onClick={openCreateUnique}
+            disabled={!canAddItems}
+            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Create unique item
+          </button>
+        </div>
+        {characterGames.length === 0 && (
+          <p className="text-xs text-black/60">
+            Not linked to a game yet — you can still create unique items from
+            the global catalog. Link to a game to also use that game’s custom
+            items as templates.
+          </p>
+        )}
         {!canAddItems && (
           <p className="text-xs text-neblirDanger-600">
             At 150%+ carry weight you cannot add items. Store some first.
@@ -276,6 +303,20 @@ function InventorySectionContent({
           onClose={() => setBrowseModalOpen(false)}
           character={character}
           mutate={mutate}
+        />
+      )}
+
+      {createUniqueOpen && (
+        <CreateUniqueItemModal
+          isOpen={createUniqueOpen}
+          customTemplateGameIds={characterGames}
+          submitEndpoint={`/api/characters/${encodeURIComponent(character.id)}/unique-items`}
+          onClose={() => {
+            setCreateUniqueOpen(false);
+          }}
+          onSuccess={() => {
+            void mutate();
+          }}
         />
       )}
 

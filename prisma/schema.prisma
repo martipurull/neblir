@@ -105,6 +105,8 @@ enum ItemSourceType {
   GLOBAL_ITEM
   CUSTOM_ITEM
   UNIQUE_ITEM
+  /** Unique item with no global/custom template (name & weight stored on the unique row). */
+  STANDALONE
 }
 
 type CharacterCombatInformation {
@@ -428,12 +430,13 @@ model CustomItem {
 
 model UniqueItem {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId String   @db.ObjectId
   gameId      String?  @db.ObjectId
   game        Game?    @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  // template it’s based on
-  sourceType  ItemSourceType // GLOBAL_ITEM | CUSTOM_ITEM
-  itemId      String         @db.ObjectId
+  // template it’s based on (itemId null when sourceType is STANDALONE)
+  sourceType  ItemSourceType
+  itemId      String?        @db.ObjectId
 
   attackRollOverride        ItemWeaponAttackRollType[]
   attackMeleeBonusOverride Int?
@@ -457,6 +460,7 @@ model UniqueItem {
   equipSlotTypesOverride   Json?  // String[] when set; null = use template
   equipSlotCostOverride    Int?
   maxUsesOverride          Int?
+  @@index([ownerUserId])
   @@index([gameId])
 }
 

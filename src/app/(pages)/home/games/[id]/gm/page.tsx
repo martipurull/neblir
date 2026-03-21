@@ -197,8 +197,9 @@ export default function GameMasterPage() {
       />
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}
-        gameId={game.id}
-        gameName={game.name}
+        customTemplateGameIds={[game.id]}
+        gameIdForSubmit={game.id}
+        titleSuffix={game.name}
         onClose={() => setUniqueItemModalOpen(false)}
         onSuccess={() => void mutate()}
       />

@@ -28,6 +28,9 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     if (!item) {
       return errorResponse("Unique item not found", 404);
     }
+    if ("ownerUserId" in item && item.ownerUserId !== request.auth.user.id) {
+      return errorResponse("You do not have access to this unique item.", 403);
+    }
 
     return NextResponse.json(item);
   } catch (error) {
@@ -59,6 +62,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const existing = await getUniqueItem(id);
     if (!existing) {
       return errorResponse("Unique item not found", 404);
+    }
+    if (
+      "ownerUserId" in existing &&
+      existing.ownerUserId !== request.auth.user.id
+    ) {
+      return errorResponse("You do not have access to this unique item.", 403);
     }
 
     const requestBody = await request.json();
@@ -110,6 +119,12 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     const existing = await getUniqueItem(id);
     if (!existing) {
       return errorResponse("Unique item not found", 404);
+    }
+    if (
+      "ownerUserId" in existing &&
+      existing.ownerUserId !== request.auth.user.id
+    ) {
+      return errorResponse("You do not have access to this unique item.", 403);
     }
 
     await deleteUniqueItem(id);
