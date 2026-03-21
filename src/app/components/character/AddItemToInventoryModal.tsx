@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { addItemToCharacterInventory } from "@/lib/api/items";
 import type { ItemWithId } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -16,15 +17,19 @@ export interface AddItemToInventoryModalProps {
   mutate: KeyedMutator<CharacterDetail | null>;
 }
 
-function filterItems(items: ItemWithId[], query: string): ItemWithId[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return items;
-  return items.filter(
-    (item) =>
-      item.name.toLowerCase().includes(q) ||
-      (item.description ?? "").toLowerCase().includes(q)
-  );
-}
+type BrowseInventoryRow =
+  | {
+      key: string;
+      source: "GLOBAL";
+      item: ItemWithId;
+    }
+  | {
+      key: string;
+      source: "CUSTOM";
+      gameId: string;
+      gameName: string;
+      item: ItemBrowseDetailFields;
+    };
 
 export function AddItemToInventoryModal({
   isOpen,
@@ -32,76 +37,155 @@ export function AddItemToInventoryModal({
   character,
   mutate,
 }: AddItemToInventoryModalProps) {
-  const [items, setItems] = useState<ItemWithId[]>([]);
+  const [browseRows, setBrowseRows] = useState<BrowseInventoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [addingId, setAddingId] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<ItemWithId | null>(null);
+  const [addingKey, setAddingKey] = useState<string | null>(null);
+  const [selectedRow, setSelectedRow] = useState<BrowseInventoryRow | null>(
+    null
+  );
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const { getItems } = await import("@/lib/api/items");
-      const data = await getItems();
-      setItems(data);
+      const { fetchGameCustomItemsForBrowse } = await import(
+        "@/lib/api/customItems"
+      );
+      const { getGameById } = await import("@/lib/api/game");
+
+      const gameIds = [
+        ...new Set((character.games ?? []).map((g) => g.gameId)),
+      ];
+
+      const [globalItems, customByGame] = await Promise.all([
+        getItems(),
+        Promise.all(
+          gameIds.map(async (gameId) => {
+            try {
+              const items = await fetchGameCustomItemsForBrowse(gameId);
+              let gameName = gameId;
+              try {
+                const g = await getGameById(gameId);
+                gameName = g.name;
+              } catch {
+                // keep gameId as fallback label
+              }
+              return { gameId, gameName, items };
+            } catch {
+              return {
+                gameId,
+                gameName: gameId,
+                items: [] as ItemBrowseDetailFields[],
+              };
+            }
+          })
+        ),
+      ]);
+
+      const rows: BrowseInventoryRow[] = [
+        ...globalItems.map((item) => ({
+          key: `global-${item.id}`,
+          source: "GLOBAL" as const,
+          item,
+        })),
+        ...customByGame.flatMap(({ gameId, gameName, items }) =>
+          items.map((item) => ({
+            key: `custom-${gameId}-${item.id}`,
+            source: "CUSTOM" as const,
+            gameId,
+            gameName,
+            item,
+          }))
+        ),
+      ];
+
+      setBrowseRows(rows);
     } catch (e) {
       setError(getUserSafeErrorMessage(e, "Failed to load items"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [character.games]);
 
   useEffect(() => {
     if (isOpen) {
       setSearchQuery("");
-      setAddingId(null);
-      setSelectedItem(null);
+      setAddingKey(null);
+      setSelectedRow(null);
       setError(null);
       void fetchItems();
     }
   }, [isOpen, fetchItems]);
 
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    let list = browseRows;
+    if (q) {
+      list = browseRows.filter((row) => {
+        const name = row.item.name.toLowerCase();
+        const desc = (row.item.description ?? "").toLowerCase();
+        const gameLabel =
+          row.source === "CUSTOM" ? row.gameName.toLowerCase() : "";
+        return name.includes(q) || desc.includes(q) || gameLabel.includes(q);
+      });
+    }
+    return [...list].sort((a, b) =>
+      a.item.name.localeCompare(b.item.name, undefined, {
+        sensitivity: "base",
+      })
+    );
+  }, [browseRows, searchQuery]);
+
   const handleAddFromDetail = useCallback(
-    async (item: ItemWithId) => {
-      setAddingId(item.id);
+    async (item: ItemBrowseDetailFields) => {
+      if (!selectedRow) return;
+      setAddingKey(selectedRow.key);
       try {
-        await addItemToCharacterInventory(character.id, {
-          sourceType: "GLOBAL_ITEM",
-          itemId: item.id,
-        });
+        if (selectedRow.source === "GLOBAL") {
+          await addItemToCharacterInventory(character.id, {
+            sourceType: "GLOBAL_ITEM",
+            itemId: item.id,
+          });
+        } else {
+          await addItemToCharacterInventory(character.id, {
+            sourceType: "CUSTOM_ITEM",
+            itemId: item.id,
+          });
+        }
         await mutate();
-        setSelectedItem(null);
+        setSelectedRow(null);
       } catch (e) {
         setError(getUserSafeErrorMessage(e, "Failed to add item"));
       } finally {
-        setAddingId(null);
+        setAddingKey(null);
       }
     },
-    [character.id, mutate]
+    [character.id, mutate, selectedRow]
   );
 
-  const filteredItems = useMemo(() => {
-    const filtered = filterItems(items, searchQuery);
-    return [...filtered].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-    );
-  }, [items, searchQuery]);
-
   const handleAdd = useCallback(
-    async (item: ItemWithId) => {
-      setAddingId(item.id);
+    async (row: BrowseInventoryRow) => {
+      setAddingKey(row.key);
       try {
-        await addItemToCharacterInventory(character.id, {
-          sourceType: "GLOBAL_ITEM",
-          itemId: item.id,
-        });
+        if (row.source === "GLOBAL") {
+          await addItemToCharacterInventory(character.id, {
+            sourceType: "GLOBAL_ITEM",
+            itemId: row.item.id,
+          });
+        } else {
+          await addItemToCharacterInventory(character.id, {
+            sourceType: "CUSTOM_ITEM",
+            itemId: row.item.id,
+          });
+        }
         await mutate();
       } catch (e) {
         setError(getUserSafeErrorMessage(e, "Failed to add item"));
       } finally {
-        setAddingId(null);
+        setAddingKey(null);
       }
     },
     [character.id, mutate]
@@ -145,7 +229,7 @@ export function AddItemToInventoryModal({
           <input
             id="add-item-search"
             type="search"
-            placeholder="Search by name or description…"
+            placeholder="Search by name, description, or game…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -162,43 +246,50 @@ export function AddItemToInventoryModal({
             <p className="py-6 text-center text-sm text-neblirDanger-400">
               {error}
             </p>
-          ) : filteredItems.length === 0 ? (
+          ) : filteredRows.length === 0 ? (
             <p className="py-6 text-center text-sm text-white/80">
-              {items.length === 0
+              {browseRows.length === 0
                 ? "No items available."
                 : "No items match your search."}
             </p>
           ) : (
             <ul className="divide-y divide-white/20">
-              {filteredItems.map((item) => {
-                const isAdding = addingId === item.id;
+              {filteredRows.map((row) => {
+                const isAdding = addingKey === row.key;
+                const sourceLabel =
+                  row.source === "GLOBAL" ? "Global" : row.gameName;
                 return (
                   <li
-                    key={item.id}
+                    key={row.key}
                     className="flex items-center gap-3 py-2.5 first:pt-0"
                   >
                     <button
                       type="button"
-                      onClick={() => setSelectedItem(item)}
+                      onClick={() => setSelectedRow(row)}
                       className="min-w-0 flex-1 text-left hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent rounded"
                     >
                       <p className="text-sm font-medium text-white truncate">
-                        {item.name}
+                        {row.item.name}
                       </p>
-                      {item.description ? (
+                      <p className="mt-0.5 text-xs text-white/50">
+                        {sourceLabel}
+                      </p>
+                      {row.item.description ? (
                         <p className="mt-0.5 line-clamp-2 text-xs text-white/70">
-                          {item.description}
+                          {row.item.description}
                         </p>
                       ) : null}
                       <p className="mt-0.5 text-xs text-white/50">
-                        {item.weight != null ? `${item.weight} kg` : "—"}
+                        {row.item.weight != null
+                          ? `${row.item.weight} kg`
+                          : "—"}
                       </p>
                     </button>
                     <div className="shrink-0">
                       <button
                         type="button"
                         onClick={() => {
-                          void handleAdd(item);
+                          void handleAdd(row);
                         }}
                         disabled={isAdding}
                         className="rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30 disabled:cursor-not-allowed disabled:opacity-50"
@@ -215,11 +306,11 @@ export function AddItemToInventoryModal({
       </div>
 
       <BrowseItemDetailModal
-        isOpen={selectedItem != null}
-        onClose={() => setSelectedItem(null)}
-        item={selectedItem}
+        isOpen={selectedRow != null}
+        onClose={() => setSelectedRow(null)}
+        item={selectedRow?.item ?? null}
         onAddToInventory={handleAddFromDetail}
-        isAdding={selectedItem?.id === addingId}
+        isAdding={addingKey === selectedRow?.key}
       />
     </div>
   );

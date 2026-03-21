@@ -82,6 +82,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (!game) {
       return errorResponse("Game not found", 404);
     }
+    const isGameMaster = game.gameMaster === request.auth.user.id;
+    if (!isGameMaster) {
+      return errorResponse(
+        "Only the game master can create custom items for this game.",
+        403
+      );
+    }
 
     const requestBody = await request.json();
     const { data: parsedBody, error } =

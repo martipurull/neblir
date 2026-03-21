@@ -8,10 +8,8 @@ import {
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import {
-  modalInputClass,
-  modalSelectClass,
-} from "@/app/components/games/shared/modalStyles";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import {
   getUserSafeApiError,
@@ -51,6 +49,10 @@ const EQUIP_SLOTS = [
   { value: "BODY", label: "Body" },
   { value: "HEAD", label: "Head" },
 ] as const;
+
+/** Matches modal checkboxes elsewhere (e.g. AddCharactersToGameModal) */
+const modalCheckboxClass =
+  "h-4 w-4 shrink-0 rounded border border-white/50 bg-paleBlue text-customPrimary accent-customPrimary focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 type CreateCustomItemModalProps = {
   isOpen: boolean;
@@ -319,26 +321,15 @@ export default function CreateCustomItemModal({
             />
           </div>
           <div>
-            <ModalFieldLabel id="custom-item-type" label="Type" />
-            <select
+            <SelectDropdown
               id="custom-item-type"
+              label="Type"
+              placeholder="Select type"
               value={type}
-              onChange={(e) =>
-                setType(e.target.value as "GENERAL_ITEM" | "WEAPON")
-              }
-              className={modalSelectClass}
+              options={[...ITEM_TYPES]}
               disabled={submitting}
-            >
-              {ITEM_TYPES.map((t) => (
-                <option
-                  key={t.value}
-                  value={t.value}
-                  className="bg-modalBackground-200 text-black"
-                >
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setType(v as "GENERAL_ITEM" | "WEAPON")}
+            />
           </div>
         </div>
       </section>
@@ -363,14 +354,14 @@ export default function CreateCustomItemModal({
           </div>
           <div>
             <ModalFieldLabel id="custom-item-usage" label="Usage" />
-            <input
+            <textarea
               id="custom-item-usage"
-              type="text"
               value={usage}
               onChange={(e) => setUsage(e.target.value)}
-              className={modalInputClass}
+              className={modalInputClass + " min-h-[80px]"}
               placeholder="e.g. One use per round"
               disabled={submitting}
+              rows={3}
             />
           </div>
           <div>
@@ -436,7 +427,7 @@ export default function CreateCustomItemModal({
                       checked={attackRoll.includes(t.value)}
                       onChange={() => toggleAttackRoll(t.value)}
                       disabled={submitting}
-                      className="rounded border-white/50"
+                      className={modalCheckboxClass}
                     />
                     {t.label}
                   </label>
@@ -561,7 +552,7 @@ export default function CreateCustomItemModal({
                       checked={damageTypes.includes(d)}
                       onChange={() => toggleDamageType(d)}
                       disabled={submitting}
-                      className="rounded border-white/50"
+                      className={modalCheckboxClass}
                     />
                     {d}
                   </label>
@@ -613,7 +604,7 @@ export default function CreateCustomItemModal({
               checked={equippable}
               onChange={(e) => setEquippable(e.target.checked)}
               disabled={submitting}
-              className="rounded border-white/50"
+              className={modalCheckboxClass}
             />
             Can be equipped
           </label>
@@ -635,7 +626,7 @@ export default function CreateCustomItemModal({
                         checked={equipSlotTypes.includes(s.value)}
                         onChange={() => toggleEquipSlot(s.value)}
                         disabled={submitting}
-                        className="rounded border-white/50"
+                        className={modalCheckboxClass}
                       />
                       {s.label}
                     </label>

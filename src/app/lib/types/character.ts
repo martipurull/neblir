@@ -244,6 +244,14 @@ export const characterDetailSchema = characterSchema.extend({
 });
 export type CharacterDetail = z.infer<typeof characterDetailSchema>;
 
+/** Minimal response expected from POST /api/characters */
+export const characterCreateResponseSchema = z.object({
+  id: z.string(),
+});
+export type CharacterCreateResponse = z.infer<
+  typeof characterCreateResponseSchema
+>;
+
 export const characterListItemSchema = z.object({
   id: z.string(),
   name: z.string(),

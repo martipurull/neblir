@@ -8,6 +8,7 @@ import {
 import { giveItemToCharacter } from "@/lib/api/game";
 import type { ItemWithId } from "@/lib/api/items";
 import { getItems } from "@/lib/api/items";
+import { getGameUniqueItems } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -66,11 +67,7 @@ export function GiveItemToCharacterModal({
     setLoadingUniqueItems(true);
     setError(null);
     try {
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/unique-items`
-      );
-      if (!res.ok) throw new Error("Failed to load unique items");
-      const data = (await res.json()) as { id: string; name: string }[];
+      const data = await getGameUniqueItems(gameId);
       setUniqueItems(data);
     } catch (e) {
       setError(getUserSafeErrorMessage(e, "Failed to load unique items"));

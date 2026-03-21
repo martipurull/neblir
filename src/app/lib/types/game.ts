@@ -48,8 +48,19 @@ export const gameListItemSchema = z.object({
   gameMaster: z.string(),
   users: z.array(gameListUserSchema),
 });
+export const gameListSchema = z.array(gameListItemSchema);
 
 export type GameListItem = z.infer<typeof gameListItemSchema>;
+
+/** Minimal response expected from POST /api/games */
+export const gameCreateResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  premise: z.string().nullable().optional(),
+  imageKey: z.string().nullable().optional(),
+  gameMaster: z.string(),
+});
+export type GameCreateResponse = z.infer<typeof gameCreateResponseSchema>;
 
 export const gameCharacterSchema = z.object({
   id: z.string(),
@@ -94,6 +105,8 @@ export const gameDetailCustomItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
+  description: z.string().nullable().optional(),
+  imageKey: z.string().nullable().optional(),
 });
 
 /** Full game detail as returned by GET /api/games/[id]. */

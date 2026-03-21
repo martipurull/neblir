@@ -48,7 +48,7 @@ function InventoryList({
   return (
     <div className="mb-6">
       <div className="border-b border-gray-200 pb-1 mt-2 mb-4">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-200">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-paleBlue">
           {title}
         </h3>
       </div>

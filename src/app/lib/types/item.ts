@@ -245,3 +245,96 @@ export const addToInventorySchema = z.object({
   itemId: z.string(),
 });
 export type AddToInventory = z.infer<typeof addToInventorySchema>;
+
+// ---- API response schemas ----
+
+/** Global item returned by GET /api/items */
+export const itemResponseSchema = z.intersection(
+  itemSchema,
+  z.object({
+    id: z.string(),
+  })
+);
+export const itemListResponseSchema = z.array(itemResponseSchema);
+export type ItemResponse = z.infer<typeof itemResponseSchema>;
+
+/** Custom item returned by GET /api/games/[id]/custom-items and related endpoints */
+export const customItemResponseSchema = z.object({
+  id: z.string(),
+  gameId: z.string(),
+  name: z.string(),
+  weight: z.number(),
+  type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+  attackRoll: z.array(weaponAttackRollTypeSchema).default([]),
+  attackMeleeBonus: z.number().nullish(),
+  attackRangeBonus: z.number().nullish(),
+  attackThrowBonus: z.number().nullish(),
+  defenceMeleeBonus: z.number().nullish(),
+  defenceRangeBonus: z.number().nullish(),
+  gridAttackBonus: z.number().nullish(),
+  gridDefenceBonus: z.number().nullish(),
+  confCost: z.number().nullish(),
+  costInfo: z.string().nullish(),
+  damage: itemDamageSchema.nullish(),
+  description: z.string().nullish(),
+  imageKey: z.string().nullish(),
+  notes: z.string().nullish(),
+  usage: z.string().nullish(),
+  equippable: z.boolean().nullish(),
+  equipSlotTypes: z.array(z.string()).nullish(),
+  equipSlotCost: z.number().nullish(),
+  maxUses: z.number().int().positive().nullish(),
+});
+export const customItemListResponseSchema = z.array(customItemResponseSchema);
+export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
+
+/** Unique item list row returned by GET /api/games/[id]/unique-items */
+export const uniqueItemListItemResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+export const uniqueItemListResponseSchema = z.array(
+  uniqueItemListItemResponseSchema
+);
+export type UniqueItemListItemResponse = z.infer<
+  typeof uniqueItemListItemResponseSchema
+>;
+
+/** Unique item returned by GET /api/unique-items/[id] (raw + resolved/template forms). */
+export const uniqueItemResolvedResponseSchema = z.object({
+  id: z.string(),
+  gameId: z.string().nullish(),
+  sourceType: uniqueItemSourceTypeSchema,
+  itemId: z.string(),
+  attackRollOverride: z.array(weaponAttackRollTypeSchema).default([]),
+  attackMeleeBonusOverride: z.number().nullish(),
+  attackRangeBonusOverride: z.number().nullish(),
+  attackThrowBonusOverride: z.number().nullish(),
+  defenceMeleeBonusOverride: z.number().nullish(),
+  defenceRangeBonusOverride: z.number().nullish(),
+  gridAttackBonusOverride: z.number().nullish(),
+  gridDefenceBonusOverride: z.number().nullish(),
+  confCostOverride: z.number().nullish(),
+  costInfoOverride: z.string().nullish(),
+  damageOverride: itemDamageSchema.nullish(),
+  descriptionOverride: z.string().nullish(),
+  imageKeyOverride: z.string().nullish(),
+  nameOverride: z.string().nullish(),
+  usageOverride: z.string().nullish(),
+  weightOverride: z.number().nullish(),
+  notesOverride: z.string().nullish(),
+  specialTag: z.string().nullish(),
+  equippableOverride: z.boolean().nullish(),
+  equipSlotTypesOverride: z.unknown().nullish(),
+  equipSlotCostOverride: z.number().nullish(),
+  maxUsesOverride: z.number().int().positive().nullish(),
+  templateItem: z
+    .union([itemResponseSchema, customItemResponseSchema])
+    .nullish(),
+  resolvedItem: z
+    .union([itemResponseSchema, customItemResponseSchema])
+    .nullish(),
+});
+export type UniqueItemResolvedResponse = z.infer<
+  typeof uniqueItemResolvedResponseSchema
+>;

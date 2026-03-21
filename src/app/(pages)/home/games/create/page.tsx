@@ -10,6 +10,8 @@ import {
   createGameFormSchema,
   type CreateGameFormValues,
 } from "./schemas";
+import { createGame } from "@/lib/api/game";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
@@ -65,7 +67,7 @@ function CreateGameFormContent() {
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      const body: { name: string; premise?: string; imageKey?: string } = {
+      const body: Parameters<typeof createGame>[0] = {
         name: result.data.game.name.trim(),
       };
       if (result.data.game.premise?.trim()) {
@@ -74,24 +76,14 @@ function CreateGameFormContent() {
       if (result.data.game.imageKey) {
         body.imageKey = result.data.game.imageKey;
       }
-      const res = await fetch("/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (pendingImageKey) {
-          await deleteUploadedImage(pendingImageKey);
-          setPendingImageKey("");
-        }
-        setSubmitError(data.message ?? "Failed to create game");
-        return;
-      }
-      const game = await res.json();
+      const game = await createGame(body);
       router.push(`/home/games/${game.id}`);
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : "Something went wrong");
+      if (pendingImageKey) {
+        await deleteUploadedImage(pendingImageKey);
+        setPendingImageKey("");
+      }
+      setSubmitError(getUserSafeErrorMessage(e, "Failed to create game"));
     } finally {
       setIsSubmitting(false);
     }

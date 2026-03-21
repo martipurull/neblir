@@ -1,4 +1,8 @@
-import type { Item } from "@/app/lib/types/item";
+import {
+  itemResponseSchema,
+  itemListResponseSchema,
+  type Item,
+} from "@/app/lib/types/item";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 /** Item as returned from GET /api/items (includes id) */
@@ -26,7 +30,47 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   }
 
   const json = await response.json();
-  return json as ItemWithId[];
+  const parsed = itemListResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Items response did not match expected shape: ${details}`);
+  }
+  return parsed.data as ItemWithId[];
+}
+
+export async function getItemById(
+  id: string,
+  signal?: AbortSignal
+): Promise<ItemWithId> {
+  const response = await fetch(`/api/items/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch item")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = itemResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Item response did not match expected shape: ${details}`);
+  }
+  return parsed.data as ItemWithId;
 }
 
 export type AddToInventoryBody = {

@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
-import type { ItemWithId } from "@/lib/api/items";
+import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
@@ -10,9 +10,9 @@ import React, { useMemo } from "react";
 export interface BrowseItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  item: ItemWithId | null;
+  item: ItemBrowseDetailFields | null;
   /** When provided, shows an "Add to inventory" button that calls this then closes the modal */
-  onAddToInventory?: (item: ItemWithId) => void | Promise<void>;
+  onAddToInventory?: (item: ItemBrowseDetailFields) => void | Promise<void>;
   /** When adding from this modal, pass true to show loading state */
   isAdding?: boolean;
 }

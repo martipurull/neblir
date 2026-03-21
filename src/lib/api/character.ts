@@ -1,10 +1,18 @@
 import {
+  characterCreateResponseSchema,
   characterDetailSchema,
+  type CharacterCreateResponse,
   type CharacterDetail,
 } from "@/app/lib/types/character";
+import { walletSchema } from "@/app/lib/types/item";
+import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
+
+export type CharacterCreateBody = CharacterCreationRequest & {
+  initialFeatures?: Array<{ featureId: string; grade: number }>;
+};
 
 export async function getCharacterById(
   id: string,
@@ -36,6 +44,44 @@ export async function getCharacterById(
       .join("; ");
     throw new Error(
       `Character response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function createCharacter(
+  body: CharacterCreateBody
+): Promise<CharacterCreateResponse> {
+  const response = await fetch("/api/characters", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to create character"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterCreateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Create character response did not match expected shape: ${details}`
     );
   }
   return parsed.data;
@@ -150,14 +196,15 @@ export async function addWalletCurrency(
     );
   }
 
-  const json = (await response.json()) as Array<{
-    currencyName: string;
-    quantity: number;
-  }>;
-  return json.map((e) => ({
-    currencyName: e.currencyName,
-    quantity: e.quantity,
-  }));
+  const json = await response.json();
+  const parsed = walletSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Wallet response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
 }
 
 export async function subtractWalletCurrency(
@@ -186,12 +233,13 @@ export async function subtractWalletCurrency(
     );
   }
 
-  const json = (await response.json()) as Array<{
-    currencyName: string;
-    quantity: number;
-  }>;
-  return json.map((e) => ({
-    currencyName: e.currencyName,
-    quantity: e.quantity,
-  }));
+  const json = await response.json();
+  const parsed = walletSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Wallet response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
 }

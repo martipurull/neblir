@@ -7,6 +7,8 @@ import type { UseFormSetError } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
+import { createCharacter } from "@/lib/api/character";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { InitialFeatureEntry } from "./steps/PathAndFeaturesStep";
 import {
   CREATE_CHARACTER_DRAFT_KEY,
@@ -302,19 +304,7 @@ export function useCharacterCreateController() {
             initialFeatures.length > 0 ? initialFeatures : undefined,
         };
 
-        const res = await fetch("/api/characters", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          setSubmitError(data.message ?? "Failed to create character");
-          return;
-        }
-
-        const character = await res.json();
+        const character = await createCharacter(body);
 
         try {
           window.localStorage.removeItem(CREATE_CHARACTER_DRAFT_KEY);
@@ -326,7 +316,9 @@ export function useCharacterCreateController() {
 
         router.push(`/home/characters/${character.id}`);
       } catch (e) {
-        setSubmitError(e instanceof Error ? e.message : "Something went wrong");
+        setSubmitError(
+          getUserSafeErrorMessage(e, "Failed to create character")
+        );
       } finally {
         setIsSubmitting(false);
       }

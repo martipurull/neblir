@@ -32,7 +32,14 @@ export function getGameWithDetails(id: string) {
         },
       },
       customItems: {
-        select: { id: true, name: true, type: true },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          description: true,
+          imageKey: true,
+        },
+        orderBy: { name: "asc" },
       },
     },
   });

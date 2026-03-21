@@ -10,7 +10,6 @@ import ResourceListCard from "@/app/components/shared/ResourceListCard";
 import RemoveCharacterFromGameButton from "@/app/components/games/RemoveCharacterFromGameButton";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
@@ -32,7 +31,6 @@ export default function GameCharactersPage() {
   >({});
 
   const characters = useMemo(() => game?.characters ?? [], [game?.characters]);
-  const count = characters.length;
   const alreadyLinkedCharacterIds = useMemo(
     () => characters.map((gc) => gc.character.id),
     [characters]
@@ -70,19 +68,12 @@ export default function GameCharactersPage() {
 
   return (
     <PageSection>
-      <div className="mb-4 flex items-center gap-2">
-        <Link
-          href={`/home/games/${game.id}`}
-          className="text-sm text-black/70 hover:underline"
-        >
-          ← {game.name}
-        </Link>
-      </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <PageTitle>Characters</PageTitle>
           <p className="mt-1 text-sm text-black/70">
-            Characters linked to this game ({count})
+            Characters linked to{" "}
+            <span className="font-semibold">{game.name}</span>
           </p>
         </div>
         <button
