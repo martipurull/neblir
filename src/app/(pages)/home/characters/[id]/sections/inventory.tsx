@@ -17,9 +17,10 @@ import {
   getEffectiveMaxCarryWeight,
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
+import { getGameById } from "@/lib/api/game";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
@@ -234,6 +235,57 @@ function InventorySectionContent({
     setCreateUniqueOpen(true);
   };
 
+  const resolveGiveRecipients = useCallback(
+    async (entry: InventoryEntry) => {
+      const selfId = character.id;
+      const linked = character.games?.map((g) => g.gameId) ?? [];
+      let restrictGameId: string | null = null;
+      if (entry.sourceType === "CUSTOM_ITEM") {
+        const gid = (entry.item as { gameId?: string } | null)?.gameId;
+        if (gid) restrictGameId = gid;
+      }
+      if (entry.sourceType === "UNIQUE_ITEM") {
+        const gid = (entry.item as { gameId?: string } | null)?.gameId;
+        if (gid) restrictGameId = gid;
+      }
+      const gameIdSet = new Set(linked);
+      if (restrictGameId != null) gameIdSet.add(restrictGameId);
+      const gameIds = [...gameIdSet];
+      if (gameIds.length === 0) return [];
+
+      const games = await Promise.all(gameIds.map((id) => getGameById(id)));
+
+      const restrictSet =
+        restrictGameId != null
+          ? new Set(
+              (
+                games.find((g) => g.id === restrictGameId)?.characters ?? []
+              ).map((c) => c.character.id)
+            )
+          : null;
+
+      const byId = new Map<string, string>();
+      for (const game of games) {
+        for (const gc of game.characters ?? []) {
+          const c = gc.character;
+          if (c.id === selfId) continue;
+          if (restrictSet != null && !restrictSet.has(c.id)) continue;
+          const label =
+            [c.name, c.surname ?? ""]
+              .filter((s) => String(s).trim())
+              .join(" ")
+              .trim() || c.id;
+          if (!byId.has(c.id)) byId.set(c.id, label);
+        }
+      }
+
+      return [...byId.entries()]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    },
+    [character.id, character.games]
+  );
+
   return (
     <div className="space-y-0">
       <div className="mb-2 flex flex-col gap-1.5 pb-2">
@@ -327,6 +379,7 @@ function InventorySectionContent({
           entry={detailEntry}
           characterId={character.id}
           mutate={mutate}
+          resolveGiveRecipients={resolveGiveRecipients}
         />
       )}
 

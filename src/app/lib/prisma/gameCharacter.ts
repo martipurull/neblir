@@ -24,3 +24,22 @@ export async function characterIsInGame(
   });
   return !!gc;
 }
+
+/** True when both characters are registered in at least one shared game. */
+export async function charactersShareAnyGame(
+  characterIdA: string,
+  characterIdB: string
+): Promise<boolean> {
+  const rows = await prisma.gameCharacter.findMany({
+    where: { characterId: characterIdA },
+    select: { gameId: true },
+  });
+  if (rows.length === 0) return false;
+  const shared = await prisma.gameCharacter.findFirst({
+    where: {
+      characterId: characterIdB,
+      gameId: { in: rows.map((r) => r.gameId) },
+    },
+  });
+  return !!shared;
+}

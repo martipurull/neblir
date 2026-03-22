@@ -184,6 +184,7 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,
         _uniqueItemId: uniqueItem.id,
+        ...(uniqueItem.gameId != null && { gameId: uniqueItem.gameId }),
       };
     }
     default:

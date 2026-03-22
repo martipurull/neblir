@@ -8,8 +8,15 @@ import {
 import type { CharacterDetail } from "@/app/lib/types/character";
 import {
   deleteCharacterInventoryEntry,
+  transferInventoryItem,
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
+import {
+  DangerButton,
+  WarningButton,
+} from "@/app/components/shared/SemanticActionButton";
+import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -25,6 +32,9 @@ import React, {
 
 const USES_DEBOUNCE_MS = 2500;
 
+const innerActionPanelClass =
+  "rounded border border-white/20 bg-white/5 p-3 space-y-3";
+
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
 export interface ItemDetailModalProps {
@@ -33,6 +43,10 @@ export interface ItemDetailModalProps {
   entry: InventoryEntry;
   characterId: string;
   mutate: KeyedMutator<CharacterDetail | null>;
+  /** When set, user can give part or all of the stack to another character (same-game rules enforced server-side). */
+  resolveGiveRecipients?: (
+    entry: InventoryEntry
+  ) => Promise<SelectDropdownOption[]>;
 }
 
 function fmt(n: number) {
@@ -45,9 +59,21 @@ export function ItemDetailModal({
   entry,
   characterId,
   mutate,
+  resolveGiveRecipients,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [giveOpen, setGiveOpen] = useState(false);
+  const [giveQuantity, setGiveQuantity] = useState(1);
+  const [recipientId, setRecipientId] = useState("");
+  const [recipientOptions, setRecipientOptions] = useState<
+    SelectDropdownOption[]
+  >([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [recipientsError, setRecipientsError] = useState<string | null>(null);
+  const [giveSubmitting, setGiveSubmitting] = useState(false);
+  const [giveError, setGiveError] = useState<string | null>(null);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [isSettingLocation, setIsSettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [leaveLocationInput, setLeaveLocationInput] = useState("");
@@ -64,6 +90,40 @@ export function ItemDetailModal({
   useEffect(() => {
     setDisplayUses(entry.currentUses ?? 0);
   }, [entry.currentUses, entry.id]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setGiveOpen(false);
+      setRemoveConfirmOpen(false);
+      setRecipientId("");
+      setRecipientOptions([]);
+      setRecipientsError(null);
+      setGiveError(null);
+      setGiveQuantity(1);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!giveOpen || !resolveGiveRecipients) return;
+    setRecipientsLoading(true);
+    setRecipientsError(null);
+    void resolveGiveRecipients(entry)
+      .then((opts) => {
+        setRecipientOptions(opts);
+        setRecipientId("");
+      })
+      .catch((e: unknown) => {
+        setRecipientOptions([]);
+        setRecipientsError(
+          getUserSafeErrorMessage(e, "Could not load characters")
+        );
+      })
+      .finally(() => setRecipientsLoading(false));
+  }, [giveOpen, resolveGiveRecipients, entry]);
+
+  useEffect(() => {
+    setGiveQuantity((q) => Math.min(Math.max(1, q), entry.quantity));
+  }, [entry.quantity, entry.id]);
 
   const saveUses = useCallback(async () => {
     const value = pendingUsesRef.current;
@@ -141,6 +201,28 @@ export function ItemDetailModal({
     }
   };
 
+  const handleGiveConfirm = async () => {
+    if (!recipientId) {
+      setGiveError("Choose a character to give the item to.");
+      return;
+    }
+    setGiveError(null);
+    setGiveSubmitting(true);
+    try {
+      await transferInventoryItem(characterId, entry.id, {
+        toCharacterId: recipientId,
+        quantity: giveQuantity,
+      });
+      await mutate();
+      setGiveOpen(false);
+      onClose();
+    } catch (e) {
+      setGiveError(getUserSafeErrorMessage(e, "Failed to give item"));
+    } finally {
+      setGiveSubmitting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const name = entry.customName ?? entry.item?.name ?? "Unknown item";
@@ -209,6 +291,14 @@ export function ItemDetailModal({
               <p className="mt-0.5 text-white whitespace-pre-wrap">
                 {item.description}
               </p>
+            </div>
+          )}
+          {!isWeapon && item && "usage" in item && item.usage && (
+            <div>
+              <span className="text-white/60 uppercase tracking-wider">
+                Usage
+              </span>
+              <p className="mt-0.5 text-white">{item.usage}</p>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3">
@@ -429,14 +519,6 @@ export function ItemDetailModal({
               </div>
             </>
           )}
-          {!isWeapon && item && "usage" in item && item.usage && (
-            <div>
-              <span className="text-white/60 uppercase tracking-wider">
-                Usage
-              </span>
-              <p className="mt-0.5 text-white">{item.usage}</p>
-            </div>
-          )}
           {item?.notes && (
             <div>
               <span className="text-white/60 uppercase tracking-wider">
@@ -448,21 +530,168 @@ export function ItemDetailModal({
             </div>
           )}
 
-          <div className="mt-6 pt-4 border-t border-white/20">
-            <button
-              type="button"
-              onClick={() => {
-                void handleRemove();
-              }}
-              disabled={isRemoving}
-              className="w-full rounded border-2 border-neblirDanger-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/20 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isRemoving ? "Removing…" : "Remove from inventory"}
-            </button>
-            {removeError && (
-              <p className="mt-2 text-sm text-neblirDanger-400">
-                {removeError}
-              </p>
+          <div className="mt-6 pt-4 border-t border-white/20 space-y-3">
+            {resolveGiveRecipients && (
+              <>
+                {!giveOpen ? (
+                  <WarningButton
+                    type="button"
+                    onClick={() => {
+                      setGiveOpen(true);
+                      setRemoveConfirmOpen(false);
+                      setRemoveError(null);
+                    }}
+                    className="w-full"
+                  >
+                    Give item
+                  </WarningButton>
+                ) : (
+                  <div className={innerActionPanelClass}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                        Give to another character
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGiveOpen(false);
+                          setGiveError(null);
+                        }}
+                        className="text-xs text-white/80 underline hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="give-quantity"
+                        className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/70"
+                      >
+                        How many
+                      </label>
+                      <input
+                        id="give-quantity"
+                        type="number"
+                        min={1}
+                        max={entry.quantity}
+                        value={giveQuantity}
+                        onChange={(e) => {
+                          const n = Number.parseInt(e.target.value, 10);
+                          if (Number.isNaN(n)) return;
+                          setGiveQuantity(
+                            Math.min(
+                              Math.max(1, n),
+                              Math.max(1, entry.quantity)
+                            )
+                          );
+                        }}
+                        className="w-full rounded border border-white/30 bg-white/5 px-3 py-2 text-sm text-white tabular-nums"
+                      />
+                      <p className="mt-1 text-xs text-white/50">
+                        You have {entry.quantity} in this stack.
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-paleBlue p-3">
+                      {recipientsLoading ? (
+                        <p className="text-sm text-black/70">
+                          Loading characters…
+                        </p>
+                      ) : recipientsError ? (
+                        <p className="text-sm text-neblirDanger-600">
+                          {recipientsError}
+                        </p>
+                      ) : (
+                        <SelectDropdown
+                          id="give-item-recipient"
+                          label="Recipient"
+                          placeholder="Choose a character…"
+                          value={recipientId}
+                          options={recipientOptions}
+                          disabled={recipientOptions.length === 0}
+                          onChange={setRecipientId}
+                        />
+                      )}
+                      {recipientOptions.length === 0 &&
+                        !recipientsLoading &&
+                        !recipientsError && (
+                          <p className="mt-2 text-xs text-black/60">
+                            No eligible characters (link to a game or adjust
+                            filters).
+                          </p>
+                        )}
+                    </div>
+                    <WarningButton
+                      type="button"
+                      onClick={() => void handleGiveConfirm()}
+                      disabled={
+                        giveSubmitting ||
+                        recipientsLoading ||
+                        !recipientId ||
+                        recipientOptions.length === 0
+                      }
+                      className="w-full"
+                    >
+                      {giveSubmitting ? "Giving…" : "Confirm give"}
+                    </WarningButton>
+                    {giveError && (
+                      <p className="text-sm text-neblirDanger-400">
+                        {giveError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+            {removeConfirmOpen ? (
+              <div className={innerActionPanelClass}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                    Remove from inventory
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRemoveConfirmOpen(false);
+                      setRemoveError(null);
+                    }}
+                    disabled={isRemoving}
+                    className="text-xs text-white/80 underline hover:text-white disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <p className="text-sm text-white/85">
+                  Remove <span className="font-medium text-white">{name}</span>{" "}
+                  from this character? This cannot be undone.
+                </p>
+                <DangerButton
+                  type="button"
+                  onClick={() => {
+                    void handleRemove();
+                  }}
+                  disabled={isRemoving}
+                  className="w-full"
+                >
+                  {isRemoving ? "Removing…" : "Yes, remove"}
+                </DangerButton>
+                {removeError && (
+                  <p className="text-sm text-neblirDanger-400">{removeError}</p>
+                )}
+              </div>
+            ) : (
+              <DangerButton
+                type="button"
+                onClick={() => {
+                  setRemoveConfirmOpen(true);
+                  setGiveOpen(false);
+                  setGiveError(null);
+                  setRemoveError(null);
+                }}
+                disabled={isRemoving}
+                className="w-full"
+              >
+                Remove from inventory
+              </DangerButton>
             )}
           </div>
         </div>

@@ -174,3 +174,34 @@ export async function deleteCharacterInventoryEntry(
     );
   }
 }
+
+export async function transferInventoryItem(
+  characterId: string,
+  itemCharacterId: string,
+  body: { toCharacterId: string; quantity: number }
+): Promise<void> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/inventory/${encodeURIComponent(itemCharacterId)}/transfer`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let payload: ApiErrorPayload | undefined;
+    try {
+      payload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        payload,
+        "Failed to give item to another character"
+      )
+    );
+  }
+}

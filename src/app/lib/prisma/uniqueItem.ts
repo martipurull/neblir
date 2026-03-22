@@ -58,6 +58,7 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     specialTag: uniqueItem.specialTag,
     _resolvedFrom: "UNIQUE_ITEM" as const,
     _uniqueItemId: uniqueItem.id,
+    ...(uniqueItem.gameId != null && { gameId: uniqueItem.gameId }),
   };
 }
 
