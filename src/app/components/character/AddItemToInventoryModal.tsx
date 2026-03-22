@@ -7,6 +7,7 @@ import type { ItemWithId } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
 
@@ -286,16 +287,16 @@ export function AddItemToInventoryModal({
                       </p>
                     </button>
                     <div className="shrink-0">
-                      <button
+                      <SafeButton
                         type="button"
                         onClick={() => {
                           void handleAdd(row);
                         }}
                         disabled={isAdding}
-                        className="rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="!px-2 !py-1 !text-xs"
                       >
                         {isAdding ? "Adding…" : "Add"}
-                      </button>
+                      </SafeButton>
                     </div>
                   </li>
                 );

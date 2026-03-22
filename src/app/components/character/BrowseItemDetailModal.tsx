@@ -3,6 +3,7 @@
 
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import React, { useMemo } from "react";
@@ -287,16 +288,16 @@ export function BrowseItemDetailModal({
 
           {onAddToInventory && (
             <div className="mt-6 pt-4 border-t border-white/20">
-              <button
+              <SafeButton
                 type="button"
                 onClick={() => {
                   void onAddToInventory(item);
                 }}
                 disabled={isAdding}
-                className="w-full rounded border-2 border-neblirSafe-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full"
               >
                 {isAdding ? "Adding…" : "Add to inventory"}
-              </button>
+              </SafeButton>
             </div>
           )}
         </div>

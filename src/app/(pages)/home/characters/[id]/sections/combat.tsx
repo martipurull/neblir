@@ -8,6 +8,7 @@ import {
   getEffectiveMaxCarryWeight,
   getEffectiveSpeed,
 } from "@/app/lib/carryWeightUtils";
+import { WarningButton } from "@/app/components/shared/SemanticActionButton";
 import React from "react";
 import { KeyValueRow } from "./section-shared";
 
@@ -74,14 +75,14 @@ export function getCombatSection(
     id: "combat",
     title: "Combat",
     titleSupplement: (
-      <button
+      <WarningButton
         type="button"
         disabled={options.usedReactions === 0}
         onClick={options.onClearReactions}
-        className="rounded border border-neblirWarning-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirWarning-400 transition hover:enabled:bg-neblirWarning-200/50 focus:outline-none focus-visible:enabled:ring-2 focus-visible:enabled:ring-black focus-visible:enabled:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+        className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
       >
         Clear Reactions
-      </button>
+      </WarningButton>
     ),
     children: (
       <ul className="divide-y divide-black">

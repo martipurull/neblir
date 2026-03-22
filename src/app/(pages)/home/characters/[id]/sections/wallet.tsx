@@ -8,6 +8,10 @@ import {
   type WalletAdjustMode,
 } from "@/app/components/character/WalletAdjustModal";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import {
+  DangerButton,
+  SafeButton,
+} from "@/app/components/shared/SemanticActionButton";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
@@ -87,7 +91,7 @@ function WalletSectionContent({
                 {entry.currencyName}
               </span>
               <div className="ml-auto flex shrink-0 gap-1.5">
-                <button
+                <SafeButton
                   type="button"
                   onClick={() =>
                     setModalState({
@@ -97,11 +101,11 @@ function WalletSectionContent({
                       mode: "add",
                     })
                   }
-                  className="rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/30"
+                  className="!px-2 !py-0.5 !text-xs"
                 >
                   ADD
-                </button>
-                <button
+                </SafeButton>
+                <DangerButton
                   type="button"
                   onClick={() =>
                     setModalState({
@@ -111,10 +115,10 @@ function WalletSectionContent({
                       mode: "subtract",
                     })
                   }
-                  className="rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-xs font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/30"
+                  className="!px-2 !py-0.5 !text-xs"
                 >
                   SUBTRACT
-                </button>
+                </DangerButton>
               </div>
             </li>
           );

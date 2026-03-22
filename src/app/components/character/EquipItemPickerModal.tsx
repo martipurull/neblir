@@ -1,6 +1,10 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import {
+  DangerButton,
+  SafeButton,
+} from "@/app/components/shared/SemanticActionButton";
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";
@@ -195,16 +199,16 @@ export function EquipItemPickerModal({
                       <p className="text-sm font-medium text-white">{name}</p>
                       {entry.item && <ItemCombatStats item={entry.item} />}
                     </div>
-                    <button
+                    <DangerButton
                       type="button"
                       onClick={() => {
                         void handleUnequip(entry, apiSlot);
                       }}
                       disabled={isSubmitting}
-                      className="shrink-0 rounded border border-neblirDanger-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/20 disabled:opacity-50"
+                      className="shrink-0 !px-2 !py-1 !text-xs"
                     >
                       {isSubmitting ? "Unequipping…" : "Unequip"}
-                    </button>
+                    </DangerButton>
                   </li>
                 );
               })}
@@ -223,16 +227,16 @@ export function EquipItemPickerModal({
                       <p className="text-sm font-medium text-white">{name}</p>
                       {entry.item && <ItemCombatStats item={entry.item} />}
                     </div>
-                    <button
+                    <SafeButton
                       type="button"
                       onClick={() => {
                         void handleEquip(entry);
                       }}
                       disabled={equipDisabled}
-                      className="shrink-0 rounded border border-neblirSafe-200 bg-transparent px-2 py-1 text-xs font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="shrink-0 !px-2 !py-1 !text-xs"
                     >
                       {isSubmitting ? "Equipping…" : "Equip"}
-                    </button>
+                    </SafeButton>
                   </li>
                 );
               })}
