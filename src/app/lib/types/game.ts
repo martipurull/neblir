@@ -68,6 +68,14 @@ export const gameCharacterSchema = z.object({
   characterId: z.string(),
 });
 
+/** GameCharacter as returned from GET /api/characters/[id] (includes game name). */
+export const gameCharacterWithGameSchema = gameCharacterSchema.extend({
+  game: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+
 /** Full general information for display (e.g. non-owned characters in game). */
 const gameDetailGeneralInformationSchema = z.object({
   name: z.string(),
@@ -97,6 +105,9 @@ export const gameDetailCharacterSchema = gameCharacterSchema.extend({
     isOwnedByCurrentUser: z.boolean(),
     /** Present for non-owned characters (for display). */
     generalInformation: gameDetailGeneralInformationSchema.optional(),
+    initiativeMod: z.number().optional(),
+    /** CharacterUser links; used e.g. to detect GM-controlled characters. */
+    linkedUserIds: z.array(z.string()).optional(),
   }),
 });
 
@@ -107,6 +118,17 @@ export const gameDetailCustomItemSchema = z.object({
   type: z.string(),
   description: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
+});
+
+/** Initiative line as returned from GET/PATCH/POST/DELETE game detail responses (sorted). */
+export const gameDetailInitiativeEntrySchema = z.object({
+  characterId: z.string(),
+  rolledValue: z.number(),
+  initiativeModifier: z.number(),
+  submittedAt: z.coerce.date(),
+  totalInitiative: z.number(),
+  characterName: z.string().nullable().optional(),
+  characterSurname: z.string().nullable().optional(),
 });
 
 /** Full game detail as returned by GET /api/games/[id]. */
@@ -122,6 +144,7 @@ export const gameDetailSchema = z.object({
   users: z.array(gameListUserSchema),
   characters: z.array(gameDetailCharacterSchema).optional(),
   customItems: z.array(gameDetailCustomItemSchema).optional(),
+  initiativeOrder: z.array(gameDetailInitiativeEntrySchema).optional(),
 });
 
 export type GameDetail = z.infer<typeof gameDetailSchema>;

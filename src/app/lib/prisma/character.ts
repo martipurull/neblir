@@ -119,7 +119,11 @@ export async function getCharacter(id: string) {
     include: {
       wallet: true,
       inventory: true,
-      games: true,
+      games: {
+        include: {
+          game: { select: { id: true, name: true } },
+        },
+      },
       paths: { include: { path: true } },
       features: { include: { feature: true } },
     },

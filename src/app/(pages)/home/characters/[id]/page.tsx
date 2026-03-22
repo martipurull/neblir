@@ -7,6 +7,8 @@ import {
 } from "@/app/components/character/CharacterSectionCarousel";
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
+import { InitiativeOrderModal } from "@/app/components/character/InitiativeOrderModal";
+import { InitiativeRollModal } from "@/app/components/character/InitiativeRollModal";
 import ErrorState from "@/app/components/shared/ErrorState";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
@@ -16,6 +18,7 @@ import { useCharacter } from "@/hooks/use-character";
 import { useCharacterStatUpdates } from "@/hooks/use-character-stat-updates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
+import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -45,6 +48,16 @@ export default function CharacterDetailPage() {
   );
 
   const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);
+  const [initiativeRollOpen, setInitiativeRollOpen] = useState(false);
+  const [initiativeOrderOpen, setInitiativeOrderOpen] = useState(false);
+  const [initiativeOrderInitialGameId, setInitiativeOrderInitialGameId] =
+    useState<string | null>(null);
+
+  const {
+    gameDetails: initiativeGameDetails,
+    loading: initiativeGamesLoading,
+    refetch: refetchInitiativeGames,
+  } = useCharacterGameDetails(id, character?.games);
 
   const handleDiceSelect = useCallback((item: DiceSelectionItem) => {
     setDiceSelection((prev) => {
@@ -94,6 +107,15 @@ export default function CharacterDetailPage() {
       getCombatSection(character, {
         onClearReactions: reactionTracking.clearReactions,
         usedReactions: reactionTracking.usedReactions,
+        initiative: {
+          gameDetails: initiativeGameDetails,
+          gamesLoading: initiativeGamesLoading,
+          onOpenRoll: () => setInitiativeRollOpen(true),
+          onOpenOrder: () => {
+            setInitiativeOrderInitialGameId(null);
+            setInitiativeOrderOpen(true);
+          },
+        },
       }),
     ];
     const pathsSection = getPathsSection(character);
@@ -119,6 +141,8 @@ export default function CharacterDetailPage() {
     mutate,
     reactionTracking.clearReactions,
     reactionTracking.usedReactions,
+    initiativeGameDetails,
+    initiativeGamesLoading,
   ]);
 
   if (id == null) {
@@ -173,6 +197,35 @@ export default function CharacterDetailPage() {
           character={character}
           selection={[diceSelection[0], diceSelection[1]]}
         />
+      )}
+
+      {character && (
+        <>
+          <InitiativeRollModal
+            isOpen={initiativeRollOpen}
+            onClose={() => setInitiativeRollOpen(false)}
+            character={character}
+            gameDetails={initiativeGameDetails}
+            onRegistered={async () => {
+              await refetchInitiativeGames();
+              await mutate();
+            }}
+            onNavigateToShowOrder={(gameId) => {
+              setInitiativeRollOpen(false);
+              setInitiativeOrderInitialGameId(gameId);
+              setInitiativeOrderOpen(true);
+            }}
+          />
+          <InitiativeOrderModal
+            isOpen={initiativeOrderOpen}
+            onClose={() => {
+              setInitiativeOrderOpen(false);
+              setInitiativeOrderInitialGameId(null);
+            }}
+            gameDetails={initiativeGameDetails}
+            initialGameId={initiativeOrderInitialGameId}
+          />
+        </>
       )}
     </div>
   );

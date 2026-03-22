@@ -26,6 +26,7 @@ export function getGameWithDetails(id: string) {
             select: {
               id: true,
               generalInformation: true,
+              combatInformation: true,
               users: { select: { userId: true } },
             },
           },

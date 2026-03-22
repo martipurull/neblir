@@ -6,6 +6,7 @@ import {
   type GameDetail,
   type GameListItem,
 } from "@/app/lib/types/game";
+import type { SubmitInitiativeBody } from "@/app/lib/types/initiative";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -116,6 +117,112 @@ export async function createGame(
     throw new Error(
       `Create game response did not match expected shape: ${details}`
     );
+  }
+  return parsed.data;
+}
+
+export async function submitGameInitiative(
+  gameId: string,
+  body: SubmitInitiativeBody
+): Promise<GameDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/initiative`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to submit initiative"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Game response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function removeGameInitiativeEntry(
+  gameId: string,
+  characterId: string
+): Promise<GameDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(characterId)}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to remove initiative entry"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Game response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function clearGameInitiative(gameId: string): Promise<GameDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/initiative`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to clear initiative"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Game response did not match expected shape");
   }
   return parsed.data;
 }

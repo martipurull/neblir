@@ -25,6 +25,16 @@ export async function characterIsInGame(
   return !!gc;
 }
 
+export async function userOwnsCharacter(
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  const row = await prisma.characterUser.findFirst({
+    where: { characterId, userId },
+  });
+  return !!row;
+}
+
 /** True when both characters are registered in at least one shared game. */
 export async function charactersShareAnyGame(
   characterIdA: string,

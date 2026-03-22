@@ -2,7 +2,12 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-export type SelectDropdownOption = { value: string; label: string };
+export type SelectDropdownOption = {
+  value: string;
+  label: string;
+  /** When true, option is visible but not selectable. */
+  disabled?: boolean;
+};
 
 export type SelectDropdownProps = {
   id: string;
@@ -121,28 +126,42 @@ export function SelectDropdown({
                 {options.length === 0 ? "No options" : "No matches"}
               </li>
             ) : (
-              filteredOptions.map((opt) => (
-                <li
-                  key={opt.value}
-                  role="option"
-                  aria-selected={value === opt.value}
-                  onClick={() => handleSelect(opt)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleSelect(opt);
-                    }
-                  }}
-                  tabIndex={0}
-                  className={`cursor-pointer px-3 py-2 text-left text-sm transition-colors bg-paleBlue hover:bg-paleBlueHover ${
-                    value === opt.value
-                      ? "bg-black/10 font-medium text-black"
-                      : "text-black"
-                  }`}
-                >
-                  {opt.label}
-                </li>
-              ))
+              filteredOptions.map((opt) => {
+                const isDisabled = !!opt.disabled;
+                return (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={value === opt.value}
+                    aria-disabled={isDisabled}
+                    onClick={() => !isDisabled && handleSelect(opt)}
+                    onKeyDown={(e) => {
+                      if (isDisabled) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSelect(opt);
+                      }
+                    }}
+                    tabIndex={isDisabled ? -1 : 0}
+                    className={`px-3 py-2 text-left text-sm transition-colors bg-paleBlue ${
+                      isDisabled
+                        ? "cursor-not-allowed text-black/40"
+                        : `cursor-pointer hover:bg-paleBlueHover ${
+                            value === opt.value
+                              ? "bg-black/10 font-medium text-black"
+                              : "text-black"
+                          }`
+                    }`}
+                  >
+                    {opt.label}
+                    {isDisabled ? (
+                      <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
+                        (already rolled)
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })
             )}
           </ul>
         </div>

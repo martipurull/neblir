@@ -150,3 +150,59 @@ export function getEffectiveSpeed(
     showStrikethrough: fromCarry.showStrikethrough || armourPenalty > 0,
   };
 }
+
+/**
+ * Plain-language explanation for native tooltips when displayed speed is below base speed.
+ */
+export function getSpeedReductionTooltipText(
+  baseSpeed: number,
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined,
+  armourMod: number
+): string {
+  const fromCarry = getCarryWeightSpeedEffect(
+    baseSpeed,
+    carriedWeight,
+    maxCarryWeight
+  );
+  const armourPenalty = getArmourSpeedPenalty(armourMod);
+  const ratio = getCarryWeightRatio(carriedWeight, maxCarryWeight);
+  const pct =
+    maxCarryWeight != null && maxCarryWeight > 0
+      ? Math.round(ratio * 100)
+      : null;
+
+  const parts: string[] = [];
+
+  if (fromCarry.effectiveSpeed < baseSpeed) {
+    if (pct != null && ratio > 0.5 && ratio <= 0.75) {
+      parts.push(
+        `Carried load is about ${pct}% of max carry weight; between 51% and 75% this reduces speed by 1 m.`
+      );
+    } else if (pct != null && ratio > 0.75 && ratio <= 1) {
+      parts.push(
+        `Carried load is about ${pct}% of max carry weight; between 76% and 100% this reduces speed by 2 m.`
+      );
+    } else if (pct != null && ratio > 1 && ratio <= 1.5) {
+      parts.push(
+        `Carried load is about ${pct}% of max carry weight; above 100% (up to 150%) your speed from encumbrance is halved (rounded down).`
+      );
+    } else if (pct != null && ratio > 1.5) {
+      parts.push(
+        `Carried load is about ${pct}% of max carry weight; above 150% encumbrance reduces speed to 0 m before armour.`
+      );
+    } else {
+      parts.push(
+        "Carried weight reduces speed relative to your maximum carry capacity."
+      );
+    }
+  }
+
+  if (armourPenalty > 0) {
+    parts.push(
+      `Armour modifier ${armourMod} applies an additional −${armourPenalty} m (grades 2–3: −1, 4: −2, 5: −3).`
+    );
+  }
+
+  return parts.join(" ");
+}

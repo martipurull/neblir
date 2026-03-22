@@ -4,6 +4,7 @@ import {
   updateGame,
   userIsInGame,
 } from "@/app/lib/prisma/game";
+import { shapeGameForResponse } from "@/app/lib/gameDetailResponse";
 import { auth } from "@/auth";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
@@ -11,32 +12,6 @@ import { gameUpdateSchema } from "@/app/lib/types/game";
 import logger from "@/logger";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
-
-function shapeGameForResponse(
-  game: Awaited<ReturnType<typeof getGameWithDetails>>,
-  userId: string
-) {
-  if (!game) return null;
-  const isGameMaster = game.gameMaster === userId;
-  const characters = game.characters?.map((gc) => {
-    const gi = gc.character.generalInformation;
-    const isOwnedByCurrentUser = gc.character.users.some(
-      (u) => u.userId === userId
-    );
-    return {
-      ...gc,
-      character: {
-        id: gc.character.id,
-        name: gi?.name ?? "",
-        surname: gi?.surname ?? null,
-        avatarKey: gi?.avatarKey ?? null,
-        isOwnedByCurrentUser,
-        generalInformation: gi ?? undefined,
-      },
-    };
-  });
-  return { ...game, isGameMaster, characters: characters ?? game.characters };
-}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {

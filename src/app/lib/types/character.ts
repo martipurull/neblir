@@ -10,7 +10,7 @@ import {
   weaponAttackRollTypeSchema,
   weaponDamageTypeSchema,
 } from "./item";
-import { gameCharacterSchema } from "./game";
+import { gameCharacterWithGameSchema } from "./game";
 import { Race, Religion, Status } from "@prisma/client";
 
 /** Schema for a resolved item (Item, CustomItem, or merged UniqueItem) - used in inventory response */
@@ -232,7 +232,7 @@ export const characterSchema = z.object({
     .nullish(),
   features: z.array(z.lazy(() => featureSchema)).nullish(),
   games: z
-    .array(z.lazy(() => gameCharacterSchema))
+    .array(z.lazy(() => gameCharacterWithGameSchema))
     .optional()
     .nullish(),
 });
