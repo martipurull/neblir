@@ -2,6 +2,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import { PathsList } from "@/app/components/character/PathsList";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import React from "react";
 
@@ -14,17 +15,6 @@ export function getPathsSection(
   return {
     id: "paths",
     title: "Paths",
-    children: (
-      <ul className="space-y-1">
-        {paths.map((path) => (
-          <li key={path.id}>
-            <span className="font-medium">{String(path.name)}</span>
-            {path.description && (
-              <p className="mt-0.5 text-black">{path.description}</p>
-            )}
-          </li>
-        ))}
-      </ul>
-    ),
+    children: <PathsList paths={paths} />,
   };
 }

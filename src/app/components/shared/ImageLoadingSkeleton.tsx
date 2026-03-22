@@ -8,7 +8,7 @@ interface ImageLoadingSkeletonProps {
 }
 
 const variantSvgClassName: Record<ImageLoadingSkeletonVariant, string> = {
-  avatar: "h-9 w-9 text-black/25",
+  avatar: "h-10 w-10 text-black/25",
   item: "h-9 w-9 text-black/25",
   currency: "h-6 w-6 text-black/25",
   cityscape: "h-7 w-7 text-black/25",
@@ -42,37 +42,72 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <g data-avatar-orbit>
+            {/* Zoomed ~22% from center so the figure reads more like a bust / close-up */}
+            <g transform="translate(24 24) scale(1.22) translate(-24 -24)">
+              {/* Scanner ring — rotates; whole avatar still uses image-skeleton-pulse */}
+              <g data-avatar-orbit>
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="16"
+                  strokeDasharray="6 10 3 42"
+                  opacity="0.38"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="13.5"
+                  strokeDasharray="1 7"
+                  opacity="0.22"
+                />
+              </g>
+              {/* HUD corner brackets */}
+              <g opacity="0.32" strokeWidth="1">
+                <path d="M9.5 12.5v4M9.5 12.5h4" />
+                <path d="M38.5 12.5v4M38.5 12.5h-4" />
+                <path d="M9.5 35.5v-4M9.5 35.5h4" />
+                <path d="M38.5 35.5v-4M38.5 35.5h-4" />
+              </g>
+              {/* Tactical helmet — flat crown, no antenna */}
+              <path
+                strokeWidth="1.55"
+                d="M17 18L18 13.5L22 12.5L26 12.5L30 13.5L31 18L31 23L24 26.5L17 23Z"
+              />
+              {/* Visor — single primary band + subtle lower edge */}
+              <path opacity="0.62" d="M18 18.5h12" />
+              <path opacity="0.36" d="M19.5 20.5h9" />
+              {/* Cheek vents — short vertical ticks */}
+              <line x1="15.5" y1="19.5" x2="15.5" y2="21.2" opacity="0.38" />
+              <line x1="32.5" y1="19.5" x2="32.5" y2="21.2" opacity="0.38" />
+              {/* Neck seal */}
+              <path opacity="0.45" d="M20.5 25h7" />
+              {/* Pauldrons */}
+              <path
+                strokeWidth="1.35"
+                opacity="0.9"
+                d="M13.5 27l-2.5-1-1.2 3.2 2.8 1.8M34.5 27l2.5-1 1.2 3.2-2.8 1.8"
+              />
+              {/* Torso armor */}
+              <path strokeWidth="1.5" d="M17 27.5L15 39L24 41L33 39L31 27.5Z" />
+              <line x1="24" y1="28" x2="24" y2="39" opacity="0.35" />
+              <path opacity="0.4" d="M19 29.5h10M19 33.5h10" />
               <circle
                 cx="24"
-                cy="23"
-                r="15.5"
-                strokeDasharray="5 54"
-                opacity="0.4"
+                cy="31.5"
+                r="2"
+                opacity="0.42"
+                strokeWidth="1.1"
               />
+              <circle
+                cx="24"
+                cy="31.5"
+                r="0.7"
+                fill="currentColor"
+                strokeWidth="0"
+              />
+              {/* Hip / leg segments */}
+              <path opacity="0.4" d="M17.5 40l-1 3M30.5 40l1 3" />
             </g>
-            <path strokeWidth="1.5" d="M17 9h14l6 6v18l-6 6H17l-6-6V15z" />
-            <path opacity="0.38" d="M20 12h8l4 4v16l-4 4h-8l-4-4V16z" />
-            <line x1="17" y1="25" x2="31" y2="25" opacity="0.55" />
-            <circle
-              cx="20"
-              cy="21"
-              r="1.35"
-              fill="currentColor"
-              strokeWidth="0"
-            />
-            <circle
-              cx="28"
-              cy="21"
-              r="1.35"
-              fill="currentColor"
-              strokeWidth="0"
-            />
-            <path opacity="0.45" d="M14 37c3.5-4 6.5-5 10-5s6.5 1 10 5" />
-            <line x1="24" y1="9" x2="24" y2="11.5" opacity="0.5" />
-            <line x1="24" y1="36.5" x2="24" y2="39" opacity="0.5" />
-            <line x1="11" y1="23" x2="13.5" y2="23" opacity="0.5" />
-            <line x1="34.5" y1="23" x2="37" y2="23" opacity="0.5" />
           </svg>
         ) : variant === "item" ? (
           <svg
@@ -194,7 +229,7 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
         }
 
         .image-loading-skeleton svg g[data-avatar-orbit] {
-          transform-origin: 24px 23px;
+          transform-origin: 24px 24px;
           animation: avatar-skeleton-orbit 5s linear infinite;
         }
 

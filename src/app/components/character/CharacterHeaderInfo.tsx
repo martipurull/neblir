@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-expressions
 "use client";
 
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";
 import React from "react";
 
@@ -9,8 +10,6 @@ export interface CharacterHeaderInfoProps {
   name: string;
   level: number;
   pathsLabel: string;
-  /** Fallback initials when no avatar (e.g. "JD") */
-  initials: string;
   className?: string;
 }
 
@@ -19,7 +18,6 @@ export function CharacterHeaderInfo({
   name,
   level,
   pathsLabel,
-  initials,
   className,
 }: CharacterHeaderInfoProps) {
   return (
@@ -34,9 +32,10 @@ export function CharacterHeaderInfo({
             className="h-12 w-12 object-cover object-top"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-black">
-            {initials}
-          </div>
+          <ImageLoadingSkeleton
+            variant="avatar"
+            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
+          />
         )}
       </div>
       <div className="text-center sm:text-left">

@@ -64,10 +64,6 @@ export function CharacterSummaryHeader({
     character.paths && character.paths.length > 0
       ? character.paths.map((p) => String(p.name)).join(" / ")
       : "No path";
-  const initials =
-    generalInformation.name.charAt(0) +
-    (generalInformation.surname?.charAt(0) ?? "");
-
   const { physicalStyles, mentalStyles } = useHealthStyles({
     currentPhysical: health.currentPhysicalHealth,
     maxPhysical: health.maxPhysicalHealth,
@@ -123,7 +119,6 @@ export function CharacterSummaryHeader({
           name={name}
           level={generalInformation.level}
           pathsLabel={pathsLabel}
-          initials={initials}
         />
 
         <div className="mt-3 grid w-full max-w-xs grid-cols-3 gap-1.5">
