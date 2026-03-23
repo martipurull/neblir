@@ -13,6 +13,8 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
       profession: "",
       race: "HUMAN" as Race,
       birthplace: "",
+      backstory: "",
+      summary: "",
       level,
       height: 170,
       weight: 70,

@@ -11,6 +11,14 @@ const tone = {
   safe: "border-neblirSafe-200 text-neblirSafe-400 hover:bg-neblirSafe-200/20",
 } as const;
 
+const filledTone = {
+  danger:
+    "border-neblirDanger-600 bg-neblirDanger-600 text-customSecondary hover:bg-neblirDanger-600 hover:border-neblirDanger-600",
+  warning:
+    "border-neblirWarning-600 bg-neblirWarning-600 text-customSecondary hover:bg-neblirWarning-600 hover:border-neblirWarning-600",
+  safe: "border-neblirSafe-600 bg-neblirSafe-600 text-customSecondary hover:bg-neblirSafe-600 hover:border-neblirSafe-600",
+} as const;
+
 export type SemanticActionTone = keyof typeof tone;
 
 export type SemanticActionButtonProps =
@@ -39,6 +47,23 @@ export const SemanticActionButton = forwardRef<
   );
 });
 
+export const SemanticActionButtonFilled = forwardRef<
+  HTMLButtonElement,
+  SemanticActionButtonProps
+>(function SemanticActionButtonFilled(
+  { tone: toneKey, className = "", type = "button", ...props },
+  ref
+) {
+  return (
+    <button
+      ref={ref}
+      type={type}
+      className={`${base} ${filledTone[toneKey]} ${className}`.trim()}
+      {...props}
+    />
+  );
+});
+
 export const DangerButton = forwardRef<
   HTMLButtonElement,
   Omit<SemanticActionButtonProps, "tone">
@@ -58,4 +83,11 @@ export const SafeButton = forwardRef<
   Omit<SemanticActionButtonProps, "tone">
 >(function SafeButton(props, ref) {
   return <SemanticActionButton ref={ref} tone="safe" {...props} />;
+});
+
+export const SafeButtonFilled = forwardRef<
+  HTMLButtonElement,
+  Omit<SemanticActionButtonProps, "tone">
+>(function SafeButtonFilled(props, ref) {
+  return <SemanticActionButtonFilled ref={ref} tone="safe" {...props} />;
 });

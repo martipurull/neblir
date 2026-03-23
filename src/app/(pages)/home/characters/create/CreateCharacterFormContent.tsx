@@ -5,6 +5,7 @@ import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext } from "react-hook-form";
 import React from "react";
+import { BackstoryStep } from "./steps/BackstoryStep";
 import { GeneralInfoStep } from "./steps/GeneralInfoStep";
 import { AttributesStep } from "./steps/AttributesStep";
 import { HealthStep } from "./steps/HealthStep";
@@ -58,11 +59,12 @@ export function CreateCharacterFormContent() {
         }}
         className="flex flex-col gap-6"
       >
-        {currentStepIndex === 0 && <GeneralInfoStep />}
-        {currentStepIndex === 1 && <AttributesStep />}
-        {currentStepIndex === 2 && <HealthStep />}
-        {currentStepIndex === 3 && <LearnedSkillsStep />}
-        {currentStepIndex === 4 && (
+        {currentStepIndex === 0 && <BackstoryStep />}
+        {currentStepIndex === 1 && <GeneralInfoStep />}
+        {currentStepIndex === 2 && <AttributesStep />}
+        {currentStepIndex === 3 && <HealthStep />}
+        {currentStepIndex === 4 && <LearnedSkillsStep />}
+        {currentStepIndex === 5 && (
           <PathAndFeaturesStep
             onInitialFeaturesChange={setInitialFeatures}
             initialFeatures={initialFeatures}

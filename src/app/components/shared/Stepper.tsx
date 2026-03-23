@@ -20,7 +20,7 @@ export function Stepper({
 }: StepperProps) {
   return (
     <nav className={className} aria-label="Progress">
-      <ol className="mx-auto flex w-full max-w-2xl items-start">
+      <ol className="mx-auto flex w-full max-w-3xl items-start">
         {steps.map((step, index) => {
           const isComplete = index < currentStepIndex;
           const isCurrent = index === currentStepIndex;
@@ -41,7 +41,7 @@ export function Stepper({
                   aria-hidden
                 />
                 <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-medium transition-colors ${
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-medium transition-colors sm:h-7 sm:w-7 sm:text-xs ${
                     isComplete
                       ? "border-customPrimary bg-customPrimary text-customSecondary"
                       : isCurrent
@@ -61,13 +61,14 @@ export function Stepper({
                 />
               </div>
               <span
-                className={`mt-1 text-center text-xs leading-tight ${
+                className={`mt-1 block text-center text-[10px] leading-tight sm:text-[11px] ${
                   isCurrent
                     ? "font-medium text-black"
                     : isComplete
                       ? "text-black/80"
                       : "text-black/50"
                 }`}
+                title={step.label}
               >
                 {step.label}
               </span>

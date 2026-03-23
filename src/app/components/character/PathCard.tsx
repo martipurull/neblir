@@ -32,7 +32,7 @@ export function PathCard({ path, onOpenDescription }: PathCardProps) {
         <p className="text-[0.65rem] font-bold uppercase tracking-wider text-black/55">
           Base feature
         </p>
-        <p className="mt-1.5 text-base leading-snug text-black">
+        <p className="mt-1.5 text-sm leading-snug text-black">
           {path.baseFeature}
         </p>
       </div>

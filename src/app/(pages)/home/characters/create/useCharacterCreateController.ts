@@ -36,11 +36,12 @@ function isInitialFeatureEntry(value: unknown): value is InitialFeatureEntry {
 }
 
 const STEPS = [
+  { id: "backstory", label: "Backstory" },
   { id: "general", label: "General" },
   { id: "attributes", label: "Attributes" },
   { id: "health", label: "Health" },
   { id: "skills", label: "Skills" },
-  { id: "path", label: "Path & Features" },
+  { id: "path", label: "Path" },
 ];
 
 export function useCharacterCreateController() {
@@ -137,7 +138,9 @@ export function useCharacterCreateController() {
     clearErrors();
     const values = getValues();
 
-    if (currentStepIndex === 0) {
+    if (currentStepIndex === 0) return true;
+
+    if (currentStepIndex === 1) {
       const res =
         characterCreationRequestSchema.shape.generalInformation.safeParse(
           values.generalInformation
@@ -157,7 +160,7 @@ export function useCharacterCreateController() {
       return true;
     }
 
-    if (currentStepIndex === 1) {
+    if (currentStepIndex === 2) {
       const res =
         characterCreationRequestSchema.shape.innateAttributes.safeParse(
           values.innateAttributes
@@ -185,7 +188,7 @@ export function useCharacterCreateController() {
       return true;
     }
 
-    if (currentStepIndex === 2) {
+    if (currentStepIndex === 3) {
       const level = values.generalInformation?.level ?? 1;
       const healthRes = characterCreationRequestSchema.shape.health.safeParse(
         values.health
@@ -221,7 +224,7 @@ export function useCharacterCreateController() {
       return true;
     }
 
-    if (currentStepIndex === 3) {
+    if (currentStepIndex === 4) {
       const res = characterCreationRequestSchema.shape.learnedSkills.safeParse(
         values.learnedSkills
       );
@@ -249,7 +252,7 @@ export function useCharacterCreateController() {
       return true;
     }
 
-    if (currentStepIndex === 4) {
+    if (currentStepIndex === 5) {
       if (!values.path?.pathId?.trim()) {
         setError("path.pathId" as never, { message: "Please select a path" });
         return false;

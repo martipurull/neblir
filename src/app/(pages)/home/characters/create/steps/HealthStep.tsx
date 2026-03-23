@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
+import { SafeButtonFilled } from "@/app/components/shared/SemanticActionButton";
 
 function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
@@ -141,11 +142,11 @@ export function HealthStep() {
       <div className="rounded border border-black/20 bg-black/5 p-3">
         <p className="font-bold text-black">Derived stats</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          <div className="rounded border border-black/15 bg-white/70 p-2 text-sm">
+          <div className="rounded border border-black/15 bg-transparent p-2 text-sm">
             <p className="text-black/60">Speed</p>
             <p className="text-black font-semibold">{speedMPer6} m / 6s</p>
           </div>
-          <div className="rounded border border-black/15 bg-white/70 p-2 text-sm">
+          <div className="rounded border border-black/15 bg-transparent p-2 text-sm">
             <p className="text-black/60">Initiative</p>
             <p className="text-black font-semibold">+{initiativeMod}</p>
           </div>
@@ -153,15 +154,14 @@ export function HealthStep() {
       </div>
 
       <div className="space-y-3">
-        <div className="rounded border border-black/20 bg-white/60 p-3">
+        <div className="rounded border border-black/20 bg-transparent p-3">
           <p className="font-bold text-black">Innate physical health</p>
           <p className="mt-1 text-sm text-black/70">
             Resistance External + Resistance Internal + Stamina ={" "}
             <strong>{innatePhysicalHealth}</strong>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
+            <SafeButtonFilled
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
@@ -170,10 +170,10 @@ export function HealthStep() {
                 });
                 setPhysicalRollModal({ open: true, dice, total });
               }}
-              className="rounded border border-black/30 bg-paleBlue px-3 py-1 text-sm hover:bg-paleBlue hover:brightness-95"
+              className="px-3 py-1 text-sm"
             >
               Roll physical HP
-            </button>
+            </SafeButtonFilled>
             <p className="w-full text-xs text-black/50">
               Rolls <strong>{extraDice}</strong>d10 + 10 (level {level})
             </p>
@@ -217,15 +217,14 @@ export function HealthStep() {
           </div>
         </div>
 
-        <div className="rounded border border-black/20 bg-white/60 p-3">
+        <div className="rounded border border-black/20 bg-transparent p-3">
           <p className="font-bold text-black">Innate mental health</p>
           <p className="mt-1 text-sm text-black/70">
             Persuasion + Deception + Mentality ={" "}
             <strong>{innateMentalHealth}</strong>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
+            <SafeButtonFilled
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
@@ -234,10 +233,10 @@ export function HealthStep() {
                 });
                 setMentalRollModal({ open: true, dice, total });
               }}
-              className="rounded border border-black/30 bg-paleBlue px-3 py-1 text-sm hover:bg-paleBlue hover:brightness-95"
+              className="px-3 py-1 text-sm"
             >
               Roll mental HP
-            </button>
+            </SafeButtonFilled>
             <p className="w-full text-xs text-black/50">
               Rolls <strong>{extraDice}</strong>d10 + 10 (level {level})
             </p>
@@ -284,7 +283,7 @@ export function HealthStep() {
 
       {(physicalRollModal.open || mentalRollModal.open) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded border border-black/20 bg-white p-4 shadow-lg">
+          <div className="w-full max-w-md rounded border border-black/20 bg-modalBackground-200 p-4 shadow-lg">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-black">
@@ -298,30 +297,31 @@ export function HealthStep() {
               </div>
               <button
                 type="button"
-                className="rounded border border-black/20 bg-black/5 px-2 py-1 text-xs text-black/70 hover:bg-black/10"
+                aria-label="Close roll results"
+                className="text-sm font-semibold text-black/60 transition-colors hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
                 onClick={() => {
                   setPhysicalRollModal((p) => ({ ...p, open: false }));
                   setMentalRollModal((m) => ({ ...m, open: false }));
                 }}
               >
-                Close
+                X
               </button>
             </div>
 
-            <div className="mt-3 rounded border border-black/10 bg-black/0 p-3">
+            <div className="mt-3 rounded border border-black/10 bg-modalBackground-200 p-3">
               {(() => {
                 const state = physicalRollModal.open
                   ? physicalRollModal
                   : mentalRollModal;
                 return (
                   <>
-                    <p className="text-sm font-medium text-black">
+                    <p className="text-sm font-medium text-customSecondary">
                       Dice ({state.dice.length}):{" "}
                       {state.dice.length > 0 ? state.dice.join(", ") : "none"}
                     </p>
-                    <p className="mt-1 text-sm text-black/70">
+                    <p className="mt-1 text-sm text-customSecondary/70">
                       Total:{" "}
-                      <span className="font-semibold text-black">
+                      <span className="font-semibold text-customSecondary">
                         {state.total}
                       </span>
                     </p>
