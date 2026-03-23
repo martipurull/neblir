@@ -159,6 +159,7 @@ export type GeneralItem = z.infer<typeof generalItemSchema>;
 
 export const weaponSchema = baseItemSchema.extend({
   type: z.literal("WEAPON"),
+  usage: z.string().optional(),
   attackRoll: z.array(weaponAttackRollTypeSchema),
   attackMeleeBonus: z.number().optional(),
   attackRangeBonus: z.number().optional(),

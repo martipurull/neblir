@@ -69,6 +69,7 @@ type CreateUniqueItemModalProps = {
   /** Optional; shown after an em dash in the modal title (e.g. game name on GM page). */
   titleSuffix?: string;
   submitEndpoint?: string;
+  noLinkedGameNotice?: string;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -79,6 +80,7 @@ export default function CreateUniqueItemModal({
   gameIdForSubmit,
   titleSuffix,
   submitEndpoint,
+  noLinkedGameNotice,
   onClose,
   onSuccess,
 }: CreateUniqueItemModalProps) {
@@ -433,6 +435,9 @@ export default function CreateUniqueItemModal({
           : !selectedTemplate
       }
     >
+      {noLinkedGameNotice && (
+        <p className="mb-1 text-xs text-white/70">{noLinkedGameNotice}</p>
+      )}
       {/* Template or standalone basics */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">

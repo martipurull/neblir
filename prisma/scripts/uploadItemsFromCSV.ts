@@ -230,6 +230,7 @@ function csvRowToItem(row: Record<string, string>): Item {
   return {
     ...base,
     type: "WEAPON",
+    usage: parseOptionalString(row.usage),
     attackRoll: parseAttackRoll(row.attackRoll) as (
       | "RANGE"
       | "MELEE"
@@ -247,6 +248,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
   const itemWithEquip = item as Item & {
     equipSlotTypes?: string[];
     equipSlotCost?: number;
+    usage?: string;
   };
   const base: Record<string, unknown> = {
     accessType: item.accessType,
@@ -296,7 +298,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
       secondaryRadius: item.damage.secondaryRadius ?? null,
       areaEffect: item.damage.areaEffect ?? null,
     },
-    usage: null,
+    usage: itemWithEquip.usage ?? null,
   };
 }
 

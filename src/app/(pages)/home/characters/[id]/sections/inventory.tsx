@@ -35,6 +35,7 @@ function InventoryList({
   onSelectEquip,
   onUnequip,
   unequippingId,
+  equippingId,
 }: {
   title: string;
   entries: InventoryEntry[];
@@ -43,6 +44,7 @@ function InventoryList({
   onSelectEquip: ((entry: InventoryEntry) => void) | null;
   onUnequip: (entry: InventoryEntry) => void;
   unequippingId: string | null;
+  equippingId: string | null;
 }) {
   if (entries.length === 0) return null;
   const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
@@ -117,8 +119,10 @@ function InventoryList({
                           e.stopPropagation();
                           void onUnequip(entry);
                         }}
-                        disabled={unequippingId === entry.id}
-                        className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
+                        disabled={
+                          unequippingId === entry.id || equippingId === entry.id
+                        }
+                        className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
                       >
                         {unequippingId === entry.id
                           ? "Unequipping…"
@@ -127,13 +131,14 @@ function InventoryList({
                     ) : (
                       <button
                         type="button"
+                        disabled={equippingId === entry.id}
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectEquip(entry);
                         }}
-                        className="rounded-full border border-black bg-transparent px-2 py-0.5 text-xs font-medium text-black transition-colors hover:bg-black/10"
+                        className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
                       >
-                        Equip
+                        {equippingId === entry.id ? "Equipping…" : "Equip"}
                       </button>
                     )
                   ) : (
@@ -170,6 +175,7 @@ function InventorySectionContent({
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
+  const [equippingId, setEquippingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -204,6 +210,7 @@ function InventorySectionContent({
     entry: NonNullable<CharacterDetail["inventory"]>[number],
     slot: EquipSlot
   ) => {
+    setEquippingId(entry.id);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
         action: "equip",
@@ -213,6 +220,8 @@ function InventorySectionContent({
       setEquipEntry(null);
     } catch {
       setEquipEntry(null);
+    } finally {
+      setEquippingId(null);
     }
   };
 
@@ -307,13 +316,6 @@ function InventorySectionContent({
             Create unique item
           </button>
         </div>
-        {characterGames.length === 0 && (
-          <p className="text-xs text-black/60">
-            Not linked to a game yet — you can still create unique items from
-            the global catalog. Link to a game to also use that game’s custom
-            items as templates.
-          </p>
-        )}
         {!canAddItems && (
           <p className="text-xs text-neblirDanger-600">
             At 150%+ carry weight you cannot add items. Store some first.
@@ -334,6 +336,7 @@ function InventorySectionContent({
               void handleUnequip(entry);
             }}
             unequippingId={unequippingId}
+            equippingId={equippingId}
           />
           <InventoryList
             title="Stored"
@@ -345,6 +348,7 @@ function InventorySectionContent({
               void handleUnequip(entry);
             }}
             unequippingId={unequippingId}
+            equippingId={equippingId}
           />
         </>
       )}
@@ -362,6 +366,11 @@ function InventorySectionContent({
         <CreateUniqueItemModal
           isOpen={createUniqueOpen}
           customTemplateGameIds={characterGames}
+          noLinkedGameNotice={
+            characterGames.length === 0
+              ? "Not linked to a game yet — you can still create unique items from the global catalog. Link to a game to also use that game’s custom items as templates."
+              : undefined
+          }
           submitEndpoint={`/api/characters/${encodeURIComponent(character.id)}/unique-items`}
           onClose={() => {
             setCreateUniqueOpen(false);

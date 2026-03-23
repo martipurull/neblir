@@ -266,7 +266,7 @@ export function BrowseItemDetailModal({
             </>
           )}
 
-          {!isWeapon && "usage" in item && item.usage && (
+          {"usage" in item && item.usage && (
             <div>
               <span className="text-white/60 uppercase tracking-wider">
                 Usage
