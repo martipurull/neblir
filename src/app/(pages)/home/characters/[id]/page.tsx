@@ -130,8 +130,7 @@ export default function CharacterDetailPage() {
       mutate
     );
     if (walletSection) list.push(walletSection);
-    const notesSection = getNotesSection(character);
-    if (notesSection) list.push(notesSection);
+    list.push(getNotesSection(character, mutate));
     return list;
   }, [
     character,

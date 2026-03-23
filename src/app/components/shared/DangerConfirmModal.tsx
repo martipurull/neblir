@@ -16,6 +16,10 @@ interface DangerConfirmModalProps {
   errorMessage?: string | null;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
+  /** Overrides default `max-w-md` on the panel (e.g. `max-w-xs` for a compact dialog). */
+  panelClassName?: string;
+  /** `modalBackground` matches character note modals (purple panel, pale blue text). */
+  variant?: "default" | "modalBackground";
 }
 
 const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
@@ -28,10 +32,22 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
   errorMessage = null,
   onCancel,
   onConfirm,
+  panelClassName,
+  variant = "default",
 }) => {
   if (!isOpen) {
     return null;
   }
+
+  const isModalBg = variant === "modalBackground";
+  const panelSurface = isModalBg
+    ? "border-paleBlue/25 bg-modalBackground-200"
+    : "border-black bg-white/95 backdrop-blur-sm";
+  const titleClass = isModalBg ? "text-paleBlue" : "text-black";
+  const bodyClass = isModalBg ? "text-paleBlue/85" : "text-black";
+  const errorClass = isModalBg
+    ? "text-neblirDanger-400"
+    : "text-neblirDanger-600";
 
   return (
     <div
@@ -40,16 +56,18 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
       aria-modal="true"
       aria-labelledby="danger-confirm-title"
     >
-      <div className="w-full max-w-md rounded-lg border border-black bg-white/95 p-5 shadow-lg backdrop-blur-sm sm:p-6">
+      <div
+        className={`w-full rounded-lg border p-5 shadow-lg sm:p-6 ${panelSurface} ${panelClassName ?? "max-w-md"}`}
+      >
         <h2
           id="danger-confirm-title"
-          className="text-lg font-semibold text-black"
+          className={`text-lg font-semibold ${titleClass}`}
         >
           {title}
         </h2>
-        <p className="mt-2 text-sm text-black">{description}</p>
+        <p className={`mt-2 text-sm ${bodyClass}`}>{description}</p>
         {errorMessage && (
-          <p className="mt-3 break-words text-sm text-neblirDanger-600">
+          <p className={`mt-3 break-words text-sm ${errorClass}`}>
             Error: {getUserSafeErrorMessage(errorMessage)}
           </p>
         )}

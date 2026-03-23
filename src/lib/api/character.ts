@@ -3,6 +3,7 @@ import {
   characterDetailSchema,
   type CharacterCreateResponse,
   type CharacterDetail,
+  type CharacterNoteEntry,
 } from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
@@ -203,6 +204,39 @@ export async function addWalletCurrency(
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
     throw new Error(`Wallet response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterNotes(
+  id: string,
+  notes: CharacterNoteEntry[]
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/notes`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notes),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update notes")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Character response did not match expected shape");
   }
   return parsed.data;
 }

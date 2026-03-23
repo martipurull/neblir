@@ -206,7 +206,15 @@ export const generalSkillsSchema = z.object({
   manipulationNegotiation: z.number().max(5).default(0),
 });
 
-export const characterNotesSchema = z.array(z.string());
+/** Rich text payload (TipTap JSON string) plus timestamps; stored in DB as JSON per array element. */
+export const characterNoteEntrySchema = z.object({
+  content: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type CharacterNoteEntry = z.infer<typeof characterNoteEntrySchema>;
+
+export const characterNotesSchema = z.array(characterNoteEntrySchema);
 
 export const characterSchema = z.object({
   generalInformation: generalInformationSchema,

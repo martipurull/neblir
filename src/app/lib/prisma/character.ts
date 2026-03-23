@@ -1,3 +1,4 @@
+import { normalizeNotesFromDb } from "@/app/lib/characterNotes";
 import { prisma } from "./client";
 import type { Prisma } from "@prisma/client";
 import { hydrateItemCharacters } from "./itemCharacter";
@@ -142,6 +143,7 @@ export async function getCharacter(id: string) {
     })),
     inventory: hydratedInventory ?? [],
     paths: character.paths.map((pc) => ({ ...pc.path, rank: pc.rank })),
+    notes: normalizeNotesFromDb(character.notes ?? []),
   };
 }
 
