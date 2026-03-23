@@ -14,7 +14,11 @@ function clampRolled(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, rounded));
 }
 
-export function HealthStep() {
+interface HealthStepProps {
+  clampOnBlur?: boolean;
+}
+
+export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
   const {
     control,
     setValue,
@@ -82,10 +86,12 @@ export function HealthStep() {
     innate,
     rolled,
     max,
+    danger = false,
   }: {
     innate: number;
     rolled: number;
     max: number;
+    danger?: boolean;
   }) => {
     const innatePct = max <= 0 ? 0 : (innate / max) * 100;
     const rolledPct = max <= 0 ? 0 : (rolled / max) * 100;
@@ -101,17 +107,25 @@ export function HealthStep() {
         </div>
         <div className="mt-2 flex h-3 overflow-hidden rounded bg-black/10">
           <div
-            className="h-full bg-neblirSafe-400"
+            className={
+              danger ? "h-full bg-neblirDanger-300" : "h-full bg-neblirSafe-400"
+            }
             style={{ width: `${innatePct}%` }}
           />
           <div
-            className="h-full bg-customPrimary"
+            className={
+              danger ? "h-full bg-neblirDanger-600" : "h-full bg-customPrimary"
+            }
             style={{ width: `${rolledPct}%` }}
           />
         </div>
       </div>
     );
   };
+  const isPhysicalOutOfRange =
+    rolledPhysicalHealth < minRolled || rolledPhysicalHealth > maxRolled;
+  const isMentalOutOfRange =
+    rolledMentalHealth < minRolled || rolledMentalHealth > maxRolled;
 
   type RollModalState = {
     open: boolean;
@@ -192,7 +206,9 @@ export function HealthStep() {
                     setPhysicalInput(String(rolledPhysicalHealth));
                     return;
                   }
-                  const safe = clampRolled(next, minRolled, maxRolled);
+                  const safe = clampOnBlur
+                    ? clampRolled(next, minRolled, maxRolled)
+                    : next;
                   setValue("health.rolledPhysicalHealth", safe, {
                     shouldDirty: true,
                   });
@@ -213,6 +229,7 @@ export function HealthStep() {
               innate={innatePhysicalHealth}
               rolled={rolledPhysicalHealth}
               max={maxPhysicalHealth}
+              danger={isPhysicalOutOfRange}
             />
           </div>
         </div>
@@ -255,7 +272,9 @@ export function HealthStep() {
                     setMentalInput(String(rolledMentalHealth));
                     return;
                   }
-                  const safe = clampRolled(next, minRolled, maxRolled);
+                  const safe = clampOnBlur
+                    ? clampRolled(next, minRolled, maxRolled)
+                    : next;
                   setValue("health.rolledMentalHealth", safe, {
                     shouldDirty: true,
                   });
@@ -276,6 +295,7 @@ export function HealthStep() {
               innate={innateMentalHealth}
               rolled={rolledMentalHealth}
               max={maxMentalHealth}
+              danger={isMentalOutOfRange}
             />
           </div>
         </div>

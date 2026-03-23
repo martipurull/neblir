@@ -190,7 +190,8 @@ export function PathAndFeaturesStep({
     const current = selectedFeatures.find((e) => e.featureId === featureId);
     const currentSum = selectedFeatures.reduce((s, e) => s + e.grade, 0);
     const newSum = currentSum - (current?.grade ?? 0) + g;
-    if (newSum > featureSlots) return;
+    const isIncreasing = g > (current?.grade ?? 0);
+    if (isIncreasing && newSum > featureSlots) return;
     setSelectedFeatures((prev) => {
       const rest = prev.filter((e) => e.featureId !== featureId);
       return g > 0 ? [...rest, { featureId, grade: g }] : rest;

@@ -28,7 +28,7 @@ export function PathCard({ path, onOpenDescription }: PathCardProps) {
           </span>
         )}
       </div>
-      <div className="mt-3 border-t border-black/15 pt-3">
+      <div className="mt-3 border-t border-black/15 pt-2">
         <p className="text-[0.65rem] font-bold uppercase tracking-wider text-black/55">
           Base feature
         </p>

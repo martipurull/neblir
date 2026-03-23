@@ -12,6 +12,7 @@ import { PathAndFeaturesStep } from "../../create/steps/PathAndFeaturesStep";
 import { useCharacterUpdateController } from "./useCharacterUpdateController";
 import type { CharacterUpdateFormValues } from "./schemas";
 import Button from "@/app/components/shared/Button";
+import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
 
 export function CharacterUpdateFormContent() {
   const {
@@ -23,6 +24,11 @@ export function CharacterUpdateFormContent() {
     submitSuccess,
     initialFeatures,
     setInitialFeatures,
+    showLevelDecreaseConfirm,
+    hasBlockingLevelIssues,
+    onConfirmLevelDecrease,
+    onCancelLevelDecrease,
+    goToStep,
     onBack,
     onNext,
     onSubmit,
@@ -34,6 +40,7 @@ export function CharacterUpdateFormContent() {
       <Stepper
         steps={steps}
         currentStepIndex={currentStepIndex}
+        onStepClick={goToStep}
         className="mb-8"
       />
 
@@ -47,7 +54,7 @@ export function CharacterUpdateFormContent() {
         {currentStepIndex === 0 && <BackstoryStep />}
         {currentStepIndex === 1 && <GeneralInfoStep />}
         {currentStepIndex === 2 && <AttributesStep />}
-        {currentStepIndex === 3 && <HealthStep />}
+        {currentStepIndex === 3 && <HealthStep clampOnBlur={false} />}
         {currentStepIndex === 4 && <LearnedSkillsStep />}
         {currentStepIndex === 5 && (
           <PathAndFeaturesStep
@@ -64,6 +71,19 @@ export function CharacterUpdateFormContent() {
         {submitSuccess && (
           <p className="text-sm text-neblirSafe-600" role="status">
             Character updated successfully.
+          </p>
+        )}
+        {currentStepIndex !== 1 && (
+          <p className="text-xs text-black/60">
+            You can jump between steps in any order. If you lower level, you may
+            need to manually fix health, skills, and feature grades before
+            saving.
+          </p>
+        )}
+        {hasBlockingLevelIssues && (
+          <p className="text-xs text-neblirDanger-600" role="alert">
+            Save is disabled until level-based constraints are fixed (health,
+            skills, features).
           </p>
         )}
 
@@ -93,11 +113,22 @@ export function CharacterUpdateFormContent() {
               <Button
                 type="submit"
                 text={isSubmitting ? "Saving..." : "Save changes"}
+                disabled={isSubmitting || hasBlockingLevelIssues}
               />
             </div>
           )}
         </div>
       </form>
+      <DangerConfirmModal
+        isOpen={showLevelDecreaseConfirm}
+        title="Lower level may invalidate allocations"
+        description="Your new level reduces limits for rolled health, learned skill points, and feature slots. Values will not be auto-trimmed; you must adjust them manually before saving."
+        confirmLabel="Continue and adjust manually"
+        cancelLabel="Keep editing"
+        onCancel={onCancelLevelDecrease}
+        onConfirm={onConfirmLevelDecrease}
+        variant="modalBackground"
+      />
     </>
   );
 }
