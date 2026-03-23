@@ -1,0 +1,103 @@
+"use client";
+
+import React from "react";
+import { Stepper } from "@/app/components/shared/Stepper";
+import { useFormContext } from "react-hook-form";
+import { BackstoryStep } from "../../create/steps/BackstoryStep";
+import { GeneralInfoStep } from "../../create/steps/GeneralInfoStep";
+import { AttributesStep } from "../../create/steps/AttributesStep";
+import { HealthStep } from "../../create/steps/HealthStep";
+import { LearnedSkillsStep } from "../../create/steps/LearnedSkillsStep";
+import { PathAndFeaturesStep } from "../../create/steps/PathAndFeaturesStep";
+import { useCharacterUpdateController } from "./useCharacterUpdateController";
+import type { CharacterUpdateFormValues } from "./schemas";
+import Button from "@/app/components/shared/Button";
+
+export function CharacterUpdateFormContent() {
+  const {
+    steps,
+    currentStepIndex,
+    isLastStep,
+    isSubmitting,
+    submitError,
+    submitSuccess,
+    initialFeatures,
+    setInitialFeatures,
+    onBack,
+    onNext,
+    onSubmit,
+  } = useCharacterUpdateController();
+  const { handleSubmit } = useFormContext<CharacterUpdateFormValues>();
+
+  return (
+    <>
+      <Stepper
+        steps={steps}
+        currentStepIndex={currentStepIndex}
+        className="mb-8"
+      />
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit(onSubmit)(e);
+        }}
+        className="flex flex-col gap-6"
+      >
+        {currentStepIndex === 0 && <BackstoryStep />}
+        {currentStepIndex === 1 && <GeneralInfoStep />}
+        {currentStepIndex === 2 && <AttributesStep />}
+        {currentStepIndex === 3 && <HealthStep />}
+        {currentStepIndex === 4 && <LearnedSkillsStep />}
+        {currentStepIndex === 5 && (
+          <PathAndFeaturesStep
+            onInitialFeaturesChange={setInitialFeatures}
+            initialFeatures={initialFeatures}
+          />
+        )}
+
+        {submitError && (
+          <p className="text-sm text-neblirDanger-600" role="alert">
+            {submitError}
+          </p>
+        )}
+        {submitSuccess && (
+          <p className="text-sm text-neblirSafe-600" role="status">
+            Character updated successfully.
+          </p>
+        )}
+
+        <div className="flex gap-3">
+          {currentStepIndex > 0 ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="min-h-11 flex-1 rounded-md border-2 border-black/30 px-4 py-2 text-black transition-colors hover:border-black/50"
+            >
+              Back
+            </button>
+          ) : (
+            <div className="flex-1" />
+          )}
+
+          {!isLastStep ? (
+            <button
+              type="button"
+              onClick={onNext}
+              className="min-h-11 flex-1 rounded-md bg-customPrimary px-4 py-2 text-customSecondary transition-colors hover:bg-customPrimaryHover"
+            >
+              Next
+            </button>
+          ) : (
+            <div className="flex-1">
+              <Button
+                type="submit"
+                text={isSubmitting ? "Saving..." : "Save changes"}
+              />
+            </div>
+          )}
+        </div>
+      </form>
+    </>
+  );
+}

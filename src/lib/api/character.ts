@@ -14,6 +14,7 @@ type ApiErrorPayload = { message?: string; details?: string };
 export type CharacterCreateBody = CharacterCreationRequest & {
   initialFeatures?: Array<{ featureId: string; grade: number }>;
 };
+export type CharacterEditableUpdateBody = CharacterCreationRequest;
 
 export async function getCharacterById(
   id: string,
@@ -83,6 +84,45 @@ export async function createCharacter(
       .join("; ");
     throw new Error(
       `Create character response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterEditableFields(
+  id: string,
+  body: CharacterEditableUpdateBody
+): Promise<CharacterDetail> {
+  const response = await fetch(`/api/characters/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update character"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Update character response did not match expected shape: ${details}`
     );
   }
   return parsed.data;

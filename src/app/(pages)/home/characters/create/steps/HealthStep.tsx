@@ -9,9 +9,8 @@ function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
 }
 
-function clampRolled(value: number, max: number): number {
+function clampRolled(value: number, min: number, max: number): number {
   const rounded = Number.isFinite(value) ? Math.floor(value) : 10;
-  const min = 10;
   return Math.min(max, Math.max(min, rounded));
 }
 
@@ -64,6 +63,7 @@ export function HealthStep() {
     (personality?.mentality ?? 0);
 
   const maxRolled = 10 * level;
+  const minRolled = 10 + Math.max(0, level - 1);
   const maxPhysicalHealth = innatePhysicalHealth + rolledPhysicalHealth;
   const maxMentalHealth = innateMentalHealth + rolledMentalHealth;
 
@@ -192,7 +192,7 @@ export function HealthStep() {
                     setPhysicalInput(String(rolledPhysicalHealth));
                     return;
                   }
-                  const safe = clampRolled(next, maxRolled);
+                  const safe = clampRolled(next, minRolled, maxRolled);
                   setValue("health.rolledPhysicalHealth", safe, {
                     shouldDirty: true,
                   });
@@ -255,7 +255,7 @@ export function HealthStep() {
                     setMentalInput(String(rolledMentalHealth));
                     return;
                   }
-                  const safe = clampRolled(next, maxRolled);
+                  const safe = clampRolled(next, minRolled, maxRolled);
                   setValue("health.rolledMentalHealth", safe, {
                     shouldDirty: true,
                   });

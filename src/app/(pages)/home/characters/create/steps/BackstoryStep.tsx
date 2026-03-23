@@ -5,7 +5,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 
 const textareaClassName =
-  "min-h-36 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover";
+  "min-h-36 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover";
 
 export function BackstoryStep() {
   const { control } = useFormContext<CharacterCreationRequest>();

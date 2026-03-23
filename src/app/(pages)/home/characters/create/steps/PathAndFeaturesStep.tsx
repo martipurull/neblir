@@ -197,12 +197,6 @@ export function PathAndFeaturesStep({
     });
   };
 
-  const removeFeature = (featureId: string) => {
-    setSelectedFeatures((prev) =>
-      prev.filter((e) => e.featureId !== featureId)
-    );
-  };
-
   const selectedPath = pathId ? paths.find((p) => p.id === pathId) : null;
   const pathOptions = useMemo(
     () =>
@@ -326,7 +320,7 @@ export function PathAndFeaturesStep({
                       type="button"
                       onClick={() => addFeature(f.id)}
                       disabled={slotsLeft < 1}
-                      className="rounded border border-black/40 px-2 py-1 text-sm hover:bg-black/10 disabled:opacity-50"
+                      className="rounded border border-neblirSafe-400 px-2 py-1 text-sm text-neblirSafe-600 hover:bg-neblirSafe-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       + Add (grade 1)
                     </button>
@@ -348,21 +342,20 @@ export function PathAndFeaturesStep({
                           className="ml-1 w-14 rounded border border-black/30 px-1 py-0.5 text-sm"
                         />
                       </label>
-                      {sel.grade < f.maxGrade && slotsLeft >= 1 && (
-                        <button
-                          type="button"
-                          onClick={() => addFeature(f.id)}
-                          className="rounded border border-black/40 px-2 py-1 text-xs hover:bg-black/10"
-                        >
-                          + Grade
-                        </button>
-                      )}
                       <button
                         type="button"
-                        onClick={() => removeFeature(f.id)}
-                        className="text-xs text-neblirDanger-600 underline"
+                        onClick={() => setFeatureGrade(f.id, sel.grade - 1)}
+                        className="rounded border border-neblirDanger-400 px-2 py-1 text-xs text-neblirDanger-600 hover:bg-neblirDanger-50"
                       >
-                        Remove
+                        - Grade
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addFeature(f.id)}
+                        disabled={sel.grade >= f.maxGrade || slotsLeft < 1}
+                        className="rounded border border-neblirSafe-400 px-2 py-1 text-xs text-neblirSafe-600 hover:bg-neblirSafe-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        + Grade
                       </button>
                     </>
                   )}
