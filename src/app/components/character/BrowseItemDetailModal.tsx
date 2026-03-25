@@ -262,6 +262,22 @@ export function BrowseItemDetailModal({
                     </p>
                   </div>
                 )}
+                {"effectiveRange" in item && item.effectiveRange != null && (
+                  <div>
+                    <span className="text-white/60 uppercase tracking-wider">
+                      Effective range
+                    </span>
+                    <p className="mt-0.5 text-white">{item.effectiveRange}</p>
+                  </div>
+                )}
+                {"maxRange" in item && item.maxRange != null && (
+                  <div>
+                    <span className="text-white/60 uppercase tracking-wider">
+                      Max range
+                    </span>
+                    <p className="mt-0.5 text-white">{item.maxRange}</p>
+                  </div>
+                )}
               </div>
             </>
           )}

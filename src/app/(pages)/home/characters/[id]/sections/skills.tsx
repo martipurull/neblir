@@ -22,7 +22,9 @@ export function getSkillsSection(
   const skills = character.learnedSkills;
   const generalSkillsEntries =
     skills.generalSkills &&
-    (Object.entries(skills.generalSkills) as [string, number][]);
+    (Object.entries(skills.generalSkills) as [string, number][]).sort(
+      ([a], [b]) => a.localeCompare(b)
+    );
 
   const selection = diceSelection ?? [];
   const hasTwo = selection.length === 2;
@@ -86,19 +88,22 @@ export function getSkillsSection(
                 Special Skills
               </span>
               <ul className="divide-y divide-black rounded border border-black">
-                {skills.specialSkills.map((name, index) => (
-                  <li key={index}>
-                    <button
-                      type="button"
-                      data-skill-type="special"
-                      data-skill-index={index}
-                      data-skill-name={name}
-                      className="flex w-full items-center px-3 py-2.5 text-left text-sm text-black transition hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset"
-                    >
-                      {name}
-                    </button>
-                  </li>
-                ))}
+                {skills.specialSkills
+                  .map((name, storageIndex) => ({ name, storageIndex }))
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(({ name, storageIndex }) => (
+                    <li key={storageIndex}>
+                      <button
+                        type="button"
+                        data-skill-type="special"
+                        data-skill-index={storageIndex}
+                        data-skill-name={name}
+                        className="flex w-full items-center px-3 py-2.5 text-left text-sm text-black transition hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset"
+                      >
+                        {name}
+                      </button>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}

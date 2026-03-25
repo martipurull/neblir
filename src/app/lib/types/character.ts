@@ -34,6 +34,8 @@ const resolvedItemSchema = z
     defenceRangeBonus: z.number().optional().nullable(),
     gridAttackBonus: z.number().optional().nullable(),
     gridDefenceBonus: z.number().optional().nullable(),
+    effectiveRange: z.number().optional().nullable(),
+    maxRange: z.number().optional().nullable(),
     damage: z
       .object({
         damageType: z.array(weaponDamageTypeSchema),

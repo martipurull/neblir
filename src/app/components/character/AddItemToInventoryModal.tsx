@@ -8,7 +8,13 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { SafeButton } from "@/app/components/shared/SemanticActionButton";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
 
 export interface AddItemToInventoryModalProps {
@@ -38,6 +44,7 @@ export function AddItemToInventoryModal({
   character,
   mutate,
 }: AddItemToInventoryModalProps) {
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [browseRows, setBrowseRows] = useState<BrowseInventoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +127,15 @@ export function AddItemToInventoryModal({
       void fetchItems();
     }
   }, [isOpen, fetchItems]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    // Delay to ensure the input is mounted before focusing.
+    const timer = window.setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isOpen]);
 
   const filteredRows = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -228,6 +244,7 @@ export function AddItemToInventoryModal({
             Search items
           </label>
           <input
+            ref={searchInputRef}
             id="add-item-search"
             type="search"
             placeholder="Search by name, description, or game…"

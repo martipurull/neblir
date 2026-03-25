@@ -43,6 +43,12 @@ function ItemCombatStats({ item }: { item: ResolvedItem }) {
       `${item.damage.numberOfDice}d${item.damage.diceType} ${item.damage.damageType?.join(", ") ?? ""}`
     );
   }
+  if (item.effectiveRange != null) {
+    parts.push(`Eff. range ${item.effectiveRange}`);
+  }
+  if (item.maxRange != null) {
+    parts.push(`Max ${item.maxRange}`);
+  }
   if (parts.length === 0) return null;
   return <p className="mt-0.5 text-xs text-white/70">{parts.join(" · ")}</p>;
 }

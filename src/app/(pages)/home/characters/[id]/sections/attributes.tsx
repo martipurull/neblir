@@ -25,12 +25,16 @@ export function getAttributesSection(
     "intelligence",
     "wisdom",
     "personality",
-  ];
+  ]
+    .slice()
+    .sort((a, b) => a.localeCompare(b));
   const physical: (keyof typeof attrs)[] = [
     "strength",
     "dexterity",
     "constitution",
-  ];
+  ]
+    .slice()
+    .sort((a, b) => a.localeCompare(b));
   const armourMod = character.combatInformation?.armourMod ?? 0;
   const armourAttrPenalty = getArmourAttributePenalty(armourMod);
   const armourPenaltyApplies = (attrKey: string, skillKey: string) =>
@@ -54,10 +58,12 @@ export function getAttributesSection(
         {attributeKeys.map((attrKey) => {
           const group = attrs[attrKey];
           if (typeof group !== "object" || group === null) return null;
-          const entries = Object.entries(group as Record<string, number>) as [
-            string,
-            number,
-          ][];
+          const entries = (
+            Object.entries(group as Record<string, number>) as [
+              string,
+              number,
+            ][]
+          ).sort(([a], [b]) => a.localeCompare(b));
           return (
             <div key={attrKey} className="space-y-1.5">
               <span className="text-xs font-medium text-black">

@@ -118,6 +118,8 @@ export default function CreateUniqueItemModal({
     useState("");
   const [gridAttackBonusOverride, setGridAttackBonusOverride] = useState("");
   const [gridDefenceBonusOverride, setGridDefenceBonusOverride] = useState("");
+  const [effectiveRangeOverride, setEffectiveRangeOverride] = useState("");
+  const [maxRangeOverride, setMaxRangeOverride] = useState("");
   const [damageTypesOverride, setDamageTypesOverride] = useState<string[]>([]);
   const [damageDiceTypeOverride, setDamageDiceTypeOverride] = useState("");
   const [damageNumberOfDiceOverride, setDamageNumberOfDiceOverride] =
@@ -343,6 +345,8 @@ export default function CreateUniqueItemModal({
       addBonus("defenceRangeBonusOverride", defenceRangeBonusOverride);
       addBonus("gridAttackBonusOverride", gridAttackBonusOverride);
       addBonus("gridDefenceBonusOverride", gridDefenceBonusOverride);
+      addBonus("effectiveRangeOverride", effectiveRangeOverride);
+      addBonus("maxRangeOverride", maxRangeOverride);
 
       const damage = buildDamageOverride();
       if (damage) body.damageOverride = damage;
@@ -387,6 +391,8 @@ export default function CreateUniqueItemModal({
     setDefenceRangeBonusOverride("");
     setGridAttackBonusOverride("");
     setGridDefenceBonusOverride("");
+    setEffectiveRangeOverride("");
+    setMaxRangeOverride("");
     setDamageTypesOverride([]);
     setDamageDiceTypeOverride("");
     setDamageNumberOfDiceOverride("");
@@ -797,6 +803,40 @@ export default function CreateUniqueItemModal({
                 value={gridDefenceBonusOverride}
                 onChange={(e) => setGridDefenceBonusOverride(e.target.value)}
                 className={modalInputClass}
+                disabled={submitting}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <ModalFieldLabel
+                id="unique-effective-range-override"
+                label="Effective range override"
+              />
+              <input
+                id="unique-effective-range-override"
+                type="number"
+                min={0}
+                value={effectiveRangeOverride}
+                onChange={(e) => setEffectiveRangeOverride(e.target.value)}
+                className={modalInputClass}
+                placeholder="Leave empty to use template"
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <ModalFieldLabel
+                id="unique-max-range-override"
+                label="Max range override"
+              />
+              <input
+                id="unique-max-range-override"
+                type="number"
+                min={0}
+                value={maxRangeOverride}
+                onChange={(e) => setMaxRangeOverride(e.target.value)}
+                className={modalInputClass}
+                placeholder="Leave empty to use template"
                 disabled={submitting}
               />
             </div>

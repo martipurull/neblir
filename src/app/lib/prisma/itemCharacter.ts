@@ -144,6 +144,12 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.gridDefenceBonusOverride != null && {
           gridDefenceBonus: uniqueItem.gridDefenceBonusOverride,
         }),
+        ...(uniqueItem.effectiveRangeOverride != null && {
+          effectiveRange: uniqueItem.effectiveRangeOverride,
+        }),
+        ...(uniqueItem.maxRangeOverride != null && {
+          maxRange: uniqueItem.maxRangeOverride,
+        }),
         ...(uniqueItem.confCostOverride != null && {
           confCost: uniqueItem.confCostOverride,
         }),

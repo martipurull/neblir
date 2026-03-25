@@ -49,6 +49,8 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     defenceRangeBonus: uniqueItem.defenceRangeBonusOverride ?? null,
     gridAttackBonus: uniqueItem.gridAttackBonusOverride ?? null,
     gridDefenceBonus: uniqueItem.gridDefenceBonusOverride ?? null,
+    effectiveRange: uniqueItem.effectiveRangeOverride ?? null,
+    maxRange: uniqueItem.maxRangeOverride ?? null,
     damage: uniqueItem.damageOverride ?? null,
     equippable: uniqueItem.equippableOverride ?? false,
     equipSlotTypes,
@@ -78,6 +80,8 @@ export function prismaDataFromUniqueItemCreate(
     defenceRangeBonusOverride: parsed.defenceRangeBonusOverride ?? undefined,
     gridAttackBonusOverride: parsed.gridAttackBonusOverride ?? undefined,
     gridDefenceBonusOverride: parsed.gridDefenceBonusOverride ?? undefined,
+    effectiveRangeOverride: parsed.effectiveRangeOverride ?? undefined,
+    maxRangeOverride: parsed.maxRangeOverride ?? undefined,
     confCostOverride: parsed.confCostOverride ?? undefined,
     costInfoOverride: parsed.costInfoOverride ?? undefined,
     damageOverride: parsed.damageOverride ?? undefined,
@@ -193,6 +197,12 @@ function applyUniqueItemOverrides(
     }),
     ...(uniqueItem.gridDefenceBonusOverride != null && {
       gridDefenceBonus: uniqueItem.gridDefenceBonusOverride,
+    }),
+    ...(uniqueItem.effectiveRangeOverride != null && {
+      effectiveRange: uniqueItem.effectiveRangeOverride,
+    }),
+    ...(uniqueItem.maxRangeOverride != null && {
+      maxRange: uniqueItem.maxRangeOverride,
     }),
     ...(uniqueItem.confCostOverride != null && {
       confCost: uniqueItem.confCostOverride,

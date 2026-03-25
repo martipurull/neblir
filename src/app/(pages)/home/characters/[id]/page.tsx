@@ -100,8 +100,6 @@ export default function CharacterDetailPage() {
   const sections: CharacterSectionSlide[] = useMemo(() => {
     if (!character) return [];
     const list: CharacterSectionSlide[] = [
-      getGeneralSection(character),
-      getHealthSection(character),
       getAttributesSection(character, diceSelection, handleDiceSelect),
       getSkillsSection(character, diceSelection, handleDiceSelect),
       getCombatSection(character, {
@@ -117,6 +115,8 @@ export default function CharacterDetailPage() {
           },
         },
       }),
+      getGeneralSection(character),
+      getHealthSection(character),
     ];
     const pathsSection = getPathsSection(character);
     if (pathsSection) list.push(pathsSection);

@@ -36,6 +36,8 @@ function minimalUniqueRow(
     defenceRangeBonusOverride: null,
     gridAttackBonusOverride: null,
     gridDefenceBonusOverride: null,
+    effectiveRangeOverride: null,
+    maxRangeOverride: null,
     confCostOverride: null,
     costInfoOverride: null,
     damageOverride: null,

@@ -47,6 +47,8 @@ export type ItemBrowseDetailFields = {
   defenceRangeBonus?: number | null;
   gridAttackBonus?: number | null;
   gridDefenceBonus?: number | null;
+  effectiveRange?: number | null;
+  maxRange?: number | null;
   damage?: ItemBrowseDamage | null;
   usage?: string | null;
   notes?: string | null;

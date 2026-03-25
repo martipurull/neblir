@@ -32,6 +32,8 @@ export function mapCustomItemJsonToBrowseDetail(
     defenceRangeBonus: data.defenceRangeBonus ?? null,
     gridAttackBonus: data.gridAttackBonus ?? null,
     gridDefenceBonus: data.gridDefenceBonus ?? null,
+    effectiveRange: data.effectiveRange ?? null,
+    maxRange: data.maxRange ?? null,
     damage: data.damage ?? undefined,
     usage: data.usage ?? null,
     notes: data.notes ?? null,

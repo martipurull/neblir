@@ -393,6 +393,8 @@ model Item {
   defenceRangeBonus    Int?
   gridAttackBonus      Int?
   gridDefenceBonus     Int?
+  effectiveRange       Int?
+  maxRange             Int?
   confCost             Int
   costInfo             String?
   damage               ItemDamage?
@@ -421,6 +423,8 @@ model CustomItem {
   defenceRangeBonus    Int?
   gridAttackBonus      Int?
   gridDefenceBonus     Int?
+  effectiveRange       Int?
+  maxRange             Int?
   confCost             Int?
   costInfo             String?
   damage               ItemDamage?
@@ -455,6 +459,8 @@ model UniqueItem {
   defenceRangeBonusOverride Int?
   gridAttackBonusOverride  Int?
   gridDefenceBonusOverride Int?
+  effectiveRangeOverride   Int?
+  maxRangeOverride         Int?
   confCostOverride         Int?
   costInfoOverride         String?
   damageOverride           ItemDamage?

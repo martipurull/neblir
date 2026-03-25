@@ -86,6 +86,8 @@ export default function CreateCustomItemModal({
   const [defenceRangeBonus, setDefenceRangeBonus] = useState<string>("");
   const [gridAttackBonus, setGridAttackBonus] = useState<string>("");
   const [gridDefenceBonus, setGridDefenceBonus] = useState<string>("");
+  const [effectiveRange, setEffectiveRange] = useState<string>("");
+  const [maxRange, setMaxRange] = useState<string>("");
   const [damageTypes, setDamageTypes] = useState<string[]>([]);
   const [damageDiceType, setDamageDiceType] = useState<string>("");
   const [damageNumberOfDice, setDamageNumberOfDice] = useState<string>("");
@@ -195,6 +197,8 @@ export default function CreateCustomItemModal({
       addNum("defenceRangeBonus", defenceRangeBonus);
       addNum("gridAttackBonus", gridAttackBonus);
       addNum("gridDefenceBonus", gridDefenceBonus);
+      addNum("effectiveRange", effectiveRange);
+      addNum("maxRange", maxRange);
 
       const damage = buildDamage();
       if (damage) body.damage = damage;
@@ -524,6 +528,37 @@ export default function CreateCustomItemModal({
                   value={gridDefenceBonus}
                   onChange={(e) => setGridDefenceBonus(e.target.value)}
                   className={modalInputClass}
+                  disabled={submitting}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <ModalFieldLabel
+                  id="custom-item-effective-range"
+                  label="Effective range"
+                />
+                <input
+                  id="custom-item-effective-range"
+                  type="number"
+                  min={0}
+                  value={effectiveRange}
+                  onChange={(e) => setEffectiveRange(e.target.value)}
+                  className={modalInputClass}
+                  placeholder="Distance units"
+                  disabled={submitting}
+                />
+              </div>
+              <div>
+                <ModalFieldLabel id="custom-item-max-range" label="Max range" />
+                <input
+                  id="custom-item-max-range"
+                  type="number"
+                  min={0}
+                  value={maxRange}
+                  onChange={(e) => setMaxRange(e.target.value)}
+                  className={modalInputClass}
+                  placeholder="Distance units"
                   disabled={submitting}
                 />
               </div>

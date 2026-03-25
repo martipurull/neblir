@@ -125,6 +125,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       defenceRangeBonus: createData.defenceRangeBonus ?? undefined,
       gridAttackBonus: createData.gridAttackBonus ?? undefined,
       gridDefenceBonus: createData.gridDefenceBonus ?? undefined,
+      effectiveRange: createData.effectiveRange ?? undefined,
+      maxRange: createData.maxRange ?? undefined,
       confCost: createData.confCost ?? undefined,
       costInfo: createData.costInfo ?? undefined,
       damage: createData.damage ?? undefined,

@@ -11,6 +11,7 @@
  * equipSlotTypes, equipSlotCost, maxUses,
  * attackRoll, attackMeleeBonus, attackRangeBonus, attackThrowBonus,
  * defenceMeleeBonus, defenceRangeBonus, gridAttackBonus, gridDefenceBonus,
+ * effectiveRange, maxRange,
  * damageDiceType, damageNumberOfDice, damageType, areaType, coneLength,
  * primaryRadius, secondaryRadius (or damagePrimaryRadius, damageSecondaryRadius),
  * areaEffectDefenceReactionCost, areaEffectDefenceRoll, areaEffectSuccessfulDefenceResult
@@ -180,6 +181,10 @@ function csvRowToItem(row: Record<string, string>): Item {
         "grid_defence_bonus"
       )
     ),
+    effectiveRange: parseOptionalInt(
+      getColumn(row, "effectiveRange", "effective_range")
+    ),
+    maxRange: parseOptionalInt(getColumn(row, "maxRange", "max_range")),
   };
 
   if (type === "GENERAL_ITEM") {
@@ -268,6 +273,8 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     defenceRangeBonus: item.defenceRangeBonus ?? null,
     gridAttackBonus: item.gridAttackBonus ?? null,
     gridDefenceBonus: item.gridDefenceBonus ?? null,
+    effectiveRange: item.effectiveRange ?? null,
+    maxRange: item.maxRange ?? null,
   };
 
   if (item.type === "GENERAL_ITEM") {
