@@ -13,6 +13,8 @@ import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { Checkbox } from "@/app/components/shared/Checkbox";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -43,10 +45,6 @@ const EQUIP_SLOTS = [
   { value: "BODY", label: "Body" },
   { value: "HEAD", label: "Head" },
 ] as const;
-
-/** Matches modal checkboxes elsewhere (CreateCustomItemModal, AddCharactersToGameModal) */
-const modalCheckboxClass =
-  "h-4 w-4 shrink-0 rounded border border-white/50 bg-paleBlue text-customPrimary accent-customPrimary focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 type TemplateItem = { id: string; name: string; type?: string };
 
@@ -446,77 +444,35 @@ export default function CreateUniqueItemModal({
             : "Template (required)"}
         </h3>
         <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <label
-              className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                sourceType === "GLOBAL_ITEM"
-                  ? "bg-modalBackground-400 text-white"
-                  : "bg-paleBlue text-gray-900"
-              }`}
-            >
-              <input
-                type="radio"
-                name="sourceType"
-                checked={sourceType === "GLOBAL_ITEM"}
-                onChange={() => {
-                  setSourceType("GLOBAL_ITEM");
-                  setSelectedTemplate(null);
-                }}
-                disabled={submitting}
-                className="sr-only"
-              />
-              Global item
-            </label>
-            <label
-              className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+          <RadioGroup
+            name="sourceType"
+            value={sourceType}
+            tone="inverse"
+            variant="chip"
+            options={[
+              { value: "GLOBAL_ITEM", label: "Global item" },
+              { value: "CUSTOM_ITEM", label: "Game custom item" },
+              { value: "STANDALONE", label: "No template" },
+            ]}
+            onChange={(value) => {
+              if (
+                value === "CUSTOM_ITEM" &&
                 customTemplateGameIds.length === 0
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              } ${
-                sourceType === "CUSTOM_ITEM"
-                  ? "bg-modalBackground-400 text-white"
-                  : "bg-paleBlue text-gray-900"
-              }`}
-              title={
-                customTemplateGameIds.length === 0
-                  ? "No games available for custom templates"
-                  : undefined
+              ) {
+                return;
               }
-            >
-              <input
-                type="radio"
-                name="sourceType"
-                checked={sourceType === "CUSTOM_ITEM"}
-                onChange={() => {
-                  setSourceType("CUSTOM_ITEM");
-                  setSelectedTemplate(null);
-                }}
-                disabled={submitting || customTemplateGameIds.length === 0}
-                className="sr-only"
-              />
-              Game custom item
-            </label>
-            <label
-              className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                sourceType === "STANDALONE"
-                  ? "bg-modalBackground-400 text-white"
-                  : "bg-paleBlue text-gray-900"
-              }`}
-            >
-              <input
-                type="radio"
-                name="sourceType"
-                checked={sourceType === "STANDALONE"}
-                onChange={() => {
-                  setSourceType("STANDALONE");
-                  setSelectedTemplate(null);
-                }}
-                disabled={submitting}
-                className="sr-only"
-              />
-              No template
-            </label>
-          </div>
+              setSourceType(
+                value as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE"
+              );
+              setSelectedTemplate(null);
+            }}
+            disabled={submitting}
+          />
+          {customTemplateGameIds.length === 0 && (
+            <p className="text-xs text-white/60">
+              No games available for custom templates.
+            </p>
+          )}
 
           {sourceType === "STANDALONE" ? (
             <div className="space-y-3 rounded border border-white/20 bg-white/5 p-3">
@@ -741,19 +697,14 @@ export default function CreateUniqueItemModal({
             />
             <div className="flex flex-wrap gap-2">
               {ATTACK_ROLL_TYPES.map((t) => (
-                <label
+                <Checkbox
                   key={t.value}
-                  className="flex cursor-pointer items-center gap-1.5 text-sm text-white"
-                >
-                  <input
-                    type="checkbox"
-                    checked={attackRollOverride.includes(t.value)}
-                    onChange={() => toggleAttackRoll(t.value)}
-                    disabled={submitting}
-                    className={modalCheckboxClass}
-                  />
-                  {t.label}
-                </label>
+                  checked={attackRollOverride.includes(t.value)}
+                  onChange={() => toggleAttackRoll(t.value)}
+                  disabled={submitting}
+                  tone="inverse"
+                  label={t.label}
+                />
               ))}
             </div>
           </div>
@@ -857,36 +808,28 @@ export default function CreateUniqueItemModal({
             />
             <div className="flex flex-wrap gap-1.5">
               {DAMAGE_TYPES.slice(0, 6).map((d) => (
-                <label
+                <Checkbox
                   key={d}
-                  className="flex cursor-pointer items-center gap-1 text-xs text-white"
-                >
-                  <input
-                    type="checkbox"
-                    checked={damageTypesOverride.includes(d)}
-                    onChange={() => toggleDamageType(d)}
-                    disabled={submitting}
-                    className={modalCheckboxClass}
-                  />
-                  {d}
-                </label>
+                  checked={damageTypesOverride.includes(d)}
+                  onChange={() => toggleDamageType(d)}
+                  disabled={submitting}
+                  tone="inverse"
+                  label={d}
+                  className="text-xs"
+                />
               ))}
             </div>
             <div className="mt-1 flex flex-wrap gap-1.5">
               {DAMAGE_TYPES.slice(6).map((d) => (
-                <label
+                <Checkbox
                   key={d}
-                  className="flex cursor-pointer items-center gap-1 text-xs text-white"
-                >
-                  <input
-                    type="checkbox"
-                    checked={damageTypesOverride.includes(d)}
-                    onChange={() => toggleDamageType(d)}
-                    disabled={submitting}
-                    className={modalCheckboxClass}
-                  />
-                  {d}
-                </label>
+                  checked={damageTypesOverride.includes(d)}
+                  onChange={() => toggleDamageType(d)}
+                  disabled={submitting}
+                  tone="inverse"
+                  label={d}
+                  className="text-xs"
+                />
               ))}
             </div>
           </div>
@@ -929,59 +872,31 @@ export default function CreateUniqueItemModal({
               id="unique-equippable-override"
               label="Equippable override"
             />
-            <div className="flex flex-wrap gap-2">
-              <label
-                className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  equippableOverride === ""
-                    ? "bg-modalBackground-400 text-white"
-                    : "bg-paleBlue text-gray-900"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="equippableOverride"
-                  checked={equippableOverride === ""}
-                  onChange={() => setEquippableOverride("")}
-                  disabled={submitting}
-                  className="sr-only"
-                />
-                Use template
-              </label>
-              <label
-                className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  equippableOverride === true
-                    ? "bg-modalBackground-400 text-white"
-                    : "bg-paleBlue text-gray-900"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="equippableOverride"
-                  checked={equippableOverride === true}
-                  onChange={() => setEquippableOverride(true)}
-                  disabled={submitting}
-                  className="sr-only"
-                />
-                Yes
-              </label>
-              <label
-                className={`cursor-pointer rounded px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  equippableOverride === false
-                    ? "bg-modalBackground-400 text-white"
-                    : "bg-paleBlue text-gray-900"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="equippableOverride"
-                  checked={equippableOverride === false}
-                  onChange={() => setEquippableOverride(false)}
-                  disabled={submitting}
-                  className="sr-only"
-                />
-                No
-              </label>
-            </div>
+            <RadioGroup
+              name="equippableOverride"
+              value={
+                equippableOverride === ""
+                  ? "template"
+                  : equippableOverride
+                    ? "yes"
+                    : "no"
+              }
+              tone="inverse"
+              variant="chip"
+              options={[
+                { value: "template", label: "Use template" },
+                { value: "yes", label: "Yes" },
+                { value: "no", label: "No" },
+              ]}
+              onChange={(value) => {
+                if (value === "template") {
+                  setEquippableOverride("");
+                } else {
+                  setEquippableOverride(value === "yes");
+                }
+              }}
+              disabled={submitting}
+            />
           </div>
           {equippableOverride !== "" && (
             <>
@@ -992,19 +907,14 @@ export default function CreateUniqueItemModal({
                 />
                 <div className="flex flex-wrap gap-2">
                   {EQUIP_SLOTS.map((s) => (
-                    <label
+                    <Checkbox
                       key={s.value}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm text-white"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={equipSlotTypesOverride.includes(s.value)}
-                        onChange={() => toggleEquipSlot(s.value)}
-                        disabled={submitting}
-                        className={modalCheckboxClass}
-                      />
-                      {s.label}
-                    </label>
+                      checked={equipSlotTypesOverride.includes(s.value)}
+                      onChange={() => toggleEquipSlot(s.value)}
+                      disabled={submitting}
+                      tone="inverse"
+                      label={s.label}
+                    />
                   ))}
                 </div>
               </div>

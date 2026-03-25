@@ -74,6 +74,7 @@ describe("buildStandaloneResolvedItem", () => {
     expect(r._resolvedFrom).toBe("UNIQUE_ITEM");
     expect(r.description).toBe("");
     expect(r.equippable).toBe(false);
+    expect(r.attackRoll).toEqual([]);
   });
 
   it("uses Unknown item when name is blank after trim", async () => {

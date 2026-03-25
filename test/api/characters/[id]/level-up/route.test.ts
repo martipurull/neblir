@@ -155,5 +155,8 @@ describe("/api/characters/[id]/level-up POST", () => {
     );
     expect(response.status).toBe(200);
     expect(levelUpCharacterWithRelationsMock).toHaveBeenCalled();
+    expect(getCharacterMock).toHaveBeenCalledTimes(2);
+    expect(getCharacterMock).toHaveBeenNthCalledWith(1, "char-1");
+    expect(getCharacterMock).toHaveBeenNthCalledWith(2, "char-1");
   });
 });

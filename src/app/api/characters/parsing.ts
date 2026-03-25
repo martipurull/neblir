@@ -134,6 +134,18 @@ export function computeCharacterRequestData(
           })),
         }
       : undefined;
+  const rawHealth = requestWithoutPathAndWallet.health as Record<
+    string,
+    unknown
+  >;
+  const currentPhysicalHealthInput =
+    typeof rawHealth.currentPhysicalHealth === "number"
+      ? rawHealth.currentPhysicalHealth
+      : maxPhysicalHealth;
+  const currentMentalHealthInput =
+    typeof rawHealth.currentMentalHealth === "number"
+      ? rawHealth.currentMentalHealth
+      : maxMentalHealth;
 
   return {
     ...requestWithoutPathAndWallet,
@@ -144,10 +156,14 @@ export function computeCharacterRequestData(
       ...requestWithoutPathAndWallet.health,
       innatePhysicalHealth: innatePhysicalHealth,
       maxPhysicalHealth: maxPhysicalHealth,
-      currentPhysicalHealth: maxPhysicalHealth,
+      currentPhysicalHealth: isLevelUp
+        ? Math.min(currentPhysicalHealthInput, maxPhysicalHealth)
+        : maxPhysicalHealth,
       innateMentalHealth: innateMentalHealth,
       maxMentalHealth: maxMentalHealth,
-      currentMentalHealth: maxMentalHealth,
+      currentMentalHealth: isLevelUp
+        ? Math.min(currentMentalHealthInput, maxMentalHealth)
+        : maxMentalHealth,
       deathSaves: {
         successes: 0,
         failures: 0,

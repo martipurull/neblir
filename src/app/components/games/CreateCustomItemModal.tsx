@@ -9,6 +9,7 @@ import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDr
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import {
@@ -49,10 +50,6 @@ const EQUIP_SLOTS = [
   { value: "BODY", label: "Body" },
   { value: "HEAD", label: "Head" },
 ] as const;
-
-/** Matches modal checkboxes elsewhere (e.g. AddCharactersToGameModal) */
-const modalCheckboxClass =
-  "h-4 w-4 shrink-0 rounded border border-white/50 bg-paleBlue text-customPrimary accent-customPrimary focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 type CreateCustomItemModalProps = {
   isOpen: boolean;
@@ -418,19 +415,14 @@ export default function CreateCustomItemModal({
               />
               <div className="flex flex-wrap gap-2">
                 {ATTACK_ROLL_TYPES.map((t) => (
-                  <label
+                  <Checkbox
                     key={t.value}
-                    className="flex cursor-pointer items-center gap-1.5 text-sm text-white"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={attackRoll.includes(t.value)}
-                      onChange={() => toggleAttackRoll(t.value)}
-                      disabled={submitting}
-                      className={modalCheckboxClass}
-                    />
-                    {t.label}
-                  </label>
+                    checked={attackRoll.includes(t.value)}
+                    onChange={() => toggleAttackRoll(t.value)}
+                    disabled={submitting}
+                    tone="inverse"
+                    label={t.label}
+                  />
                 ))}
               </div>
             </div>
@@ -543,19 +535,15 @@ export default function CreateCustomItemModal({
               />
               <div className="flex flex-wrap gap-2">
                 {DAMAGE_TYPES.map((d) => (
-                  <label
+                  <Checkbox
                     key={d}
-                    className="flex cursor-pointer items-center gap-1.5 text-xs text-white"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={damageTypes.includes(d)}
-                      onChange={() => toggleDamageType(d)}
-                      disabled={submitting}
-                      className={modalCheckboxClass}
-                    />
-                    {d}
-                  </label>
+                    checked={damageTypes.includes(d)}
+                    onChange={() => toggleDamageType(d)}
+                    disabled={submitting}
+                    tone="inverse"
+                    label={d}
+                    className="text-xs"
+                  />
                 ))}
               </div>
             </div>
@@ -598,16 +586,13 @@ export default function CreateCustomItemModal({
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">Equippable</h3>
         <div className="space-y-3">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-white">
-            <input
-              type="checkbox"
-              checked={equippable}
-              onChange={(e) => setEquippable(e.target.checked)}
-              disabled={submitting}
-              className={modalCheckboxClass}
-            />
-            Can be equipped
-          </label>
+          <Checkbox
+            checked={equippable}
+            onChange={setEquippable}
+            disabled={submitting}
+            tone="inverse"
+            label="Can be equipped"
+          />
           {equippable && (
             <>
               <div>
@@ -617,19 +602,14 @@ export default function CreateCustomItemModal({
                 />
                 <div className="flex flex-wrap gap-2">
                   {EQUIP_SLOTS.map((s) => (
-                    <label
+                    <Checkbox
                       key={s.value}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm text-white"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={equipSlotTypes.includes(s.value)}
-                        onChange={() => toggleEquipSlot(s.value)}
-                        disabled={submitting}
-                        className={modalCheckboxClass}
-                      />
-                      {s.label}
-                    </label>
+                      checked={equipSlotTypes.includes(s.value)}
+                      onChange={() => toggleEquipSlot(s.value)}
+                      disabled={submitting}
+                      tone="inverse"
+                      label={s.label}
+                    />
                   ))}
                 </div>
               </div>

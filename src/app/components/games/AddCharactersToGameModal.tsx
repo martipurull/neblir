@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import {
@@ -232,12 +233,13 @@ export default function AddCharactersToGameModal({
                         isLinked ? "opacity-60" : "hover:bg-white/10",
                       ].join(" ")}
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={checked}
                         onChange={() => toggle(c.id)}
                         disabled={submitting || isLinked}
-                        className="h-4 w-4 rounded border border-white/50 bg-paleBlue text-customPrimary accent-customPrimary focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        tone="inverse"
+                        label={<span className="sr-only">{name}</span>}
+                        className="shrink-0"
                       />
                       <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
                         {avatarUrl ? (

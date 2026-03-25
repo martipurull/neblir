@@ -39,10 +39,9 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     weight,
     usage: uniqueItem.usageOverride ?? null,
     attackRoll:
-      uniqueItem.attackRollOverride?.length &&
-      uniqueItem.attackRollOverride.length > 0
+      uniqueItem.attackRollOverride && uniqueItem.attackRollOverride.length > 0
         ? uniqueItem.attackRollOverride
-        : null,
+        : [],
     attackMeleeBonus: uniqueItem.attackMeleeBonusOverride ?? null,
     attackRangeBonus: uniqueItem.attackRangeBonusOverride ?? null,
     attackThrowBonus: uniqueItem.attackThrowBonusOverride ?? null,

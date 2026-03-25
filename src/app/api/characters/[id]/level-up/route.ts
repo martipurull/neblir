@@ -160,7 +160,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       ...parsedBody.incrementalFeatureIds,
     ];
     try {
-      const areFeaturesValid = await areFeaturesValidForLevelUp(id, featureIds);
+      const areFeaturesValid = await areFeaturesValidForLevelUp(
+        id,
+        parsedBody.pathId,
+        featureIds
+      );
       if (!areFeaturesValid) {
         logger.error({
           method: "POST",
@@ -207,9 +211,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const existingPaths = await getCharacterPaths(id);
-    let updatedCharacter;
+    let _updatedCharacter;
     try {
-      updatedCharacter = await levelUpCharacterWithRelations({
+      _updatedCharacter = await levelUpCharacterWithRelations({
         characterId: id,
         pathId: parsedBody.pathId,
         existingPaths,
@@ -246,7 +250,18 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      logger.error({
+        method: "POST",
+        route: "/api/characters/[id]/level-up",
+        message: "Character not found after level up",
+        characterId: id,
+      });
+      return errorResponse("Character not found after level up", 500);
+    }
+
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     if (error instanceof ValidationError) {
       logger.error({

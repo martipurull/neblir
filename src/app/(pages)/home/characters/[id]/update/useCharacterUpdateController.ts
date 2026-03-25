@@ -451,6 +451,7 @@ export function useCharacterUpdateController() {
     getLevelConstraintErrors(currentValues).length > 0;
 
   return {
+    characterId,
     steps: STEPS,
     currentStepIndex,
     isLastStep: currentStepIndex === STEPS.length - 1,

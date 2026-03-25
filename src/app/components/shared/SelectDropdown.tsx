@@ -7,6 +7,8 @@ export type SelectDropdownOption = {
   label: string;
   /** When true, option is visible but not selectable. */
   disabled?: boolean;
+  /** Shown next to the label when disabled; defaults to “(already rolled)”. */
+  disabledHint?: string;
 };
 
 export type SelectDropdownProps = {
@@ -17,6 +19,11 @@ export type SelectDropdownProps = {
   options: SelectDropdownOption[];
   disabled?: boolean;
   onChange: (value: string) => void;
+  /**
+   * When set (including `""`), the option with this `value` is listed first;
+   * remaining options are sorted by label.
+   */
+  pinValueFirst?: string;
 };
 
 export function SelectDropdown({
@@ -27,6 +34,7 @@ export function SelectDropdown({
   options,
   disabled = false,
   onChange,
+  pinValueFirst,
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
@@ -36,10 +44,19 @@ export function SelectDropdown({
   const selectedOption = options.find((o) => o.value === value);
   const displayLabel = selectedOption?.label ?? placeholder;
 
-  const sortedOptions = useMemo(
-    () => [...options].sort((a, b) => a.label.localeCompare(b.label)),
-    [options]
-  );
+  const sortedOptions = useMemo(() => {
+    const copy = [...options];
+    if (pinValueFirst === undefined) {
+      return copy.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    const pinIndex = copy.findIndex((o) => o.value === pinValueFirst);
+    if (pinIndex === -1) {
+      return copy.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    const [pinned] = copy.splice(pinIndex, 1);
+    copy.sort((a, b) => a.label.localeCompare(b.label));
+    return [pinned, ...copy];
+  }, [options, pinValueFirst]);
 
   const filteredOptions = useMemo(() => {
     const q = filterQuery.trim().toLowerCase();
@@ -156,7 +173,7 @@ export function SelectDropdown({
                     {opt.label}
                     {isDisabled ? (
                       <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
-                        (already rolled)
+                        {opt.disabledHint ?? "(already rolled)"}
                       </span>
                     ) : null}
                   </li>

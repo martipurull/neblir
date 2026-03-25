@@ -10,11 +10,58 @@ import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
+export type LevelUpAttributePath =
+  | "intelligence.investigation"
+  | "intelligence.memory"
+  | "intelligence.deduction"
+  | "wisdom.sense"
+  | "wisdom.perception"
+  | "wisdom.insight"
+  | "personality.persuasion"
+  | "personality.deception"
+  | "personality.mentality"
+  | "strength.athletics"
+  | "strength.resilience"
+  | "strength.bruteForce"
+  | "dexterity.manual"
+  | "dexterity.stealth"
+  | "dexterity.agility"
+  | "constitution.resistanceInternal"
+  | "constitution.resistanceExternal"
+  | "constitution.stamina";
+export type LevelUpGeneralSkill =
+  | "mechanics"
+  | "software"
+  | "generalKnowledge"
+  | "history"
+  | "driving"
+  | "acrobatics"
+  | "aim"
+  | "melee"
+  | "GRID"
+  | "research"
+  | "medicine"
+  | "science"
+  | "survival"
+  | "streetwise"
+  | "performance"
+  | "manipulationNegotiation";
 
 export type CharacterCreateBody = CharacterCreationRequest & {
   initialFeatures?: Array<{ featureId: string; grade: number }>;
 };
 export type CharacterEditableUpdateBody = CharacterCreationRequest;
+export type CharacterLevelUpBody = {
+  healthUpdate: { rolledPhysicalHealth: number; rolledMentalHealth: number };
+  pathId: string;
+  newFeatureIds: string[];
+  incrementalFeatureIds: string[];
+  skillImprovement: LevelUpGeneralSkill;
+  attributeChanges?: Array<{
+    from: LevelUpAttributePath;
+    to: LevelUpAttributePath;
+  }>;
+};
 
 export async function getCharacterById(
   id: string,
@@ -118,13 +165,66 @@ export async function updateCharacterEditableFields(
   const json = await response.json();
   const parsed = characterDetailSchema.safeParse(json);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
+    // If write succeeded but response shape is stale, fetch canonical detail and proceed.
+    try {
+      return await getCharacterById(id);
+    } catch {
+      const details = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new Error(
+        `Update character response did not match expected shape: ${details}`
+      );
+    }
+  }
+  return parsed.data;
+}
+
+export async function levelUpCharacter(
+  id: string,
+  body: CharacterLevelUpBody
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/level-up`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
     throw new Error(
-      `Update character response did not match expected shape: ${details}`
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to level up character"
+      )
     );
   }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    // If write succeeded but response shape is stale, fetch canonical detail and proceed.
+    try {
+      return await getCharacterById(id);
+    } catch {
+      const details = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new Error(
+        `Level up response did not match expected shape: ${details}`
+      );
+    }
+  }
+
   return parsed.data;
 }
 
