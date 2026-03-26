@@ -8,7 +8,10 @@ import {
 } from "@/app/lib/prisma/featureCharacter";
 import { getCharacterPaths } from "@/app/lib/prisma/pathCharacter";
 import { getPath } from "@/app/lib/prisma/path";
-import type { Character } from "@/app/lib/types/character";
+import {
+  type Character,
+  combatInformationSchema,
+} from "@/app/lib/types/character";
 
 /**
  * Character shape used by level-up parsing. Only the fields actually read are required,
@@ -347,7 +350,7 @@ export function parseCharacterBodyToCompute(
       maxMentalHealth: healthUpdate.newMaxMentalHealth,
     },
     combatInformation: {
-      ...existingCharacter.combatInformation,
+      ...combatInformationSchema.parse(existingCharacter.combatInformation),
       reactionsPerRound: reactionsPerRound,
     },
     learnedSkills,

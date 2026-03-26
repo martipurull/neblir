@@ -11,17 +11,34 @@ import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
 
 export interface HeaderStatsCarouselRowProps {
-  combatInformation: CharacterDetail["combatInformation"];
   fmt: (n: number) => string;
   character?: CharacterDetail;
   mutate?: KeyedMutator<CharacterDetail | null>;
+  /** When false, GRID Atk shows "—" and is not clickable. */
+  showGridAttack: boolean;
+  /** Display value for GRID Atk when showGridAttack (best mod among options). */
+  gridAttackDisplayMod: number;
+  /** Dice count shown for GRID Def (Mentality + GRID skill + best carried gridDefenceBonus). */
+  gridDefenceDisplayMod: number;
+  /** GRID Mod cell: e.g. "+2 / +1" from carried item bonuses. */
+  gridModCellValue: React.ReactNode;
+  /** When true, GRID Def is greyed out and cannot be rolled. */
+  gridDefenceDisabled?: boolean;
+  onGridAttack?: () => void;
+  onGridDefence?: () => void;
 }
 
 export function HeaderStatsCarouselRow({
-  combatInformation,
   fmt,
   character,
   mutate,
+  showGridAttack,
+  gridAttackDisplayMod,
+  gridDefenceDisplayMod,
+  gridModCellValue,
+  gridDefenceDisabled,
+  onGridAttack,
+  onGridDefence,
 }: HeaderStatsCarouselRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pageIndex, setPageIndex] = useState(0);
@@ -101,19 +118,18 @@ export function HeaderStatsCarouselRow({
         <div className="grid w-full min-w-0 shrink-0 grid-cols-3 gap-1.5 snap-start snap-always">
           <StatCell
             label="GRID Atk"
-            value={fmt(combatInformation.GridAttackMod)}
+            value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
             compact
+            onClick={showGridAttack ? onGridAttack : undefined}
           />
           <StatCell
             label="GRID Def"
-            value={fmt(combatInformation.GridDefenceMod)}
+            value={fmt(gridDefenceDisplayMod)}
             compact
+            onClick={gridDefenceDisabled ? undefined : onGridDefence}
+            disabled={gridDefenceDisabled}
           />
-          <StatCell
-            label="GRID Mod"
-            value={fmt(combatInformation.GridMod)}
-            compact
-          />
+          <StatCell label="GRID Mods" value={gridModCellValue} compact />
         </div>
         <div className="grid w-full min-w-0 shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 overflow-hidden snap-start snap-always [&>*]:min-w-0 [&>*]:overflow-hidden">
           {DISPLAY_SLOTS.map(({ slot, label }) => (

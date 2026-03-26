@@ -129,7 +129,6 @@ export const combatInformationSchema = z.object({
   armourMod: z.number().default(0),
   armourMaxHP: z.number().default(0),
   armourCurrentHP: z.number().default(0),
-  GridMod: z.number().default(0),
   rangeAttackMod: z.number(), // Needs to be computed
   meleeAttackMod: z.number(), // Needs to be computed
   throwAttackMod: z
@@ -137,10 +136,8 @@ export const combatInformationSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v ?? 0),
-  GridAttackMod: z.number(), // Needs to be computed
   rangeDefenceMod: z.number(), // Needs to be computed
   meleeDefenceMod: z.number(), // Needs to be computed
-  GridDefenceMod: z.number(), // Needs to be computed
   maxCarryWeight: z.number().optional(),
 });
 

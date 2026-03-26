@@ -62,7 +62,6 @@ function makeCharacterCreationRequest(
       armourMod: 0,
       armourMaxHP: 0,
       armourCurrentHP: 0,
-      GridMod: 0,
       ...overrides.combatInformation,
     },
     innateAttributes: {
@@ -120,13 +119,10 @@ function makeLevelUpBody(
       armourMod: 0,
       armourMaxHP: 0,
       armourCurrentHP: 0,
-      GridMod: 0,
       rangeAttackMod: 2,
       meleeAttackMod: 4,
-      GridAttackMod: 4,
       rangeDefenceMod: 2,
       meleeDefenceMod: 4,
-      GridDefenceMod: 4,
       ...overrides.combatInformation,
     },
     innateAttributes: {

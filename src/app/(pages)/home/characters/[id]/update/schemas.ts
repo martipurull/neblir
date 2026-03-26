@@ -29,7 +29,6 @@ export function toCharacterUpdateFormValues(
       armourMod: character.combatInformation.armourMod,
       armourMaxHP: character.combatInformation.armourMaxHP,
       armourCurrentHP: character.combatInformation.armourCurrentHP,
-      GridMod: character.combatInformation.GridMod,
       throwAttackMod: character.combatInformation.throwAttackMod,
     },
     innateAttributes: character.innateAttributes,

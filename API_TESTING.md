@@ -78,8 +78,7 @@ curl -X POST "${BASE_URL}/api/characters" \
     "combatInformation": {
       "armourMod": 0,
       "armourMaxHP": 0,
-      "armourCurrentHP": 0,
-      "GridMod": 0
+      "armourCurrentHP": 0
     },
     "innateAttributes": {
       "intelligence": {
@@ -156,10 +155,11 @@ curl -X POST "${BASE_URL}/api/characters" \
 - The following fields are computed automatically and should NOT be included in the request:
   - `combatInformation.maxCarryWeight` (computed from race + strength)
   - `combatInformation.initiativeMod`, `speed`, `reactionsPerRound` (computed)
-  - `combatInformation.rangeAttackMod`, `meleeAttackMod`, `GridAttackMod` (computed)
-  - `combatInformation.rangeDefenceMod`, `meleeDefenceMod`, `GridDefenceMod` (computed)
+  - `combatInformation.rangeAttackMod`, `meleeAttackMod` (computed)
+  - `combatInformation.rangeDefenceMod`, `meleeDefenceMod` (computed)
   - `health.innatePhysicalHealth`, `maxPhysicalHealth`, `currentPhysicalHealth` (computed)
   - `health.innateMentalHealth`, `maxMentalHealth`, `currentMentalHealth` (computed)
+- **GRID combat values are not stored on `combatInformation`.** GRID attack/defence dice and the GRID “mod” display are derived in the app from `innateAttributes.personality.mentality`, `learnedSkills.generalSkills.GRID`, carried inventory items (`gridAttackBonus` / `gridDefenceBonus`), and relevant features (e.g. Software Warrior). Older API responses or Mongo documents may still contain removed fields (`GridMod`, `GridAttackMod`, `GridDefenceMod`); client-side `characterDetailSchema` parsing strips those keys and does not require them.
 
 ### Get Character by ID
 
@@ -262,19 +262,16 @@ curl -X PATCH "${BASE_URL}/api/characters/${CHARACTER_ID}/combat-info" \
   -H "Cookie: authjs.session-token=${SESSION_COOKIE}" \
   -d '{
     "armourMod": 2,
-    "armourMaxHP": 10,
-    "armourCurrentHP": 10,
-    "GridMod": 1
+    "armourCurrentHP": 10
   }'
 ```
 
-**Note:** All fields are optional. You can update:
+**Note:** All fields are optional. The request body only accepts:
 
-- `armourMod`: Armour modifier (affects defence mods and armourMaxHP automatically)
-- `armourCurrentHP`: Current armour hit points (set to 0 to destroy armour)
-- `GridMod`: GRID modifier (affects GRID attack and defence mods automatically)
+- `armourMod`: Armour modifier. When this changes, the API recalculates `armourMaxHP` (modifier × 5), `rangeDefenceMod`, and `meleeDefenceMod`.
+- `armourCurrentHP`: Current armour hit points. Setting this to `0` destroys armour: `armourMod` and `armourMaxHP` become `0` and defence mods are recalculated without armour.
 
-Setting `armourCurrentHP` to 0 will automatically set `armourMod` to 0 and recalculate defence mods.
+Do not send `armourMaxHP` in the PATCH body; it is derived when `armourMod` is updated. GRID-related stats are not updated through this endpoint.
 
 ### Update Wallet
 

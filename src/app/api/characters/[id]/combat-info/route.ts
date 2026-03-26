@@ -97,24 +97,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         armourMaxHP: parsedBody.armourMod * 5,
       };
     }
-    // Hadle GRID mod increase / decrease
-    if (
-      (parsedBody.GridMod || parsedBody.GridMod === 0) &&
-      parsedBody.GridMod !== existingCharacter.combatInformation.GridMod
-    ) {
-      updateBody = {
-        ...updateBody,
-        GridMod: parsedBody.GridMod,
-        GridDefenceMod:
-          existingCharacter.innateAttributes.personality.mentality +
-          existingCharacter.learnedSkills.generalSkills.GRID +
-          parsedBody.GridMod,
-        GridAttackMod:
-          existingCharacter.innateAttributes.personality.mentality +
-          existingCharacter.learnedSkills.generalSkills.GRID +
-          parsedBody.GridMod,
-      };
-    }
     // Handle the case where the armour is destroyed
     if (parsedBody.armourCurrentHP === 0) {
       updateBody = {

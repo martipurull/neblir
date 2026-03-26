@@ -13,7 +13,14 @@ type InventoryEntry = {
     attackThrowBonus?: number | null;
     defenceMeleeBonus?: number | null;
     defenceRangeBonus?: number | null;
+    gridAttackBonus?: number | null;
+    gridDefenceBonus?: number | null;
     maxUses?: number | null;
+    damage?: {
+      numberOfDice: number;
+      diceType: number;
+      damageType: string[];
+    } | null;
   } | null;
 };
 
@@ -28,6 +35,11 @@ export type AttackModifierOption = {
   diceType: number;
   /** When set, weapon has limited uses; decrement on attack */
   itemCharacterId?: string;
+  /**
+   * Optional full breakdown of damage dice to roll (for cases like GRID where bonuses add a different dice type).
+   * This represents the non-GM part of damage; GM extra dice are handled separately in the modal.
+   */
+  damageDice?: Array<{ numberOfDice: number; diceType: number }>;
 };
 
 function formatWeaponDamage(
@@ -153,6 +165,157 @@ export function getAttackModifierArrays(character: CharacterDetail): {
     range,
     throw: throwMods,
   };
+}
+
+export function getGridAttackRollData(character: CharacterDetail): {
+  /** Best GRID modifier (from carried items only). */
+  gridMod: number;
+  /** Dice count for GRID attack roll: Mentality + GRID skill + best item mod. */
+  gridAttackDice: number;
+  /** Damage dice derived from the best GRID-mod item (if any). */
+  damage: {
+    numberOfDice: number;
+    diceType: number;
+    damageText: string;
+  } | null;
+  /** Full base damage dice breakdown (includes Software Warrior bonus dice if applicable). */
+  damageDice?: Array<{ numberOfDice: number; diceType: number }>;
+  /** Best GRID-mod item's itemCharacter id (for decrementing limited uses). */
+  itemCharacterId?: string;
+} {
+  const { innateAttributes, learnedSkills, inventory, features } = character;
+  const carried = getCarriedInventory(inventory ?? undefined);
+
+  const baseDice =
+    innateAttributes.personality.mentality + learnedSkills.generalSkills.GRID;
+
+  let bestGridBonus = 0;
+  let bestItemCharacterId: string | undefined = undefined;
+  let bestDamage: {
+    numberOfDice: number;
+    diceType: number;
+    damageText: string;
+  } | null = null;
+
+  const softwareWarriorFeature = features?.find(
+    (f) => f.feature.name === "Software Warrior"
+  );
+  const softwareWarriorGrade = softwareWarriorFeature?.grade ?? 0;
+  const softwareWarriorBonusD6 =
+    softwareWarriorGrade > 1 && softwareWarriorGrade < 4
+      ? 1
+      : softwareWarriorGrade >= 4
+        ? 2
+        : 0;
+
+  for (const entry of carried) {
+    const item = entry.item;
+    if (!item) continue;
+
+    const gridBonus = item.gridAttackBonus ?? 0;
+    if (gridBonus <= 0) continue;
+
+    // If the item is out of uses, it can't contribute.
+    const itemMaxUses = item.maxUses ?? null;
+    const currentUses = entry.currentUses ?? 0;
+    if (itemMaxUses != null && currentUses <= 0) continue;
+
+    if (gridBonus > bestGridBonus) {
+      bestGridBonus = gridBonus;
+      bestItemCharacterId = entry.id;
+
+      const dmg = item.damage ?? null;
+      const numberOfDice = dmg?.numberOfDice ?? 0;
+      const diceType = dmg?.diceType ?? 4;
+      bestDamage =
+        numberOfDice > 0
+          ? {
+              numberOfDice,
+              diceType,
+              damageText: formatWeaponDamage(dmg ?? undefined),
+            }
+          : null;
+    }
+  }
+
+  const damageDice =
+    bestDamage && bestDamage.numberOfDice > 0
+      ? [
+          {
+            numberOfDice: bestDamage.numberOfDice,
+            diceType: bestDamage.diceType,
+          },
+          ...(softwareWarriorBonusD6 > 0
+            ? [{ numberOfDice: softwareWarriorBonusD6, diceType: 6 }]
+            : []),
+        ]
+      : undefined;
+
+  return {
+    gridMod: bestGridBonus,
+    gridAttackDice: baseDice + bestGridBonus,
+    damage: bestDamage,
+    damageDice,
+    itemCharacterId: bestItemCharacterId,
+  };
+}
+
+/** GRID attack modal options: weaponless, based on carried items' gridAttackBonus. */
+export function getGridAttackModifierOptions(
+  character: CharacterDetail
+): AttackModifierOption[] {
+  const { gridAttackDice, damage, damageDice, itemCharacterId } =
+    getGridAttackRollData(character);
+
+  return [
+    {
+      mod: gridAttackDice,
+      weaponName: "GRID",
+      damageText: damage?.damageText ?? "",
+      numberOfDice: damage?.numberOfDice ?? 0,
+      diceType: damage?.diceType ?? 4,
+      itemCharacterId,
+      damageDice,
+    },
+  ];
+}
+
+/**
+ * Best carried on-hand grid attack/defence item bonuses for display (GRID Mod cell)
+ * and for GRID defence dice (highest `gridDefenceBonus` only).
+ * Ignores items that are out of uses.
+ */
+export function getCarriedGridBonusesDisplay(character: CharacterDetail): {
+  gridAttackBonus: number;
+  gridDefenceBonus: number;
+} {
+  const carried = getCarriedInventory(character.inventory ?? undefined);
+  let bestAtk = 0;
+  let bestDef = 0;
+
+  for (const entry of carried) {
+    const item = entry.item;
+    if (!item) continue;
+
+    const itemMaxUses = item.maxUses ?? null;
+    const currentUses = entry.currentUses ?? 0;
+    if (itemMaxUses != null && currentUses <= 0) continue;
+
+    const atk = item.gridAttackBonus ?? 0;
+    const def = item.gridDefenceBonus ?? 0;
+    if (atk > bestAtk) bestAtk = atk;
+    if (def > bestDef) bestDef = def;
+  }
+
+  return { gridAttackBonus: bestAtk, gridDefenceBonus: bestDef };
+}
+
+/** GRID defence d10 dice: Mentality + GRID skill + best carried `gridDefenceBonus`. */
+export function getGridDefenceDice(character: CharacterDetail): number {
+  const base =
+    character.innateAttributes.personality.mentality +
+    character.learnedSkills.generalSkills.GRID;
+  return base + getCarriedGridBonusesDisplay(character).gridDefenceBonus;
 }
 
 /** Armour defence bonuses from BODY/HEAD-equipped items (carried only) */

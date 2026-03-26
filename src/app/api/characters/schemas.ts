@@ -28,10 +28,8 @@ export const characterCreationRequestSchema = z
         reactionsPerRound: true,
         rangeAttackMod: true,
         meleeAttackMod: true,
-        GridAttackMod: true,
         rangeDefenceMod: true,
         meleeDefenceMod: true,
-        GridDefenceMod: true,
       })
       .strict(),
     innateAttributes: innateAttributesSchema.strict(),

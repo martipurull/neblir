@@ -186,10 +186,6 @@ export function computeCharacterRequestData(
       meleeAttackMod:
         parsedCharacterCreationRequest.innateAttributes.strength.bruteForce +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-      GridAttackMod:
-        parsedCharacterCreationRequest.combatInformation.GridMod +
-        parsedCharacterCreationRequest.innateAttributes.personality.mentality +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,
       throwAttackMod:
         parsedCharacterCreationRequest.innateAttributes.strength.athletics +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
@@ -201,10 +197,6 @@ export function computeCharacterRequestData(
         parsedCharacterCreationRequest.combatInformation.armourMod +
         parsedCharacterCreationRequest.innateAttributes.strength.resilience +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-      GridDefenceMod:
-        parsedCharacterCreationRequest.combatInformation.GridMod +
-        parsedCharacterCreationRequest.innateAttributes.personality.mentality +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,
     },
   };
 }

@@ -5,7 +5,6 @@ export const combatInformationUpdateRequestSchema = combatInformationSchema
   .pick({
     armourMod: true,
     armourCurrentHP: true,
-    GridMod: true,
   })
   .partial();
 
@@ -14,7 +13,6 @@ export const combatInformationUpdateSchema = combatInformationSchema
     armourMod: true,
     armourMaxHP: true,
     armourCurrentHP: true,
-    GridMod: true,
   })
   .partial();
 

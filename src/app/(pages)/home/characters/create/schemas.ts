@@ -30,7 +30,6 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
       armourMod: 0,
       armourMaxHP: 0,
       armourCurrentHP: 0,
-      GridMod: 0,
       throwAttackMod: 0,
     },
     innateAttributes: {

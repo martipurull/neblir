@@ -5,19 +5,27 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import {
   getArmourDisplayFromInventory,
   getAttackModifierArrays,
+  getCarriedGridBonusesDisplay,
   getEffectiveCombatMods,
+  getGridAttackModifierOptions,
+  getGridAttackRollData,
+  getGridDefenceDice,
 } from "@/app/lib/equipCombatUtils";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
-import React, { useCallback, useState } from "react";
+import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import React, { useCallback, useMemo, useState } from "react";
+import { AttackRollModal, type AttackType } from "./AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
+import { GridDefenceRollModal } from "./GridDefenceRollModal";
+import { DefenceRollModal } from "./DefenceRollModal";
 import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
 import { StatCell } from "./StatCell";
 import { StatEditModal, type StatEditType } from "./StatEditModal";
-import { AttackRollModal, type AttackType } from "./AttackRollModal";
-import { updateCharacterInventoryEntry } from "@/lib/api/items";
+
+const SOFTWARE_WARRIOR_FEATURE_NAME = "Software Warrior";
 
 type HealthPartial = {
   currentPhysicalHealth?: number;
@@ -58,6 +66,9 @@ export function CharacterSummaryHeader({
   const [attackRollModal, setAttackRollModal] = useState<AttackType | null>(
     null
   );
+  const [gridDefenceRollOpen, setGridDefenceRollOpen] = useState(false);
+  const [meleeDefenceRollOpen, setMeleeDefenceRollOpen] = useState(false);
+  const [rangeDefenceRollOpen, setRangeDefenceRollOpen] = useState(false);
   const { generalInformation, health, combatInformation } = character;
   const name = `${generalInformation.name}${generalInformation.surname ? ` ${generalInformation.surname}` : ""}`;
   const pathsLabel =
@@ -77,6 +88,87 @@ export function CharacterSummaryHeader({
   );
   const effectiveMods = getEffectiveCombatMods(character);
   const attackModArrays = getAttackModifierArrays(character);
+  const gridAttackOptions = useMemo(
+    () => getGridAttackModifierOptions(character),
+    [character]
+  );
+  const gridRollData = useMemo(
+    () => getGridAttackRollData(character),
+    [character]
+  );
+  const softwareWarriorFeature = useMemo(
+    () =>
+      character.features?.find(
+        (f) => f.feature.name === SOFTWARE_WARRIOR_FEATURE_NAME
+      ) ?? null,
+    [character.features]
+  );
+  const hasSoftwareWarrior = softwareWarriorFeature != null;
+  const showGridAttack = gridRollData.gridMod > 0 || hasSoftwareWarrior;
+  const gridAttackDisplayMod = useMemo(
+    () => Math.max(0, gridRollData.gridAttackDice),
+    [gridRollData.gridAttackDice]
+  );
+  const gridDefenceDice = useMemo(
+    () => getGridDefenceDice(character),
+    [character]
+  );
+  const gridModCellValue = useMemo(() => {
+    const bonuses = getCarriedGridBonusesDisplay(character);
+    if (bonuses.gridAttackBonus === 0 && bonuses.gridDefenceBonus === 0) {
+      return "—";
+    }
+    const fmtPart = (n: number) => (n >= 0 ? `+${n}` : String(n));
+    const cellPart = (n: number) => (n === 0 ? "—" : fmtPart(n));
+    return `${cellPart(bonuses.gridAttackBonus)} / ${cellPart(bonuses.gridDefenceBonus)}`;
+  }, [character]);
+  const gridBonuses = useMemo(
+    () => getCarriedGridBonusesDisplay(character),
+    [character]
+  );
+  const formatSigned = (n: number) => (n >= 0 ? `+${n}` : String(n));
+  const gridAttackModifierHint = useMemo(() => {
+    const parts = [
+      `Mentality ${formatSigned(character.innateAttributes.personality.mentality)}`,
+      `GRID ${formatSigned(character.learnedSkills.generalSkills.GRID)}`,
+    ];
+    if (gridBonuses.gridAttackBonus > 0) {
+      parts.push(
+        `GRID Attack Patch ${formatSigned(gridBonuses.gridAttackBonus)}`
+      );
+    }
+    return `Modifier = ${parts.join(" + ")}`;
+  }, [
+    character.innateAttributes.personality.mentality,
+    character.learnedSkills.generalSkills.GRID,
+    gridBonuses.gridAttackBonus,
+  ]);
+  const gridAttackDamageHint = useMemo(() => {
+    if (!softwareWarriorFeature?.grade) return undefined;
+    if (softwareWarriorFeature.grade >= 4) {
+      return "Software Warrior: +2d6 damage";
+    }
+    if (softwareWarriorFeature.grade > 1) {
+      return "Software Warrior: +1d6 damage";
+    }
+    return undefined;
+  }, [softwareWarriorFeature?.grade]);
+  const gridDefenceModifierHint = useMemo(() => {
+    const parts = [
+      `Mentality ${formatSigned(character.innateAttributes.personality.mentality)}`,
+      `GRID ${formatSigned(character.learnedSkills.generalSkills.GRID)}`,
+    ];
+    if (gridBonuses.gridDefenceBonus > 0) {
+      parts.push(
+        `GRID Defence Patch ${formatSigned(gridBonuses.gridDefenceBonus)}`
+      );
+    }
+    return `Modifier = ${parts.join(" + ")}`;
+  }, [
+    character.innateAttributes.personality.mentality,
+    character.learnedSkills.generalSkills.GRID,
+    gridBonuses.gridDefenceBonus,
+  ]);
 
   const handleWeaponUsed = useCallback(
     async (itemCharacterId: string) => {
@@ -186,15 +278,19 @@ export function CharacterSummaryHeader({
             label="Melee Def"
             value={fmt(effectiveMods.meleeDefenceMod)}
             compact
-            onClick={onUseReaction}
-            disabled={reactionsDisabled}
+            onClick={
+              onUseReaction ? () => setMeleeDefenceRollOpen(true) : undefined
+            }
+            disabled={!onUseReaction || reactionsDisabled}
           />
           <StatCell
             label="Range Def"
             value={fmt(effectiveMods.rangeDefenceMod)}
             compact
-            onClick={onUseReaction}
-            disabled={reactionsDisabled}
+            onClick={
+              onUseReaction ? () => setRangeDefenceRollOpen(true) : undefined
+            }
+            disabled={!onUseReaction || reactionsDisabled}
           />
           <StatCell
             label="Reactions"
@@ -206,10 +302,16 @@ export function CharacterSummaryHeader({
         </div>
 
         <HeaderStatsCarouselRow
-          combatInformation={combatInformation}
           fmt={fmt}
           character={character}
           mutate={mutate}
+          showGridAttack={showGridAttack}
+          gridAttackDisplayMod={gridAttackDisplayMod}
+          gridDefenceDisplayMod={gridDefenceDice}
+          gridModCellValue={gridModCellValue}
+          onGridAttack={() => setAttackRollModal("grid")}
+          onGridDefence={() => setGridDefenceRollOpen(true)}
+          gridDefenceDisabled={reactionsDisabled}
         />
 
         {onHealthUpdate && (
@@ -270,14 +372,48 @@ export function CharacterSummaryHeader({
           isOpen={attackRollModal !== null}
           onClose={() => setAttackRollModal(null)}
           attackType={attackRollModal ?? "melee"}
+          modifierHint={
+            attackRollModal === "grid" ? gridAttackModifierHint : undefined
+          }
+          damageHint={
+            attackRollModal === "grid" ? gridAttackDamageHint : undefined
+          }
           options={
             attackRollModal === "melee"
               ? attackModArrays.melee
               : attackRollModal === "range"
                 ? attackModArrays.range
-                : attackModArrays.throw
+                : attackRollModal === "throw"
+                  ? attackModArrays.throw
+                  : gridAttackOptions
           }
           onWeaponUsed={handleWeaponUsed}
+        />
+
+        <DefenceRollModal
+          isOpen={meleeDefenceRollOpen}
+          onClose={() => setMeleeDefenceRollOpen(false)}
+          defenceDice={effectiveMods.meleeDefenceMod}
+          title="Melee Defence"
+          reactionDisabled={!onUseReaction || reactionsDisabled}
+          onRollReaction={onUseReaction}
+        />
+        <DefenceRollModal
+          isOpen={rangeDefenceRollOpen}
+          onClose={() => setRangeDefenceRollOpen(false)}
+          defenceDice={effectiveMods.rangeDefenceMod}
+          title="Range Defence"
+          reactionDisabled={!onUseReaction || reactionsDisabled}
+          onRollReaction={onUseReaction}
+        />
+
+        <GridDefenceRollModal
+          isOpen={gridDefenceRollOpen}
+          onClose={() => setGridDefenceRollOpen(false)}
+          defenceDice={gridDefenceDice}
+          modifierHint={gridDefenceModifierHint}
+          reactionDisabled={!onUseReaction || reactionsDisabled}
+          onRollReaction={onUseReaction}
         />
       </div>
     </header>

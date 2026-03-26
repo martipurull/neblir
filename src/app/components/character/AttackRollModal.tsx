@@ -4,12 +4,13 @@
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import React, { useCallback, useEffect, useState } from "react";
 
-export type AttackType = "melee" | "range" | "throw";
+export type AttackType = "melee" | "range" | "throw" | "grid";
 
 const ATTACK_LABELS: Record<AttackType, string> = {
   melee: "Melee Attack",
   range: "Range Attack",
   throw: "Throw Attack",
+  grid: "GRID Attack",
 };
 
 export interface AttackRollModalProps {
@@ -17,6 +18,10 @@ export interface AttackRollModalProps {
   onClose: () => void;
   attackType: AttackType;
   options: AttackModifierOption[];
+  /** Optional small helper text describing how modifier is computed. */
+  modifierHint?: string;
+  /** Optional note shown in damage section (e.g. Software Warrior bonus). */
+  damageHint?: string;
   /** When the user rolls with a limited-use weapon, call with its ItemCharacter id to decrement uses */
   onWeaponUsed?: (itemCharacterId: string) => void | Promise<void>;
 }
@@ -53,6 +58,8 @@ export function AttackRollModal({
   onClose,
   attackType,
   options,
+  modifierHint,
+  damageHint,
   onWeaponUsed,
 }: AttackRollModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -96,15 +103,37 @@ export function AttackRollModal({
 
   const baseDamageDice = selected?.numberOfDice ?? 0;
   const baseDamageType = selected?.diceType ?? 4;
-  const totalDamageDice = Math.max(0, baseDamageDice + damageExtraDice);
+  const damageDice = selected?.damageDice ?? [
+    { numberOfDice: baseDamageDice, diceType: baseDamageType },
+  ];
+  const baseDamageDiceTotal = damageDice.reduce(
+    (a, d) => a + Math.max(0, d.numberOfDice),
+    0
+  );
+  const totalDamageDice = Math.max(0, baseDamageDiceTotal + damageExtraDice);
 
   const handleDamageRoll = useCallback(() => {
-    const count = totalDamageDice;
-    const results = Array.from({ length: count }, () =>
-      rollDice(baseDamageType)
-    );
+    const results: number[] = [];
+
+    for (const d of damageDice) {
+      const count = Math.max(0, d.numberOfDice);
+      for (let i = 0; i < count; i++) {
+        results.push(rollDice(d.diceType));
+      }
+    }
+
+    // GM extra dice are rolled using the base damage dice type.
+    for (let i = 0; i < Math.max(0, damageExtraDice); i++) {
+      results.push(rollDice(baseDamageType));
+    }
+
     setDamageRollResult(results);
-  }, [totalDamageDice, baseDamageType]);
+  }, [
+    damageDice,
+    baseDamageType,
+    damageExtraDice,
+    // Keep totalDamageDice out of deps: it's derived from the above.
+  ]);
 
   if (!isOpen) return null;
 
@@ -140,25 +169,32 @@ export function AttackRollModal({
         </div>
 
         <div className="mt-4 space-y-4">
-          <div>
-            <p className="mb-2 text-sm font-medium text-white">Select weapon</p>
-            <div className="flex flex-col gap-2">
-              {options.map((opt, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSelectedIndex(i)}
-                  className={`rounded-md border-2 px-3 py-2 text-left text-sm font-semibold transition-colors ${
-                    selectedIndex === i
-                      ? "border-white bg-white text-black"
-                      : "border-white bg-transparent text-white hover:bg-white/10"
-                  }`}
-                >
-                  {optionLabel(opt)}
-                </button>
-              ))}
+          {modifierHint && (
+            <p className="text-xs text-white/75">{modifierHint}</p>
+          )}
+          {attackType !== "grid" && (
+            <div>
+              <p className="mb-2 text-sm font-medium text-white">
+                Select weapon
+              </p>
+              <div className="flex flex-col gap-2">
+                {options.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSelectedIndex(i)}
+                    className={`rounded-md border-2 px-3 py-2 text-left text-sm font-semibold transition-colors ${
+                      selectedIndex === i
+                        ? "border-white bg-white text-black"
+                        : "border-white bg-transparent text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {optionLabel(opt)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm font-medium text-white">Extra dice</span>
@@ -219,71 +255,79 @@ export function AttackRollModal({
             </div>
           )}
 
-          {rollResult !== null && rollResult.some((v) => v >= 8) && (
-            <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
-              <p className="text-sm font-medium text-white">Deal Damage</p>
-              <p className="text-xs text-white/80">
-                {baseDamageDice}d{baseDamageType}
-                {damageExtraDice !== 0
-                  ? ` ${damageExtraDice >= 0 ? "+" : ""}${damageExtraDice} extra`
-                  : ""}{" "}
-                = {totalDamageDice}d{baseDamageType} total
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/80">Extra dice (GM)</span>
+          {rollResult !== null &&
+            rollResult.some((v) => v >= 8) &&
+            (attackType !== "grid" || baseDamageDice > 0) && (
+              <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
+                <p className="text-sm font-medium text-white">Deal Damage</p>
+                {damageHint && (
+                  <p className="text-xs text-white/75">{damageHint}</p>
+                )}
+                <p className="text-xs text-white/80">
+                  {damageDice
+                    .filter((d) => d.numberOfDice > 0)
+                    .map((d) => `${d.numberOfDice}d${d.diceType}`)
+                    .join(" + ")}
+                  {damageExtraDice !== 0
+                    ? ` + ${damageExtraDice} extra d${baseDamageType}`
+                    : ""}{" "}
+                  = {totalDamageDice} total dice
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/80">Extra dice (GM)</span>
+                  <button
+                    type="button"
+                    onClick={() => setDamageExtraDice((d) => d - 1)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    aria-label="Decrease extra damage dice"
+                  >
+                    −
+                  </button>
+                  <span className="min-w-[2rem] text-center text-sm font-bold text-white">
+                    {damageExtraDice >= 0
+                      ? `+${damageExtraDice}`
+                      : damageExtraDice}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDamageExtraDice((d) => d + 1)}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    aria-label="Increase extra damage dice"
+                  >
+                    +
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setDamageExtraDice((d) => d - 1)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
-                  aria-label="Decrease extra damage dice"
+                  onClick={handleDamageRoll}
+                  disabled={totalDamageDice === 0}
+                  className="w-full rounded border-2 border-white bg-white py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
                 >
-                  −
+                  ROLL DAMAGE
                 </button>
-                <span className="min-w-[2rem] text-center text-sm font-bold text-white">
-                  {damageExtraDice >= 0
-                    ? `+${damageExtraDice}`
-                    : damageExtraDice}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setDamageExtraDice((d) => d + 1)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
-                  aria-label="Increase extra damage dice"
-                >
-                  +
-                </button>
+                {damageRollResult !== null &&
+                  (() => {
+                    const total = damageRollResult.reduce((a, b) => a + b, 0);
+                    const typeLabel = selected?.damageText
+                      ? formatDamageTypeLabel(selected.damageText)
+                      : "";
+                    return (
+                      <div className="rounded border border-white/20 bg-black/20 p-2">
+                        <p className="text-xs font-medium uppercase tracking-wider text-white/70">
+                          Damage
+                        </p>
+                        <p className="text-base tabular-nums text-white">
+                          {damageRollResult.join(" + ")} ={" "}
+                          <span className="font-bold">
+                            {total} HP
+                            {typeLabel ? ` (${typeLabel})` : ""}
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  })()}
               </div>
-              <button
-                type="button"
-                onClick={handleDamageRoll}
-                disabled={totalDamageDice === 0}
-                className="w-full rounded border-2 border-white bg-white py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
-              >
-                ROLL DAMAGE
-              </button>
-              {damageRollResult !== null &&
-                (() => {
-                  const total = damageRollResult.reduce((a, b) => a + b, 0);
-                  const typeLabel = selected?.damageText
-                    ? formatDamageTypeLabel(selected.damageText)
-                    : "";
-                  return (
-                    <div className="rounded border border-white/20 bg-black/20 p-2">
-                      <p className="text-xs font-medium uppercase tracking-wider text-white/70">
-                        Damage
-                      </p>
-                      <p className="text-base tabular-nums text-white">
-                        {damageRollResult.join(" + ")} ={" "}
-                        <span className="font-bold">
-                          {total} HP
-                          {typeLabel ? ` (${typeLabel})` : ""}
-                        </span>
-                      </p>
-                    </div>
-                  );
-                })()}
-            </div>
-          )}
+            )}
 
           <div className="flex gap-3 pt-2">
             <button
