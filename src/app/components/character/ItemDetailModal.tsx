@@ -36,6 +36,7 @@ export function ItemDetailModal({
   onClose,
   entry,
   characterId,
+  gameId,
   mutate,
   resolveGiveRecipients,
 }: ItemDetailModalProps) {
@@ -346,6 +347,8 @@ export function ItemDetailModal({
           isOpen={damageRollOpen}
           onClose={() => setDamageRollOpen(false)}
           damage={weaponDamage}
+          gameId={gameId}
+          characterId={characterId}
         />
       )}
     </>

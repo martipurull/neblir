@@ -18,6 +18,7 @@
     "cypress:run": "cypress run",
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate",
+    "worker:discord": "tsx scripts/discord-outbox-worker.ts",
     "prepare": "husky",
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },

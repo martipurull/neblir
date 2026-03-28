@@ -11,13 +11,14 @@ import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import {
   GmInitiativeSection,
+  GmDiscordSection,
   GmInvitesSection,
   GmItemsSection,
   GmPlaceholderSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
 import { clearGameInitiative, removeGameInitiativeEntry } from "@/lib/api/game";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import useSWR from "swr";
 
@@ -30,8 +31,10 @@ type PendingInvite = {
 
 export default function GameMasterPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
+  const discordGuildId = searchParams.get("discordGuildId");
   const { game, loading, error, refetch, mutate } = useGame(id);
 
   const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
@@ -136,6 +139,16 @@ export default function GameMasterPage() {
           }
           onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
         />
+        {id && (
+          <GmDiscordSection
+            gameId={id}
+            integration={game.discordIntegration}
+            initialGuildId={discordGuildId}
+            onUpdated={async () => {
+              await mutate();
+            }}
+          />
+        )}
 
         <GmPlaceholderSection title="NPCs">
           Manage non-player characters for this game. Coming soon.

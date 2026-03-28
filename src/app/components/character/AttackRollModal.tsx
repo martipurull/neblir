@@ -2,7 +2,8 @@
 "use client";
 
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
-import React, { useCallback, useEffect, useState } from "react";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 export type AttackType = "melee" | "range" | "throw" | "grid";
 
@@ -24,6 +25,8 @@ export interface AttackRollModalProps {
   damageHint?: string;
   /** When the user rolls with a limited-use weapon, call with its ItemCharacter id to decrement uses */
   onWeaponUsed?: (itemCharacterId: string) => void | Promise<void>;
+  gameId?: string | null;
+  characterId?: string;
 }
 
 function rollD10(): number {
@@ -61,6 +64,8 @@ export function AttackRollModal({
   modifierHint,
   damageHint,
   onWeaponUsed,
+  gameId,
+  characterId,
 }: AttackRollModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [extraDice, setExtraDice] = useState(0);
@@ -99,13 +104,38 @@ export function AttackRollModal({
     const results = Array.from({ length: count }, () => rollD10());
     results.sort((a, b) => b - a);
     setRollResult(results);
-  }, [selectedMod, extraDice, selected?.itemCharacterId, onWeaponUsed]);
+    void emitRollEvent(gameId, {
+      characterId,
+      rollType: "ATTACK",
+      diceExpression: `${count}d10`,
+      results,
+      metadata: {
+        attackType,
+        weaponName: selected?.weaponName ?? null,
+        modifier: selectedMod,
+        extraDice,
+      },
+    });
+  }, [
+    selectedMod,
+    extraDice,
+    selected?.itemCharacterId,
+    onWeaponUsed,
+    gameId,
+    characterId,
+    attackType,
+    selected?.weaponName,
+  ]);
 
   const baseDamageDice = selected?.numberOfDice ?? 0;
   const baseDamageType = selected?.diceType ?? 4;
-  const damageDice = selected?.damageDice ?? [
-    { numberOfDice: baseDamageDice, diceType: baseDamageType },
-  ];
+  const damageDice = useMemo(
+    () =>
+      selected?.damageDice ?? [
+        { numberOfDice: baseDamageDice, diceType: baseDamageType },
+      ],
+    [selected?.damageDice, baseDamageDice, baseDamageType]
+  );
   const baseDamageDiceTotal = damageDice.reduce(
     (a, d) => a + Math.max(0, d.numberOfDice),
     0
@@ -128,10 +158,27 @@ export function AttackRollModal({
     }
 
     setDamageRollResult(results);
+    void emitRollEvent(gameId, {
+      characterId,
+      rollType: "ATTACK_DAMAGE",
+      diceExpression: `${totalDamageDice}d${baseDamageType}`,
+      results,
+      total: results.reduce((a, b) => a + b, 0),
+      metadata: {
+        attackType,
+        weaponName: selected?.weaponName ?? null,
+        extraDamageDice: damageExtraDice,
+      },
+    });
   }, [
     damageDice,
     baseDamageType,
     damageExtraDice,
+    gameId,
+    characterId,
+    attackType,
+    selected?.weaponName,
+    totalDamageDice,
     // Keep totalDamageDice out of deps: it's derived from the above.
   ]);
 

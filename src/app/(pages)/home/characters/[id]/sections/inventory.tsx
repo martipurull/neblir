@@ -387,6 +387,7 @@ function InventorySectionContent({
           onClose={() => setDetailEntry(null)}
           entry={detailEntry}
           characterId={character.id}
+          gameId={character.games?.[0]?.gameId ?? null}
           mutate={mutate}
           resolveGiveRecipients={resolveGiveRecipients}
         />

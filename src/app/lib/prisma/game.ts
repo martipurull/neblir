@@ -42,6 +42,7 @@ export function getGameWithDetails(id: string) {
         },
         orderBy: { name: "asc" },
       },
+      discordIntegration: true,
     },
   });
 }
@@ -72,6 +73,8 @@ export function deleteGame(id: string) {
     prisma.gameUser.deleteMany({ where: { gameId: id } }),
     prisma.gameCharacter.deleteMany({ where: { gameId: id } }),
     prisma.customItem.deleteMany({ where: { gameId: id } }),
+    prisma.rollEvent.deleteMany({ where: { gameId: id } }),
+    prisma.discordIntegration.deleteMany({ where: { gameId: id } }),
     prisma.game.delete({ where: { id } }),
   ]);
 }

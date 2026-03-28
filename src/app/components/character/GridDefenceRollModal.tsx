@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
 
 export interface GridDefenceRollModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export interface GridDefenceRollModalProps {
   reactionDisabled?: boolean;
   /** Called when the user actually presses ROLL (consumes exactly one reaction). */
   onRollReaction?: () => void | Promise<void>;
+  gameId?: string | null;
+  characterId?: string;
 }
 
 function rollD10(): number {
@@ -27,6 +30,8 @@ export function GridDefenceRollModal({
   modifierHint,
   reactionDisabled = false,
   onRollReaction,
+  gameId,
+  characterId,
 }: GridDefenceRollModalProps) {
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
@@ -53,10 +58,26 @@ export function GridDefenceRollModal({
       const results = Array.from({ length: count }, () => rollD10());
       results.sort((a, b) => b - a);
       setRollResult(results);
+      void emitRollEvent(gameId, {
+        characterId,
+        rollType: "GRID_DEFENCE",
+        diceExpression: `${count}d10`,
+        results,
+        metadata: { defenceDice, extraDice },
+      });
     } finally {
       setRolling(false);
     }
-  }, [reactionDisabled, rolling, onRollReaction, totalDice]);
+  }, [
+    reactionDisabled,
+    rolling,
+    onRollReaction,
+    totalDice,
+    gameId,
+    characterId,
+    defenceDice,
+    extraDice,
+  ]);
 
   if (!isOpen) return null;
 

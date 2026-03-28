@@ -24,3 +24,16 @@ export function makeUnauthedRequest(body?: unknown) {
 export function makeParams<T extends Record<string, string>>(params: T) {
   return { params: Promise.resolve(params) } as any;
 }
+
+/** GET handlers that read `new URL(request.url)` (e.g. search params). */
+export function makeAuthedRequestWithUrl(
+  url: string,
+  userId = "user-1",
+  body?: unknown
+) {
+  return {
+    auth: { user: { id: userId } },
+    url,
+    json: vi.fn().mockResolvedValue(body),
+  } as any;
+}

@@ -56,5 +56,14 @@ export function shapeGameForResponse(
     isGameMaster,
     characters: characters ?? game.characters,
     initiativeOrder: shapeInitiativeOrderForResponse(game),
+    discordIntegration: game.discordIntegration
+      ? {
+          gameId: game.discordIntegration.gameId,
+          guildId: game.discordIntegration.guildId,
+          channelId: game.discordIntegration.channelId,
+          status: game.discordIntegration.status,
+          lastError: game.discordIntegration.lastError ?? null,
+        }
+      : null,
   };
 }

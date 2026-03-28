@@ -84,7 +84,10 @@ export function prismaDataFromUniqueItemCreate(
     maxRangeOverride: parsed.maxRangeOverride ?? undefined,
     confCostOverride: parsed.confCostOverride ?? undefined,
     costInfoOverride: parsed.costInfoOverride ?? undefined,
-    damageOverride: parsed.damageOverride ?? undefined,
+    damageOverride:
+      parsed.damageOverride == null
+        ? undefined
+        : (parsed.damageOverride as Prisma.ItemDamageCreateInput),
     descriptionOverride: parsed.descriptionOverride ?? undefined,
     imageKeyOverride: parsed.imageKeyOverride ?? undefined,
     nameOverride: parsed.nameOverride ?? undefined,

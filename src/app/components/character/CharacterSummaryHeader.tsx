@@ -38,6 +38,7 @@ type ArmourPartial = { armourCurrentHP?: number };
 
 interface CharacterSummaryHeaderProps {
   character: CharacterDetail;
+  primaryGameId?: string | null;
   avatarUrl: string | null;
   /** Current number of reactions used this round; when set, enables reaction tracking UI */
   usedReactions?: number;
@@ -54,6 +55,7 @@ interface CharacterSummaryHeaderProps {
 
 export function CharacterSummaryHeader({
   character,
+  primaryGameId,
   avatarUrl,
   usedReactions = 0,
   onUseReaction,
@@ -388,6 +390,8 @@ export function CharacterSummaryHeader({
                   : gridAttackOptions
           }
           onWeaponUsed={handleWeaponUsed}
+          gameId={primaryGameId}
+          characterId={character.id}
         />
 
         <DefenceRollModal
@@ -397,6 +401,8 @@ export function CharacterSummaryHeader({
           title="Melee Defence"
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
+          gameId={primaryGameId}
+          characterId={character.id}
         />
         <DefenceRollModal
           isOpen={rangeDefenceRollOpen}
@@ -405,6 +411,8 @@ export function CharacterSummaryHeader({
           title="Range Defence"
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
+          gameId={primaryGameId}
+          characterId={character.id}
         />
 
         <GridDefenceRollModal
@@ -414,6 +422,8 @@ export function CharacterSummaryHeader({
           modifierHint={gridDefenceModifierHint}
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
+          gameId={primaryGameId}
+          characterId={character.id}
         />
       </div>
     </header>

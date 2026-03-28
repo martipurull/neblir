@@ -329,7 +329,7 @@ export function parseCharacterBodyToCompute(
       existingCharacter.innateAttributes,
       attributeChanges
     );
-    if (!applied.ok) {
+    if (applied.ok === false) {
       return { error: applied.error };
     }
     innateAttributes = applied.innateAttributes;

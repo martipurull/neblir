@@ -109,6 +109,30 @@ enum ItemSourceType {
   STANDALONE
 }
 
+enum DiscordIntegrationStatus {
+  ACTIVE
+  DISABLED
+  DEGRADED
+}
+
+enum DiscordOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  RETRY
+  DEAD_LETTER
+}
+
+enum RollType {
+  GENERAL_ROLL
+  ATTACK
+  ATTACK_DAMAGE
+  DEFENCE
+  GRID_DEFENCE
+  ITEM_DAMAGE
+  INITIATIVE
+}
+
 type CharacterCombatInformation {
   armourCurrentHP   Int
   armourMaxHP       Int
@@ -262,6 +286,7 @@ model Character {
   features           FeatureCharacter[]
   games              GameCharacter[]
   users              CharacterUser[]
+  rollEvents         RollEvent[]
 }
 
 model CharacterCurrency {
@@ -333,8 +358,69 @@ model Game {
   uniqueItems      UniqueItem[]
   invites          GameInvite[]
   initiativeOrder  CharacterInitiative[]
+  discordIntegration DiscordIntegration?
+  rollEvents       RollEvent[]
 
   @@index([gameMaster])
+}
+
+model DiscordIntegration {
+  id                String                   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId             String                   @unique @db.ObjectId
+  guildId            String
+  channelId          String
+  installedByUserId  String                   @db.ObjectId
+  status             DiscordIntegrationStatus @default(ACTIVE)
+  lastError          String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  game             Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  installedByUser  User @relation("DiscordIntegrationInstalledBy", fields: [installedByUserId], references: [id])
+  outbox           DiscordOutbox[]
+
+  @@index([installedByUserId])
+  @@index([guildId, channelId])
+}
+
+model RollEvent {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId        String   @db.ObjectId
+  characterId   String?  @db.ObjectId
+  rollerUserId  String   @db.ObjectId
+  rollType      RollType
+  diceExpression String?
+  results       Int[]
+  total         Int?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  game       Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  character  Character? @relation(fields: [characterId], references: [id])
+  rollerUser User       @relation("RollEventUser", fields: [rollerUserId], references: [id])
+  outbox     DiscordOutbox?
+
+  @@index([gameId, createdAt])
+  @@index([rollerUserId, createdAt])
+}
+
+model DiscordOutbox {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  rollEventId    String             @unique @db.ObjectId
+  integrationId  String             @db.ObjectId
+  status         DiscordOutboxStatus @default(PENDING)
+  attemptCount   Int                @default(0)
+  lastError      String?
+  nextAttemptAt  DateTime           @default(now())
+  sentAt         DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  rollEvent    RollEvent           @relation(fields: [rollEventId], references: [id], onDelete: Cascade)
+  integration  DiscordIntegration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([integrationId])
 }
 
 model GameInvite {
@@ -552,4 +638,6 @@ model User {
   characters          CharacterUser[]
   gameInvitesReceived GameInvite[] @relation("GameInviteInvited")
   gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
+  discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")
+  rollEvents          RollEvent[] @relation("RollEventUser")
 }

@@ -172,10 +172,13 @@ export default function CharacterDetailPage() {
     );
   }
 
+  const primaryGameId = character.games?.[0]?.gameId ?? null;
+  console.log(diceSelection);
   return (
     <div className="flex h-full min-h-0 flex-col">
       <CharacterSummaryHeader
         character={character}
+        primaryGameId={primaryGameId}
         avatarUrl={avatarUrl}
         usedReactions={reactionTracking.usedReactions}
         onUseReaction={reactionTracking.useReaction}
@@ -194,6 +197,7 @@ export default function CharacterDetailPage() {
           isOpen
           onClose={() => setDiceSelection([])}
           character={character}
+          gameId={primaryGameId}
           selection={[diceSelection[0], diceSelection[1]]}
         />
       )}

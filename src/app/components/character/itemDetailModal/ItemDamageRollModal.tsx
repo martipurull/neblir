@@ -1,6 +1,7 @@
 "use client";
 
 import { DangerButton } from "@/app/components/shared/SemanticActionButton";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
 import React, { useEffect, useState } from "react";
 import type { WeaponDamageSlice } from "./weaponDerived";
 import { rollDice } from "./utils";
@@ -9,12 +10,16 @@ type ItemDamageRollModalProps = {
   isOpen: boolean;
   onClose: () => void;
   damage: WeaponDamageSlice;
+  gameId?: string | null;
+  characterId?: string;
 };
 
 export function ItemDamageRollModal({
   isOpen,
   onClose,
   damage,
+  gameId,
+  characterId,
 }: ItemDamageRollModalProps) {
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
@@ -36,6 +41,14 @@ export function ItemDamageRollModal({
       rollDice(baseDamageType)
     );
     setRollResult(results);
+    void emitRollEvent(gameId, {
+      characterId,
+      rollType: "ITEM_DAMAGE",
+      diceExpression: `${totalDamageDice}d${baseDamageType}`,
+      results,
+      total: results.reduce((sum, value) => sum + value, 0),
+      metadata: { damageType: damage.damageType },
+    });
   };
 
   if (!isOpen) return null;

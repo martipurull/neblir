@@ -8,6 +8,7 @@ import {
 } from "@/app/components/shared/SemanticActionButton";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { submitGameInitiative } from "@/lib/api/game";
 import React, {
   useCallback,
@@ -126,6 +127,14 @@ export function InitiativeRollModal({
         characterId: character.id,
         rolledValue: d,
         initiativeModifier: mod,
+      });
+      await emitRollEvent(selectedGameId, {
+        characterId: character.id,
+        rollType: "INITIATIVE",
+        diceExpression: "1d10",
+        results: [d],
+        total: d + mod,
+        metadata: { initiativeModifier: mod },
       });
       setPhase("success");
       await onRegistered();

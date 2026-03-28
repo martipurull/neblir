@@ -2,6 +2,7 @@
 "use client";
 
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import React, { useCallback, useEffect, useState } from "react";
@@ -10,6 +11,7 @@ export interface DiceRollModalProps {
   isOpen: boolean;
   onClose: () => void;
   character: CharacterDetail;
+  gameId?: string | null;
   selection: [DiceSelectionItem, DiceSelectionItem];
 }
 
@@ -21,6 +23,7 @@ export function DiceRollModal({
   isOpen,
   onClose,
   character,
+  gameId,
   selection,
 }: DiceRollModalProps) {
   const [extraDice, setExtraDice] = useState(0);
@@ -28,6 +31,8 @@ export function DiceRollModal({
 
   const v1 = getDiceValue(character, selection[0]);
   const v2 = getDiceValue(character, selection[1]);
+  const label1 = getDiceLabel(character, selection[0]);
+  const label2 = getDiceLabel(character, selection[1]);
   const baseDice = v1 + v2;
   const totalDice = Math.max(0, baseDice + extraDice);
 
@@ -43,12 +48,16 @@ export function DiceRollModal({
     const results = Array.from({ length: count }, () => rollD10());
     results.sort((a, b) => b - a);
     setRollResult(results);
-  }, [baseDice, extraDice]);
+    void emitRollEvent(gameId, {
+      characterId: character.id,
+      rollType: "GENERAL_ROLL",
+      diceExpression: `${count}d10`,
+      results,
+      metadata: { label1, label2, baseDice, extraDice },
+    });
+  }, [baseDice, extraDice, gameId, character.id, label1, label2]);
 
   if (!isOpen) return null;
-
-  const label1 = getDiceLabel(character, selection[0]);
-  const label2 = getDiceLabel(character, selection[1]);
 
   return (
     <div

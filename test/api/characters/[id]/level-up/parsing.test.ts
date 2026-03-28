@@ -70,8 +70,9 @@ describe("applyLevelUpAttributeSwaps", () => {
       },
     ]);
     expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.issues[0]?.message).toContain("minimum");
+    if (result.ok === false) {
+      expect(result.error.issues[0]?.message).toContain("minimum");
+    }
   });
 
   it("rejects when the target is already at maximum (5)", () => {
@@ -84,8 +85,9 @@ describe("applyLevelUpAttributeSwaps", () => {
       },
     ]);
     expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.issues[0]?.message).toContain("maximum");
+    if (result.ok === false) {
+      expect(result.error.issues[0]?.message).toContain("maximum");
+    }
   });
 
   it("rejects when from and to are the same stat", () => {

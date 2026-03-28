@@ -1,5 +1,6 @@
 import { Race, Religion } from "@prisma/client";
 import { z } from "zod";
+import { discordIntegrationSchema } from "./discord";
 
 // Base schema for create/update operations (without relations)
 const gameBaseSchema = z.object({
@@ -145,6 +146,7 @@ export const gameDetailSchema = z.object({
   characters: z.array(gameDetailCharacterSchema).optional(),
   customItems: z.array(gameDetailCustomItemSchema).optional(),
   initiativeOrder: z.array(gameDetailInitiativeEntrySchema).optional(),
+  discordIntegration: discordIntegrationSchema.nullable().optional(),
 });
 
 export type GameDetail = z.infer<typeof gameDetailSchema>;

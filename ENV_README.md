@@ -86,6 +86,47 @@ This document describes how to set up all the required environment variables for
 
 ---
 
+### Discord Dice Roll Broadcasting
+
+#### `DISCORD_CLIENT_ID`
+
+- **Description**: Discord application client ID used to start bot install OAuth flow
+- **How to get**:
+  1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+  2. Create/select your Neblir Discord application
+  3. Copy **Application ID** from the General Information page
+
+#### `DISCORD_CLIENT_SECRET`
+
+- **Description**: Discord OAuth client secret for the same application
+- **How to get**:
+  1. Open your Discord application in Developer Portal
+  2. Go to **OAuth2** section
+  3. Click **Reset Secret** if needed and copy the secret
+  4. Store securely
+
+#### `DISCORD_BOT_TOKEN`
+
+- **Description**: Bot token used by channel listing and outbox worker delivery
+- **How to get**:
+  1. In Developer Portal, open your application
+  2. Go to **Bot**
+  3. Click **Reset Token** if needed and copy token
+  4. Keep private and rotate if leaked
+
+#### `DISCORD_REDIRECT_URI`
+
+- **Description**: OAuth callback URL for Discord bot install flow
+- **Format**:
+  - Local: `http://localhost:3000/api/discord/callback`
+  - Production: `https://neblir.com/api/discord/callback`
+- **How to get**:
+  1. In Developer Portal, open **OAuth2**
+  2. Add the callback URL under redirect URIs
+  3. Use the exact same value in `.env`
+
+---
+
 ## Optional Environment Variables
 
 ### `LOG_LEVEL`

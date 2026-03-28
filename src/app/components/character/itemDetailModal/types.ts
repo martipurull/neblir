@@ -11,6 +11,7 @@ export interface ItemDetailModalProps {
   onClose: () => void;
   entry: InventoryEntry;
   characterId: string;
+  gameId?: string | null;
   mutate: KeyedMutator<CharacterDetail | null>;
   /** When set, user can give part or all of the stack to another character (same-game rules enforced server-side). */
   resolveGiveRecipients?: (

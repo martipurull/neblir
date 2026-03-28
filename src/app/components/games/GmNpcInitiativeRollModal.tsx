@@ -2,6 +2,7 @@
 "use client";
 
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
+import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { GameDetail } from "@/app/lib/types/game";
 import { submitGameInitiative } from "@/lib/api/game";
 import React, { useCallback, useMemo, useState } from "react";
@@ -50,6 +51,14 @@ export function GmNpcInitiativeRollModal({
           characterId,
           rolledValue,
           initiativeModifier,
+        });
+        await emitRollEvent(game.id, {
+          characterId,
+          rollType: "INITIATIVE",
+          diceExpression: "1d10",
+          results: [rolledValue],
+          total: rolledValue + initiativeModifier,
+          metadata: { initiativeModifier, source: "gmNpcModal" },
         });
         await onSuccess();
       } catch (e) {
