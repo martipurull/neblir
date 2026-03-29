@@ -1,5 +1,5 @@
 import { createPath, getPaths } from "@/app/lib/prisma/path";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { pathSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";

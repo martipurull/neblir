@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 
 export async function createGameCharacter(
@@ -13,4 +13,43 @@ export async function getCharacterGames(characterId: string) {
 
 export async function deleteGameCharacter(id: string) {
   return prisma.gameCharacter.delete({ where: { id } });
+}
+
+export async function characterIsInGame(
+  gameId: string,
+  characterId: string
+): Promise<boolean> {
+  const gc = await prisma.gameCharacter.findFirst({
+    where: { gameId, characterId },
+  });
+  return !!gc;
+}
+
+export async function userOwnsCharacter(
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  const row = await prisma.characterUser.findFirst({
+    where: { characterId, userId },
+  });
+  return !!row;
+}
+
+/** True when both characters are registered in at least one shared game. */
+export async function charactersShareAnyGame(
+  characterIdA: string,
+  characterIdB: string
+): Promise<boolean> {
+  const rows = await prisma.gameCharacter.findMany({
+    where: { characterId: characterIdA },
+    select: { gameId: true },
+  });
+  if (rows.length === 0) return false;
+  const shared = await prisma.gameCharacter.findFirst({
+    where: {
+      characterId: characterIdB,
+      gameId: { in: rows.map((r) => r.gameId) },
+    },
+  });
+  return !!shared;
 }

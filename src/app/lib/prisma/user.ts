@@ -1,5 +1,5 @@
 import { prisma } from "./client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export async function createUser(data: Prisma.UserCreateInput) {
   return prisma.user.create({ data });

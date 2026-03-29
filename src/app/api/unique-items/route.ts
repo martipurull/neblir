@@ -1,6 +1,10 @@
-import { createUniqueItem } from "@/app/lib/prisma/uniqueItem";
+import { getGame } from "@/app/lib/prisma/game";
+import {
+  createUniqueItem,
+  prismaDataFromUniqueItemCreate,
+} from "@/app/lib/prisma/uniqueItem";
 import { uniqueItemCreateSchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -17,6 +21,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
       });
       return errorResponse("Unauthorised", 401);
     }
+
+    const userId = request.auth.user.id;
+    if (!userId) return errorResponse("User ID not found", 400);
 
     const requestBody = await request.json();
     const { data: parsedBody, error } =
@@ -35,37 +42,29 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const item = await createUniqueItem({
-      sourceType: parsedBody.sourceType,
-      itemId: parsedBody.itemId,
-      attackRollOverride: parsedBody.attackRollOverride ?? [],
-      attackMeleeBonusOverride:
-        parsedBody.attackMeleeBonusOverride ?? undefined,
-      attackRangeBonusOverride:
-        parsedBody.attackRangeBonusOverride ?? undefined,
-      attackThrowBonusOverride:
-        parsedBody.attackThrowBonusOverride ?? undefined,
-      defenceMeleeBonusOverride:
-        parsedBody.defenceMeleeBonusOverride ?? undefined,
-      defenceRangeBonusOverride:
-        parsedBody.defenceRangeBonusOverride ?? undefined,
-      gridAttackBonusOverride: parsedBody.gridAttackBonusOverride ?? undefined,
-      gridDefenceBonusOverride:
-        parsedBody.gridDefenceBonusOverride ?? undefined,
-      confCostOverride: parsedBody.confCostOverride ?? undefined,
-      costInfoOverride: parsedBody.costInfoOverride ?? undefined,
-      damageOverride: parsedBody.damageOverride ?? undefined,
-      descriptionOverride: parsedBody.descriptionOverride ?? undefined,
-      imageKeyOverride: parsedBody.imageKeyOverride ?? undefined,
-      nameOverride: parsedBody.nameOverride ?? undefined,
-      usageOverride: parsedBody.usageOverride ?? undefined,
-      weightOverride: parsedBody.weightOverride ?? undefined,
-      notesOverride: parsedBody.notesOverride ?? undefined,
-      specialTag: parsedBody.specialTag ?? undefined,
-      equippableOverride: parsedBody.equippableOverride ?? undefined,
-    });
+    if (parsedBody.gameId) {
+      const game = await getGame(parsedBody.gameId);
+      if (!game) return errorResponse("Game not found", 404);
+      if (game.gameMaster !== userId) {
+        return errorResponse(
+          "Only the game master can create unique items for this game",
+          403
+        );
+      }
+    }
 
-    return NextResponse.json(item, { status: 201 });
+    const effectiveGameId = parsedBody.gameId;
+    if (parsedBody.sourceType === "CUSTOM_ITEM" && !effectiveGameId) {
+      return errorResponse(
+        "gameId is required when creating from a custom item.",
+        400
+      );
+    }
+    const item = await createUniqueItem(
+      prismaDataFromUniqueItemCreate(userId, effectiveGameId, parsedBody)
+    );
+
+    return NextResponse.json({ id: item.id }, { status: 201 });
   } catch (error) {
     logger.error({
       method: "POST",

@@ -5,7 +5,7 @@
 
 import { getCharacter } from "@/app/lib/prisma/character";
 import { getFeaturesAvailableForPathCharacter } from "@/app/lib/prisma/feature";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { NextResponse } from "next/server";
@@ -61,7 +61,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       await Promise.all(
         character.paths.map(
           async (path) =>
-            await getFeaturesAvailableForPathCharacter(path.path.id, path.rank)
+            await getFeaturesAvailableForPathCharacter(path.id, path.rank)
         )
       )
     ).flat();

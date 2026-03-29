@@ -2,7 +2,7 @@ import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { healthUpdateSchema } from "./schema";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
@@ -124,9 +124,17 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       newHealth = { ...newHealth, status: "DECEASED" };
     }
 
-    const updatedCharacter = await updateCharacter(id, { health: newHealth });
+    const deathSaves = newHealth.deathSaves ?? { successes: 0, failures: 0 };
+    const healthForPrisma = { ...newHealth, deathSaves };
+    await updateCharacter(id, {
+      health: healthForPrisma,
+    });
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      return errorResponse("Character not found after update", 500);
+    }
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

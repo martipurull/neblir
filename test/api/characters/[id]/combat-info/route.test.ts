@@ -64,7 +64,6 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       combatInformation: {
         armourCurrentHP: 2,
         armourMod: 1,
-        GridMod: 1,
       },
       innateAttributes: {
         dexterity: { agility: 1 },

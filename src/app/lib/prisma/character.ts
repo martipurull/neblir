@@ -1,5 +1,6 @@
+import { normalizeNotesFromDb } from "@/app/lib/characterNotes";
 import { prisma } from "./client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { hydrateItemCharacters } from "./itemCharacter";
 import {
   CharacterCreationTransactionError,
@@ -12,16 +13,48 @@ export async function createCharacter(data: Prisma.CharacterCreateInput) {
   return prisma.character.create({ data });
 }
 
+export async function getCharactersByUserId(userId: string) {
+  return prisma.character.findMany({
+    where: {
+      users: {
+        some: { userId },
+      },
+    },
+    select: {
+      id: true,
+      generalInformation: {
+        select: {
+          name: true,
+          surname: true,
+          level: true,
+          avatarKey: true,
+        },
+      },
+      paths: {
+        select: {
+          path: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function createCharacterWithRelations({
   data,
   userId,
   pathId,
   pathRank,
+  initialFeatures = [],
 }: {
   data: Prisma.CharacterCreateInput;
   userId: string;
   pathId: string;
   pathRank: number;
+  initialFeatures?: { featureId: string; grade: number }[];
 }) {
   return prisma.$transaction(async (tx) => {
     let createdCharacter;
@@ -60,6 +93,23 @@ export async function createCharacterWithRelations({
       );
     }
 
+    for (const { featureId, grade } of initialFeatures) {
+      try {
+        await tx.featureCharacter.create({
+          data: {
+            characterId: createdCharacter.id,
+            featureId,
+            grade,
+          },
+        });
+      } catch (error) {
+        throw new CharacterCreationTransactionError(
+          "createFeatureCharacters",
+          serializeError(error)
+        );
+      }
+    }
+
     return createdCharacter;
   });
 }
@@ -70,6 +120,11 @@ export async function getCharacter(id: string) {
     include: {
       wallet: true,
       inventory: true,
+      games: {
+        include: {
+          game: { select: { id: true, name: true } },
+        },
+      },
       paths: { include: { path: true } },
       features: { include: { feature: true } },
     },
@@ -77,7 +132,8 @@ export async function getCharacter(id: string) {
 
   if (!character) return null;
 
-  const hydratedInventory = await hydrateItemCharacters(character.inventory);
+  const rawInventory = character.inventory ?? [];
+  const hydratedInventory = await hydrateItemCharacters(rawInventory);
 
   return {
     ...character,
@@ -85,7 +141,9 @@ export async function getCharacter(id: string) {
       currencyName: entry.currencyName,
       quantity: entry.quantity,
     })),
-    inventory: hydratedInventory,
+    inventory: hydratedInventory ?? [],
+    paths: character.paths.map((pc) => ({ ...pc.path, rank: pc.rank })),
+    notes: normalizeNotesFromDb(character.notes ?? []),
   };
 }
 

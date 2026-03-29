@@ -29,6 +29,65 @@
   }
 }
 
+/* TipTap / generateHTML output for character notes — matches slide typography */
+@layer components {
+  .character-note-html p {
+    margin-bottom: 0.35rem;
+  }
+  .character-note-html p:last-child {
+    margin-bottom: 0;
+  }
+  .character-note-html ul,
+  .character-note-html ol {
+    margin: 0.25rem 0 0.4rem;
+    padding-left: 1.15rem;
+  }
+  .character-note-html ul {
+    list-style-type: disc;
+  }
+  .character-note-html ol {
+    list-style-type: decimal;
+  }
+  .character-note-html li {
+    margin-bottom: 0.15rem;
+  }
+  .character-note-html li p {
+    margin-bottom: 0.15rem;
+  }
+  .character-note-html strong {
+    font-weight: 600;
+  }
+  .character-note-html em {
+    font-style: italic;
+  }
+  .character-note-html h1,
+  .character-note-html h2,
+  .character-note-html h3 {
+    font-weight: 600;
+    margin: 0.4rem 0 0.2rem;
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+  .character-note-html blockquote {
+    border-left: 2px solid rgb(0 0 0 / 0.35);
+    padding-left: 0.65rem;
+    margin: 0.35rem 0;
+  }
+  .character-note-html code {
+    font-size: 0.8125em;
+  }
+  .character-note-html pre {
+    margin: 0.35rem 0;
+    overflow-x: auto;
+    font-size: 0.8125em;
+  }
+  .character-note-html hr {
+    margin: 0.5rem 0;
+    border: 0;
+    border-top: 1px solid rgb(0 0 0 / 0.25);
+  }
+}
+
 @keyframes pulse {
   0% {
     background-position: 50% 50%;

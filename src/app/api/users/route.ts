@@ -1,6 +1,7 @@
 import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";

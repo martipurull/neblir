@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { featureSchema, pathSchema } from "./path";
 import {
+  equipSlotCostSchema,
+  equipSlotTypeSchema,
   itemAreaTypeSchema,
   itemSourceTypeSchema,
   itemStatusSchema,
@@ -8,21 +10,21 @@ import {
   weaponAttackRollTypeSchema,
   weaponDamageTypeSchema,
 } from "./item";
-import { gameCharacterSchema } from "./game";
+import { gameCharacterWithGameSchema } from "./game";
 import { Race, Religion, Status } from "@prisma/client";
 
 /** Schema for a resolved item (Item, CustomItem, or merged UniqueItem) - used in inventory response */
 const resolvedItemSchema = z
   .object({
     id: z.string().optional(),
-    name: z.string(),
-    type: z.enum(["GENERAL_ITEM", "WEAPON"]),
+    name: z.string().optional().nullable(),
+    type: z.enum(["GENERAL_ITEM", "WEAPON"]).optional().nullable(),
     description: z.string().optional().nullable(),
     weight: z.number().optional().nullable(),
     usage: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
     imageKey: z.string().optional().nullable(),
-    confCost: z.number().optional(),
+    confCost: z.number().optional().nullable(),
     costInfo: z.string().optional().nullable(),
     attackRoll: z.array(weaponAttackRollTypeSchema).optional(),
     attackMeleeBonus: z.number().optional().nullable(),
@@ -32,6 +34,8 @@ const resolvedItemSchema = z
     defenceRangeBonus: z.number().optional().nullable(),
     gridAttackBonus: z.number().optional().nullable(),
     gridDefenceBonus: z.number().optional().nullable(),
+    effectiveRange: z.number().optional().nullable(),
+    maxRange: z.number().optional().nullable(),
     damage: z
       .object({
         damageType: z.array(weaponDamageTypeSchema),
@@ -47,17 +51,21 @@ const resolvedItemSchema = z
             defenceRoll: z.string(),
             successfulDefenceResult: z.string(),
           })
-          .optional()
-          .nullable(),
+          .nullish(),
       })
       .optional()
       .nullable(),
     specialTag: z.string().optional().nullable(),
-    equippable: z.boolean().optional(),
+    equippable: z.boolean().optional().nullable(),
+    equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
+    equipSlotCost: equipSlotCostSchema.optional().nullable(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
-    _uniqueItemId: z.string().optional(),
+    _uniqueItemId: z.string().nullish(),
   })
   .passthrough();
+
+export const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+export type EquipSlot = z.infer<typeof equipSlotSchema>;
 
 export const itemCharacterSchema = z.object({
   id: z.string(),
@@ -65,11 +73,12 @@ export const itemCharacterSchema = z.object({
   sourceType: itemSourceTypeSchema,
   itemId: z.string(),
   quantity: z.number(),
-  currentAmmo: z.number().optional().nullable(),
-  currentCharges: z.number().optional().nullable(),
+  currentUses: z.number().optional().default(0),
   isEquipped: z.boolean(),
+  equipSlots: z.array(equipSlotSchema).optional().default([]),
   customName: z.string().optional().nullable(),
   status: itemStatusSchema,
+  itemLocation: z.string().optional(),
   item: resolvedItemSchema.nullable(),
 });
 
@@ -83,6 +92,10 @@ export const generalInformationSchema = z.object({
   profession: z.string(),
   race: z.nativeEnum(Race),
   birthplace: z.string(),
+  /** TipTap rich text stored as HTML string */
+  backstory: z.string().optional().nullable(),
+  /** TipTap rich text stored as HTML string */
+  summary: z.string().optional().nullable(),
   level: z.number(),
   avatarKey: z.string().optional().nullable(),
   height: z.number().int(),
@@ -105,7 +118,7 @@ export const healthSchema = z.object({
       successes: z.number().max(3).default(0),
       failures: z.number().max(3).default(0),
     })
-    .optional(),
+    .nullish(),
   status: z.nativeEnum(Status).default("ALIVE"),
 });
 
@@ -116,13 +129,16 @@ export const combatInformationSchema = z.object({
   armourMod: z.number().default(0),
   armourMaxHP: z.number().default(0),
   armourCurrentHP: z.number().default(0),
-  GridMod: z.number().default(0),
   rangeAttackMod: z.number(), // Needs to be computed
   meleeAttackMod: z.number(), // Needs to be computed
-  GridAttackMod: z.number(), // Needs to be computed
+  throwAttackMod: z
+    .number()
+    .optional()
+    .nullable()
+    .transform((v) => v ?? 0),
   rangeDefenceMod: z.number(), // Needs to be computed
   meleeDefenceMod: z.number(), // Needs to be computed
-  GridDefenceMod: z.number(), // Needs to be computed
+  maxCarryWeight: z.number().optional(),
 });
 
 const intelligenceSchema = z.object({
@@ -189,7 +205,15 @@ export const generalSkillsSchema = z.object({
   manipulationNegotiation: z.number().max(5).default(0),
 });
 
-export const characterNotesSchema = z.array(z.string());
+/** Rich text payload (TipTap JSON string) plus timestamps; stored in DB as JSON per array element. */
+export const characterNoteEntrySchema = z.object({
+  content: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type CharacterNoteEntry = z.infer<typeof characterNoteEntrySchema>;
+
+export const characterNotesSchema = z.array(characterNoteEntrySchema);
 
 export const characterSchema = z.object({
   generalInformation: generalInformationSchema,
@@ -198,14 +222,52 @@ export const characterSchema = z.object({
   innateAttributes: innateAttributesSchema,
   learnedSkills: z.object({
     generalSkills: generalSkillsSchema,
-    specialSkills: z.array(z.string()).max(3).optional(),
+    specialSkills: z.array(z.string()).max(3).optional().nullish(),
   }),
-  wallet: z.lazy(() => walletSchema).optional(),
-  inventory: z.array(z.lazy(() => itemCharacterSchema)).optional(),
-  notes: characterNotesSchema.optional(),
-  paths: z.array(z.lazy(() => pathSchema)).optional(),
-  features: z.array(z.lazy(() => featureSchema)).optional(),
-  games: z.array(z.lazy(() => gameCharacterSchema)).optional(),
+  wallet: z
+    .lazy(() => walletSchema)
+    .optional()
+    .nullish(),
+  inventory: z
+    .array(z.lazy(() => itemCharacterSchema))
+    .optional()
+    .nullish(),
+  notes: characterNotesSchema.optional().nullish(),
+  paths: z
+    .array(z.lazy(() => pathSchema))
+    .optional()
+    .nullish(),
+  features: z.array(z.lazy(() => featureSchema)).nullish(),
+  games: z
+    .array(z.lazy(() => gameCharacterWithGameSchema))
+    .optional()
+    .nullish(),
 });
 
 export type Character = z.infer<typeof characterSchema>;
+
+export const characterDetailSchema = characterSchema.extend({
+  id: z.string(),
+});
+export type CharacterDetail = z.infer<typeof characterDetailSchema>;
+
+/** Minimal response expected from POST /api/characters */
+export const characterCreateResponseSchema = z.object({
+  id: z.string(),
+});
+export type CharacterCreateResponse = z.infer<
+  typeof characterCreateResponseSchema
+>;
+
+export const characterListItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  surname: z.string(),
+  level: z.number(),
+  paths: z.array(z.string()),
+  avatarKey: z.string().nullable().optional(),
+});
+
+export const characterListSchema = z.array(characterListItemSchema);
+
+export type CharacterListItem = z.infer<typeof characterListItemSchema>;

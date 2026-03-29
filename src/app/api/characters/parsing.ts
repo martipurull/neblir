@@ -1,6 +1,6 @@
 import { ValidationError } from "../shared/errors";
-import { LevelUpCharacterBody } from "./[id]/level-up/schema";
-import { CharacterCreationRequest } from "./schemas";
+import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
+import type { CharacterCreationRequest } from "./schemas";
 
 function calculateReactionsPerRound(level: number): number {
   if (level === 3) {
@@ -102,28 +102,75 @@ export function computeCharacterRequestData(
     );
   }
 
-  const { path: _path, ...requestWithoutPath } =
-    parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
-      path?: { pathId: string; rank: number };
-    };
+  const {
+    path: _path,
+    wallet: rawWallet,
+    initialFeatures: _initialFeatures,
+    ...requestWithoutPathAndWallet
+  } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
+    path?: { pathId: string; rank: number };
+    wallet?: Array<{ currencyName: string; quantity: number }>;
+    initialFeatures?: Array<{ featureId: string; grade: number }>;
+  };
+
+  const learnedSkills = requestWithoutPathAndWallet.learnedSkills;
+  const learnedSkillsForPrisma =
+    learnedSkills != null
+      ? {
+          ...learnedSkills,
+          specialSkills:
+            learnedSkills.specialSkills === null
+              ? undefined
+              : learnedSkills.specialSkills,
+        }
+      : learnedSkills;
+
+  const wallet =
+    (rawWallet?.length ?? 0) > 0
+      ? {
+          create: (rawWallet ?? []).map((entry) => ({
+            currencyName: entry.currencyName,
+            quantity: entry.quantity,
+          })),
+        }
+      : undefined;
+  const rawHealth = requestWithoutPathAndWallet.health as Record<
+    string,
+    unknown
+  >;
+  const currentPhysicalHealthInput =
+    typeof rawHealth.currentPhysicalHealth === "number"
+      ? rawHealth.currentPhysicalHealth
+      : maxPhysicalHealth;
+  const currentMentalHealthInput =
+    typeof rawHealth.currentMentalHealth === "number"
+      ? rawHealth.currentMentalHealth
+      : maxMentalHealth;
+
   return {
-    ...requestWithoutPath,
+    ...requestWithoutPathAndWallet,
+    learnedSkills: learnedSkillsForPrisma,
+    wallet,
     notes: [],
     health: {
-      ...requestWithoutPath.health,
+      ...requestWithoutPathAndWallet.health,
       innatePhysicalHealth: innatePhysicalHealth,
       maxPhysicalHealth: maxPhysicalHealth,
-      currentPhysicalHealth: maxPhysicalHealth,
+      currentPhysicalHealth: isLevelUp
+        ? Math.min(currentPhysicalHealthInput, maxPhysicalHealth)
+        : maxPhysicalHealth,
       innateMentalHealth: innateMentalHealth,
       maxMentalHealth: maxMentalHealth,
-      currentMentalHealth: maxMentalHealth,
+      currentMentalHealth: isLevelUp
+        ? Math.min(currentMentalHealthInput, maxMentalHealth)
+        : maxMentalHealth,
       deathSaves: {
         successes: 0,
         failures: 0,
       },
     },
     combatInformation: {
-      ...requestWithoutPath.combatInformation,
+      ...requestWithoutPathAndWallet.combatInformation,
       initiativeMod:
         parsedCharacterCreationRequest.innateAttributes.personality.mentality +
         parsedCharacterCreationRequest.innateAttributes.dexterity.agility,
@@ -139,10 +186,9 @@ export function computeCharacterRequestData(
       meleeAttackMod:
         parsedCharacterCreationRequest.innateAttributes.strength.bruteForce +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-      GridAttackMod:
-        parsedCharacterCreationRequest.combatInformation.GridMod +
-        parsedCharacterCreationRequest.innateAttributes.personality.mentality +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,
+      throwAttackMod:
+        parsedCharacterCreationRequest.innateAttributes.strength.athletics +
+        parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
       rangeDefenceMod:
         parsedCharacterCreationRequest.combatInformation.armourMod +
         parsedCharacterCreationRequest.innateAttributes.dexterity.agility +
@@ -151,10 +197,6 @@ export function computeCharacterRequestData(
         parsedCharacterCreationRequest.combatInformation.armourMod +
         parsedCharacterCreationRequest.innateAttributes.strength.resilience +
         parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-      GridDefenceMod:
-        parsedCharacterCreationRequest.combatInformation.GridMod +
-        parsedCharacterCreationRequest.innateAttributes.personality.mentality +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.GRID,
     },
   };
 }

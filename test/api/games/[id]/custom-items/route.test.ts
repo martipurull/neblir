@@ -89,6 +89,27 @@ describe("/api/games/[id]/custom-items route handlers", () => {
     expect(response.status).toBe(400);
   });
 
+  it("POST returns 403 when authenticated user is not the game master", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/custom-items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { name: "Sword", weight: 1, type: "GENERAL_ITEM" },
+        "player-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Only the game master can create custom items for this game.",
+    });
+    expect(createCustomItemMock).not.toHaveBeenCalled();
+    expect(safeParseMock).not.toHaveBeenCalled();
+  });
+
   it("POST returns 201 on success", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     safeParseMock.mockReturnValue({

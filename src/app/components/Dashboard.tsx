@@ -1,68 +1,87 @@
+// eslint-disable-next-line no-unused-expressions
 "use client";
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
+
+import GameInvitesReceivedBlock from "@/app/components/games/GameInvitesReceivedBlock";
+import { useGameInvites } from "@/hooks/use-game-invites";
+import { useGames } from "@/hooks/use-games";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 const Dashboard: React.FC = () => {
-  const [imageURL, setImageURL] = useState("");
-  useEffect(() => {
-    // const fetchData = async () => {
-    //   try {
-    //     const response = await fetch(
-    //       "/api/characters/67e4911f62cb187d0adbd2d5",
-    //       {
-    //         method: "GET",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //       }
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error("Network response was not ok");
-    //     }
-    //     const data = await response.json();
-    //     console.log("User data:", data);
-    //   } catch (error) {
-    //     console.error("Error fetching character data:", error);
-    //   }
-    // };
+  const { invites, mutate: mutateInvites } = useGameInvites();
+  const { mutate: mutateGames } = useGames();
+  const router = useRouter();
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [decliningId, setDecliningId] = useState<string | null>(null);
 
-    // fetchData();
-
-    async function fetchImageURL() {
-      const response = await fetch(
-        "/api/image-url?imageKey=characters-dahlia_ters.png"
+  const handleAccept = async (gameId: string) => {
+    setAcceptingId(gameId);
+    try {
+      const res = await fetch(
+        `/api/games/${encodeURIComponent(gameId)}/invites/accept`,
+        { method: "POST" }
       );
-      const data = await response.json();
-      setImageURL(data?.url);
+      if (!res.ok) throw new Error("Failed to accept");
+      void mutateInvites();
+      void mutateGames();
+      router.push(`/home/games/${gameId}`);
+    } finally {
+      setAcceptingId(null);
     }
-    fetchImageURL();
-  }, []);
+  };
+
+  const handleDecline = async (gameId: string) => {
+    setDecliningId(gameId);
+    try {
+      const res = await fetch(
+        `/api/games/${encodeURIComponent(gameId)}/invites/decline`,
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error("Failed to decline");
+      void mutateInvites();
+    } finally {
+      setDecliningId(null);
+    }
+  };
+
+  const tabs = [
+    { label: "Settings", link: "/home/settings" },
+    { label: "Characters", link: "/home/characters" },
+    { label: "Games", link: "/home/games" },
+    { label: "Mechanics", link: "/home/mechanics" },
+    { label: "World", link: "/home/world" },
+    { label: "Dice Roller", link: "/home/dice-roller" },
+  ];
+
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-8 text-center">Dashboard</h2>
-      <section className="mb-8 p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">User Details</h3>
-        {/* Add user details here */}
-      </section>
-      <section className="mb-8 p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">Characters</h3>
-        {/* <div>
-          <h4>Testing pre-signed URL functionality</h4>
-          {imageURL && (
-            <Image
-              src={imageURL}
-              width={200}
-              height={200}
-              alt={"Testing pre-signed image URL"}
-            />
-          )}
-        </div> */}
-        {/* Add user characters here */}
-      </section>
-      <section className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="text-2xl font-semibold mb-4">Games</h3>
-        {/* Add games here */}
-      </section>
+    <div>
+      <h2 className="mb-6 text-center text-2xl font-bold text-black sm:mb-8 sm:text-3xl">
+        Dashboard
+      </h2>
+
+      <GameInvitesReceivedBlock
+        invites={invites}
+        acceptingId={acceptingId}
+        decliningId={decliningId}
+        onAccept={(gameId: string) => void handleAccept(gameId)}
+        onDecline={(gameId: string) => void handleDecline(gameId)}
+        showGamesLink
+      />
+
+      <div>
+        {tabs.map((tab) => (
+          <Link
+            key={tab.label}
+            href={tab.link}
+            className="text-lg font-semibold text-black sm:text-xl"
+          >
+            <section className="mb-6 rounded-lg border border-black bg-transparent p-4 sm:mb-8 sm:p-6">
+              {tab.label}
+            </section>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 };

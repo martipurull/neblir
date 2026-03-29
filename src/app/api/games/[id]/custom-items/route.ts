@@ -7,7 +7,7 @@ import {
   customItemCreateSchema,
   type CustomItemCreate,
 } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
@@ -82,6 +82,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (!game) {
       return errorResponse("Game not found", 404);
     }
+    const isGameMaster = game.gameMaster === request.auth.user.id;
+    if (!isGameMaster) {
+      return errorResponse(
+        "Only the game master can create custom items for this game.",
+        403
+      );
+    }
 
     const requestBody = await request.json();
     const { data: parsedBody, error } =
@@ -118,6 +125,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       defenceRangeBonus: createData.defenceRangeBonus ?? undefined,
       gridAttackBonus: createData.gridAttackBonus ?? undefined,
       gridDefenceBonus: createData.gridDefenceBonus ?? undefined,
+      effectiveRange: createData.effectiveRange ?? undefined,
+      maxRange: createData.maxRange ?? undefined,
       confCost: createData.confCost ?? undefined,
       costInfo: createData.costInfo ?? undefined,
       damage: createData.damage ?? undefined,
@@ -126,6 +135,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       notes: createData.notes ?? undefined,
       usage: createData.usage ?? undefined,
       equippable: createData.equippable ?? undefined,
+      equipSlotTypes: createData.equipSlotTypes ?? undefined,
+      equipSlotCost: createData.equipSlotCost ?? undefined,
+      maxUses: createData.maxUses ?? undefined,
     });
 
     return NextResponse.json(item, { status: 201 });

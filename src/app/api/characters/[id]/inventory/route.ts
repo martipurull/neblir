@@ -1,15 +1,16 @@
 import {
-  createItemCharacter,
+  addOrIncrementItemCharacter,
   getCharacterInventory,
 } from "@/app/lib/prisma/itemCharacter";
 import { addToInventorySchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { prisma } from "@/app/lib/prisma/client";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -106,11 +107,21 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    await createItemCharacter({
-      characterId: id,
-      sourceType: data.sourceType,
-      itemId: data.itemId,
-    });
+    if (data.sourceType === "UNIQUE_ITEM") {
+      const uniqueItem = await prisma.uniqueItem.findUnique({
+        where: { id: data.itemId },
+        select: { ownerUserId: true },
+      });
+      if (
+        !uniqueItem ||
+        ("ownerUserId" in uniqueItem &&
+          uniqueItem.ownerUserId !== request.auth.user.id)
+      ) {
+        return errorResponse("You can only add your own unique items.", 403);
+      }
+    }
+
+    await addOrIncrementItemCharacter(id, data.sourceType, data.itemId);
 
     return NextResponse.json("Item added to inventory", { status: 201 });
   } catch (error) {

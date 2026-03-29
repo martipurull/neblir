@@ -1,4 +1,4 @@
-import { Currency } from "../types/item";
+import type { Currency } from "../types/item";
 import { prisma } from "./client";
 
 export async function getCharacterWallet(characterId: string) {

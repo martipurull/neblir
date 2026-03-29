@@ -5,7 +5,7 @@ import {
 } from "@/app/lib/prisma/customItem";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import { customItemUpdateSchema } from "@/app/lib/types/item";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
@@ -39,7 +39,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const item = await getCustomItem(customItemId);
-    if (!item || item.gameId !== gameId) {
+    if (item?.gameId !== gameId) {
       return errorResponse("Custom item not found", 404);
     }
 
@@ -79,7 +79,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const existing = await getCustomItem(customItemId);
-    if (!existing || existing.gameId !== gameId) {
+    if (existing?.gameId !== gameId) {
       return errorResponse("Custom item not found", 404);
     }
 
@@ -138,7 +138,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const existing = await getCustomItem(customItemId);
-    if (!existing || existing.gameId !== gameId) {
+    if (existing?.gameId !== gameId) {
       return errorResponse("Custom item not found", 404);
     }
 

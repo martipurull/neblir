@@ -1,6 +1,12 @@
-import { getGame, deleteGame, updateGame } from "@/app/lib/prisma/game";
+import {
+  getGameWithDetails,
+  deleteGame,
+  updateGame,
+  userIsInGame,
+} from "@/app/lib/prisma/game";
+import { shapeGameForResponse } from "@/app/lib/gameDetailResponse";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
 import logger from "@/logger";
@@ -18,6 +24,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    const userId = request.auth.user.id;
+    if (!userId) {
+      return errorResponse("User ID not found", 400);
+    }
+
     const { id } = (await params) as { id: string };
     if (!id || typeof id !== "string") {
       logger.error({
@@ -29,7 +40,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid game ID", 400);
     }
 
-    const game = await getGame(id);
+    const game = await getGameWithDetails(id);
     if (!game) {
       logger.error({
         method: "GET",
@@ -40,7 +51,13 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Game not found", 404);
     }
 
-    return NextResponse.json(game, { status: 200 });
+    const inGame = await userIsInGame(id, userId);
+    if (!inGame) {
+      return errorResponse("You are not part of this game", 403);
+    }
+
+    const payload = shapeGameForResponse(game, userId);
+    return NextResponse.json(payload, { status: 200 });
   } catch (error) {
     logger.error({
       method: "GET",
@@ -74,6 +91,19 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid game ID", 400);
     }
 
+    const userId = request.auth.user.id;
+    if (!userId) {
+      return errorResponse("User ID not found", 400);
+    }
+
+    const game = await getGameWithDetails(id);
+    if (!game) {
+      return errorResponse("Game not found", 404);
+    }
+    if (game.gameMaster !== userId) {
+      return errorResponse("Only the game master can update this game", 403);
+    }
+
     const requestBody = await request.json();
     const { data: parsedBody, error } = gameUpdateSchema.safeParse(requestBody);
     if (error) {
@@ -90,9 +120,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updatedGame = await updateGame(id, parsedBody);
-
-    return NextResponse.json(updatedGame, { status: 200 });
+    await updateGame(id, parsedBody);
+    const updatedGame = await getGameWithDetails(id);
+    if (!updatedGame) {
+      return errorResponse("Game not found after update", 500);
+    }
+    const payload = shapeGameForResponse(updatedGame, userId);
+    return NextResponse.json(payload, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

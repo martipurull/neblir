@@ -1,5 +1,5 @@
 import { healthSchema } from "@/app/lib/types/character";
-import { z } from "zod";
+import type { z } from "zod";
 
 export const healthUpdateSchema = healthSchema
   .pick({

@@ -1,0 +1,418 @@
+import {
+  characterCreateResponseSchema,
+  characterDetailSchema,
+  type CharacterCreateResponse,
+  type CharacterDetail,
+  type CharacterNoteEntry,
+} from "@/app/lib/types/character";
+import { walletSchema } from "@/app/lib/types/item";
+import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import { getUserSafeApiError } from "@/lib/userSafeError";
+
+type ApiErrorPayload = { message?: string; details?: string };
+export type LevelUpAttributePath =
+  | "intelligence.investigation"
+  | "intelligence.memory"
+  | "intelligence.deduction"
+  | "wisdom.sense"
+  | "wisdom.perception"
+  | "wisdom.insight"
+  | "personality.persuasion"
+  | "personality.deception"
+  | "personality.mentality"
+  | "strength.athletics"
+  | "strength.resilience"
+  | "strength.bruteForce"
+  | "dexterity.manual"
+  | "dexterity.stealth"
+  | "dexterity.agility"
+  | "constitution.resistanceInternal"
+  | "constitution.resistanceExternal"
+  | "constitution.stamina";
+export type LevelUpGeneralSkill =
+  | "mechanics"
+  | "software"
+  | "generalKnowledge"
+  | "history"
+  | "driving"
+  | "acrobatics"
+  | "aim"
+  | "melee"
+  | "GRID"
+  | "research"
+  | "medicine"
+  | "science"
+  | "survival"
+  | "streetwise"
+  | "performance"
+  | "manipulationNegotiation";
+
+export type CharacterCreateBody = CharacterCreationRequest & {
+  initialFeatures?: Array<{ featureId: string; grade: number }>;
+};
+export type CharacterEditableUpdateBody = CharacterCreationRequest;
+export type CharacterLevelUpBody = {
+  healthUpdate: { rolledPhysicalHealth: number; rolledMentalHealth: number };
+  pathId: string;
+  newFeatureIds: string[];
+  incrementalFeatureIds: string[];
+  skillImprovement: LevelUpGeneralSkill;
+  attributeChanges?: Array<{
+    from: LevelUpAttributePath;
+    to: LevelUpAttributePath;
+  }>;
+};
+
+export async function getCharacterById(
+  id: string,
+  signal?: AbortSignal
+): Promise<CharacterDetail> {
+  const response = await fetch(`/api/characters/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch character")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Character response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function createCharacter(
+  body: CharacterCreateBody
+): Promise<CharacterCreateResponse> {
+  const response = await fetch("/api/characters", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to create character"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterCreateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Create character response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterEditableFields(
+  id: string,
+  body: CharacterEditableUpdateBody
+): Promise<CharacterDetail> {
+  const response = await fetch(`/api/characters/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update character"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    // If write succeeded but response shape is stale, fetch canonical detail and proceed.
+    try {
+      return await getCharacterById(id);
+    } catch {
+      const details = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new Error(
+        `Update character response did not match expected shape: ${details}`
+      );
+    }
+  }
+  return parsed.data;
+}
+
+export async function levelUpCharacter(
+  id: string,
+  body: CharacterLevelUpBody
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/level-up`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to level up character"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    // If write succeeded but response shape is stale, fetch canonical detail and proceed.
+    try {
+      return await getCharacterById(id);
+    } catch {
+      const details = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new Error(
+        `Level up response did not match expected shape: ${details}`
+      );
+    }
+  }
+
+  return parsed.data;
+}
+
+type HealthUpdateBody = {
+  currentPhysicalHealth?: number;
+  currentMentalHealth?: number;
+  seriousPhysicalInjuries?: number;
+  seriousTrauma?: number;
+  deathSaves?: { successes: number; failures: number };
+  status?: string;
+};
+
+type CombatInfoUpdateBody = {
+  armourCurrentHP?: number;
+  armourMod?: number;
+};
+
+export async function updateCharacterHealth(
+  id: string,
+  body: HealthUpdateBody
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/health`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update health")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Character response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterCombatInfo(
+  id: string,
+  body: CombatInfoUpdateBody
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/combat-info`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update combat info")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Character response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export type WalletEntry = { currencyName: string; quantity: number };
+
+export async function addWalletCurrency(
+  characterId: string,
+  currencyName: string,
+  amount: number
+): Promise<WalletEntry[]> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/wallet/add`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currencyName, amount }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to add currency")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = walletSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Wallet response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterNotes(
+  id: string,
+  notes: CharacterNoteEntry[]
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/notes`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notes),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update notes")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Character response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function subtractWalletCurrency(
+  characterId: string,
+  currencyName: string,
+  amount: number
+): Promise<WalletEntry[]> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/wallet/subtract`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currencyName, amount }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to subtract currency")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = walletSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Wallet response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
+}

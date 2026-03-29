@@ -1,5 +1,5 @@
 import { deleteUser, getUser, updateUser } from "@/app/lib/prisma/user";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { userUpdateSchema } from "@/app/lib/types/user";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";

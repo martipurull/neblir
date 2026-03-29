@@ -1,5 +1,5 @@
 import { prisma } from "./client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export async function createPath(data: Prisma.PathCreateInput) {
   return prisma.path.create({ data });

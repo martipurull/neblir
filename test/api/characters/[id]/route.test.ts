@@ -58,6 +58,41 @@ describe("/api/characters/[id] handlers", () => {
     expect(response.status).toBe(404);
   });
 
+  it("GET returns 200 with character (paths normalized by getCharacter)", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterMock.mockResolvedValue({
+      id: "char-1",
+      generalInformation: { name: "Nova", surname: "Voss", level: 1 },
+      health: {},
+      combatInformation: {},
+      innateAttributes: {},
+      learnedSkills: { generalSkills: {}, specialSkills: [] },
+      wallet: [],
+      inventory: [],
+      notes: [],
+      paths: [
+        {
+          id: "path-1",
+          name: "MEDIC",
+          description: null,
+          baseFeature: "feat-1",
+        },
+      ],
+      features: [],
+    });
+    const { GET } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.paths).toEqual([
+      { id: "path-1", name: "MEDIC", description: null, baseFeature: "feat-1" },
+    ]);
+  });
+
   it("DELETE returns 500 on CharacterDeletionTransactionError", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteCharacterMock.mockRejectedValue(

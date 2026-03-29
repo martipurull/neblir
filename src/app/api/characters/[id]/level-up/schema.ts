@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { characterCreationRequestSchema } from "../../schemas";
 import { characterSchema } from "@/app/lib/types/character";
 
 const attributePropertyNames = [

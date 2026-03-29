@@ -2,7 +2,7 @@ import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { combatInformationUpdateRequestSchema } from "./schema";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
@@ -97,24 +97,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         armourMaxHP: parsedBody.armourMod * 5,
       };
     }
-    // Hadle GRID mod increase / decrease
-    if (
-      (parsedBody.GridMod || parsedBody.GridMod === 0) &&
-      parsedBody.GridMod !== existingCharacter.combatInformation.GridMod
-    ) {
-      updateBody = {
-        ...updateBody,
-        GridMod: parsedBody.GridMod,
-        GridDefenceMod:
-          existingCharacter.innateAttributes.personality.mentality +
-          existingCharacter.learnedSkills.generalSkills.GRID +
-          parsedBody.GridMod,
-        GridAttackMod:
-          existingCharacter.innateAttributes.personality.mentality +
-          existingCharacter.learnedSkills.generalSkills.GRID +
-          parsedBody.GridMod,
-      };
-    }
     // Handle the case where the armour is destroyed
     if (parsedBody.armourCurrentHP === 0) {
       updateBody = {
@@ -132,11 +114,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         armourMaxHP: 0,
       };
     }
-    const updatedCharacter = await updateCharacter(id, {
+    await updateCharacter(id, {
       combatInformation: updateBody,
     });
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      return errorResponse("Character not found after update", 500);
+    }
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

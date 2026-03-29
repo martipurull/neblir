@@ -3,6 +3,7 @@ import {
   getCharacter,
   levelUpCharacterWithRelations,
 } from "@/app/lib/prisma/character";
+import { getCharacterPaths } from "@/app/lib/prisma/pathCharacter";
 import { computeCharacterRequestData } from "../../parsing";
 import { levelUpRequestSchema } from "./schema";
 import {
@@ -14,7 +15,7 @@ import {
   parseHealthUpdate,
 } from "./parsing";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { serializeError } from "@/app/api/shared/errors";
 import { errorResponse } from "@/app/api/shared/responses";
@@ -159,7 +160,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       ...parsedBody.incrementalFeatureIds,
     ];
     try {
-      const areFeaturesValid = await areFeaturesValidForLevelUp(id, featureIds);
+      const areFeaturesValid = await areFeaturesValidForLevelUp(
+        id,
+        parsedBody.pathId,
+        featureIds
+      );
       if (!areFeaturesValid) {
         logger.error({
           method: "POST",
@@ -205,12 +210,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    let updatedCharacter;
+    const existingPaths = await getCharacterPaths(id);
+    let _updatedCharacter;
     try {
-      updatedCharacter = await levelUpCharacterWithRelations({
+      _updatedCharacter = await levelUpCharacterWithRelations({
         characterId: id,
         pathId: parsedBody.pathId,
-        existingPaths: existingCharacter.paths,
+        existingPaths,
         existingFeatures: existingCharacter.features,
         incrementalFeatureIds: parsedBody.incrementalFeatureIds,
         newFeatureIds: parsedBody.newFeatureIds,
@@ -244,7 +250,18 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      logger.error({
+        method: "POST",
+        route: "/api/characters/[id]/level-up",
+        message: "Character not found after level up",
+        characterId: id,
+      });
+      return errorResponse("Character not found after level up", 500);
+    }
+
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     if (error instanceof ValidationError) {
       logger.error({

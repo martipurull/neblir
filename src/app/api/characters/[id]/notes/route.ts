@@ -1,7 +1,8 @@
-import { updateCharacter } from "@/app/lib/prisma/character";
+import { encodeNotesForDb } from "@/app/lib/characterNotes";
+import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { characterNotesSchema } from "@/app/lib/types/character";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
@@ -56,9 +57,14 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updatedCharacter = await updateCharacter(id, { notes: parsedBody });
+    await updateCharacter(id, { notes: encodeNotesForDb(parsedBody) });
 
-    return NextResponse.json(updatedCharacter, { status: 200 });
+    const fullCharacter = await getCharacter(id);
+    if (!fullCharacter) {
+      return errorResponse("Character not found after update", 500);
+    }
+
+    return NextResponse.json(fullCharacter, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",

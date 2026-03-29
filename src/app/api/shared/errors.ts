@@ -10,7 +10,8 @@ export class ValidationError extends Error {
 type CharacterCreationStep =
   | "createCharacter"
   | "createCharacterUser"
-  | "createPathCharacter";
+  | "createPathCharacter"
+  | "createFeatureCharacters";
 
 export class CharacterCreationTransactionError extends Error {
   constructor(

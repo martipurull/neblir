@@ -8,6 +8,8 @@ import {
 
 const deleteItemCharacterMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
+const getCharacterMock = vi.fn();
+const updateCharacterMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/itemCharacter", () => ({
   deleteItemCharacter: deleteItemCharacterMock,
@@ -15,6 +17,11 @@ vi.mock("@/app/lib/prisma/itemCharacter", () => ({
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: characterBelongsToUserMock,
+}));
+
+vi.mock("@/app/lib/prisma/character", () => ({
+  getCharacter: getCharacterMock,
+  updateCharacter: updateCharacterMock,
 }));
 
 describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
@@ -47,7 +54,7 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
     expect(response.status).toBe(403);
   });
 
-  it("returns 204 even if deleteItemCharacter rejects in local catch", async () => {
+  it("returns 500 when deleteItemCharacter rejects", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteItemCharacterMock.mockRejectedValue(new Error("db fail"));
     const { DELETE } = await import(
@@ -58,12 +65,13 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
       makeAuthedRequest(undefined, "user-1"),
       makeParams({ id: "char-1", itemCharacterId: "ic-1" })
     );
-    expect(response.status).toBe(204);
+    expect(response.status).toBe(500);
   });
 
   it("returns 204 on successful deletion", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteItemCharacterMock.mockResolvedValue(undefined);
+    getCharacterMock.mockResolvedValue(null);
     const { DELETE } = await import(
       "@/app/api/characters/[id]/inventory/[itemCharacterId]/route"
     );

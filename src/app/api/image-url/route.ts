@@ -1,10 +1,11 @@
-import { AuthNextRequest } from "@/app/lib/types/api";
+import { getR2Config } from "@/app/lib/r2";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import logger from "@/logger";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 import { errorResponse } from "../shared/responses";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const GET = auth(async (request: AuthNextRequest) => {
   try {
@@ -27,10 +28,8 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("Image key is required", 400);
     }
 
-    const accessKeyId = process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY;
-    const secretAccessKey = process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY;
-
-    if (!accessKeyId || !secretAccessKey) {
+    const config = getR2Config();
+    if (!config) {
       logger.error({
         method: "GET",
         route: "/api/image-url",
@@ -42,21 +41,12 @@ export const GET = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const s3Client = new S3Client({
-      region: "auto",
-      endpoint: `https://${process.env.R2_NEBLIR_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: accessKeyId,
-        secretAccessKey: secretAccessKey,
-      },
-    });
-
     const getObjectCommand = new GetObjectCommand({
-      Bucket: process.env.R2_NEBLIR_BUCKET_NAME,
+      Bucket: config.bucketName,
       Key: imageKey,
     });
 
-    const signedUrl = await getSignedUrl(s3Client, getObjectCommand, {
+    const signedUrl = await getSignedUrl(config.s3Client, getObjectCommand, {
       expiresIn: 3600,
     });
 

@@ -10,15 +10,19 @@ import {
 } from "@/app/api/shared/errors";
 
 const getUserMock = vi.fn();
+const getCharactersByUserIdMock = vi.fn();
 const createCharacterWithRelationsMock = vi.fn();
 const safeParseMock = vi.fn();
 const computeCharacterRequestDataMock = vi.fn();
+const getPathMock = vi.fn();
+const getAllFeaturesAvailableForPathAndRankMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/user", () => ({
   getUser: getUserMock,
 }));
 
 vi.mock("@/app/lib/prisma/character", () => ({
+  getCharactersByUserId: getCharactersByUserIdMock,
   createCharacterWithRelations: createCharacterWithRelationsMock,
 }));
 
@@ -28,6 +32,15 @@ vi.mock("@/app/api/characters/schemas", () => ({
 
 vi.mock("@/app/api/characters/parsing", () => ({
   computeCharacterRequestData: computeCharacterRequestDataMock,
+}));
+
+vi.mock("@/app/lib/prisma/path", () => ({
+  getPath: getPathMock,
+}));
+
+vi.mock("@/app/lib/prisma/feature", () => ({
+  getAllFeaturesAvailableForPathAndRank:
+    getAllFeaturesAvailableForPathAndRankMock,
 }));
 
 describe("/api/characters POST", () => {
@@ -102,5 +115,172 @@ describe("/api/characters POST", () => {
     const { POST } = await import("@/app/api/characters/route");
     const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
     expect(response.status).toBe(201);
+  });
+
+  it("rejects initialFeatures when grade sum exceeds feature slots (rank=1)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 1 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 5, minPathRank: 1 },
+    ]);
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 1 },
+          initialFeatures: [{ featureId: "feat-1", grade: 1 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/feature slots/i);
+  });
+
+  it("accepts initialFeatures when grade sum equals feature slots (rank=8)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 8 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 14, minPathRank: 1 },
+    ]);
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 8 },
+          initialFeatures: [{ featureId: "feat-1", grade: 14 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(201);
+  });
+
+  it("rejects initialFeatures when grade sum exceeds feature slots (rank=8)", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: { path: { pathId: "path-1", rank: 8 } },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getPathMock.mockResolvedValue({ name: "TEST_PATH" });
+    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([
+      { id: "feat-1", name: "Feat 1", maxGrade: 15, minPathRank: 1 },
+    ]);
+
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          path: { pathId: "path-1", rank: 8 },
+          initialFeatures: [{ featureId: "feat-1", grade: 15 }],
+        },
+        "user-1"
+      )
+    );
+
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/feature slots/i);
+  });
+
+  it("passes generalInformation.backstory to createCharacterWithRelations when provided", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        generalInformation: { backstory: "<p>Story</p>" },
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({
+      generalInformation: { backstory: "<p>Story</p>" },
+    });
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          generalInformation: expect.objectContaining({
+            backstory: "<p>Story</p>",
+          }),
+        }),
+      })
+    );
+  });
+});
+
+describe("/api/characters GET", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(GET, makeUnauthedRequest());
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 200 with mapped character summaries", async () => {
+    getCharactersByUserIdMock.mockResolvedValue([
+      {
+        id: "char-1",
+        generalInformation: {
+          name: "Nova",
+          surname: "Voss",
+          level: 2,
+          avatarKey: null,
+        },
+        paths: [{ path: { name: "MEDIC" } }, { path: { name: "SNIPER" } }],
+      },
+    ]);
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+
+    expect(getCharactersByUserIdMock).toHaveBeenCalledWith("user-1");
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([
+      {
+        id: "char-1",
+        name: "Nova",
+        surname: "Voss",
+        level: 2,
+        paths: ["MEDIC", "SNIPER"],
+        avatarKey: null,
+      },
+    ]);
+  });
+
+  it("returns 500 when fetching characters throws", async () => {
+    getCharactersByUserIdMock.mockRejectedValue(new Error("db down"));
+    const { GET } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(500);
   });
 });

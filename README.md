@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Neblir
+
+Neblir is a Next.js app for a homebrewed sci-fi TTRPG.
 
 ## Getting Started
 
-First, run the development server:
+Run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## PWA Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+The app is configured as a Progressive Web App with:
 
-## Learn More
+- `next-pwa` service worker generation during production build
+- App Router manifest route at `src/app/manifest.ts`
+- Offline fallback page at `src/app/offline/page.tsx`
+- Install icons under `public/icons`
 
-To learn more about Next.js, take a look at the following resources:
+### Local PWA testing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Service workers are disabled in development and enabled in production mode:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+Then open `http://localhost:3000` and verify:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- DevTools > Application > Manifest shows app metadata and icons
+- DevTools > Application > Service Workers shows an active worker
+- Install prompt is available (or browser install menu entry)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Production HTTPS (Vercel)
+
+PWA installability requires HTTPS. Vercel automatically serves production traffic over HTTPS for both project domains and connected custom domains.
+
+## Regression Checklist
+
+Use this checklist before shipping UI or PWA changes.
+
+### Desktop browser mode (normal tab)
+
+- Sign in succeeds and redirects to dashboard
+- Sign out succeeds and redirects back to home
+- Dashboard sections render as expected
+- Keyboard focus states are visible on interactive controls
+
+### Desktop installed app mode (standalone window)
+
+- App can be installed from browser UI
+- Installed app launches without browser chrome
+- Sign in and sign out still work
+- Route navigation and page refresh work as expected
+
+### Offline and weak network behavior
+
+- With network throttled or offline, previously visited screens still render from cache
+- Offline fallback page appears for uncached routes
+- Returning online restores fresh network data
+
+### Data integrity guardrails
+
+- GET endpoints can be served from cache during poor signal
+- Mutation routes (`POST`, `PUT`, `PATCH`, `DELETE`) are never cached

@@ -8,7 +8,7 @@ import {
 
 const characterBelongsToUserMock = vi.fn();
 const getCharacterInventoryMock = vi.fn();
-const createItemCharacterMock = vi.fn();
+const addOrIncrementItemCharacterMock = vi.fn();
 const safeParseMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
@@ -17,7 +17,7 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
 
 vi.mock("@/app/lib/prisma/itemCharacter", () => ({
   getCharacterInventory: getCharacterInventoryMock,
-  createItemCharacter: createItemCharacterMock,
+  addOrIncrementItemCharacter: addOrIncrementItemCharacterMock,
 }));
 
 vi.mock("@/app/lib/types/item", () => ({
@@ -86,7 +86,7 @@ describe("/api/characters/[id]/inventory handlers", () => {
       data: { sourceType: "GLOBAL_ITEM", itemId: "item-1" },
       error: undefined,
     });
-    createItemCharacterMock.mockResolvedValue({ id: "ic-1" });
+    addOrIncrementItemCharacterMock.mockResolvedValue({ id: "ic-1" });
     const { POST } = await import("@/app/api/characters/[id]/inventory/route");
 
     const response = await invokeRoute(
@@ -98,10 +98,10 @@ describe("/api/characters/[id]/inventory handlers", () => {
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(201);
-    expect(createItemCharacterMock).toHaveBeenCalledWith({
-      characterId: "char-1",
-      sourceType: "GLOBAL_ITEM",
-      itemId: "item-1",
-    });
+    expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      "GLOBAL_ITEM",
+      "item-1"
+    );
   });
 });

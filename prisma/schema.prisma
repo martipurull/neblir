@@ -50,6 +50,13 @@ enum ItemStatus {
   BEYOND_REPAIR
 }
 
+enum EquipSlot {
+  HAND
+  FOOT
+  BODY
+  HEAD
+}
+
 enum PathName {
   SCIENTIST_DOCTOR
   SURVIVALIST
@@ -98,12 +105,35 @@ enum ItemSourceType {
   GLOBAL_ITEM
   CUSTOM_ITEM
   UNIQUE_ITEM
+  /** Unique item with no global/custom template (name & weight stored on the unique row). */
+  STANDALONE
+}
+
+enum DiscordIntegrationStatus {
+  ACTIVE
+  DISABLED
+  DEGRADED
+}
+
+enum DiscordOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  RETRY
+  DEAD_LETTER
+}
+
+enum RollType {
+  GENERAL_ROLL
+  ATTACK
+  ATTACK_DAMAGE
+  DEFENCE
+  GRID_DEFENCE
+  ITEM_DAMAGE
+  INITIATIVE
 }
 
 type CharacterCombatInformation {
-  GridAttackMod     Int
-  GridDefenceMod    Int
-  GridMod           Int
   armourCurrentHP   Int
   armourMaxHP       Int
   armourMod         Int
@@ -112,6 +142,7 @@ type CharacterCombatInformation {
   meleeDefenceMod   Int
   rangeAttackMod    Int
   rangeDefenceMod   Int
+  throwAttackMod   Int
   speed             Int
   reactionsPerRound Int
   maxCarryWeight    Int
@@ -121,6 +152,10 @@ type CharacterGeneralInformation {
   age        Int
   avatarKey  String?
   birthplace String
+  /** TipTap rich text stored as HTML string */
+  backstory  String?
+  /** TipTap rich text stored as HTML string */
+  summary    String?
   level      Int
   name       String
   surname    String
@@ -251,6 +286,7 @@ model Character {
   features           FeatureCharacter[]
   games              GameCharacter[]
   users              CharacterUser[]
+  rollEvents         RollEvent[]
 }
 
 model CharacterCurrency {
@@ -280,35 +316,127 @@ model CharacterUser {
 
 model ItemCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
-  
-  characterId String @db.ObjectId
-  character Character @relation(fields: [characterId], references: [id])
-  
-  sourceType ItemSourceType
-  itemId      String @db.ObjectId
 
-  quantity        Int        @default(1)
-  currentAmmo     Int?
-  currentCharges  Int?
-  isEquipped      Boolean    @default(false)
-  customName      String?
-  status          ItemStatus @default(FUNCTIONAL)
+  characterId String   @db.ObjectId
+  character   Character @relation(fields: [characterId], references: [id])
+
+  sourceType ItemSourceType
+  itemId     String   @db.ObjectId
+
+  quantity       Int         @default(1)
+  currentUses    Int         @default(0)
+  isEquipped     Boolean     @default(false)
+  equipSlots     String[]    @default([])
+  customName     String?
+  status         ItemStatus  @default(FUNCTIONAL)
+  itemLocation   String      @default("carried")
 
   @@index([characterId])
-  @@index([sourceType,itemId])
+  @@index([sourceType, itemId])
   @@unique([characterId, sourceType, itemId])
 }
 
+/** Snapshot per roll; sort for display: total desc, modifier desc, submittedAt asc. */
+type CharacterInitiative {
+  characterId        String   @db.ObjectId
+  rolledValue        Int
+  initiativeModifier Int
+  submittedAt        DateTime
+}
+
 model Game {
-  id         String          @id @default(auto()) @map("_id") @db.ObjectId
-  gameMaster String          @db.ObjectId
-  imageKey   String?
-  name       String
-  users      GameUser[]
-  characters GameCharacter[]
-  customItems CustomItem[]
+  id               String                  @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster       String                  @db.ObjectId
+  imageKey         String?
+  name             String
+  premise          String?
+  nextSession      DateTime?
+  lore             String?
+  users            GameUser[]
+  characters       GameCharacter[]
+  customItems      CustomItem[]
+  uniqueItems      UniqueItem[]
+  invites          GameInvite[]
+  initiativeOrder  CharacterInitiative[]
+  discordIntegration DiscordIntegration?
+  rollEvents       RollEvent[]
 
   @@index([gameMaster])
+}
+
+model DiscordIntegration {
+  id                String                   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId             String                   @unique @db.ObjectId
+  guildId            String
+  channelId          String
+  installedByUserId  String                   @db.ObjectId
+  status             DiscordIntegrationStatus @default(ACTIVE)
+  lastError          String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  game             Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  installedByUser  User @relation("DiscordIntegrationInstalledBy", fields: [installedByUserId], references: [id])
+  outbox           DiscordOutbox[]
+
+  @@index([installedByUserId])
+  @@index([guildId, channelId])
+}
+
+model RollEvent {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId        String   @db.ObjectId
+  characterId   String?  @db.ObjectId
+  rollerUserId  String   @db.ObjectId
+  rollType      RollType
+  diceExpression String?
+  results       Int[]
+  total         Int?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  game       Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  character  Character? @relation(fields: [characterId], references: [id])
+  rollerUser User       @relation("RollEventUser", fields: [rollerUserId], references: [id])
+  outbox     DiscordOutbox?
+
+  @@index([gameId, createdAt])
+  @@index([rollerUserId, createdAt])
+}
+
+model DiscordOutbox {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  rollEventId    String             @unique @db.ObjectId
+  integrationId  String             @db.ObjectId
+  status         DiscordOutboxStatus @default(PENDING)
+  attemptCount   Int                @default(0)
+  lastError      String?
+  nextAttemptAt  DateTime           @default(now())
+  sentAt         DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  rollEvent    RollEvent           @relation(fields: [rollEventId], references: [id], onDelete: Cascade)
+  integration  DiscordIntegration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([integrationId])
+}
+
+model GameInvite {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId          String   @db.ObjectId
+  invitedUserId   String   @db.ObjectId
+  invitedByUserId String   @db.ObjectId
+  createdAt       DateTime @default(now())
+
+  game       Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  invitedUser User @relation("GameInviteInvited", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy   User @relation("GameInviteInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, invitedUserId])
+  @@index([gameId])
+  @@index([invitedUserId])
 }
 
 model GameUser {
@@ -348,6 +476,8 @@ model Item {
   defenceRangeBonus    Int?
   gridAttackBonus      Int?
   gridDefenceBonus     Int?
+  effectiveRange       Int?
+  maxRange             Int?
   confCost             Int
   costInfo             String?
   damage               ItemDamage?
@@ -359,6 +489,9 @@ model Item {
   usage                String?
   weight               Float
   equippable           Boolean                    @default(false)
+  equipSlotTypes       String[]                   @default([])
+  equipSlotCost        Int?
+  maxUses              Int?
 }
 
 model CustomItem {
@@ -373,6 +506,8 @@ model CustomItem {
   defenceRangeBonus    Int?
   gridAttackBonus      Int?
   gridDefenceBonus     Int?
+  effectiveRange       Int?
+  maxRange             Int?
   confCost             Int?
   costInfo             String?
   damage               ItemDamage?
@@ -384,14 +519,20 @@ model CustomItem {
   usage                String?
   weight               Float
   equippable           Boolean? @default(false)
+  equipSlotTypes       String[]                   @default([])
+  equipSlotCost        Int?
+  maxUses              Int?
 }
 
 model UniqueItem {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId String   @db.ObjectId
+  gameId      String?  @db.ObjectId
+  game        Game?    @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  // template it’s based on
-  sourceType  ItemSourceType // GLOBAL_ITEM | CUSTOM_ITEM
-  itemId      String         @db.ObjectId
+  // template it’s based on (itemId null when sourceType is STANDALONE)
+  sourceType  ItemSourceType
+  itemId      String?        @db.ObjectId
 
   attackRollOverride        ItemWeaponAttackRollType[]
   attackMeleeBonusOverride Int?
@@ -401,6 +542,8 @@ model UniqueItem {
   defenceRangeBonusOverride Int?
   gridAttackBonusOverride  Int?
   gridDefenceBonusOverride Int?
+  effectiveRangeOverride   Int?
+  maxRangeOverride         Int?
   confCostOverride         Int?
   costInfoOverride         String?
   damageOverride           ItemDamage?
@@ -412,6 +555,11 @@ model UniqueItem {
   notesOverride            String?
   specialTag               String?  // e.g. "AMPLIFIED", "PROTOTYPE"
   equippableOverride       Boolean?
+  equipSlotTypesOverride   Json?  // String[] when set; null = use template
+  equipSlotCostOverride    Int?
+  maxUsesOverride          Int?
+  @@index([ownerUserId])
+  @@index([gameId])
 }
 
 model Feature {
@@ -486,6 +634,10 @@ model User {
   email String @unique
   name  String
 
-  games      GameUser[]
-  characters CharacterUser[]
+  games               GameUser[]
+  characters          CharacterUser[]
+  gameInvitesReceived GameInvite[] @relation("GameInviteInvited")
+  gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
+  discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")
+  rollEvents          RollEvent[] @relation("RollEventUser")
 }

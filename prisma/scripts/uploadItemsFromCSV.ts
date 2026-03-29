@@ -8,8 +8,10 @@
  *
  * CSV columns (order flexible via header): name, type, accessType, confCost,
  * costInfo, description, notes, weight, usage, imageKey, equippable,
+ * equipSlotTypes, equipSlotCost, maxUses,
  * attackRoll, attackMeleeBonus, attackRangeBonus, attackThrowBonus,
  * defenceMeleeBonus, defenceRangeBonus, gridAttackBonus, gridDefenceBonus,
+ * effectiveRange, maxRange,
  * damageDiceType, damageNumberOfDice, damageType, areaType, coneLength,
  * primaryRadius, secondaryRadius (or damagePrimaryRadius, damageSecondaryRadius),
  * areaEffectDefenceReactionCost, areaEffectDefenceRoll, areaEffectSuccessfulDefenceResult
@@ -17,6 +19,9 @@
  * - weight is required (number). Use 0 if not applicable.
  * - accessType defaults to PLAYER if missing.
  * - equippable: optional; "true", "1", "yes" (case-insensitive) = true, otherwise false.
+ * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD.
+ * - equipSlotCost: optional; 0, 1, or 2. Omit or leave empty for no value.
+ * - maxUses: optional; positive integer. Omit or leave empty for unlimited/no value.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
  * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
@@ -26,11 +31,30 @@
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
-import { MongoClient, ObjectId } from "mongodb";
+import type { ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 import { parse } from "csv-parse/sync";
 import { itemSchema, type Item } from "../../src/app/lib/types/item";
 
 const ITEM_COLLECTION = "Item";
+
+/** Get CSV value with flexible column matching (exact, then case-insensitive) */
+function getColumn(
+  row: Record<string, string>,
+  primaryName: string,
+  ...aliases: string[]
+): string | undefined {
+  const names = [primaryName, ...aliases];
+  const keys = Object.keys(row);
+  for (const name of names) {
+    const exact = row[name];
+    if (exact !== undefined && exact !== "") return exact;
+    const lower = name.toLowerCase();
+    const match = keys.find((k) => k.toLowerCase() === lower);
+    if (match) return row[match];
+  }
+  return undefined;
+}
 
 function parseOptionalInt(value: string | undefined): number | undefined {
   if (value === undefined || value === null || String(value).trim() === "")
@@ -65,6 +89,28 @@ function parseBoolean(value: string | undefined): boolean {
   if (value === undefined || value === null) return false;
   const s = String(value).trim().toLowerCase();
   return s === "true" || s === "1" || s === "yes";
+}
+
+const VALID_EQUIP_SLOT_TYPES = ["HAND", "FOOT", "BODY", "HEAD"] as const;
+
+function parseEquipSlotTypes(
+  value: string | undefined
+): (typeof VALID_EQUIP_SLOT_TYPES)[number][] {
+  if (value === undefined || value === null || String(value).trim() === "")
+    return [];
+  return String(value)
+    .split(/[;,]/)
+    .map((s) => s.trim().toUpperCase())
+    .filter((s): s is (typeof VALID_EQUIP_SLOT_TYPES)[number] =>
+      (VALID_EQUIP_SLOT_TYPES as readonly string[]).includes(s)
+    ) as (typeof VALID_EQUIP_SLOT_TYPES)[number][];
+}
+
+function parseEquipSlotCost(value: string | undefined): 0 | 1 | 2 | undefined {
+  const n = parseOptionalInt(value);
+  if (n === undefined) return undefined;
+  if (n === 0 || n === 1 || n === 2) return n;
+  return undefined;
 }
 
 const VALID_DAMAGE_TYPES = [
@@ -113,10 +159,32 @@ function csvRowToItem(row: Record<string, string>): Item {
     notes: parseOptionalString(row.notes),
     weight: parseOptionalFloat(row.weight) ?? 0,
     equippable: parseBoolean(row.equippable),
+    equipSlotTypes: parseEquipSlotTypes(
+      getColumn(row, "equipSlotTypes", "equip_slot_types", "Equip Slot Types")
+    ),
+    equipSlotCost: parseEquipSlotCost(
+      getColumn(row, "equipSlotCost", "equip_slot_cost", "Equip Slot Cost")
+    ),
+    maxUses: parseOptionalInt(
+      getColumn(row, "maxUses", "max_uses", "Max Uses")
+    ),
     defenceMeleeBonus: parseOptionalInt(row.defenceMeleeBonus),
     defenceRangeBonus: parseOptionalInt(row.defenceRangeBonus),
-    gridAttackBonus: parseOptionalInt(row.gridAttackBonus),
-    gridDefenceBonus: parseOptionalInt(row.gridDefenceBonus),
+    gridAttackBonus: parseOptionalInt(
+      getColumn(row, "gridAttackBonus", "GridAttackBonus", "grid_attack_bonus")
+    ),
+    gridDefenceBonus: parseOptionalInt(
+      getColumn(
+        row,
+        "gridDefenceBonus",
+        "GridDefenceBonus",
+        "grid_defence_bonus"
+      )
+    ),
+    effectiveRange: parseOptionalInt(
+      getColumn(row, "effectiveRange", "effective_range")
+    ),
+    maxRange: parseOptionalInt(getColumn(row, "maxRange", "max_range")),
   };
 
   if (type === "GENERAL_ITEM") {
@@ -167,6 +235,7 @@ function csvRowToItem(row: Record<string, string>): Item {
   return {
     ...base,
     type: "WEAPON",
+    usage: parseOptionalString(row.usage),
     attackRoll: parseAttackRoll(row.attackRoll) as (
       | "RANGE"
       | "MELEE"
@@ -181,6 +250,11 @@ function csvRowToItem(row: Record<string, string>): Item {
 }
 
 function itemToMongoDoc(item: Item): Record<string, unknown> {
+  const itemWithEquip = item as Item & {
+    equipSlotTypes?: string[];
+    equipSlotCost?: number;
+    usage?: string;
+  };
   const base: Record<string, unknown> = {
     accessType: item.accessType,
     confCost: item.confCost,
@@ -192,10 +266,15 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     type: item.type,
     weight: item.weight,
     equippable: item.equippable ?? false,
+    equipSlotTypes: itemWithEquip.equipSlotTypes ?? [],
+    equipSlotCost: itemWithEquip.equipSlotCost ?? null,
+    maxUses: item.maxUses ?? null,
     defenceMeleeBonus: item.defenceMeleeBonus ?? null,
     defenceRangeBonus: item.defenceRangeBonus ?? null,
     gridAttackBonus: item.gridAttackBonus ?? null,
     gridDefenceBonus: item.gridDefenceBonus ?? null,
+    effectiveRange: item.effectiveRange ?? null,
+    maxRange: item.maxRange ?? null,
   };
 
   if (item.type === "GENERAL_ITEM") {
@@ -226,7 +305,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
       secondaryRadius: item.damage.secondaryRadius ?? null,
       areaEffect: item.damage.areaEffect ?? null,
     },
-    usage: null,
+    usage: itemWithEquip.usage ?? null,
   };
 }
 

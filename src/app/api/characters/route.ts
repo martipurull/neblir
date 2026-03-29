@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { characterCreationRequestSchema } from "./schemas";
 import { computeCharacterRequestData } from "./parsing";
 import { auth } from "@/auth";
-import { AuthNextRequest } from "@/app/lib/types/api";
-import { Prisma } from "@prisma/client";
+import type { AuthNextRequest } from "@/app/lib/types/api";
+import type { Prisma } from "@prisma/client";
 import { getUser } from "@/app/lib/prisma/user";
-import { createCharacterWithRelations } from "@/app/lib/prisma/character";
+import {
+  createCharacterWithRelations,
+  getCharactersByUserId,
+} from "@/app/lib/prisma/character";
+import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
+import { getPath } from "@/app/lib/prisma/path";
 import {
   CharacterCreationTransactionError,
   serializeError,
@@ -13,13 +18,52 @@ import {
 import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
 import logger from "@/logger";
-import { Currency } from "@/app/lib/types/item";
+
+export const GET = auth(async (request: AuthNextRequest) => {
+  try {
+    const userId = request.auth?.user?.id;
+    if (!userId) {
+      logger.error({
+        method: "GET",
+        route: "/api/characters",
+        message: "Unauthorised access attempt",
+      });
+      return errorResponse("Unauthorised", 401);
+    }
+
+    const characters = await getCharactersByUserId(userId);
+
+    return NextResponse.json(
+      characters.map((character) => ({
+        id: character.id,
+        name: character.generalInformation.name,
+        surname: character.generalInformation.surname,
+        level: character.generalInformation.level,
+        paths: character.paths.map((pathCharacter) => pathCharacter.path.name),
+        avatarKey: character.generalInformation.avatarKey,
+      })),
+      { status: 200 }
+    );
+  } catch (error) {
+    logger.error({
+      method: "GET",
+      route: "/api/characters",
+      message: "Error fetching user characters",
+      error,
+    });
+    return errorResponse(
+      "Error fetching user characters",
+      500,
+      serializeError(error)
+    );
+  }
+});
 
 export const POST = auth(async (request: AuthNextRequest) => {
   const user = request.auth?.user;
 
   try {
-    if (!user || !user.id) {
+    if (!user?.id) {
       logger.error({
         method: "POST",
         route: "/api/characters",
@@ -85,29 +129,72 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
-    const { wallet = [], ...characterCreationDataWithoutWallet } =
-      characterCreationData as typeof characterCreationData & {
-        wallet?: Currency[];
-      };
+    const characterCreateData =
+      characterCreationData as Prisma.CharacterCreateInput;
 
-    const characterCreateData: Prisma.CharacterCreateInput = {
-      ...characterCreationDataWithoutWallet,
-      wallet:
-        wallet.length > 0
-          ? {
-              create: wallet.map((entry) => ({
-                currencyName: entry.currencyName,
-                quantity: entry.quantity,
-              })),
-            }
-          : undefined,
-    };
+    const pathId = parseResult.data.path.pathId;
+    const pathRank = parseResult.data.path.rank;
+    const rawInitialFeatures = (
+      requestBody as {
+        initialFeatures?: { featureId: string; grade: number }[];
+      }
+    ).initialFeatures;
+    let initialFeatures: { featureId: string; grade: number }[] = [];
+
+    if (Array.isArray(rawInitialFeatures) && rawInitialFeatures.length > 0) {
+      const path = await getPath(pathId);
+      if (!path) {
+        return errorResponse("Path not found", 400);
+      }
+      const availableFeatures = await getAllFeaturesAvailableForPathAndRank(
+        path.name,
+        pathRank
+      );
+      const availableIds = new Set(availableFeatures.map((f) => f.id));
+      const featureMap = new Map(availableFeatures.map((f) => [f.id, f]));
+      let gradeSum = 0;
+      for (const entry of rawInitialFeatures) {
+        if (
+          typeof entry?.featureId !== "string" ||
+          typeof entry?.grade !== "number" ||
+          entry.grade < 1
+        ) {
+          return errorResponse("Invalid initialFeatures entry", 400);
+        }
+        if (!availableIds.has(entry.featureId)) {
+          return errorResponse(
+            "One or more features are not available for the selected path and rank",
+            400
+          );
+        }
+        const feature = featureMap.get(entry.featureId);
+        if (feature && entry.grade > feature.maxGrade) {
+          return errorResponse(
+            `Feature ${feature.name} grade exceeds max (${feature.maxGrade})`,
+            400
+          );
+        }
+        gradeSum += entry.grade;
+        initialFeatures.push({
+          featureId: entry.featureId,
+          grade: entry.grade,
+        });
+      }
+      const featureSlots = Math.max(0, 2 * (pathRank - 1));
+      if (gradeSum > featureSlots) {
+        return errorResponse(
+          "Total feature grades cannot exceed character feature slots",
+          400
+        );
+      }
+    }
 
     const character = await createCharacterWithRelations({
       data: characterCreateData,
       userId: user.id,
-      pathId: parseResult.data.path.pathId,
-      pathRank: parseResult.data.path.rank,
+      pathId,
+      pathRank,
+      initialFeatures,
     });
 
     return NextResponse.json(character, { status: 201 });

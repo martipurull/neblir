@@ -1,5 +1,5 @@
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
-import { AuthNextRequest } from "@/app/lib/types/api";
+import type { AuthNextRequest } from "@/app/lib/types/api";
 import { generalInformationSchema } from "@/app/lib/types/character";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
@@ -71,9 +71,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...parsedBody,
     };
 
-    const updatedCharacter = await updateCharacter(id, {
+    const updateData: Parameters<typeof updateCharacter>[1] = {
       generalInformation: newGeneralInformation,
-    });
+    };
+
+    const updatedCharacter = await updateCharacter(id, updateData);
 
     return NextResponse.json(updatedCharacter, { status: 200 });
   } catch (error) {
