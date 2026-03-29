@@ -25,7 +25,7 @@ export function useInventoryUses({
   const pendingUsesRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setDisplayUses(entry.currentUses ?? 0);
+    queueMicrotask(() => setDisplayUses(entry.currentUses ?? 0));
   }, [entry.currentUses, entry.id]);
 
   const saveUses = useCallback(async () => {

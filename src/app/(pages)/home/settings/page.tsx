@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 import DangerActionFooter from "@/app/components/shared/DangerActionFooter";
 import ErrorState from "@/app/components/shared/ErrorState";

@@ -10,7 +10,7 @@ import {
   saveGameDiscordIntegration,
 } from "@/lib/api/game";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { startTransition, useEffect, useMemo, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type Props = {
@@ -39,19 +39,22 @@ export function GmDiscordSection({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (integration?.channelId) {
-      setChannelId(integration.channelId);
+    const id = integration?.channelId;
+    if (id) {
+      queueMicrotask(() => setChannelId(id));
     }
   }, [integration?.channelId]);
 
   useEffect(() => {
     if (!resolvedGuildId) {
-      setChannels([]);
+      queueMicrotask(() => setChannels([]));
       return;
     }
     let cancelled = false;
-    setLoadingChannels(true);
-    setError(null);
+    startTransition(() => {
+      setLoadingChannels(true);
+      setError(null);
+    });
     void getDiscordGuildChannels(gameId, resolvedGuildId)
       .then((list) => {
         if (cancelled) return;

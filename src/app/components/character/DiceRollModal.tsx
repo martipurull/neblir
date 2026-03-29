@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
@@ -37,10 +36,11 @@ export function DiceRollModal({
   const totalDice = Math.max(0, baseDice + extraDice);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    queueMicrotask(() => {
       setExtraDice(0);
       setRollResult(null);
-    }
+    });
   }, [isOpen]);
 
   const handleRoll = useCallback(() => {

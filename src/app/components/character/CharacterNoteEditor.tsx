@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import {
@@ -7,7 +6,7 @@ import {
 } from "@/app/lib/tiptap/characterNote";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 
 export interface CharacterNoteEditorProps {
   initialDoc: JSONContent;
@@ -28,7 +27,9 @@ export function CharacterNoteEditor({
   className = "",
 }: CharacterNoteEditorProps) {
   const onDebouncedDocRef = useRef(onDebouncedDoc);
-  onDebouncedDocRef.current = onDebouncedDoc;
+  useLayoutEffect(() => {
+    onDebouncedDocRef.current = onDebouncedDoc;
+  }, [onDebouncedDoc]);
 
   const editor = useEditor({
     extensions: CHARACTER_NOTE_EXTENSIONS,

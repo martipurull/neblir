@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { CharacterNoteEditor } from "@/app/components/character/CharacterNoteEditor";
@@ -14,7 +13,13 @@ import type {
 import { updateCharacterNotes } from "@/lib/api/character";
 import type { JSONContent } from "@tiptap/core";
 import type { KeyedMutator } from "swr";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 export type CharacterNoteModalMode =
   | { type: "create" }
@@ -47,7 +52,9 @@ export function CharacterNoteEditorModal({
   /** Avoid overlapping PATCHes so a create flow cannot prepend twice. */
   const persistQueueRef = useRef(Promise.resolve());
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useLayoutEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen || mode == null) return;

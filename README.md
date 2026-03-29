@@ -46,7 +46,7 @@ Use this checklist before shipping UI or PWA changes.
 
 ### Desktop browser mode (normal tab)
 
-- Sign in succeeds and redirects to dashboard
+- Sign in succeeds and redirects to `/home`
 - Sign out succeeds and redirects back to home
 - Dashboard sections render as expected
 - Keyboard focus states are visible on interactive controls

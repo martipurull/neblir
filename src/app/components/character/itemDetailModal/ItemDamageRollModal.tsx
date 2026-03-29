@@ -29,10 +29,11 @@ export function ItemDamageRollModal({
   const totalDamageDice = Math.max(0, baseDamageDice + extraDice);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) return;
+    queueMicrotask(() => {
       setExtraDice(0);
       setRollResult(null);
-    }
+    });
   }, [isOpen]);
 
   const handleRoll = () => {

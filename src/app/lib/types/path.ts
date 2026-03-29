@@ -26,6 +26,8 @@ export const pathSchema = z.object({
   name: pathName,
   description: z.string().nullish(),
   baseFeature: z.string(),
+  /** Present when path is loaded on a character (PathCharacter.rank). */
+  rank: z.number().optional(),
 });
 
 export const pathUpdateSchema = pathSchema.partial().strict();

@@ -66,7 +66,7 @@ export function SelectDropdown({
 
   useEffect(() => {
     if (!open) return;
-    setFilterQuery("");
+    queueMicrotask(() => setFilterQuery(""));
     const focusTimer = setTimeout(() => filterInputRef.current?.focus(), 0);
     return () => clearTimeout(focusTimer);
   }, [open]);

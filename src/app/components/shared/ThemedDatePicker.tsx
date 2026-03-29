@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useLayoutEffect, useState } from "react";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -56,12 +56,13 @@ export function ThemedDatePicker({
       })()
     : placeholder;
 
-  useEffect(() => {
-    if (value) {
-      const [y, m] = value.split("-").map(Number);
+  useLayoutEffect(() => {
+    if (!value) return;
+    const [y, m] = value.split("-").map(Number);
+    queueMicrotask(() => {
       setViewYear(y);
       setViewMonth(m - 1);
-    }
+    });
   }, [value]);
 
   useEffect(() => {
