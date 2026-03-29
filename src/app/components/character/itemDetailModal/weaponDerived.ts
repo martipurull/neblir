@@ -9,7 +9,7 @@ export type WeaponDamageSlice = {
 export function getWeaponDamage(
   item: ResolvedItemNonNull | null | undefined
 ): WeaponDamageSlice | null {
-  if (!item || item.type !== "WEAPON") return null;
+  if (item?.type !== "WEAPON") return null;
   if (!("damage" in item) || !item.damage) return null;
   return item.damage;
 }

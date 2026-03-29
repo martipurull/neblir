@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
@@ -23,19 +22,21 @@ export function InitiativeOrderModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    if (initialGameId && gameDetails.some((g) => g.id === initialGameId)) {
-      setSelectedGameId(initialGameId);
-      return;
-    }
-    if (gameDetails.length === 1) {
-      setSelectedGameId(gameDetails[0].id);
-    } else if (gameDetails.length > 1) {
-      setSelectedGameId((prev) =>
-        prev && gameDetails.some((g) => g.id === prev)
-          ? prev
-          : (gameDetails[0]?.id ?? "")
-      );
-    }
+    queueMicrotask(() => {
+      if (initialGameId && gameDetails.some((g) => g.id === initialGameId)) {
+        setSelectedGameId(initialGameId);
+        return;
+      }
+      if (gameDetails.length === 1) {
+        setSelectedGameId(gameDetails[0].id);
+      } else if (gameDetails.length > 1) {
+        setSelectedGameId((prev) =>
+          prev && gameDetails.some((g) => g.id === prev)
+            ? prev
+            : (gameDetails[0]?.id ?? "")
+        );
+      }
+    });
   }, [isOpen, gameDetails, initialGameId]);
 
   const selectedGame = gameDetails.find((g) => g.id === selectedGameId);

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
+import { SerwistProvider } from "./serwist-provider";
 
 export const metadata: Metadata = {
   applicationName: "Neblir",
@@ -32,7 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <SerwistProvider swUrl="/serwist/sw.js">
+          <Providers>{children}</Providers>
+        </SerwistProvider>
       </body>
     </html>
   );

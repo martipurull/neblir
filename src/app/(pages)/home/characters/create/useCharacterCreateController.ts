@@ -74,7 +74,6 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist current step index.
@@ -110,7 +109,6 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist feature selection whenever it changes.
@@ -283,7 +281,6 @@ export function useCharacterCreateController() {
       const el = document.activeElement;
       if (el instanceof HTMLElement) el.blur();
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStepIndex]);
 
   const onSubmit = useCallback(

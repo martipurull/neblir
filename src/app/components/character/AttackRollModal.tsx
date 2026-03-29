@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
@@ -80,7 +79,8 @@ export function AttackRollModal({
   const totalDice = Math.max(0, selectedMod + extraDice);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    queueMicrotask(() => {
       const best =
         options.length > 0
           ? options.reduce(
@@ -93,7 +93,7 @@ export function AttackRollModal({
       setRollResult(null);
       setDamageExtraDice(0);
       setDamageRollResult(null);
-    }
+    });
   }, [isOpen, options]);
 
   const handleRoll = useCallback(async () => {
@@ -117,14 +117,13 @@ export function AttackRollModal({
       },
     });
   }, [
+    selected,
     selectedMod,
     extraDice,
-    selected?.itemCharacterId,
     onWeaponUsed,
     gameId,
     characterId,
     attackType,
-    selected?.weaponName,
   ]);
 
   const baseDamageDice = selected?.numberOfDice ?? 0;

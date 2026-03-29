@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { Path } from "@/app/lib/types/path";

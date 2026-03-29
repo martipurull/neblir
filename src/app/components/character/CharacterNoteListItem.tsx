@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml";

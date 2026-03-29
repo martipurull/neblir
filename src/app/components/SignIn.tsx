@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -19,7 +18,7 @@ export default function SignIn() {
         className="mt-6 w-full max-w-lg"
         onSubmit={(event) => {
           event.preventDefault();
-          void signIn("google", { callbackUrl: "/dashboard" });
+          void signIn("google", { callbackUrl: "/home" });
         }}
       >
         <Button type="submit" text="Sign in with Google" />

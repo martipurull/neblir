@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -154,7 +153,7 @@ export function CharacterSummaryHeader({
       return "Software Warrior: +1d6 damage";
     }
     return undefined;
-  }, [softwareWarriorFeature?.grade]);
+  }, [softwareWarriorFeature]);
   const gridDefenceModifierHint = useMemo(() => {
     const parts = [
       `Mentality ${formatSigned(character.innateAttributes.personality.mentality)}`,

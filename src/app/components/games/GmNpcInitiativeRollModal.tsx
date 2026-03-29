@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";

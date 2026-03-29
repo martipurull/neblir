@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-expressions
 "use client";
 
 import { characterNoteStoredToHtml } from "@/app/lib/tiptap/characterNote";
