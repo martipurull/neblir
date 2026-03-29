@@ -1,54 +1,18 @@
 "use client";
 
-import {
-  equipSlotCostSchema,
-  itemDamageSchema,
-  type ItemDamage,
-} from "@/app/lib/types/item";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { Checkbox } from "@/app/components/shared/Checkbox";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
-import {
-  getUserSafeApiError,
-  getUserSafeErrorMessage,
-} from "@/lib/userSafeError";
-import React, { useState } from "react";
+import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
+import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
+import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
+import React from "react";
 
 const ITEM_TYPES = [
   { value: "GENERAL_ITEM", label: "General item" },
   { value: "WEAPON", label: "Weapon" },
-] as const;
-
-const ATTACK_ROLL_TYPES = [
-  { value: "RANGE", label: "Range" },
-  { value: "MELEE", label: "Melee" },
-  { value: "GRID", label: "Grid" },
-  { value: "THROW", label: "Throw" },
-] as const;
-
-const DAMAGE_TYPES = [
-  "BULLET",
-  "BLADE",
-  "SIIKE",
-  "ACID",
-  "FIRE",
-  "ICE",
-  "BLUDGEONING",
-  "ELECTRICITY",
-  "NERVE",
-  "POISON",
-  "OTHER",
-] as const;
-
-const EQUIP_SLOTS = [
-  { value: "HAND", label: "Hand" },
-  { value: "FOOT", label: "Foot" },
-  { value: "BODY", label: "Body" },
-  { value: "HEAD", label: "Head" },
 ] as const;
 
 type CreateCustomItemModalProps = {
@@ -66,212 +30,7 @@ export default function CreateCustomItemModal({
   onClose,
   onSuccess,
 }: CreateCustomItemModalProps) {
-  const [name, setName] = useState("");
-  const [weight, setWeight] = useState<string>("");
-  const [type, setType] = useState<"GENERAL_ITEM" | "WEAPON">("GENERAL_ITEM");
-  const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
-  const [usage, setUsage] = useState("");
-  const [costInfo, setCostInfo] = useState("");
-  const [confCost, setConfCost] = useState<string>("");
-  const [equippable, setEquippable] = useState(false);
-  const [equipSlotTypes, setEquipSlotTypes] = useState<string[]>([]);
-  const [equipSlotCost, setEquipSlotCost] = useState<string>("");
-  const [maxUses, setMaxUses] = useState<string>("");
-  const [attackRoll, setAttackRoll] = useState<string[]>([]);
-  const [attackMeleeBonus, setAttackMeleeBonus] = useState<string>("");
-  const [attackRangeBonus, setAttackRangeBonus] = useState<string>("");
-  const [attackThrowBonus, setAttackThrowBonus] = useState<string>("");
-  const [defenceMeleeBonus, setDefenceMeleeBonus] = useState<string>("");
-  const [defenceRangeBonus, setDefenceRangeBonus] = useState<string>("");
-  const [gridAttackBonus, setGridAttackBonus] = useState<string>("");
-  const [gridDefenceBonus, setGridDefenceBonus] = useState<string>("");
-  const [effectiveRange, setEffectiveRange] = useState<string>("");
-  const [maxRange, setMaxRange] = useState<string>("");
-  const [damageTypes, setDamageTypes] = useState<string[]>([]);
-  const [damageDiceType, setDamageDiceType] = useState<string>("");
-  const [damageNumberOfDice, setDamageNumberOfDice] = useState<string>("");
-
-  const imageUpload = useItemImageUpload("custom_items");
-  const {
-    imageKey,
-    pendingImageKey,
-    setPendingImageKey,
-    deleteUploadedImage,
-    handleFile,
-    handleDrop,
-    handleDragOver,
-    reset: resetImageUpload,
-  } = imageUpload;
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const toggleAttackRoll = (value: string) => {
-    setAttackRoll((prev) =>
-      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-    );
-  };
-
-  const toggleEquipSlot = (value: string) => {
-    setEquipSlotTypes((prev) =>
-      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-    );
-  };
-
-  const toggleDamageType = (value: string) => {
-    setDamageTypes((prev) =>
-      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-    );
-  };
-
-  const buildDamage = (): ItemDamage | undefined => {
-    if (damageTypes.length === 0 || !damageDiceType || !damageNumberOfDice)
-      return undefined;
-    const diceType = parseInt(damageDiceType, 10);
-    const numberOfDice = parseInt(damageNumberOfDice, 10);
-    if (
-      Number.isNaN(diceType) ||
-      Number.isNaN(numberOfDice) ||
-      numberOfDice < 1
-    )
-      return undefined;
-    const parsed = itemDamageSchema.safeParse({
-      damageType: damageTypes,
-      diceType,
-      numberOfDice,
-    });
-    return parsed.success ? parsed.data : undefined;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    const weightNum = parseFloat(weight);
-    if (!name.trim()) {
-      setError("Name is required.");
-      return;
-    }
-    if (weight === "" || Number.isNaN(weightNum) || weightNum < 0) {
-      setError("Weight is required and must be a non‑negative number.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const body: Record<string, unknown> = {
-        name: name.trim(),
-        weight: weightNum,
-        type,
-        attackRoll,
-        description: description.trim() || undefined,
-        notes: notes.trim() || undefined,
-        usage: usage.trim() || undefined,
-        costInfo: costInfo.trim() || undefined,
-        equippable: equippable || undefined,
-        equipSlotTypes: equipSlotTypes.length ? equipSlotTypes : undefined,
-      };
-      if (confCost !== "") {
-        const n = parseInt(confCost, 10);
-        if (!Number.isNaN(n)) body.confCost = n;
-      }
-      if (equipSlotCost !== "") {
-        const parsed = equipSlotCostSchema.safeParse(
-          parseInt(equipSlotCost, 10)
-        );
-        if (parsed.success) body.equipSlotCost = parsed.data;
-      }
-      if (maxUses !== "") {
-        const n = parseInt(maxUses, 10);
-        if (Number.isInteger(n) && n > 0) body.maxUses = n;
-      }
-      const addNum = (key: string, val: string) => {
-        const n = parseInt(val, 10);
-        if (val !== "" && !Number.isNaN(n))
-          (body as Record<string, number>)[key] = n;
-      };
-      addNum("attackMeleeBonus", attackMeleeBonus);
-      addNum("attackRangeBonus", attackRangeBonus);
-      addNum("attackThrowBonus", attackThrowBonus);
-      addNum("defenceMeleeBonus", defenceMeleeBonus);
-      addNum("defenceRangeBonus", defenceRangeBonus);
-      addNum("gridAttackBonus", gridAttackBonus);
-      addNum("gridDefenceBonus", gridDefenceBonus);
-      addNum("effectiveRange", effectiveRange);
-      addNum("maxRange", maxRange);
-
-      const damage = buildDamage();
-      if (damage) body.damage = damage;
-      if (imageKey) body.imageKey = imageKey;
-
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/custom-items`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        if (pendingImageKey) {
-          await deleteUploadedImage(pendingImageKey);
-          setPendingImageKey("");
-        }
-        setError(
-          getUserSafeApiError(
-            res.status,
-            data as { message?: string; details?: string },
-            "Failed to create custom item."
-          )
-        );
-        return;
-      }
-      setPendingImageKey("");
-      onSuccess?.();
-      void handleClose(true);
-    } catch (e) {
-      if (pendingImageKey) {
-        await deleteUploadedImage(pendingImageKey);
-        setPendingImageKey("");
-      }
-      setError(getUserSafeErrorMessage(e, "Failed to create custom item."));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleClose = async (skipCleanup?: boolean) => {
-    if (!skipCleanup && pendingImageKey) {
-      await deleteUploadedImage(pendingImageKey);
-    }
-    setName("");
-    setWeight("");
-    setType("GENERAL_ITEM");
-    setDescription("");
-    setNotes("");
-    setUsage("");
-    setCostInfo("");
-    setConfCost("");
-    setEquippable(false);
-    setEquipSlotTypes([]);
-    setEquipSlotCost("");
-    setMaxUses("");
-    setAttackRoll([]);
-    setAttackMeleeBonus("");
-    setAttackRangeBonus("");
-    setAttackThrowBonus("");
-    setDefenceMeleeBonus("");
-    setDefenceRangeBonus("");
-    setGridAttackBonus("");
-    setGridDefenceBonus("");
-    setDamageTypes([]);
-    setDamageDiceType("");
-    setDamageNumberOfDice("");
-    resetImageUpload();
-    setError(null);
-    onClose();
-  };
+  const f = useCreateCustomItemModal({ gameId, onClose, onSuccess });
 
   return (
     <GameFormModal
@@ -284,14 +43,13 @@ export default function CreateCustomItemModal({
         </>
       }
       titleId="create-custom-item-title"
-      error={error}
-      onClose={() => void handleClose()}
-      onSubmit={(e) => void handleSubmit(e)}
-      submitting={submitting}
+      error={f.error}
+      onClose={() => void f.handleClose()}
+      onSubmit={(e) => void f.handleSubmit(e)}
+      submitting={f.submitting}
       submitLabel="Create custom item"
       submittingLabel="Creating…"
     >
-      {/* Basics */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">Basics</h3>
         <div className="space-y-3">
@@ -300,11 +58,11 @@ export default function CreateCustomItemModal({
             <input
               id="custom-item-name"
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={f.name}
+              onChange={(e) => f.setName(e.target.value)}
               className={modalInputClass}
               placeholder="e.g. Combat knife"
-              disabled={submitting}
+              disabled={f.submitting}
             />
           </div>
           <div>
@@ -314,11 +72,11 @@ export default function CreateCustomItemModal({
               type="number"
               min={0}
               step={0.1}
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              value={f.weight}
+              onChange={(e) => f.setWeight(e.target.value)}
               className={modalInputClass}
               placeholder="0"
-              disabled={submitting}
+              disabled={f.submitting}
             />
           </div>
           <div>
@@ -326,16 +84,15 @@ export default function CreateCustomItemModal({
               id="custom-item-type"
               label="Type"
               placeholder="Select type"
-              value={type}
+              value={f.type}
               options={[...ITEM_TYPES]}
-              disabled={submitting}
-              onChange={(v) => setType(v as "GENERAL_ITEM" | "WEAPON")}
+              disabled={f.submitting}
+              onChange={(v) => f.setType(v as "GENERAL_ITEM" | "WEAPON")}
             />
           </div>
         </div>
       </section>
 
-      {/* Optional text */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">
           Description &amp; usage
@@ -345,11 +102,11 @@ export default function CreateCustomItemModal({
             <ModalFieldLabel id="custom-item-description" label="Description" />
             <textarea
               id="custom-item-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={f.description}
+              onChange={(e) => f.setDescription(e.target.value)}
               className={modalInputClass + " min-h-[80px]"}
               placeholder="Item description"
-              disabled={submitting}
+              disabled={f.submitting}
               rows={3}
             />
           </div>
@@ -357,11 +114,11 @@ export default function CreateCustomItemModal({
             <ModalFieldLabel id="custom-item-usage" label="Usage" />
             <textarea
               id="custom-item-usage"
-              value={usage}
-              onChange={(e) => setUsage(e.target.value)}
+              value={f.usage}
+              onChange={(e) => f.setUsage(e.target.value)}
               className={modalInputClass + " min-h-[80px]"}
               placeholder="e.g. One use per round"
-              disabled={submitting}
+              disabled={f.submitting}
               rows={3}
             />
           </div>
@@ -370,11 +127,11 @@ export default function CreateCustomItemModal({
             <input
               id="custom-item-notes"
               type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={f.notes}
+              onChange={(e) => f.setNotes(e.target.value)}
               className={modalInputClass}
               placeholder="GM notes"
-              disabled={submitting}
+              disabled={f.submitting}
             />
           </div>
           <div>
@@ -382,11 +139,11 @@ export default function CreateCustomItemModal({
             <input
               id="custom-item-cost-info"
               type="text"
-              value={costInfo}
-              onChange={(e) => setCostInfo(e.target.value)}
+              value={f.costInfo}
+              onChange={(e) => f.setCostInfo(e.target.value)}
               className={modalInputClass}
               placeholder="e.g. Not for sale"
-              disabled={submitting}
+              disabled={f.submitting}
             />
           </div>
           <div>
@@ -395,303 +152,80 @@ export default function CreateCustomItemModal({
               id="custom-item-conf-cost"
               type="number"
               min={0}
-              value={confCost}
-              onChange={(e) => setConfCost(e.target.value)}
+              value={f.confCost}
+              onChange={(e) => f.setConfCost(e.target.value)}
               className={modalInputClass}
               placeholder="0"
-              disabled={submitting}
+              disabled={f.submitting}
             />
           </div>
         </div>
       </section>
 
-      {/* Combat (weapon) */}
-      {type === "WEAPON" && (
+      {f.type === "WEAPON" && (
         <section>
           <h3 className="mb-3 text-sm font-semibold text-white/90">
             Weapon &amp; combat
           </h3>
-          <div className="space-y-3">
-            <div>
-              <ModalFieldLabel
-                id="custom-item-attack-roll"
-                label="Attack roll types"
-              />
-              <div className="flex flex-wrap gap-2">
-                {ATTACK_ROLL_TYPES.map((t) => (
-                  <Checkbox
-                    key={t.value}
-                    checked={attackRoll.includes(t.value)}
-                    onChange={() => toggleAttackRoll(t.value)}
-                    disabled={submitting}
-                    tone="inverse"
-                    label={t.label}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-melee-bonus"
-                  label="Melee bonus"
-                />
-                <input
-                  id="custom-item-melee-bonus"
-                  type="number"
-                  value={attackMeleeBonus}
-                  onChange={(e) => setAttackMeleeBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-range-bonus"
-                  label="Range bonus"
-                />
-                <input
-                  id="custom-item-range-bonus"
-                  type="number"
-                  value={attackRangeBonus}
-                  onChange={(e) => setAttackRangeBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-throw-bonus"
-                  label="Throw bonus"
-                />
-                <input
-                  id="custom-item-throw-bonus"
-                  type="number"
-                  value={attackThrowBonus}
-                  onChange={(e) => setAttackThrowBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-grid-attack"
-                  label="Grid attack"
-                />
-                <input
-                  id="custom-item-grid-attack"
-                  type="number"
-                  value={gridAttackBonus}
-                  onChange={(e) => setGridAttackBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-defence-melee"
-                  label="Defence melee"
-                />
-                <input
-                  id="custom-item-defence-melee"
-                  type="number"
-                  value={defenceMeleeBonus}
-                  onChange={(e) => setDefenceMeleeBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-defence-range"
-                  label="Defence range"
-                />
-                <input
-                  id="custom-item-defence-range"
-                  type="number"
-                  value={defenceRangeBonus}
-                  onChange={(e) => setDefenceRangeBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-grid-defence"
-                  label="Grid defence"
-                />
-                <input
-                  id="custom-item-grid-defence"
-                  type="number"
-                  value={gridDefenceBonus}
-                  onChange={(e) => setGridDefenceBonus(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-effective-range"
-                  label="Effective range"
-                />
-                <input
-                  id="custom-item-effective-range"
-                  type="number"
-                  min={0}
-                  value={effectiveRange}
-                  onChange={(e) => setEffectiveRange(e.target.value)}
-                  className={modalInputClass}
-                  placeholder="Distance units"
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel id="custom-item-max-range" label="Max range" />
-                <input
-                  id="custom-item-max-range"
-                  type="number"
-                  min={0}
-                  value={maxRange}
-                  onChange={(e) => setMaxRange(e.target.value)}
-                  className={modalInputClass}
-                  placeholder="Distance units"
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            <div>
-              <ModalFieldLabel
-                id="custom-item-damage-types"
-                label="Damage types"
-              />
-              <div className="flex flex-wrap gap-2">
-                {DAMAGE_TYPES.map((d) => (
-                  <Checkbox
-                    key={d}
-                    checked={damageTypes.includes(d)}
-                    onChange={() => toggleDamageType(d)}
-                    disabled={submitting}
-                    tone="inverse"
-                    label={d}
-                    className="text-xs"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <ModalFieldLabel id="custom-item-dice-type" label="Dice type" />
-                <input
-                  id="custom-item-dice-type"
-                  type="number"
-                  min={1}
-                  value={damageDiceType}
-                  onChange={(e) => setDamageDiceType(e.target.value)}
-                  className={modalInputClass}
-                  placeholder="e.g. 6"
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-number-dice"
-                  label="Number of dice"
-                />
-                <input
-                  id="custom-item-number-dice"
-                  type="number"
-                  min={1}
-                  value={damageNumberOfDice}
-                  onChange={(e) => setDamageNumberOfDice(e.target.value)}
-                  className={modalInputClass}
-                  placeholder="e.g. 2"
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-          </div>
+          <ItemModalWeaponFields
+            fieldIdPreset="custom"
+            disabled={f.submitting}
+            attackRoll={f.attackRoll}
+            onToggleAttackRoll={f.toggleAttackRoll}
+            attackMeleeBonus={f.attackMeleeBonus}
+            onAttackMeleeBonusChange={f.setAttackMeleeBonus}
+            attackRangeBonus={f.attackRangeBonus}
+            onAttackRangeBonusChange={f.setAttackRangeBonus}
+            attackThrowBonus={f.attackThrowBonus}
+            onAttackThrowBonusChange={f.setAttackThrowBonus}
+            gridAttackBonus={f.gridAttackBonus}
+            onGridAttackBonusChange={f.setGridAttackBonus}
+            defenceMeleeBonus={f.defenceMeleeBonus}
+            onDefenceMeleeBonusChange={f.setDefenceMeleeBonus}
+            defenceRangeBonus={f.defenceRangeBonus}
+            onDefenceRangeBonusChange={f.setDefenceRangeBonus}
+            gridDefenceBonus={f.gridDefenceBonus}
+            onGridDefenceBonusChange={f.setGridDefenceBonus}
+            effectiveRange={f.effectiveRange}
+            onEffectiveRangeChange={f.setEffectiveRange}
+            maxRange={f.maxRange}
+            onMaxRangeChange={f.setMaxRange}
+            damageTypes={f.damageTypes}
+            onToggleDamageType={f.toggleDamageType}
+            damageDiceType={f.damageDiceType}
+            onDamageDiceTypeChange={f.setDamageDiceType}
+            damageNumberOfDice={f.damageNumberOfDice}
+            onDamageNumberOfDiceChange={f.setDamageNumberOfDice}
+            damageTypesLayout="single-row"
+          />
         </section>
       )}
 
-      {/* Equippable */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">Equippable</h3>
-        <div className="space-y-3">
-          <Checkbox
-            checked={equippable}
-            onChange={setEquippable}
-            disabled={submitting}
-            tone="inverse"
-            label="Can be equipped"
-          />
-          {equippable && (
-            <>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-equip-slots"
-                  label="Equip slots"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {EQUIP_SLOTS.map((s) => (
-                    <Checkbox
-                      key={s.value}
-                      checked={equipSlotTypes.includes(s.value)}
-                      onChange={() => toggleEquipSlot(s.value)}
-                      disabled={submitting}
-                      tone="inverse"
-                      label={s.label}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <ModalFieldLabel
-                  id="custom-item-equip-slot-cost"
-                  label="Equip slot cost (0, 1, or 2)"
-                />
-                <input
-                  id="custom-item-equip-slot-cost"
-                  type="number"
-                  min={0}
-                  max={2}
-                  value={equipSlotCost}
-                  onChange={(e) => setEquipSlotCost(e.target.value)}
-                  className={modalInputClass}
-                  disabled={submitting}
-                />
-              </div>
-            </>
-          )}
-          <div>
-            <ModalFieldLabel id="custom-item-max-uses" label="Max uses" />
-            <input
-              id="custom-item-max-uses"
-              type="number"
-              min={1}
-              value={maxUses}
-              onChange={(e) => setMaxUses(e.target.value)}
-              className={modalInputClass}
-              placeholder="Leave empty for unlimited"
-              disabled={submitting}
-            />
-          </div>
-        </div>
+        <ItemModalEquippableFields
+          disabled={f.submitting}
+          equippable={f.equippable}
+          onEquippableChange={f.setEquippable}
+          equipSlotTypes={f.equipSlotTypes}
+          onToggleEquipSlot={f.toggleEquipSlot}
+          equipSlotCost={f.equipSlotCost}
+          onEquipSlotCostChange={f.setEquipSlotCost}
+          maxUses={f.maxUses}
+          onMaxUsesChange={f.setMaxUses}
+        />
       </section>
 
       <ImageUploadDropzone
         id="custom-item-image"
         label="Image"
-        imageKey={imageKey}
-        onFileChange={(file) => void handleFile(file)}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        uploading={imageUpload.uploading}
-        error={imageUpload.uploadError}
-        disabled={submitting}
+        imageKey={f.imageKey}
+        onFileChange={(file) => void f.handleFile(file)}
+        onDrop={f.handleDrop}
+        onDragOver={f.handleDragOver}
+        uploading={f.imageUpload.uploading}
+        error={f.imageUpload.uploadError}
+        disabled={f.submitting}
       />
     </GameFormModal>
   );

@@ -21,18 +21,15 @@ export function getAttributesSection(
   onDiceSelect?: (item: DiceSelectionItem) => void
 ): CharacterSectionSlide {
   const attrs = character.innateAttributes;
-  const mental: (keyof typeof attrs)[] = [
-    "intelligence",
-    "wisdom",
-    "personality",
-  ]
+  type AttrGroupKey = keyof typeof attrs;
+  const mental: AttrGroupKey[] = (
+    ["intelligence", "wisdom", "personality"] as AttrGroupKey[]
+  )
     .slice()
     .sort((a, b) => a.localeCompare(b));
-  const physical: (keyof typeof attrs)[] = [
-    "strength",
-    "dexterity",
-    "constitution",
-  ]
+  const physical: AttrGroupKey[] = (
+    ["strength", "dexterity", "constitution"] as AttrGroupKey[]
+  )
     .slice()
     .sort((a, b) => a.localeCompare(b));
   const armourMod = character.combatInformation?.armourMod ?? 0;
@@ -47,7 +44,7 @@ export function getAttributesSection(
 
   const renderAttributeGroup = (
     groupLabel: string,
-    attributeKeys: (keyof typeof attrs)[]
+    attributeKeys: AttrGroupKey[]
   ) => (
     <div key={groupLabel} className="space-y-4">
       <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">

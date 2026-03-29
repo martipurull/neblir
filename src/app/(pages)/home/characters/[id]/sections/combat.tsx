@@ -19,7 +19,6 @@ import { KeyValueRow } from "./section-shared";
 
 interface CombatSectionOptions {
   onClearReactions: () => void;
-  /** Number of reactions used this round; button is disabled when 0 */
   usedReactions: number;
   initiative: {
     gameDetails: GameDetail[];
