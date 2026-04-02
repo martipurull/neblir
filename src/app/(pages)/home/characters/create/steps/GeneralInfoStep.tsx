@@ -54,22 +54,47 @@ export function GeneralInfoStep() {
   }, [imageUpload.imageKey, setValue]);
 
   return (
-    <div className="space-y-4">
-      <ImageUploadDropzone
-        id="character-avatar"
-        label="Character image"
-        imageKey={formAvatarKey || imageUpload.imageKey}
-        onFileChange={(file) => {
-          void imageUpload.handleFile(file);
-          // If the user explicitly removes the image, clear the form value too.
-          if (!file) setValue("generalInformation.avatarKey", "");
-        }}
-        onDrop={imageUpload.handleDrop}
-        onDragOver={imageUpload.handleDragOver}
-        uploading={imageUpload.uploading}
-        error={imageUpload.uploadError}
-        variant="light"
-      />
+    <div className="grid grid-cols-1 gap-x-4 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
+        <Controller
+          name="generalInformation.level"
+          control={control}
+          render={({ field }) => {
+            const value = typeof field.value === "number" ? field.value : 1;
+            return (
+              <RangeSlider
+                id="generalInformation.level"
+                label="Character level"
+                value={value}
+                onChange={(v) => field.onChange(v)}
+                allowedMin={1}
+                allowedMax={10}
+                visualMin={1}
+                visualMax={10}
+                step={1}
+                showTicks
+              />
+            );
+          }}
+        />
+      </div>
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
+        <ImageUploadDropzone
+          id="character-avatar"
+          label="Character image"
+          imageKey={formAvatarKey || imageUpload.imageKey}
+          onFileChange={(file) => {
+            void imageUpload.handleFile(file);
+            // If the user explicitly removes the image, clear the form value too.
+            if (!file) setValue("generalInformation.avatarKey", "");
+          }}
+          onDrop={imageUpload.handleDrop}
+          onDragOver={imageUpload.handleDragOver}
+          uploading={imageUpload.uploading}
+          error={imageUpload.uploadError}
+          variant="light"
+        />
+      </div>
       <TextInput
         name="generalInformation.name"
         label="Name"
@@ -123,7 +148,17 @@ export function GeneralInfoStep() {
         label="Birthplace"
         placeholder="e.g. New Haven"
       />
-      <div className="mb-6">
+      <NumberInput
+        name="generalInformation.height"
+        label="Height (cm)"
+        min={1}
+      />
+      <NumberInput
+        name="generalInformation.weight"
+        label="Weight (kg)"
+        min={1}
+      />
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
         <p className="mb-2 block font-bold text-black">Money (wallet)</p>
         <p className="mb-2 text-xs text-black/70">
           Disposable income you think your character would have access to. Add
@@ -238,37 +273,6 @@ export function GeneralInfoStep() {
           }}
         />
       </div>
-      <Controller
-        name="generalInformation.level"
-        control={control}
-        render={({ field }) => {
-          const value = typeof field.value === "number" ? field.value : 1;
-          return (
-            <RangeSlider
-              id="generalInformation.level"
-              label="Character level"
-              value={value}
-              onChange={(v) => field.onChange(v)}
-              allowedMin={1}
-              allowedMax={10}
-              visualMin={1}
-              visualMax={10}
-              step={1}
-              showTicks
-            />
-          );
-        }}
-      />
-      <NumberInput
-        name="generalInformation.height"
-        label="Height (cm)"
-        min={1}
-      />
-      <NumberInput
-        name="generalInformation.weight"
-        label="Weight (kg)"
-        min={1}
-      />
     </div>
   );
 }

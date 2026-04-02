@@ -16,7 +16,6 @@ import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
 
 export function CharacterUpdateFormContent() {
   const {
-    characterId,
     steps,
     currentStepIndex,
     isLastStep,
@@ -44,14 +43,6 @@ export function CharacterUpdateFormContent() {
         onStepClick={goToStep}
         className="mb-8"
       />
-      <div className="mb-4 flex justify-end">
-        <a
-          href={`/home/characters/${characterId}`}
-          className="rounded border border-black/30 px-3 py-1.5 text-sm text-black transition-colors hover:border-black/50"
-        >
-          Exit to character page
-        </a>
-      </div>
 
       <form
         onSubmit={(e) => {

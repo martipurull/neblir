@@ -163,7 +163,7 @@ export default function LevelUpPathFeaturesStep({
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {features.map((feature) => {
           const existing = existingFeatureById.get(feature.id);
           const canPickNew = !existing;
@@ -179,7 +179,7 @@ export default function LevelUpPathFeaturesStep({
           return (
             <div
               key={feature.id}
-              className={`rounded border-2 p-3 ${
+              className={`flex h-40 flex-col rounded border-2 p-3 sm:h-44 xl:h-48 ${
                 isSelected
                   ? "border-customPrimary bg-customPrimary/5"
                   : "border-black/20"
@@ -209,11 +209,11 @@ export default function LevelUpPathFeaturesStep({
                   <span className="text-xs text-black/60">Not learned yet</span>
                 )}
               </div>
-              {feature.description && (
-                <p className="mt-1 text-sm text-black/70">
-                  {feature.description}
-                </p>
-              )}
+              <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
+                {feature.description && (
+                  <p className="text-sm text-black/70">{feature.description}</p>
+                )}
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -221,7 +221,11 @@ export default function LevelUpPathFeaturesStep({
                   onClick={() =>
                     setFeatureChoiceAtSlot(activeFeatureSlot, "new", feature.id)
                   }
-                  className="rounded border border-neblirSafe-400 px-2 py-1 text-xs text-neblirSafe-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`rounded border px-2 py-1 text-xs ${
+                    canPickNew
+                      ? "border-neblirSafe-400 text-neblirSafe-600 hover:bg-neblirSafe-50"
+                      : "border-black/20 bg-transparent text-black/40"
+                  } disabled:cursor-not-allowed`}
                 >
                   Pick as new
                 </button>
@@ -235,7 +239,11 @@ export default function LevelUpPathFeaturesStep({
                       feature.id
                     )
                   }
-                  className="rounded border border-customPrimary px-2 py-1 text-xs text-customPrimary disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`rounded border px-2 py-1 text-xs ${
+                    canIncrease
+                      ? "border-neblirSafe-400 text-neblirSafe-600 hover:bg-neblirSafe-50"
+                      : "border-black/20 bg-transparent text-black/40"
+                  } disabled:cursor-not-allowed`}
                 >
                   Increase grade
                 </button>

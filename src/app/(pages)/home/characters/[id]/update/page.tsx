@@ -2,11 +2,12 @@
 
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import ErrorState from "@/app/components/shared/ErrorState";
 import LoadingState from "@/app/components/shared/LoadingState";
+import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import { useCharacter } from "@/hooks/use-character";
 import { CharacterUpdateFormContent } from "./CharacterUpdateFormContent";
 import {
@@ -16,6 +17,7 @@ import {
 
 export default function CharacterUpdatePage() {
   const params = useParams();
+  const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
   const { character, loading, error, refetch } = useCharacter(id);
 
@@ -58,10 +60,21 @@ export default function CharacterUpdatePage() {
 
   return (
     <PageSection>
-      <PageTitle>Update Character</PageTitle>
-      <p className="mt-2 mb-6 text-sm text-black/70">
-        Update your editable character information across each section.
-      </p>
+      <div className="mb-3 flex justify-center">
+        <DangerButton
+          type="button"
+          onClick={() => router.push(`/home/characters/${id}`)}
+          className="text-xs"
+        >
+          Exit to character page
+        </DangerButton>
+      </div>
+      <div className="lg:text-center lg:my-4">
+        <PageTitle>Update Character</PageTitle>
+        <p className="mt-2 mb-6 text-sm text-black/70">
+          Update your editable character information across each section.
+        </p>
+      </div>
       <FormProvider {...form}>
         <CharacterUpdateFormContent />
       </FormProvider>

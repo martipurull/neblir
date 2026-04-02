@@ -2,7 +2,6 @@
 
 import ErrorState from "@/app/components/shared/ErrorState";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
@@ -114,27 +113,27 @@ export default function GameDetailPage() {
           <PageTitle>{game.name}</PageTitle>
         </div>
 
-        {/* Next session */}
-        <InfoCard border>
-          <h2 className="text-sm font-semibold text-black">Next Session</h2>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <ThemedDatePicker
-              value={nextSessionValue}
-              onChange={(dateString) =>
-                void handleNextSessionChange(dateString)
-              }
-              disabled={!isGameMaster || nextSessionBusy}
-              ariaLabel="Next session date"
-              placeholder="Set date"
-            />
-            {nextSessionError && (
-              <p className="text-sm text-red-600">{nextSessionError}</p>
-            )}
+        {/* Section boxes: Next session, GM (only for GM), Characters, Custom items, Lore */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="flex flex-col rounded-md border border-black p-4">
+            <span className="text-sm font-semibold text-black">
+              Next Session
+            </span>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <ThemedDatePicker
+                value={nextSessionValue}
+                onChange={(dateString) =>
+                  void handleNextSessionChange(dateString)
+                }
+                disabled={!isGameMaster || nextSessionBusy}
+                ariaLabel="Next session date"
+                placeholder="Set date"
+              />
+              {nextSessionError && (
+                <p className="text-sm text-red-600">{nextSessionError}</p>
+              )}
+            </div>
           </div>
-        </InfoCard>
-
-        {/* Section boxes: GM (only for GM), Characters, Custom items, Lore */}
-        <div className="grid gap-3 sm:grid-cols-3">
           {isGameMaster && (
             <Link
               href={`/home/games/${game.id}/gm`}
