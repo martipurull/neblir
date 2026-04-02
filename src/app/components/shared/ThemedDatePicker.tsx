@@ -121,7 +121,7 @@ export function ThemedDatePicker({
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="min-w-[10rem] rounded border border-black/20 bg-paleBlue/80 px-3 py-2 text-left text-sm text-black placeholder:text-black/50 focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-paleBlue/60 disabled:text-black/60"
+        className="min-w-[10rem] rounded border border-black/20 bg-paleBlue px-3 py-2 text-left text-sm text-black placeholder:text-black/50 focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-paleBlue/60 disabled:text-black/60"
       >
         {displayLabel}
       </button>

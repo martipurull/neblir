@@ -5,7 +5,7 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import { DISPLAY_SLOTS, getApiSlotsForDisplay } from "@/app/lib/equipUtils";
 import type { KeyedMutator } from "swr";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
 
@@ -39,8 +39,6 @@ export function HeaderStatsCarouselRow({
   onGridAttack,
   onGridDefence,
 }: HeaderStatsCarouselRowProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [pageIndex, setPageIndex] = useState(0);
   const [pickerSlot, setPickerSlot] = useState<DisplayEquipSlot | null>(null);
 
   const slotValues = useMemo((): Record<DisplayEquipSlot, React.ReactNode> => {
@@ -96,60 +94,38 @@ export function HeaderStatsCarouselRow({
     return values;
   }, [character?.inventory]);
 
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const width = el.clientWidth;
-    const index = Math.round(el.scrollLeft / width);
-    setPageIndex(Math.max(0, Math.min(index, 1)));
-  };
-
   const canEquip = !!character && !!mutate;
 
   return (
-    <div className="mt-1.5 w-full max-w-xs min-w-0 overflow-hidden">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex w-full min-w-0 overflow-x-auto snap-x snap-mandatory gap-1.5 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
-        style={{ scrollSnapType: "x mandatory" }}
-      >
-        <div className="grid w-full min-w-0 shrink-0 grid-cols-3 gap-1.5 snap-start snap-always">
-          <StatCell
-            label="GRID Atk"
-            value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
-            compact
-            onClick={showGridAttack ? onGridAttack : undefined}
-          />
-          <StatCell
-            label="GRID Def"
-            value={fmt(gridDefenceDisplayMod)}
-            compact
-            onClick={gridDefenceDisabled ? undefined : onGridDefence}
-            disabled={gridDefenceDisabled}
-          />
-          <StatCell label="GRID Mods" value={gridModCellValue} compact />
-        </div>
-        <div className="grid w-full min-w-0 shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 overflow-hidden snap-start snap-always [&>*]:min-w-0 [&>*]:overflow-hidden">
-          {DISPLAY_SLOTS.map(({ slot, label }) => (
-            <StatCell
-              key={slot}
-              label={label}
-              value={slotValues[slot]}
-              compact
-              alignTop
-              onClick={canEquip ? () => setPickerSlot(slot) : undefined}
-            />
-          ))}
-        </div>
+    <div className="mt-1.5 w-full min-w-0">
+      <div className="grid w-full min-w-0 grid-cols-3 gap-1.5">
+        <StatCell
+          label="GRID Atk"
+          value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
+          compact
+          onClick={showGridAttack ? onGridAttack : undefined}
+        />
+        <StatCell
+          label="GRID Def"
+          value={fmt(gridDefenceDisplayMod)}
+          compact
+          onClick={gridDefenceDisabled ? undefined : onGridDefence}
+          disabled={gridDefenceDisabled}
+        />
+        <StatCell label="GRID Mods" value={gridModCellValue} compact />
       </div>
-      <div className="mt-1 flex justify-center gap-1" aria-hidden>
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${pageIndex === 0 ? "bg-black" : "bg-black/30"}`}
-        />
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${pageIndex === 1 ? "bg-black" : "bg-black/30"}`}
-        />
+
+      <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5 [&>*]:min-w-0 [&>*]:overflow-hidden">
+        {DISPLAY_SLOTS.map(({ slot, label }) => (
+          <StatCell
+            key={slot}
+            label={label}
+            value={slotValues[slot]}
+            compact
+            alignTop
+            onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+          />
+        ))}
       </div>
 
       {character && mutate && pickerSlot && (

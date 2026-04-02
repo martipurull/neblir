@@ -24,7 +24,13 @@ export default function LevelUpQuickCheckModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-lg rounded border border-black/20 bg-modalBackground-200 p-4 shadow-lg">
+      <div
+        className={`w-full rounded border border-black/20 bg-modalBackground-200 p-4 shadow-lg ${
+          open === "attributes"
+            ? "max-w-lg lg:max-w-3xl"
+            : "max-w-lg lg:max-w-xl"
+        }`}
+      >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold text-black">
             {open === "attributes" && "Current attributes"}
@@ -40,7 +46,7 @@ export default function LevelUpQuickCheckModal({
         </div>
 
         {open === "attributes" && (
-          <div className="max-h-80 overflow-y-auto bg-transparent p-2">
+          <div className="max-h-80 overflow-y-auto bg-transparent p-2 lg:max-h-[75vh]">
             <div className="grid gap-3 sm:grid-cols-2">
               {(
                 Object.keys(ATTRIBUTE_GROUP_LABELS) as Array<

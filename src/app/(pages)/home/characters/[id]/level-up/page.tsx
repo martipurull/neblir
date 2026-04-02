@@ -7,7 +7,7 @@ import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageSubtitle from "@/app/components/shared/PageSubtitle";
 import PageTitle from "@/app/components/shared/PageTitle";
-import { WarningButton } from "@/app/components/shared/SemanticActionButton";
+import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import { Stepper } from "@/app/components/shared/Stepper";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useCharacter } from "@/hooks/use-character";
@@ -67,7 +67,7 @@ function CharacterLevelUpLoaded({
   return (
     <PageSection>
       <div className="mb-3 flex justify-center">
-        <WarningButton
+        <DangerButton
           type="button"
           onClick={() => {
             clearLevelUpDraft(id);
@@ -76,16 +76,18 @@ function CharacterLevelUpLoaded({
           className="text-xs"
         >
           Exit to character page
-        </WarningButton>
+        </DangerButton>
       </div>
-      <PageTitle>Level Up Character</PageTitle>
-      <PageSubtitle>
-        Levelling up from level {character.generalInformation.level} to{" "}
-        {targetLevel}.
-      </PageSubtitle>
-      <p className="mt-2 mb-6 text-sm text-black/70">
-        All level-based effects are calculated for level {targetLevel}.
-      </p>
+      <div className="lg:text-center lg:my-4">
+        <PageTitle>Level Up Character</PageTitle>
+        <PageSubtitle>
+          Levelling up from level {character.generalInformation.level} to{" "}
+          {targetLevel}.
+        </PageSubtitle>
+        <p className="mt-2 mb-6 text-sm text-black/70">
+          All level-based effects are calculated for level {targetLevel}.
+        </p>
+      </div>
 
       <Stepper
         steps={STEPS}

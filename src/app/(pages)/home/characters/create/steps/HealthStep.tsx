@@ -167,7 +167,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded border border-black/20 bg-transparent p-3">
           <p className="font-bold text-black">Innate physical health</p>
           <p className="mt-1 text-sm text-black/70">
