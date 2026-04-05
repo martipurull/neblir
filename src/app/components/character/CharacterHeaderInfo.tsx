@@ -1,6 +1,7 @@
 "use client";
 
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Chevron } from "@/app/components/shared/Chevron";
 import Image from "next/image";
 import React, { useState } from "react";
 import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
@@ -25,7 +26,7 @@ export function CharacterHeaderInfo({
   const [actionsOpen, setActionsOpen] = useState(false);
 
   return (
-    <div className={`flex items-center gap-3 pb-2 ${className ?? ""}`}>
+    <div className={`flex items-center gap-5 pb-2 ${className ?? ""}`}>
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {avatarUrl ? (
           <Image
@@ -42,19 +43,29 @@ export function CharacterHeaderInfo({
           />
         )}
       </div>
-      <div className="min-w-0 flex-1 text-center sm:text-left">
-        <h1 className="text-base font-bold text-black">
-          <button
-            type="button"
-            onClick={() => setActionsOpen(true)}
-            className="max-w-full cursor-pointer rounded px-0.5 text-center text-base font-bold text-black transition-opacity hover:opacity-80 sm:text-left"
-          >
-            {name}
-          </button>
-        </h1>
-        <p className="text-sm text-black">
-          LVL {level} · {pathsLabel}
-        </p>
+
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="min-w-0 flex-1 text-center sm:text-left">
+          <h1 className="truncate text-base font-bold text-black">{name}</h1>
+          <p className="text-sm text-black">
+            LVL {level} · {pathsLabel}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          aria-label={`Character actions for ${name}`}
+          aria-haspopup="dialog"
+          aria-expanded={actionsOpen}
+          onClick={() => setActionsOpen(true)}
+          className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+        >
+          <Chevron
+            direction="right"
+            strokeWidth={2.75}
+            className="h-7 w-7 shrink-0"
+          />
+        </button>
       </div>
 
       <CharacterNameActionsModal

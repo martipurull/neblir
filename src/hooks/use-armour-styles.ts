@@ -10,7 +10,7 @@ export function useArmourStyles(
   currentHP: number,
   maxHP: number
 ): ArmourStyleSet {
-  if (maxHP <= 0) {
+  if (maxHP <= 0 || currentHP <= 0) {
     return {
       borderClassName: undefined,
       valueClassName: undefined,

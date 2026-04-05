@@ -113,6 +113,8 @@ export function CharacterSummaryHeader({
     armourDisplay.armourCurrentHP,
     armourDisplay.armourMaxHP
   );
+  const armourInactive =
+    armourDisplay.armourMaxHP <= 0 || armourDisplay.armourCurrentHP <= 0;
 
   const { value: reactionsValue, disabled: reactionsDisabled } =
     useReactionDisplay({
@@ -177,8 +179,9 @@ export function CharacterSummaryHeader({
               borderClassName={armourStyles.borderClassName}
               valueClassName={armourStyles.valueClassName}
               subValueClassName={armourStyles.subValueClassName}
+              disabled={armourInactive}
               onClick={
-                armourDisplay.armourMaxHP > 0 && onArmourUpdate
+                onArmourUpdate && !armourInactive
                   ? () => setStatModalOpen("armour")
                   : undefined
               }
