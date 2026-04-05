@@ -23,7 +23,7 @@ export function ItemDetailUsesSection({
           type="button"
           onClick={() => onDelta(-1)}
           disabled={displayUses <= 0}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Decrease uses"
         >
           −
@@ -35,7 +35,7 @@ export function ItemDetailUsesSection({
           type="button"
           onClick={() => onDelta(1)}
           disabled={displayUses >= maxUses}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Increase uses"
         >
           +

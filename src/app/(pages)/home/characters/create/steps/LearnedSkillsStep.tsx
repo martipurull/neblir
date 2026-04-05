@@ -92,7 +92,7 @@ export function LearnedSkillsStep() {
           className={`rounded-md border px-3 py-2 text-sm font-semibold shadow-sm backdrop-blur bg-transparent ${
             isOverAllocated
               ? "border-neblirDanger-600 bg-neblirDanger-50/70 text-neblirDanger-700"
-              : "border-black/20 bg-white/60 text-black"
+              : "border-black/20 bg-paleBlue/60 text-black"
           }`}
         >
           Skill points used: {used} / {maxPoints}

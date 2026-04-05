@@ -57,7 +57,7 @@ export function GameFormModal({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -85,7 +85,7 @@ export function GameFormModal({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -93,7 +93,7 @@ export function GameFormModal({
             type="submit"
             form={FORM_ID}
             disabled={submitting || submitDisabled}
-            className="rounded-md border-2 border-white bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-paleBlue px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
           >
             {submitting ? submittingLabel : submitLabel}
           </button>

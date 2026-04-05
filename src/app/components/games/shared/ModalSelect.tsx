@@ -15,7 +15,7 @@ export type ModalSelectProps = {
 };
 
 const filterInputClass =
-  "w-full rounded border border-white/40 bg-white/10 px-2 py-1.5 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-1 focus:ring-white";
+  "w-full rounded border border-white/40 bg-paleBlue/10 px-2 py-1.5 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-1 focus:ring-white";
 
 export function ModalSelect({
   id,
@@ -137,9 +137,9 @@ export function ModalSelect({
                     }
                   }}
                   tabIndex={0}
-                  className={`cursor-pointer px-3 py-2.5 text-left text-sm text-black transition-colors hover:bg-white/20 ${
+                  className={`cursor-pointer px-3 py-2.5 text-left text-sm text-black transition-colors hover:bg-paleBlue/20 ${
                     value === opt.value
-                      ? "bg-white/15 font-medium"
+                      ? "bg-paleBlue/15 font-medium"
                       : "bg-modalBackground-200"
                   }`}
                 >

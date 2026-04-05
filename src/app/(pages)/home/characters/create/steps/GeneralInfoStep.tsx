@@ -205,7 +205,7 @@ export function GeneralInfoStep() {
                             <span className="truncate">
                               + {CURRENCY_LABELS[cn]}
                             </span>
-                            <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-white/50">
+                            <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
                                 <Image
                                   src={currencyImageUrl}
@@ -228,7 +228,7 @@ export function GeneralInfoStep() {
                             <span className="truncate text-sm font-medium">
                               {CURRENCY_LABELS[cn]}
                             </span>
-                            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-white/50">
+                            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
                                 <Image
                                   src={currencyImageUrl}

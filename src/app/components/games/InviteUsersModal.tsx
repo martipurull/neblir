@@ -143,7 +143,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -167,7 +167,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             type="button"
             onClick={addEmail}
             disabled={submitting}
-            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Add
           </button>
@@ -178,7 +178,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             <p className="text-xs font-medium text-white/70">
               To invite ({emails.length})
             </p>
-            <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto rounded border border-white/30 bg-white/5 p-2">
+            <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto rounded border border-white/30 bg-paleBlue/5 p-2">
               {emails.map((email) => (
                 <li
                   key={email}
@@ -236,7 +236,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             {result && emails.length === 0 ? "Close" : "Cancel"}
           </button>
@@ -244,7 +244,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitting || emails.length === 0}
-            className="rounded-md border-2 border-white bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-paleBlue px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
           >
             {submitting ? "Sending…" : "Invite to game"}
           </button>

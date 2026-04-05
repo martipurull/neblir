@@ -50,7 +50,7 @@ export function GmInvitesSection({
                 {pendingInvites.map((inv) => (
                   <li
                     key={inv.invitedUserId}
-                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-black/10 bg-white/50 px-3 py-2 text-sm text-black"
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-black/10 bg-paleBlue/50 px-3 py-2 text-sm text-black"
                   >
                     <span className="font-medium">{inv.invitedUserName}</span>
                     <span className="truncate text-xs text-black/70">

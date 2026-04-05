@@ -26,7 +26,7 @@ export function CharacterHeaderInfo({
 
   return (
     <div className={`flex items-center gap-3 pb-2 ${className ?? ""}`}>
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
+      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {avatarUrl ? (
           <Image
             src={avatarUrl}

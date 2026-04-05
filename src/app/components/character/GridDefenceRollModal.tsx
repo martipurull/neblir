@@ -102,7 +102,7 @@ export function GridDefenceRollModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -119,7 +119,7 @@ export function GridDefenceRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((d) => d - 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
                 aria-label="Decrease extra dice"
               >
                 −
@@ -130,7 +130,7 @@ export function GridDefenceRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((d) => d + 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
                 aria-label="Increase extra dice"
               >
                 +
@@ -177,14 +177,14 @@ export function GridDefenceRollModal({
               type="button"
               onClick={() => void handleRoll()}
               disabled={reactionDisabled || totalDice === 0}
-              className="flex-1 rounded-md border-2 border-white bg-white py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
+              className="flex-1 rounded-md border-2 border-white bg-paleBlue py-2.5 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
             >
               ROLL
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
             >
               Close
             </button>

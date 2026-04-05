@@ -33,7 +33,7 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   const cardContent = (
     <div className="w-full">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
           {showImage ? (
             <Image
               src={imageUrl}
@@ -69,7 +69,7 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
     return (
       <Link
         href={href}
-        className={`block transition-colors hover:bg-black/10 ${baseClassName}`}
+        className={`block transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30 ${baseClassName}`}
       >
         {cardContent}
       </Link>

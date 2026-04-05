@@ -68,7 +68,7 @@ export function EquipSlotChoiceModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -89,7 +89,7 @@ export function EquipSlotChoiceModal({
                   }
                 }}
                 disabled={full}
-                className="rounded border-2 border-white bg-transparent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                className="rounded border-2 border-white bg-transparent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
               >
                 {slotLabels[slot]}
                 {full && " (full)"}

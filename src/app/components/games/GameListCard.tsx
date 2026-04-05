@@ -34,16 +34,16 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
 
   return (
     <div
-      className={`overflow-hidden rounded-md border border-black transition-colors ${
-        open ? "bg-black/5" : ""
+      className={`overflow-hidden rounded-md border border-black transition-colors duration-500 ease-in-out ${
+        open ? "bg-black/5" : "md:hover:bg-paleBlue/30"
       }`}
     >
       <div className="flex items-center gap-3 px-5 py-4">
         <Link
           href={gameHref}
-          className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-90"
+          className="flex min-w-0 flex-1 items-center gap-3"
         >
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
             {showImage ? (
               <Image
                 src={imageUrl}

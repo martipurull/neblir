@@ -48,7 +48,7 @@ export function UniqueItemModalSourceSection({ f }: Props) {
         )}
 
         {f.sourceType === "STANDALONE" ? (
-          <div className="space-y-3 rounded border border-white/20 bg-white/5 p-3">
+          <div className="space-y-3 rounded border border-white/20 bg-paleBlue/5 p-3">
             <p className="text-sm text-white/80">
               For found objects, gifts, or anything that is not in the catalogs
               — only a name and weight are required.
