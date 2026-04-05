@@ -137,7 +137,7 @@ export function ThemedDatePicker({
               type="button"
               onClick={goPrev}
               aria-label="Previous month"
-              className="rounded p-1.5 text-white/80 hover:bg-white/10"
+              className="rounded p-1.5 text-white/80 hover:bg-paleBlue/10"
             >
               ‹
             </button>
@@ -148,7 +148,7 @@ export function ThemedDatePicker({
               type="button"
               onClick={goNext}
               aria-label="Next month"
-              className="rounded p-1.5 text-white/80 hover:bg-white/10"
+              className="rounded p-1.5 text-white/80 hover:bg-paleBlue/10"
             >
               ›
             </button>
@@ -175,8 +175,8 @@ export function ThemedDatePicker({
                     viewYear === todayY &&
                     viewMonth === todayM &&
                     day === todayD
-                      ? "bg-white/20 font-medium text-white"
-                      : "text-white hover:bg-white/10"
+                      ? "bg-paleBlue/20 font-medium text-white"
+                      : "text-white hover:bg-paleBlue/10"
                   }`}
                 >
                   {day}
@@ -191,7 +191,7 @@ export function ThemedDatePicker({
                 onChange("");
                 setOpen(false);
               }}
-              className="mt-3 w-full rounded border border-white/40 py-2 text-xs text-white/80 hover:bg-white/10"
+              className="mt-3 w-full rounded border border-white/40 py-2 text-xs text-white/80 hover:bg-paleBlue/10"
             >
               Clear date
             </button>

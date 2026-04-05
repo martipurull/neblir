@@ -207,7 +207,7 @@ export function GiveItemToCharacterModal({
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -265,7 +265,7 @@ export function GiveItemToCharacterModal({
               type="button"
               onClick={handleClose}
               disabled={submitting}
-              className="rounded-md border-2 border-white/50 bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+              className="rounded-md border-2 border-white/50 bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -274,7 +274,7 @@ export function GiveItemToCharacterModal({
               disabled={
                 submitting || !characterId || !itemId || characters.length === 0
               }
-              className="rounded-md border-2 border-white bg-white px-3 py-2 text-sm font-medium text-modalBackground-200 transition-colors hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none"
+              className="rounded-md border-2 border-white bg-paleBlue px-3 py-2 text-sm font-medium text-modalBackground-200 transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:pointer-events-none"
             >
               {submitting ? "Giving…" : "Give item"}
             </button>

@@ -100,7 +100,7 @@ export function WalletAdjustModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -116,7 +116,7 @@ export function WalletAdjustModal({
               type="button"
               onClick={() => handleAdjust(-1)}
               disabled={amount <= 0}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Decrease amount"
             >
               −
@@ -133,7 +133,7 @@ export function WalletAdjustModal({
             <button
               type="button"
               onClick={() => handleAdjust(1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
               aria-label="Increase amount"
             >
               +
@@ -163,7 +163,7 @@ export function WalletAdjustModal({
             void handleSubmit();
           }}
           disabled={!isValid || subtractExceedsBalance || isSubmitting}
-          className="mt-5 w-full rounded-md border-2 border-white bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-5 w-full rounded-md border-2 border-white bg-paleBlue/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-paleBlue/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting
             ? "Please wait…"

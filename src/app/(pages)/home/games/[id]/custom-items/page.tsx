@@ -164,7 +164,7 @@ export default function GameCustomItemsPage() {
                       type="button"
                       disabled={opening}
                       onClick={() => void openItemDetail(game.id, item.id)}
-                      className={`flex w-full items-stretch rounded-md border border-black/10 bg-white/40 px-3 py-2 text-left text-sm text-black transition-colors hover:bg-white/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-wait disabled:opacity-70 ${item.imageKey ? "gap-3" : ""}`}
+                      className={`flex w-full items-stretch rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2 text-left text-sm text-black transition-colors hover:bg-paleBlue/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-wait disabled:opacity-70 ${item.imageKey ? "gap-3" : ""}`}
                     >
                       {item.imageKey ? (
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-transparent">

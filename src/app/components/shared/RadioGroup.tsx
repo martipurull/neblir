@@ -30,7 +30,7 @@ export function RadioGroup({
 }: RadioGroupProps) {
   const selectedClass =
     tone === "inverse"
-      ? "border-white bg-white/20 text-white"
+      ? "border-white bg-paleBlue/20 text-white"
       : "border-customPrimary bg-customPrimary text-black";
   const unselectedClass =
     tone === "inverse"

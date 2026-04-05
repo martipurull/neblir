@@ -101,7 +101,7 @@ export function ItemDetailGiveRemoveSection({
                     Math.min(Math.max(1, n), Math.max(1, entry.quantity))
                   );
                 }}
-                className="w-full rounded border border-white/30 bg-white/5 px-3 py-2 text-sm text-white tabular-nums"
+                className="w-full rounded border border-white/30 bg-paleBlue/5 px-3 py-2 text-sm text-white tabular-nums"
               />
               <p className="mt-1 text-xs text-white/50">
                 You have {entry.quantity} in this stack.

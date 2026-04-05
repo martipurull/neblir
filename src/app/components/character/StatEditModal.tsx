@@ -44,7 +44,7 @@ function QuickAdjustRow({
           type="button"
           onClick={() => onAdjust(-1)}
           disabled={value <= min}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Decrease ${label}`}
         >
           −
@@ -56,7 +56,7 @@ function QuickAdjustRow({
           type="button"
           onClick={() => onAdjust(1)}
           disabled={value >= max}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Increase ${label}`}
         >
           +
@@ -110,7 +110,7 @@ export function StatEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>

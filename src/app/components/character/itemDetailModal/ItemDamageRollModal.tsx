@@ -76,7 +76,7 @@ export function ItemDamageRollModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close damage roll modal"
           >
             <span className="text-xl leading-none">×</span>
@@ -92,7 +92,7 @@ export function ItemDamageRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((v) => v - 1)}
-                className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-white/10"
+                className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-paleBlue/10"
               >
                 −
               </button>
@@ -102,7 +102,7 @@ export function ItemDamageRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((v) => v + 1)}
-                className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-white/10"
+                className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-paleBlue/10"
               >
                 +
               </button>
@@ -140,7 +140,7 @@ export function ItemDamageRollModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded border border-white/40 bg-transparent py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            className="w-full rounded border border-white/40 bg-transparent py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10"
           >
             Close
           </button>

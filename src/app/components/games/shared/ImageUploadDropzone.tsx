@@ -45,7 +45,7 @@ export function ImageUploadDropzone({
         className={
           isLight
             ? "mt-1 rounded-md border-2 border-dashed border-black/30 bg-black/5 p-4 transition-colors hover:border-black/50"
-            : "mt-1 rounded border-2 border-dashed border-white/30 bg-white/5 p-4 transition-colors hover:border-white/50"
+            : "mt-1 rounded border-2 border-dashed border-white/30 bg-paleBlue/5 p-4 transition-colors hover:border-white/50"
         }
       >
         <input

@@ -217,7 +217,7 @@ export function CharacterNoteEditorModal({
           <button
             type="button"
             onClick={handleClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-paleBlue/25 text-lg font-medium text-paleBlue transition-colors hover:bg-white/10"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-paleBlue/25 text-lg font-medium text-paleBlue transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             ×

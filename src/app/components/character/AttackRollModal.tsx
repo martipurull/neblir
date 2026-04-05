@@ -207,7 +207,7 @@ export function AttackRollModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -231,8 +231,8 @@ export function AttackRollModal({
                     onClick={() => setSelectedIndex(i)}
                     className={`rounded-md border-2 px-3 py-2 text-left text-sm font-semibold transition-colors ${
                       selectedIndex === i
-                        ? "border-white bg-white text-black"
-                        : "border-white bg-transparent text-white hover:bg-white/10"
+                        ? "border-white bg-paleBlue text-black"
+                        : "border-white bg-transparent text-white hover:bg-paleBlue/10"
                     }`}
                   >
                     {optionLabel(opt)}
@@ -248,7 +248,7 @@ export function AttackRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((d) => d - 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
                 aria-label="Decrease extra dice"
               >
                 −
@@ -259,7 +259,7 @@ export function AttackRollModal({
               <button
                 type="button"
                 onClick={() => setExtraDice((d) => d + 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
                 aria-label="Increase extra dice"
               >
                 +
@@ -324,7 +324,7 @@ export function AttackRollModal({
                   <button
                     type="button"
                     onClick={() => setDamageExtraDice((d) => d - 1)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-paleBlue/10"
                     aria-label="Decrease extra damage dice"
                   >
                     −
@@ -337,7 +337,7 @@ export function AttackRollModal({
                   <button
                     type="button"
                     onClick={() => setDamageExtraDice((d) => d + 1)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-paleBlue/10"
                     aria-label="Increase extra damage dice"
                   >
                     +
@@ -347,7 +347,7 @@ export function AttackRollModal({
                   type="button"
                   onClick={handleDamageRoll}
                   disabled={totalDamageDice === 0}
-                  className="w-full rounded border-2 border-white bg-white py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
+                  className="w-full rounded border-2 border-white bg-paleBlue py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
                 >
                   ROLL DAMAGE
                 </button>
@@ -380,14 +380,14 @@ export function AttackRollModal({
               type="button"
               onClick={() => void handleRoll()}
               disabled={totalDice === 0}
-              className="flex-1 rounded-md border-2 border-white bg-white py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
+              className="flex-1 rounded-md border-2 border-white bg-paleBlue py-2.5 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
             >
               ROLL
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
             >
               Close
             </button>

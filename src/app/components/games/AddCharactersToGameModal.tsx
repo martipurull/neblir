@@ -179,7 +179,7 @@ export default function AddCharactersToGameModal({
             type="button"
             onClick={closeAndReset}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
@@ -199,7 +199,7 @@ export default function AddCharactersToGameModal({
             type="button"
             onClick={() => void refetch()}
             disabled={submitting}
-            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Refresh
           </button>
@@ -207,7 +207,7 @@ export default function AddCharactersToGameModal({
 
         {error && <p className="mt-3 text-sm text-neblirDanger-400">{error}</p>}
 
-        <div className="mt-3 max-h-72 overflow-y-auto rounded border border-white/30 bg-white/5 p-2">
+        <div className="mt-3 max-h-72 overflow-y-auto rounded border border-white/30 bg-paleBlue/5 p-2">
           {loading ? (
             <p className="p-2 text-sm text-white/80">Loading characters...</p>
           ) : filtered.length === 0 ? (
@@ -230,7 +230,7 @@ export default function AddCharactersToGameModal({
                     <label
                       className={[
                         "flex items-center gap-3 rounded-md border border-white/20 px-3 py-2 text-white",
-                        isLinked ? "opacity-60" : "hover:bg-white/10",
+                        isLinked ? "opacity-60" : "hover:bg-paleBlue/10",
                       ].join(" ")}
                     >
                       <Checkbox
@@ -241,7 +241,7 @@ export default function AddCharactersToGameModal({
                         label={<span className="sr-only">{name}</span>}
                         className="shrink-0"
                       />
-                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
+                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
                         {avatarUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -323,7 +323,7 @@ export default function AddCharactersToGameModal({
             type="button"
             onClick={closeAndReset}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -331,7 +331,7 @@ export default function AddCharactersToGameModal({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-white px-3 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-white/90 disabled:opacity-50"
+            className="rounded-md border-2 border-white bg-paleBlue px-3 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
           >
             {submitting ? "Adding..." : "Add to game"}
           </button>

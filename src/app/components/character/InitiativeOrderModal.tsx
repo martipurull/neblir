@@ -75,7 +75,7 @@ export function InitiativeOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
+            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
