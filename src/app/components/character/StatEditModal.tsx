@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 export type StatEditType = "physical" | "mental" | "armour";
 
@@ -21,6 +21,20 @@ export interface StatEditModalProps {
     seriousInjuries?: number;
     seriousTrauma?: number;
   }) => void;
+}
+
+type SessionSnapshot = {
+  hp: number;
+  injuries: number;
+  trauma: number;
+};
+
+function sessionHpLost(startHp: number, draftHp: number): number {
+  return Math.max(0, startHp - draftHp);
+}
+
+function isMajorHpHit(lost: number, maxHp: number): boolean {
+  return maxHp > 0 && lost > maxHp / 2;
 }
 
 function QuickAdjustRow({
@@ -76,16 +90,108 @@ export function StatEditModal({
   seriousTrauma = 0,
   onUpdate,
 }: StatEditModalProps) {
+  /** Frozen for this mount; parent remounts with `key` when the modal is opened. */
+  const [sessionStart] = useState<SessionSnapshot>(() => ({
+    hp: currentHP,
+    injuries: seriousInjuries,
+    trauma: seriousTrauma,
+  }));
+  const [draftHP, setDraftHP] = useState(() => currentHP);
+  const [draftInjuries, setDraftInjuries] = useState(() => seriousInjuries);
+  const [draftTrauma, setDraftTrauma] = useState(() => seriousTrauma);
+
+  const flushSessionToParent = () => {
+    const start = sessionStart;
+
+    if (type === "physical") {
+      const lost = sessionHpLost(start.hp, draftHP);
+      const majorHit = isMajorHpHit(lost, maxHP);
+      const finalInjuries = majorHit
+        ? Math.min(3, draftInjuries + 1)
+        : draftInjuries;
+      const updates: {
+        currentHP?: number;
+        seriousInjuries?: number;
+        seriousTrauma?: number;
+      } = {};
+      if (draftHP !== start.hp) updates.currentHP = draftHP;
+      if (finalInjuries !== start.injuries) {
+        updates.seriousInjuries = finalInjuries;
+      }
+      if (Object.keys(updates).length > 0) onUpdate(updates);
+    } else if (type === "mental") {
+      const lost = sessionHpLost(start.hp, draftHP);
+      const majorHit = isMajorHpHit(lost, maxHP);
+      const finalTrauma = majorHit ? Math.min(3, draftTrauma + 1) : draftTrauma;
+      const updates: {
+        currentHP?: number;
+        seriousInjuries?: number;
+        seriousTrauma?: number;
+      } = {};
+      if (draftHP !== start.hp) updates.currentHP = draftHP;
+      if (finalTrauma !== start.trauma) updates.seriousTrauma = finalTrauma;
+      if (Object.keys(updates).length > 0) onUpdate(updates);
+    } else {
+      if (draftHP !== start.hp) onUpdate({ currentHP: draftHP });
+    }
+  };
+
+  const commitAndClose = () => {
+    if (!isOpen) {
+      onClose();
+      return;
+    }
+    flushSessionToParent();
+    onClose();
+  };
+
+  const cancelAndClose = () => {
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const title =
     type === "physical" ? "Physical" : type === "mental" ? "Mental" : "Armour";
 
+  const lost = sessionHpLost(sessionStart.hp, draftHP);
+  const majorHit =
+    (type === "physical" || type === "mental") && isMajorHpHit(lost, maxHP);
+
+  const displayInjuries =
+    type === "physical"
+      ? Math.min(3, draftInjuries + (majorHit ? 1 : 0))
+      : draftInjuries;
+
+  const displayTrauma =
+    type === "mental"
+      ? Math.min(3, draftTrauma + (majorHit ? 1 : 0))
+      : draftTrauma;
+
   const handleHPAdjust = (delta: number) => {
-    const newHP = Math.max(0, Math.min(maxHP, currentHP + delta));
-    if (newHP !== currentHP) {
-      onUpdate({ currentHP: newHP });
-    }
+    setDraftHP((prev) => Math.max(0, Math.min(maxHP, prev + delta)));
+  };
+
+  const adjustManualInjuries = (delta: number) => {
+    const startHp = sessionStart.hp;
+    setDraftInjuries((prevDraft) => {
+      const lostNow = sessionHpLost(startHp, draftHP);
+      const hit = isMajorHpHit(lostNow, maxHP);
+      const display = Math.min(3, prevDraft + (hit ? 1 : 0));
+      const nextDisplay = Math.max(0, Math.min(3, display + delta));
+      return Math.max(0, Math.min(3, nextDisplay - (hit ? 1 : 0)));
+    });
+  };
+
+  const adjustManualTrauma = (delta: number) => {
+    const startHp = sessionStart.hp;
+    setDraftTrauma((prevDraft) => {
+      const lostNow = sessionHpLost(startHp, draftHP);
+      const hit = isMajorHpHit(lostNow, maxHP);
+      const display = Math.min(3, prevDraft + (hit ? 1 : 0));
+      const nextDisplay = Math.max(0, Math.min(3, display + delta));
+      return Math.max(0, Math.min(3, nextDisplay - (hit ? 1 : 0)));
+    });
   };
 
   return (
@@ -94,7 +200,7 @@ export function StatEditModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="stat-edit-modal-title"
-      onClick={onClose}
+      onClick={cancelAndClose}
     >
       <div
         className="w-full max-w-sm rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
@@ -109,9 +215,9 @@ export function StatEditModal({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={cancelAndClose}
             className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
-            aria-label="Close"
+            aria-label="Cancel"
           >
             <span className="text-xl leading-none">×</span>
           </button>
@@ -121,7 +227,7 @@ export function StatEditModal({
           {maxHP > 0 && (
             <QuickAdjustRow
               label="HP"
-              value={currentHP}
+              value={draftHP}
               min={0}
               max={maxHP}
               onAdjust={handleHPAdjust}
@@ -131,39 +237,43 @@ export function StatEditModal({
           {type === "physical" && (
             <QuickAdjustRow
               label="Serious injuries"
-              value={seriousInjuries}
+              value={displayInjuries}
               min={0}
               max={3}
-              onAdjust={(delta) => {
-                const newVal = Math.max(
-                  0,
-                  Math.min(3, seriousInjuries + delta)
-                );
-                if (newVal !== seriousInjuries) {
-                  onUpdate({ seriousInjuries: newVal });
-                }
-              }}
+              onAdjust={adjustManualInjuries}
             />
           )}
 
           {type === "mental" && (
             <QuickAdjustRow
               label="Trauma"
-              value={seriousTrauma}
+              value={displayTrauma}
               min={0}
               max={3}
-              onAdjust={(delta) => {
-                const newVal = Math.max(0, Math.min(3, seriousTrauma + delta));
-                if (newVal !== seriousTrauma) {
-                  onUpdate({ seriousTrauma: newVal });
-                }
-              }}
+              onAdjust={adjustManualTrauma}
             />
           )}
 
           {type === "armour" && maxHP <= 0 && (
             <p className="text-sm text-white/80">No armour equipped.</p>
           )}
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            onClick={cancelAndClose}
+            className="rounded-md border-2 border-paleBlue bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={commitAndClose}
+            className="rounded-md border-2 border-paleBlue bg-paleBlue px-4 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-paleBlue/90"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
