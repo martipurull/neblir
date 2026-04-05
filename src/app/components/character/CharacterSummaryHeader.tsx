@@ -6,7 +6,7 @@ import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { AttackRollModal } from "./AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { GridDefenceRollModal } from "./GridDefenceRollModal";
@@ -66,6 +66,10 @@ export function CharacterSummaryHeader({
     rangeDefenceRollOpen,
     setRangeDefenceRollOpen,
   } = useCharacterHeaderModals();
+
+  const [physicalEditKey, setPhysicalEditKey] = useState(0);
+  const [mentalEditKey, setMentalEditKey] = useState(0);
+  const [armourEditKey, setArmourEditKey] = useState(0);
 
   const {
     generalInformation,
@@ -153,7 +157,12 @@ export function CharacterSummaryHeader({
               borderClassName={physicalStyles.borderClassName}
               valueClassName={physicalStyles.valueClassName}
               onClick={
-                onHealthUpdate ? () => setStatModalOpen("physical") : undefined
+                onHealthUpdate
+                  ? () => {
+                      setPhysicalEditKey((k) => k + 1);
+                      setStatModalOpen("physical");
+                    }
+                  : undefined
               }
             />
             <StatCell
@@ -168,7 +177,12 @@ export function CharacterSummaryHeader({
               borderClassName={mentalStyles.borderClassName}
               valueClassName={mentalStyles.valueClassName}
               onClick={
-                onHealthUpdate ? () => setStatModalOpen("mental") : undefined
+                onHealthUpdate
+                  ? () => {
+                      setMentalEditKey((k) => k + 1);
+                      setStatModalOpen("mental");
+                    }
+                  : undefined
               }
             />
             <StatCell
@@ -182,7 +196,10 @@ export function CharacterSummaryHeader({
               disabled={armourInactive}
               onClick={
                 onArmourUpdate && !armourInactive
-                  ? () => setStatModalOpen("armour")
+                  ? () => {
+                      setArmourEditKey((k) => k + 1);
+                      setStatModalOpen("armour");
+                    }
                   : undefined
               }
             />
@@ -251,6 +268,7 @@ export function CharacterSummaryHeader({
 
         {onHealthUpdate && (
           <StatEditModal
+            key={`stat-edit-physical-${physicalEditKey}`}
             isOpen={statModalOpen === "physical"}
             onClose={() => setStatModalOpen(null)}
             type="physical"
@@ -271,6 +289,7 @@ export function CharacterSummaryHeader({
         )}
         {onHealthUpdate && (
           <StatEditModal
+            key={`stat-edit-mental-${mentalEditKey}`}
             isOpen={statModalOpen === "mental"}
             onClose={() => setStatModalOpen(null)}
             type="mental"
@@ -291,6 +310,7 @@ export function CharacterSummaryHeader({
         )}
         {onArmourUpdate && armourDisplay.armourMaxHP > 0 && (
           <StatEditModal
+            key={`stat-edit-armour-${armourEditKey}`}
             isOpen={statModalOpen === "armour"}
             onClose={() => setStatModalOpen(null)}
             type="armour"
