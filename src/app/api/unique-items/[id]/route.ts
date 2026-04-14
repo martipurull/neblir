@@ -1,3 +1,4 @@
+import { mapUniqueItemUpdateZodToPrisma } from "@/app/lib/itemModifierPrisma";
 import {
   deleteUniqueItem,
   getResolvedUniqueItem,
@@ -81,7 +82,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updated = await updateUniqueItem(id, parsedBody);
+    const updated = await updateUniqueItem(
+      id,
+      mapUniqueItemUpdateZodToPrisma(parsedBody)
+    );
     return NextResponse.json(updated);
   } catch (error) {
     if (error instanceof ZodError) {

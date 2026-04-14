@@ -1,6 +1,12 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import {
+  ATTRIBUTE_SKILL_CAP,
+  capAttributeOrSkill,
+  equipmentBonusTooltip,
+  getEquippedItemStatBonusDetails,
+} from "@/app/lib/equippedStatBonuses";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
@@ -18,6 +24,7 @@ export function getSkillsSection(
   diceSelection?: DiceSelectionItem[],
   onDiceSelect?: (item: DiceSelectionItem) => void
 ): CharacterSectionSlide {
+  const equipBonuses = getEquippedItemStatBonusDetails(character);
   const skills = character.learnedSkills;
   const generalSkillsEntries =
     skills.generalSkills &&
@@ -56,6 +63,17 @@ export function getSkillsSection(
                 const handleClick = () => {
                   if (onDiceSelect) onDiceSelect(item);
                 };
+                const equipDetail = equipBonuses.bySkill.get(skillKey);
+                const equipBonus = equipDetail?.total ?? 0;
+                const rawWithEquip = value + equipBonus;
+                const wasCapped = rawWithEquip > ATTRIBUTE_SKILL_CAP;
+                const displayValue = capAttributeOrSkill(value, equipBonus);
+                const showEquipStyle = equipBonus !== 0;
+                const valueTitle = equipmentBonusTooltip(
+                  value,
+                  equipDetail,
+                  wasCapped
+                );
                 return (
                   <li key={skillKey}>
                     <button
@@ -64,13 +82,31 @@ export function getSkillsSection(
                       data-skill={skillKey}
                       disabled={isDisabled}
                       onClick={handleClick}
+                      title={valueTitle ?? undefined}
                       className={`flex w-full items-baseline justify-between gap-4 px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                     >
                       <span className="text-sm text-black">
                         {formatLabel(skillKey)}
                       </span>
-                      <span className="text-sm font-medium tabular-nums text-black">
-                        {value}
+                      <span className="flex shrink-0 items-center gap-2">
+                        {showEquipStyle && (
+                          <span
+                            className="rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                            title={valueTitle ?? undefined}
+                          >
+                            enhanced
+                          </span>
+                        )}
+                        <span
+                          className={`text-sm tabular-nums ${
+                            showEquipStyle
+                              ? "font-bold text-paleBlue"
+                              : "font-medium text-black"
+                          }`}
+                          title={valueTitle ?? undefined}
+                        >
+                          {displayValue}
+                        </span>
                       </span>
                     </button>
                   </li>

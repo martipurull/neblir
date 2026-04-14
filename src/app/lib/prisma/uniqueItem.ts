@@ -1,11 +1,22 @@
 import type { Prisma, UniqueItem } from "@prisma/client";
+import {
+  mapApiModifiersToPrismaFields,
+  mapPrismaCustomItemToApi,
+  mapPrismaItemToApi,
+  mapPrismaUniqueItemToApi,
+} from "@/app/lib/itemModifierPrisma";
+import {
+  PRISMA_TO_ATTRIBUTE_PATH_API,
+  PRISMA_TO_GENERAL_SKILL_API,
+} from "@/app/lib/itemModifierEnums";
 import type { UniqueItemCreate } from "@/app/lib/types/item";
 import { prisma } from "./client";
 
 export async function createUniqueItem(
   data: Prisma.UniqueItemUncheckedCreateInput
 ) {
-  return prisma.uniqueItem.create({ data });
+  const row = await prisma.uniqueItem.create({ data });
+  return mapPrismaUniqueItemToApi(row);
 }
 
 export async function getUniqueItem(id: string) {
@@ -56,6 +67,16 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     equipSlotTypes,
     equipSlotCost: uniqueItem.equipSlotCostOverride ?? null,
     maxUses: uniqueItem.maxUsesOverride ?? null,
+    modifiesAttribute:
+      uniqueItem.modifiesAttributeOverride == null
+        ? null
+        : PRISMA_TO_ATTRIBUTE_PATH_API[uniqueItem.modifiesAttributeOverride],
+    attributeMod: uniqueItem.attributeModOverride ?? null,
+    modifiesSkill:
+      uniqueItem.modifiesSkillOverride == null
+        ? null
+        : PRISMA_TO_GENERAL_SKILL_API[uniqueItem.modifiesSkillOverride],
+    skillMod: uniqueItem.skillModOverride ?? null,
     specialTag: uniqueItem.specialTag,
     _resolvedFrom: "UNIQUE_ITEM" as const,
     _uniqueItemId: uniqueItem.id,
@@ -100,6 +121,27 @@ export function prismaDataFromUniqueItemCreate(
     equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
     maxUsesOverride: parsed.maxUsesOverride ?? undefined,
   };
+
+  const mod = mapApiModifiersToPrismaFields({
+    modifiesAttribute: parsed.modifiesAttributeOverride,
+    modifiesSkill: parsed.modifiesSkillOverride,
+    attributeMod: parsed.attributeModOverride,
+    skillMod: parsed.skillModOverride,
+  });
+  Object.assign(mutable, {
+    ...(mod.modifiesAttribute !== undefined && {
+      modifiesAttributeOverride: mod.modifiesAttribute,
+    }),
+    ...(mod.modifiesSkill !== undefined && {
+      modifiesSkillOverride: mod.modifiesSkill,
+    }),
+    ...(mod.attributeMod !== undefined && {
+      attributeModOverride: mod.attributeMod,
+    }),
+    ...(mod.skillMod !== undefined && {
+      skillModOverride: mod.skillMod,
+    }),
+  });
 
   if (parsed.sourceType === "STANDALONE") {
     return {
@@ -241,6 +283,20 @@ function applyUniqueItemOverrides(
       uniqueItem.equipSlotCostOverride != null && {
         equipSlotCost: uniqueItem.equipSlotCostOverride as number,
       }),
+    ...(uniqueItem.modifiesAttributeOverride != null && {
+      modifiesAttribute:
+        PRISMA_TO_ATTRIBUTE_PATH_API[uniqueItem.modifiesAttributeOverride],
+    }),
+    ...(uniqueItem.attributeModOverride != null && {
+      attributeMod: uniqueItem.attributeModOverride,
+    }),
+    ...(uniqueItem.modifiesSkillOverride != null && {
+      modifiesSkill:
+        PRISMA_TO_GENERAL_SKILL_API[uniqueItem.modifiesSkillOverride],
+    }),
+    ...(uniqueItem.skillModOverride != null && {
+      skillMod: uniqueItem.skillModOverride,
+    }),
   };
 }
 
@@ -250,9 +306,11 @@ export async function getResolvedUniqueItem(id: string) {
     return null;
   }
 
+  const base = mapPrismaUniqueItemToApi(uniqueItem);
+
   if (uniqueItem.sourceType === "STANDALONE") {
     return {
-      ...uniqueItem,
+      ...base,
       templateItem: null,
       resolvedItem: buildStandaloneResolvedItem(uniqueItem),
     };
@@ -260,31 +318,39 @@ export async function getResolvedUniqueItem(id: string) {
 
   if (!uniqueItem.itemId) {
     return {
-      ...uniqueItem,
+      ...base,
       templateItem: null,
       resolvedItem: null,
     };
   }
 
-  const templateItem =
+  const templateRaw =
     uniqueItem.sourceType === "GLOBAL_ITEM"
       ? await prisma.item.findUnique({ where: { id: uniqueItem.itemId } })
       : await prisma.customItem.findUnique({
           where: { id: uniqueItem.itemId },
         });
 
-  if (!templateItem) {
+  if (!templateRaw) {
     return {
-      ...uniqueItem,
+      ...base,
       templateItem: null,
       resolvedItem: null,
     };
   }
 
+  const templateItem =
+    "gameId" in templateRaw
+      ? mapPrismaCustomItemToApi(templateRaw)
+      : mapPrismaItemToApi(templateRaw);
+
   return {
-    ...uniqueItem,
+    ...base,
     templateItem,
-    resolvedItem: applyUniqueItemOverrides(uniqueItem, templateItem),
+    resolvedItem: applyUniqueItemOverrides(
+      uniqueItem,
+      templateItem as Record<string, unknown>
+    ),
   };
 }
 
@@ -292,7 +358,8 @@ export async function updateUniqueItem(
   id: string,
   data: Prisma.UniqueItemUpdateInput
 ) {
-  return prisma.uniqueItem.update({ where: { id }, data });
+  const row = await prisma.uniqueItem.update({ where: { id }, data });
+  return mapPrismaUniqueItemToApi(row);
 }
 
 export async function deleteUniqueItem(id: string) {

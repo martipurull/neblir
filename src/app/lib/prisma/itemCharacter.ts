@@ -1,5 +1,13 @@
 import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
+import {
+  PRISMA_TO_ATTRIBUTE_PATH_API,
+  PRISMA_TO_GENERAL_SKILL_API,
+} from "@/app/lib/itemModifierEnums";
+import {
+  mapPrismaCustomItemToApi,
+  mapPrismaItemToApi,
+} from "@/app/lib/itemModifierPrisma";
 import { prisma } from "./client";
 import { buildStandaloneResolvedItem } from "./uniqueItem";
 
@@ -86,10 +94,12 @@ export async function getMaxUsesForItem(
 async function resolveItem(sourceType: ItemSourceType, itemId: string) {
   switch (sourceType) {
     case "GLOBAL_ITEM": {
-      return prisma.item.findUnique({ where: { id: itemId } });
+      const row = await prisma.item.findUnique({ where: { id: itemId } });
+      return row ? mapPrismaItemToApi(row) : null;
     }
     case "CUSTOM_ITEM": {
-      return prisma.customItem.findUnique({ where: { id: itemId } });
+      const row = await prisma.customItem.findUnique({ where: { id: itemId } });
+      return row ? mapPrismaCustomItemToApi(row) : null;
     }
     case "UNIQUE_ITEM": {
       const uniqueItem = await prisma.uniqueItem.findUnique({
@@ -112,8 +122,13 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
 
       if (!template) return uniqueItem;
 
+      const templateApi =
+        "gameId" in template
+          ? mapPrismaCustomItemToApi(template)
+          : mapPrismaItemToApi(template);
+
       return {
-        ...template,
+        ...templateApi,
         ...(uniqueItem.nameOverride != null && {
           name: uniqueItem.nameOverride,
         }),
@@ -186,6 +201,20 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
           }),
         ...(uniqueItem.maxUsesOverride != null && {
           maxUses: uniqueItem.maxUsesOverride,
+        }),
+        ...(uniqueItem.modifiesAttributeOverride != null && {
+          modifiesAttribute:
+            PRISMA_TO_ATTRIBUTE_PATH_API[uniqueItem.modifiesAttributeOverride],
+        }),
+        ...(uniqueItem.attributeModOverride != null && {
+          attributeMod: uniqueItem.attributeModOverride,
+        }),
+        ...(uniqueItem.modifiesSkillOverride != null && {
+          modifiesSkill:
+            PRISMA_TO_GENERAL_SKILL_API[uniqueItem.modifiesSkillOverride],
+        }),
+        ...(uniqueItem.skillModOverride != null && {
+          skillMod: uniqueItem.skillModOverride,
         }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,

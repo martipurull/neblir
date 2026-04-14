@@ -1,10 +1,16 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import { getArmourAttributePenalty } from "@/app/lib/carryWeightUtils";
+import {
+  ATTRIBUTE_SKILL_CAP,
+  capAttributeOrSkill,
+  equipmentBonusTooltip,
+  getEquippedItemStatBonusDetails,
+} from "@/app/lib/equippedStatBonuses";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
-import { getArmourAttributePenalty } from "@/app/lib/carryWeightUtils";
 import React from "react";
 
 function formatLabel(key: string) {
@@ -19,6 +25,7 @@ export function getAttributesSection(
   diceSelection?: DiceSelectionItem[],
   onDiceSelect?: (item: DiceSelectionItem) => void
 ): CharacterSectionSlide {
+  const equipBonuses = getEquippedItemStatBonusDetails(character);
   const attrs = character.innateAttributes;
   type AttrGroupKey = keyof typeof attrs;
   const mental: AttrGroupKey[] = (
@@ -79,13 +86,31 @@ export function getAttributesSection(
                   const handleClick = () => {
                     if (onDiceSelect) onDiceSelect(item);
                   };
+                  const path = `${attrKey}.${key}`;
+                  const equipDetail = equipBonuses.byAttributePath.get(path);
+                  const equipBonus = equipDetail?.total ?? 0;
+                  const rawWithEquip = value + equipBonus;
+                  const wasCapped = rawWithEquip > ATTRIBUTE_SKILL_CAP;
+                  const cappedWithEquip = capAttributeOrSkill(
+                    value,
+                    equipBonus
+                  );
                   const showArmourPenalty = armourPenaltyApplies(attrKey, key);
                   const displayValue = showArmourPenalty
-                    ? value - armourAttrPenalty
-                    : value;
-                  const valueTitle = showArmourPenalty
-                    ? `Base ${value}, reduced by ${armourAttrPenalty} due to armour (grade ${armourMod}). UI only; affects rolls.`
+                    ? cappedWithEquip - armourAttrPenalty
+                    : cappedWithEquip;
+                  const equipTip = equipmentBonusTooltip(
+                    value,
+                    equipDetail,
+                    wasCapped
+                  );
+                  const armourTip = showArmourPenalty
+                    ? `Innate ${value} (before equipment cap), reduced by ${armourAttrPenalty} due to armour (grade ${armourMod}). UI only; affects rolls.`
                     : undefined;
+                  const valueTitle = [equipTip, armourTip]
+                    .filter(Boolean)
+                    .join(" ");
+                  const showEquipStyle = equipBonus !== 0;
                   return (
                     <li key={key}>
                       <button
@@ -94,7 +119,7 @@ export function getAttributesSection(
                         data-skill={key}
                         disabled={isDisabled}
                         onClick={handleClick}
-                        title={valueTitle}
+                        title={valueTitle || undefined}
                         className={`flex w-full items-center justify-between gap-4 px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                       >
                         <span className="text-sm text-black">
@@ -104,13 +129,28 @@ export function getAttributesSection(
                           {showArmourPenalty && (
                             <span
                               className="rounded border border-neblirDanger-400 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neblirDanger-600"
-                              title={valueTitle}
+                              title={armourTip}
                             >
                               Armour penalty
                             </span>
                           )}
+                          {showEquipStyle && (
+                            <span
+                              className="rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                              title={valueTitle || undefined}
+                            >
+                              enhanced
+                            </span>
+                          )}
                           <span
-                            className={`text-sm font-medium tabular-nums ${showArmourPenalty ? "text-neblirDanger-600" : "text-black"}`}
+                            className={`text-sm tabular-nums ${
+                              showEquipStyle
+                                ? "font-bold text-paleBlue"
+                                : showArmourPenalty
+                                  ? "font-medium text-neblirDanger-600"
+                                  : "font-medium text-black"
+                            }`}
+                            title={valueTitle || undefined}
                           >
                             {displayValue}
                           </span>

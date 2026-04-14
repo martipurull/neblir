@@ -25,6 +25,11 @@ export type ItemBrowseDamage = {
   } | null;
 };
 
+import type {
+  LevelUpAttributePath,
+  LevelUpGeneralSkill,
+} from "@/app/lib/levelUpPaths";
+
 /** Shape used by `BrowseItemDetailModal` for global + custom items */
 export type ItemBrowseDetailFields = {
   id: string;
@@ -52,4 +57,8 @@ export type ItemBrowseDetailFields = {
   damage?: ItemBrowseDamage | null;
   usage?: string | null;
   notes?: string | null;
+  modifiesAttribute?: LevelUpAttributePath | null;
+  attributeMod?: number | null;
+  modifiesSkill?: LevelUpGeneralSkill | null;
+  skillMod?: number | null;
 };

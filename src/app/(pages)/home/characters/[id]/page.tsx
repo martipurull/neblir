@@ -172,7 +172,6 @@ export default function CharacterDetailPage() {
   }
 
   const primaryGameId = character.games?.[0]?.gameId ?? null;
-  console.log(diceSelection);
   return (
     <div className="flex h-full min-h-0 flex-col">
       <CharacterSummaryHeader

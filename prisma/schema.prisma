@@ -58,6 +58,48 @@ enum EquipSlot {
   BRAIN
 }
 
+/** Innate attribute path (matches level-up / character sheet keys). */
+enum ItemAttributePath {
+  INTELLIGENCE_INVESTIGATION @map("intelligence.investigation")
+  INTELLIGENCE_MEMORY @map("intelligence.memory")
+  INTELLIGENCE_DEDUCTION     @map("intelligence.deduction")
+  WISDOM_SENSE               @map("wisdom.sense")
+  WISDOM_PERCEPTION          @map("wisdom.perception")
+  WISDOM_INSIGHT             @map("wisdom.insight")
+  PERSONALITY_PERSUASION     @map("personality.persuasion")
+  PERSONALITY_DECEPTION      @map("personality.deception")
+  PERSONALITY_MENTALITY      @map("personality.mentality")
+  STRENGTH_ATHLETICS         @map("strength.athletics")
+  STRENGTH_RESILIENCE        @map("strength.resilience")
+  STRENGTH_BRUTE_FORCE       @map("strength.bruteForce")
+  DEXTERITY_MANUAL           @map("dexterity.manual")
+  DEXTERITY_STEALTH          @map("dexterity.stealth")
+  DEXTERITY_AGILITY          @map("dexterity.agility")
+  CONSTITUTION_RESISTANCE_INTERNAL @map("constitution.resistanceInternal")
+  CONSTITUTION_RESISTANCE_EXTERNAL @map("constitution.resistanceExternal")
+  CONSTITUTION_STAMINA       @map("constitution.stamina")
+}
+
+/** General skill key (matches CharacterLearnedSkillsGeneralSkills). */
+enum ItemGeneralSkill {
+  MECHANICS                  @map("mechanics")
+  SOFTWARE                   @map("software")
+  GENERAL_KNOWLEDGE          @map("generalKnowledge")
+  HISTORY                    @map("history")
+  DRIVING                    @map("driving")
+  ACROBATICS                 @map("acrobatics")
+  AIM                        @map("aim")
+  MELEE                      @map("melee")
+  GRID                       @map("GRID")
+  RESEARCH                   @map("research")
+  MEDICINE                   @map("medicine")
+  SCIENCE                    @map("science")
+  SURVIVAL                   @map("survival")
+  STREETWISE                 @map("streetwise")
+  PERFORMANCE                @map("performance")
+  MANIPULATION_NEGOTIATION   @map("manipulationNegotiation")
+}
+
 enum PathName {
   SCIENTIST_DOCTOR
   SURVIVALIST
@@ -493,6 +535,10 @@ model Item {
   equipSlotTypes       String[]                   @default([])
   equipSlotCost        Int?
   maxUses              Int?
+  modifiesAttribute    ItemAttributePath?
+  attributeMod         Int?
+  modifiesSkill        ItemGeneralSkill?
+  skillMod             Int?
 }
 
 model CustomItem {
@@ -523,6 +569,10 @@ model CustomItem {
   equipSlotTypes       String[]                   @default([])
   equipSlotCost        Int?
   maxUses              Int?
+  modifiesAttribute    ItemAttributePath?
+  attributeMod         Int?
+  modifiesSkill        ItemGeneralSkill?
+  skillMod             Int?
 }
 
 model UniqueItem {
@@ -559,6 +609,10 @@ model UniqueItem {
   equipSlotTypesOverride   Json?  // String[] when set; null = use template
   equipSlotCostOverride    Int?
   maxUsesOverride          Int?
+  modifiesAttributeOverride ItemAttributePath?
+  attributeModOverride      Int?
+  modifiesSkillOverride     ItemGeneralSkill?
+  skillModOverride          Int?
   @@index([ownerUserId])
   @@index([gameId])
 }

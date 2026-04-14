@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  itemAttributePathSchema,
+  itemGeneralSkillSchema,
+} from "@/app/lib/itemModifierEnums";
 
 export const currencyNameSchema = z.enum([
   "CONF",
@@ -156,6 +160,10 @@ const baseItemSchema = z.object({
   gridDefenceBonus: z.number().optional(),
   effectiveRange: z.number().int().optional().nullable(),
   maxRange: z.number().int().optional().nullable(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
 });
 
 export const generalItemSchema = baseItemSchema.extend({
@@ -216,6 +224,10 @@ export const customItemCreateSchema = z.object({
   equipSlotTypes: z.array(equipSlotTypeSchema).optional(),
   equipSlotCost: equipSlotCostSchema.optional(),
   maxUses: z.number().int().positive().optional().nullable(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -253,6 +265,10 @@ const uniqueItemMutableBodySchema = z.object({
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
   equipSlotCostOverride: equipSlotCostSchema.optional(),
   maxUsesOverride: z.number().int().positive().optional().nullable(),
+  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
+  attributeModOverride: z.number().int().nullish(),
+  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
+  skillModOverride: z.number().int().nullish(),
 });
 
 export const uniqueItemCreateSchema = z.union([
@@ -316,6 +332,10 @@ export const itemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   maxUses: z.number().int().positive().nullish(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
 });
 export const itemListResponseSchema = z.array(itemResponseSchema);
 export type ItemResponse = z.infer<typeof itemResponseSchema>;
@@ -348,6 +368,10 @@ export const customItemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   maxUses: z.number().int().positive().nullish(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
 });
 export const customItemListResponseSchema = z.array(customItemResponseSchema);
 export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
@@ -403,6 +427,10 @@ export const uniqueItemResolvedResponseSchema = z.object({
   equipSlotTypesOverride: z.unknown().nullish(),
   equipSlotCostOverride: z.number().nullish(),
   maxUsesOverride: z.number().int().positive().nullish(),
+  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
+  attributeModOverride: z.number().int().nullish(),
+  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
+  skillModOverride: z.number().int().nullish(),
   templateItem: z
     .union([itemResponseSchema, customItemResponseSchema])
     .nullish(),

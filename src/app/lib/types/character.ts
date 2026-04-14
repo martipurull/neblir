@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { featureSchema, pathSchema } from "./path";
 import {
+  itemAttributePathSchema,
+  itemGeneralSkillSchema,
+} from "@/app/lib/itemModifierEnums";
+import {
   equipSlotCostSchema,
   equipSlotTypeSchema,
   itemAreaTypeSchema,
@@ -59,6 +63,10 @@ const resolvedItemSchema = z
     equippable: z.boolean().optional().nullable(),
     equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
     equipSlotCost: equipSlotCostSchema.optional().nullable(),
+    modifiesAttribute: itemAttributePathSchema.optional().nullable(),
+    attributeMod: z.number().optional().nullable(),
+    modifiesSkill: itemGeneralSkillSchema.optional().nullable(),
+    skillMod: z.number().optional().nullable(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
     _uniqueItemId: z.string().nullish(),
   })
