@@ -22,7 +22,7 @@
  * - weight is required (number). Use 0 if not applicable.
  * - accessType defaults to PLAYER if missing.
  * - equippable: optional; "true", "1", "yes" (case-insensitive) = true, otherwise false.
- * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD.
+ * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD, BRAIN.
  * - equipSlotCost: optional; 0, 1, or 2. Omit or leave empty for no value.
  * - maxUses: optional; positive integer. Omit or leave empty for unlimited/no value.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
@@ -159,7 +159,13 @@ function parseBoolean(value: string | undefined): boolean {
   return s === "true" || s === "1" || s === "yes";
 }
 
-const VALID_EQUIP_SLOT_TYPES = ["HAND", "FOOT", "BODY", "HEAD"] as const;
+const VALID_EQUIP_SLOT_TYPES = [
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+] as const;
 
 function parseEquipSlotTypes(
   value: string | undefined

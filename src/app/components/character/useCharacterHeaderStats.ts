@@ -2,7 +2,7 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import {
   getArmourDisplayFromInventory,
   getAttackModifierArrays,
-  getCarriedGridBonusesDisplay,
+  getEquippedBrainGridBonusesDisplay,
   getEffectiveCombatMods,
   getGridAttackModifierOptions,
   getGridAttackRollData,
@@ -68,7 +68,7 @@ export function useCharacterHeaderStats(character: CharacterDetail) {
   );
 
   const gridModCellValue = useMemo(() => {
-    const bonuses = getCarriedGridBonusesDisplay(character);
+    const bonuses = getEquippedBrainGridBonusesDisplay(character);
     if (bonuses.gridAttackBonus === 0 && bonuses.gridDefenceBonus === 0) {
       return "—";
     }
@@ -78,7 +78,7 @@ export function useCharacterHeaderStats(character: CharacterDetail) {
   }, [character]);
 
   const gridBonuses = useMemo(
-    () => getCarriedGridBonusesDisplay(character),
+    () => getEquippedBrainGridBonusesDisplay(character),
     [character]
   );
 
@@ -102,15 +102,15 @@ export function useCharacterHeaderStats(character: CharacterDetail) {
   ]);
 
   const gridAttackDamageHint = useMemo(() => {
-    if (!softwareWarriorFeature?.grade) return undefined;
-    if (softwareWarriorFeature.grade >= 4) {
-      return "Software Warrior: +2d6 damage";
+    const lines: string[] = [];
+    if (gridRollData.gridPatchDamageHint) {
+      lines.push(gridRollData.gridPatchDamageHint);
     }
-    if (softwareWarriorFeature.grade > 1) {
-      return "Software Warrior: +1d6 damage";
-    }
-    return undefined;
-  }, [softwareWarriorFeature]);
+    const g = softwareWarriorFeature?.grade ?? 0;
+    if (g >= 4) lines.push("Software Warrior: +2d6 damage");
+    else if (g >= 1) lines.push("Software Warrior: +1d6 damage");
+    return lines.length > 0 ? lines.join("\n") : undefined;
+  }, [gridRollData.gridPatchDamageHint, softwareWarriorFeature]);
 
   const gridDefenceModifierHint = useMemo(() => {
     const parts = [

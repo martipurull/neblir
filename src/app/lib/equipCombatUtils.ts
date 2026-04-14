@@ -24,6 +24,56 @@ type InventoryEntry = {
   } | null;
 };
 
+function isEquippedInBrainSlot(entry: { equipSlots?: string[] }): boolean {
+  return (entry.equipSlots ?? []).some((s) => s === "BRAIN");
+}
+
+/**
+ * Brain-equipped GRID patches do not stack: only the highest `gridAttackBonus`
+ * and the highest `gridDefenceBonus` count (each stat is max-only, independently).
+ * Entries out of uses are skipped. Attack ties keep the first patch in carried order.
+ */
+function getNonStackingEquippedBrainGridBonuses(character: CharacterDetail): {
+  maxAttackBonus: number;
+  maxDefenceBonus: number;
+  bestAttackPatch: {
+    itemCharacterId: string;
+    item: NonNullable<InventoryEntry["item"]>;
+  } | null;
+} {
+  const carried = getCarriedInventory(character.inventory ?? undefined);
+  let maxAttackBonus = 0;
+  let maxDefenceBonus = 0;
+  let bestAttackPatch: {
+    itemCharacterId: string;
+    item: NonNullable<InventoryEntry["item"]>;
+  } | null = null;
+
+  for (const entry of carried) {
+    if (!isEquippedInBrainSlot(entry)) continue;
+    const item = entry.item;
+    if (!item) continue;
+
+    const itemMaxUses = item.maxUses ?? null;
+    const currentUses = entry.currentUses ?? 0;
+    if (itemMaxUses != null && currentUses <= 0) continue;
+
+    const atk = item.gridAttackBonus ?? 0;
+    const def = item.gridDefenceBonus ?? 0;
+
+    maxDefenceBonus = Math.max(maxDefenceBonus, def);
+
+    if (atk > maxAttackBonus) {
+      maxAttackBonus = atk;
+      if (entry.id != null && atk > 0) {
+        bestAttackPatch = { itemCharacterId: entry.id, item };
+      }
+    }
+  }
+
+  return { maxAttackBonus, maxDefenceBonus, bestAttackPatch };
+}
+
 /** One attack modifier option (one weapon): mod value plus label for the modal. */
 export type AttackModifierOption = {
   mod: number;
@@ -168,99 +218,105 @@ export function getAttackModifierArrays(character: CharacterDetail): {
 }
 
 export function getGridAttackRollData(character: CharacterDetail): {
-  /** Best GRID modifier (from carried items only). */
+  /** Best GRID attack bonus from an item equipped in the Brain slot (carried). */
   gridMod: number;
   /** Dice count for GRID attack roll: Mentality + GRID skill + best item mod. */
   gridAttackDice: number;
-  /** Damage dice derived from the best GRID-mod item (if any). */
+  /**
+   * Primary damage line for display: patch weapon damage if any, otherwise Software Warrior d6 only.
+   */
   damage: {
     numberOfDice: number;
     diceType: number;
     damageText: string;
   } | null;
-  /** Full base damage dice breakdown (includes Software Warrior bonus dice if applicable). */
+  /** Patch dice plus Software Warrior d6 (SW applies at grades 1+ even with no patch). */
   damageDice?: Array<{ numberOfDice: number; diceType: number }>;
   /** Best GRID-mod item's itemCharacter id (for decrementing limited uses). */
   itemCharacterId?: string;
+  /** Short explainer for equipped GRID patch damage in the attack modal (if patch deals damage). */
+  gridPatchDamageHint?: string;
 } {
-  const { innateAttributes, learnedSkills, inventory, features } = character;
-  const carried = getCarriedInventory(inventory ?? undefined);
+  const { innateAttributes, learnedSkills, features } = character;
 
   const baseDice =
     innateAttributes.personality.mentality + learnedSkills.generalSkills.GRID;
 
-  let bestGridBonus = 0;
-  let bestItemCharacterId: string | undefined = undefined;
+  const { maxAttackBonus: bestGridBonus, bestAttackPatch } =
+    getNonStackingEquippedBrainGridBonuses(character);
+
   let bestDamage: {
     numberOfDice: number;
     diceType: number;
     damageText: string;
   } | null = null;
 
+  if (bestAttackPatch) {
+    const dmg = bestAttackPatch.item.damage ?? null;
+    const numberOfDice = dmg?.numberOfDice ?? 0;
+    const diceType = dmg?.diceType ?? 4;
+    bestDamage =
+      numberOfDice > 0
+        ? {
+            numberOfDice,
+            diceType,
+            damageText: formatWeaponDamage(dmg ?? undefined),
+          }
+        : null;
+  }
+
   const softwareWarriorFeature = features?.find(
     (f) => f.feature.name === "Software Warrior"
   );
   const softwareWarriorGrade = softwareWarriorFeature?.grade ?? 0;
+  /** Grades 1–3: +1d6; grade 4+: +2d6. Stacks with Brain patch GRID damage; applies with no patch. */
   const softwareWarriorBonusD6 =
-    softwareWarriorGrade > 1 && softwareWarriorGrade < 4
-      ? 1
-      : softwareWarriorGrade >= 4
-        ? 2
-        : 0;
+    softwareWarriorGrade >= 4 ? 2 : softwareWarriorGrade >= 1 ? 1 : 0;
 
-  for (const entry of carried) {
-    const item = entry.item;
-    if (!item) continue;
-
-    const gridBonus = item.gridAttackBonus ?? 0;
-    if (gridBonus <= 0) continue;
-
-    // If the item is out of uses, it can't contribute.
-    const itemMaxUses = item.maxUses ?? null;
-    const currentUses = entry.currentUses ?? 0;
-    if (itemMaxUses != null && currentUses <= 0) continue;
-
-    if (gridBonus > bestGridBonus) {
-      bestGridBonus = gridBonus;
-      bestItemCharacterId = entry.id;
-
-      const dmg = item.damage ?? null;
-      const numberOfDice = dmg?.numberOfDice ?? 0;
-      const diceType = dmg?.diceType ?? 4;
-      bestDamage =
-        numberOfDice > 0
-          ? {
-              numberOfDice,
-              diceType,
-              damageText: formatWeaponDamage(dmg ?? undefined),
-            }
-          : null;
-    }
+  const damageDiceParts: Array<{ numberOfDice: number; diceType: number }> = [];
+  if (bestDamage && bestDamage.numberOfDice > 0) {
+    damageDiceParts.push({
+      numberOfDice: bestDamage.numberOfDice,
+      diceType: bestDamage.diceType,
+    });
+  }
+  if (softwareWarriorBonusD6 > 0) {
+    damageDiceParts.push({
+      numberOfDice: softwareWarriorBonusD6,
+      diceType: 6,
+    });
   }
 
-  const damageDice =
+  const damageDice = damageDiceParts.length > 0 ? damageDiceParts : undefined;
+
+  const damage =
+    bestDamage ??
+    (softwareWarriorBonusD6 > 0
+      ? {
+          numberOfDice: softwareWarriorBonusD6,
+          diceType: 6,
+          damageText: softwareWarriorBonusD6 === 2 ? "2d6" : "1d6",
+        }
+      : null);
+
+  const gridPatchDamageHint =
     bestDamage && bestDamage.numberOfDice > 0
-      ? [
-          {
-            numberOfDice: bestDamage.numberOfDice,
-            diceType: bestDamage.diceType,
-          },
-          ...(softwareWarriorBonusD6 > 0
-            ? [{ numberOfDice: softwareWarriorBonusD6, diceType: 6 }]
-            : []),
-        ]
+      ? bestDamage.damageText.trim().length > 0
+        ? `GRID patch: ${bestDamage.damageText}`
+        : `GRID patch: ${bestDamage.numberOfDice}d${bestDamage.diceType} damage`
       : undefined;
 
   return {
     gridMod: bestGridBonus,
     gridAttackDice: baseDice + bestGridBonus,
-    damage: bestDamage,
+    damage,
     damageDice,
-    itemCharacterId: bestItemCharacterId,
+    itemCharacterId: bestAttackPatch?.itemCharacterId,
+    gridPatchDamageHint,
   };
 }
 
-/** GRID attack modal options: weaponless, based on carried items' gridAttackBonus. */
+/** GRID attack modal options: weaponless; item bonus from Brain-equipped carried items only. */
 export function getGridAttackModifierOptions(
   character: CharacterDetail
 ): AttackModifierOption[] {
@@ -281,41 +337,29 @@ export function getGridAttackModifierOptions(
 }
 
 /**
- * Best carried on-hand grid attack/defence item bonuses for display (GRID Mod cell)
- * and for GRID defence dice (highest `gridDefenceBonus` only).
- * Ignores items that are out of uses.
+ * Best grid attack/defence bonuses from Brain-equipped carried items.
+ * Patches do not stack: see `getNonStackingEquippedBrainGridBonuses`.
  */
-export function getCarriedGridBonusesDisplay(character: CharacterDetail): {
+export function getEquippedBrainGridBonusesDisplay(
+  character: CharacterDetail
+): {
   gridAttackBonus: number;
   gridDefenceBonus: number;
 } {
-  const carried = getCarriedInventory(character.inventory ?? undefined);
-  let bestAtk = 0;
-  let bestDef = 0;
-
-  for (const entry of carried) {
-    const item = entry.item;
-    if (!item) continue;
-
-    const itemMaxUses = item.maxUses ?? null;
-    const currentUses = entry.currentUses ?? 0;
-    if (itemMaxUses != null && currentUses <= 0) continue;
-
-    const atk = item.gridAttackBonus ?? 0;
-    const def = item.gridDefenceBonus ?? 0;
-    if (atk > bestAtk) bestAtk = atk;
-    if (def > bestDef) bestDef = def;
-  }
-
-  return { gridAttackBonus: bestAtk, gridDefenceBonus: bestDef };
+  const { maxAttackBonus, maxDefenceBonus } =
+    getNonStackingEquippedBrainGridBonuses(character);
+  return {
+    gridAttackBonus: maxAttackBonus,
+    gridDefenceBonus: maxDefenceBonus,
+  };
 }
 
-/** GRID defence d10 dice: Mentality + GRID skill + best carried `gridDefenceBonus`. */
+/** GRID defence d10 dice: Mentality + GRID skill + best Brain-equipped `gridDefenceBonus`. */
 export function getGridDefenceDice(character: CharacterDetail): number {
   const base =
     character.innateAttributes.personality.mentality +
     character.learnedSkills.generalSkills.GRID;
-  return base + getCarriedGridBonusesDisplay(character).gridDefenceBonus;
+  return base + getEquippedBrainGridBonusesDisplay(character).gridDefenceBonus;
 }
 
 /** Armour defence bonuses from BODY/HEAD-equipped items (carried only) */

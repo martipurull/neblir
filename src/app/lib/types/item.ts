@@ -61,8 +61,14 @@ export const weaponDamageTypeSchema = z.enum([
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
 export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;
 
-/** Slot types an item can be equipped to (HAND, FOOT, BODY, HEAD) */
-export const equipSlotTypeSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+/** Slot types an item can be equipped to */
+export const equipSlotTypeSchema = z.enum([
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+]);
 export type EquipSlotType = z.infer<typeof equipSlotTypeSchema>;
 
 /** Cost in slots when equipping (0, 1, or 2) */

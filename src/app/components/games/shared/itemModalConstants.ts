@@ -24,4 +24,5 @@ export const EQUIP_SLOTS = [
   { value: "FOOT", label: "Foot" },
   { value: "BODY", label: "Body" },
   { value: "HEAD", label: "Head" },
+  { value: "BRAIN", label: "Brain" },
 ] as const;

@@ -22,6 +22,14 @@ import React, { useMemo, useState } from "react";
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 type ResolvedItem = NonNullable<InventoryEntry["item"]>;
 
+const SLOT_MODAL_LABELS: Record<DisplayEquipSlot, string> = {
+  HAND: "Hand",
+  FOOT: "Foot",
+  BODY: "Body",
+  HEAD: "Head",
+  BRAIN: "Brain",
+};
+
 function fmt(n: number) {
   return n >= 0 ? `+${n}` : String(n);
 }
@@ -109,8 +117,7 @@ export function EquipItemPickerModal({
     (entry) => (entry.equipSlots ?? []).length < entry.quantity
   );
 
-  const slotLabel =
-    slot === "HAND" ? "Hand" : slot === "FOOT" ? "Foot" : "Body/Head";
+  const slotLabel = SLOT_MODAL_LABELS[slot];
 
   function pickApiSlotForEquip(entry: InventoryEntry): EquipSlot | null {
     const itemCost = getItemCost(entry.item?.equipSlotCost);

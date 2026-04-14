@@ -10,7 +10,7 @@ import {
 } from "@/app/lib/equipUtils";
 import React from "react";
 
-const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY", "HEAD"];
+const SLOTS: EquipSlot[] = ["HAND", "FOOT", "BODY", "HEAD", "BRAIN"];
 
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
@@ -29,6 +29,7 @@ const slotLabels: Record<EquipSlot, string> = {
   FOOT: "Foot",
   BODY: "Body",
   HEAD: "Head",
+  BRAIN: "Brain",
 };
 
 export function EquipSlotChoiceModal({

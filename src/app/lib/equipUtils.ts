@@ -1,30 +1,40 @@
 import type { EquipSlot } from "@/app/lib/types/character";
 
-/** Display slots: Hand, Foot, and combined Body+Head */
-export type DisplayEquipSlot = "HAND" | "FOOT" | "BODY_HEAD";
+/** Header equip cells map 1:1 to API equip slots */
+export type DisplayEquipSlot = EquipSlot;
 
-/** API slots that the combined BODY_HEAD display represents */
-export const BODY_HEAD_SLOTS: EquipSlot[] = ["BODY", "HEAD"];
-
-export const DISPLAY_SLOTS: { slot: DisplayEquipSlot; label: string }[] = [
+/** First header row: Hand, Foot, Body */
+export const HEADER_EQUIP_SLOTS_ROW1: {
+  slot: DisplayEquipSlot;
+  label: string;
+}[] = [
   { slot: "HAND", label: "Hand" },
   { slot: "FOOT", label: "Foot" },
-  { slot: "BODY_HEAD", label: "Body/Head" },
+  { slot: "BODY", label: "Body" },
 ];
 
-/** Capacity per API slot (HAND, FOOT, BODY, HEAD each have this) */
+/** Second header row: Head, Brain (carry weight is a separate StatCell) */
+export const HEADER_EQUIP_SLOTS_ROW2: {
+  slot: DisplayEquipSlot;
+  label: string;
+}[] = [
+  { slot: "HEAD", label: "Head" },
+  { slot: "BRAIN", label: "Brain" },
+];
+
+/** Capacity per API slot (HAND, FOOT, BODY, HEAD, BRAIN each have this) */
 export const API_SLOT_CAPACITY = 2;
 
-/** Capacity per display slot. BODY_HEAD = 4 (2+2), others = 2 */
-export function getSlotCapacity(displaySlot: DisplayEquipSlot): number {
-  return displaySlot === "BODY_HEAD" ? 4 : API_SLOT_CAPACITY;
+/** Capacity per display slot (same as API — each cell is one slot) */
+export function getSlotCapacity(_displaySlot: DisplayEquipSlot): number {
+  return API_SLOT_CAPACITY;
 }
 
-/** Get API slots for a display slot (BODY_HEAD → [BODY, HEAD], others → [self]) */
+/** API slot(s) represented by a header equip cell */
 export function getApiSlotsForDisplay(
   displaySlot: DisplayEquipSlot
 ): EquipSlot[] {
-  return displaySlot === "BODY_HEAD" ? BODY_HEAD_SLOTS : [displaySlot];
+  return [displaySlot];
 }
 
 /** Default cost when item has no equipSlotCost (0, 1, or 2) */
@@ -61,7 +71,7 @@ export function getUsedCapacityInApiSlot(
   return sum;
 }
 
-/** Get total used capacity for a display slot (BODY_HEAD = sum of BODY + HEAD) */
+/** Get total used capacity for a header display slot */
 export function getUsedCapacityForDisplaySlot(
   inventory: {
     equipSlots?: string[];

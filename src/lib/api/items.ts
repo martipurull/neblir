@@ -108,7 +108,7 @@ export async function addItemToCharacterInventory(
   }
 }
 
-export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD";
+export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
 
 export type UpdateInventoryEntryBody =
   | { action: "equip"; slot: EquipSlot }

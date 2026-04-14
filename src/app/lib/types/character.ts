@@ -64,7 +64,13 @@ const resolvedItemSchema = z
   })
   .passthrough();
 
-export const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+export const equipSlotSchema = z.enum([
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+]);
 export type EquipSlot = z.infer<typeof equipSlotSchema>;
 
 export const itemCharacterSchema = z.object({

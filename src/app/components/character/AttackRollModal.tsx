@@ -303,22 +303,14 @@ export function AttackRollModal({
 
           {rollResult !== null &&
             rollResult.some((v) => v >= 8) &&
-            (attackType !== "grid" || baseDamageDice > 0) && (
+            (attackType !== "grid" || baseDamageDiceTotal > 0) && (
               <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
                 <p className="text-sm font-medium text-white">Deal Damage</p>
                 {damageHint && (
-                  <p className="text-xs text-white/75">{damageHint}</p>
+                  <p className="whitespace-pre-line text-xs text-white/75">
+                    {damageHint}
+                  </p>
                 )}
-                <p className="text-xs text-white/80">
-                  {damageDice
-                    .filter((d) => d.numberOfDice > 0)
-                    .map((d) => `${d.numberOfDice}d${d.diceType}`)
-                    .join(" + ")}
-                  {damageExtraDice !== 0
-                    ? ` + ${damageExtraDice} extra d${baseDamageType}`
-                    : ""}{" "}
-                  = {totalDamageDice} total dice
-                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-white/80">Extra dice (GM)</span>
                   <button
@@ -343,6 +335,16 @@ export function AttackRollModal({
                     +
                   </button>
                 </div>
+                <p className="text-md text-white">
+                  {damageDice
+                    .filter((d) => d.numberOfDice > 0)
+                    .map((d) => `${d.numberOfDice}d${d.diceType}`)
+                    .join(" + ")}
+                  {damageExtraDice !== 0
+                    ? ` + ${damageExtraDice} extra d${baseDamageType}`
+                    : ""}{" "}
+                  = {totalDamageDice} total dice
+                </p>
                 <button
                   type="button"
                   onClick={handleDamageRoll}

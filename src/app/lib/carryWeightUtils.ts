@@ -74,6 +74,58 @@ export function isOverCarryLimit(
   return getCarryWeightRatio(carriedWeight, maxCarryWeight) >= 1.5;
 }
 
+/** Border + text classes for carry weight UI (Inventory pill + header StatCell). */
+function getCarryWeightSemanticBorderAndText(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): { border: string; text: string } {
+  if (maxCarryWeight == null || maxCarryWeight <= 0) {
+    return { border: "border-black", text: "text-black" };
+  }
+  const overCarryLimit = isOverCarryLimit(carriedWeight, maxCarryWeight);
+  const ratio = getCarryWeightRatio(carriedWeight, maxCarryWeight);
+  if (overCarryLimit || ratio > 1) {
+    return {
+      border: "border-neblirDanger-200",
+      text: "text-neblirDanger-400",
+    };
+  }
+  if (ratio >= 0.5) {
+    return {
+      border: "border-neblirWarning-200",
+      text: "text-neblirWarning-400",
+    };
+  }
+  return {
+    border: "border-neblirSafe-200",
+    text: "text-neblirSafe-400",
+  };
+}
+
+/** Full className for the Inventory section carry-weight pill (matches prior inline logic). */
+export function getCarryWeightInventoryPillClassName(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): string {
+  const { border, text } = getCarryWeightSemanticBorderAndText(
+    carriedWeight,
+    maxCarryWeight
+  );
+  return `rounded border ${border} bg-transparent px-2 py-0.5 text-sm tabular-nums ${text}`;
+}
+
+/** StatCell border + value colors for header carry weight. */
+export function getCarryWeightStatCellStyles(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): { borderClassName: string; valueClassName: string } {
+  const { border, text } = getCarryWeightSemanticBorderAndText(
+    carriedWeight,
+    maxCarryWeight
+  );
+  return { borderClassName: border, valueClassName: text };
+}
+
 /**
  * Speed penalty from carry weight only (before armour).
  * Returns { effectiveSpeed, showStrikethrough }.

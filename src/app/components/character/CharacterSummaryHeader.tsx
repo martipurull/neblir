@@ -1,17 +1,29 @@
 "use client";
 
+import { getCarriedInventory } from "@/app/lib/constants/inventory";
+import {
+  getCarriedWeight,
+  getCarryWeightStatCellStyles,
+  getEffectiveMaxCarryWeight,
+} from "@/app/lib/carryWeightUtils";
+import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
+import {
+  getApiSlotsForDisplay,
+  HEADER_EQUIP_SLOTS_ROW1,
+  HEADER_EQUIP_SLOTS_ROW2,
+} from "@/app/lib/equipUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { AttackRollModal } from "./AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { GridDefenceRollModal } from "./GridDefenceRollModal";
 import { DefenceRollModal } from "./DefenceRollModal";
-import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
+import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
 import { StatEditModal } from "./StatEditModal";
 import { useCharacterHeaderModals } from "./useCharacterHeaderModals";
@@ -38,7 +50,7 @@ interface CharacterSummaryHeaderProps {
   onHealthUpdate?: (partial: HealthPartial) => void;
   /** Called when user updates armour; enables stat edit modal */
   onArmourUpdate?: (partial: ArmourPartial) => void;
-  /** When provided, Hand/Foot/Body equip cells show equipped items and are clickable to equip */
+  /** When provided, header equip cells show equipped items and are clickable to equip */
   mutate?: KeyedMutator<CharacterDetail | null>;
   className?: string;
 }
@@ -70,6 +82,8 @@ export function CharacterSummaryHeader({
   const [physicalEditKey, setPhysicalEditKey] = useState(0);
   const [mentalEditKey, setMentalEditKey] = useState(0);
   const [armourEditKey, setArmourEditKey] = useState(0);
+  const [pickerSlot, setPickerSlot] = useState<DisplayEquipSlot | null>(null);
+  const [combatExpanded, setCombatExpanded] = useState(false);
 
   const {
     generalInformation,
@@ -128,6 +142,91 @@ export function CharacterSummaryHeader({
     });
 
   const fmt = (n: number) => (n >= 0 ? `+${n}` : String(n));
+
+  const slotValues = useMemo((): Record<DisplayEquipSlot, React.ReactNode> => {
+    const carried = getCarriedInventory(character.inventory ?? undefined);
+    const empty: Record<DisplayEquipSlot, React.ReactNode> = {
+      HAND: "—",
+      FOOT: "—",
+      BODY: "—",
+      HEAD: "—",
+      BRAIN: "—",
+    };
+    if (!carried.length) {
+      return empty;
+    }
+    const values = { ...empty };
+    const maxItems = 2;
+    for (const displaySlot of [
+      "HAND",
+      "FOOT",
+      "BODY",
+      "HEAD",
+      "BRAIN",
+    ] as const) {
+      const apiSlots = getApiSlotsForDisplay(displaySlot);
+      const names: string[] = [];
+      for (const entry of carried) {
+        const name = entry.customName ?? entry.item?.name ?? "?";
+        for (const apiSlot of apiSlots) {
+          const count = (entry.equipSlots ?? []).filter(
+            (s) => s === apiSlot
+          ).length;
+          for (let i = 0; i < count && names.length < maxItems; i++) {
+            names.push(name);
+          }
+        }
+      }
+      if (names.length === 0) {
+        values[displaySlot] = "—";
+      } else {
+        const maxLen = Math.max(...names.map((n) => n.length));
+        const textSize =
+          maxLen > 14 || names.length > 3
+            ? "text-[9px]"
+            : maxLen > 8 || names.length > 1
+              ? "text-[10px]"
+              : "text-xs";
+        values[displaySlot] = (
+          <div className="flex min-w-0 w-full max-w-full flex-col items-center gap-0 overflow-hidden">
+            {names.map((name, i) => (
+              <span
+                key={i}
+                className={`block w-full min-w-0 truncate text-center ${textSize}`}
+                title={name}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        );
+      }
+    }
+    return values;
+  }, [character.inventory]);
+
+  const carriedWeight = useMemo(
+    () => getCarriedWeight(character.inventory ?? undefined),
+    [character.inventory]
+  );
+  const maxCarryWeight = useMemo(
+    () =>
+      getEffectiveMaxCarryWeight(
+        character.combatInformation?.maxCarryWeight,
+        character.inventory ?? undefined
+      ),
+    [character.combatInformation?.maxCarryWeight, character.inventory]
+  );
+  const carryWeightStyles = useMemo(
+    () => getCarryWeightStatCellStyles(carriedWeight, maxCarryWeight),
+    [carriedWeight, maxCarryWeight]
+  );
+  const carryWeightDisplay =
+    maxCarryWeight != null && maxCarryWeight > 0
+      ? `${carriedWeight} / ${maxCarryWeight} kg`
+      : `${carriedWeight} kg`;
+
+  const canEquip = !!mutate;
 
   return (
     <header
@@ -205,66 +304,139 @@ export function CharacterSummaryHeader({
             />
           </div>
 
-          {/* Rest: compact stats (same number of cells per row at each breakpoint) */}
+          <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5 [&>*]:min-w-0 [&>*]:overflow-hidden">
+            {HEADER_EQUIP_SLOTS_ROW1.map(({ slot, label }) => (
+              <StatCell
+                key={slot}
+                label={label}
+                value={slotValues[slot]}
+                compact
+                alignTop
+                onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+              />
+            ))}
+          </div>
+
+          <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5 [&>*]:min-w-0 [&>*]:overflow-hidden">
+            {HEADER_EQUIP_SLOTS_ROW2.map(({ slot, label }) => (
+              <StatCell
+                key={slot}
+                label={label}
+                value={slotValues[slot]}
+                compact
+                alignTop
+                onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+              />
+            ))}
+            <StatCell
+              label="Carry"
+              value={carryWeightDisplay}
+              compact
+              borderClassName={carryWeightStyles.borderClassName}
+              valueClassName={carryWeightStyles.valueClassName}
+            />
+          </div>
+
+          {combatExpanded && (
+            <>
+              <div className="mt-1.5 grid w-full grid-cols-3 gap-1.5">
+                <StatCell
+                  label="Melee Atk"
+                  value={formatAttackMod(attackModArrays.melee)}
+                  compact
+                  onClick={() => setAttackRollModal("melee")}
+                />
+                <StatCell
+                  label="Range Atk"
+                  value={formatAttackMod(attackModArrays.range)}
+                  compact
+                  onClick={() => setAttackRollModal("range")}
+                />
+                <StatCell
+                  label="Throw Atk"
+                  value={formatAttackMod(attackModArrays.throw)}
+                  compact
+                  onClick={() => setAttackRollModal("throw")}
+                />
+                <StatCell
+                  label="Melee Def"
+                  value={fmt(effectiveMods.meleeDefenceMod)}
+                  compact
+                  onClick={
+                    onUseReaction
+                      ? () => setMeleeDefenceRollOpen(true)
+                      : undefined
+                  }
+                  disabled={!onUseReaction || reactionsDisabled}
+                />
+                <StatCell
+                  label="Range Def"
+                  value={fmt(effectiveMods.rangeDefenceMod)}
+                  compact
+                  onClick={
+                    onUseReaction
+                      ? () => setRangeDefenceRollOpen(true)
+                      : undefined
+                  }
+                  disabled={!onUseReaction || reactionsDisabled}
+                />
+                <StatCell
+                  label="Reactions"
+                  value={reactionsValue}
+                  compact
+                  onClick={onUseReaction}
+                  disabled={reactionsDisabled}
+                />
+              </div>
+
+              <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5">
+                <StatCell
+                  label="GRID Atk"
+                  value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
+                  compact
+                  onClick={
+                    showGridAttack
+                      ? () => setAttackRollModal("grid")
+                      : undefined
+                  }
+                />
+                <StatCell
+                  label="GRID Def"
+                  value={fmt(gridDefenceDice)}
+                  compact
+                  onClick={
+                    reactionsDisabled
+                      ? undefined
+                      : () => setGridDefenceRollOpen(true)
+                  }
+                  disabled={reactionsDisabled}
+                />
+                <StatCell label="GRID Mods" value={gridModCellValue} compact />
+              </div>
+            </>
+          )}
+
           <div className="mt-1.5 grid w-full grid-cols-3 gap-1.5">
-            <StatCell
-              label="Melee Atk"
-              value={formatAttackMod(attackModArrays.melee)}
-              compact
-              onClick={() => setAttackRollModal("melee")}
-            />
-            <StatCell
-              label="Range Atk"
-              value={formatAttackMod(attackModArrays.range)}
-              compact
-              onClick={() => setAttackRollModal("range")}
-            />
-            <StatCell
-              label="Throw Atk"
-              value={formatAttackMod(attackModArrays.throw)}
-              compact
-              onClick={() => setAttackRollModal("throw")}
-            />
-            <StatCell
-              label="Melee Def"
-              value={fmt(effectiveMods.meleeDefenceMod)}
-              compact
-              onClick={
-                onUseReaction ? () => setMeleeDefenceRollOpen(true) : undefined
-              }
-              disabled={!onUseReaction || reactionsDisabled}
-            />
-            <StatCell
-              label="Range Def"
-              value={fmt(effectiveMods.rangeDefenceMod)}
-              compact
-              onClick={
-                onUseReaction ? () => setRangeDefenceRollOpen(true) : undefined
-              }
-              disabled={!onUseReaction || reactionsDisabled}
-            />
-            <StatCell
-              label="Reactions"
-              value={reactionsValue}
-              compact
-              onClick={onUseReaction}
-              disabled={reactionsDisabled}
-            />
+            <button
+              type="button"
+              onClick={() => setCombatExpanded((v) => !v)}
+              aria-expanded={combatExpanded}
+              className="col-span-3 flex w-full min-w-0 items-center justify-center rounded-lg border border-black bg-transparent px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-black transition hover:bg-black/10 active:bg-black/15"
+            >
+              {combatExpanded ? "HIDE COMBAT" : "SHOW COMBAT"}
+            </button>
           </div>
         </div>
 
-        <HeaderStatsCarouselRow
-          fmt={fmt}
-          character={character}
-          mutate={mutate}
-          showGridAttack={showGridAttack}
-          gridAttackDisplayMod={gridAttackDisplayMod}
-          gridDefenceDisplayMod={gridDefenceDice}
-          gridModCellValue={gridModCellValue}
-          onGridAttack={() => setAttackRollModal("grid")}
-          onGridDefence={() => setGridDefenceRollOpen(true)}
-          gridDefenceDisabled={reactionsDisabled}
-        />
+        {mutate && pickerSlot && (
+          <EquipItemPickerModal
+            isOpen={!!pickerSlot}
+            onClose={() => setPickerSlot(null)}
+            slot={pickerSlot}
+            character={character}
+            mutate={mutate}
+          />
+        )}
 
         {onHealthUpdate && (
           <StatEditModal

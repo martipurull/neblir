@@ -55,6 +55,7 @@ enum EquipSlot {
   FOOT
   BODY
   HEAD
+  BRAIN
 }
 
 enum PathName {

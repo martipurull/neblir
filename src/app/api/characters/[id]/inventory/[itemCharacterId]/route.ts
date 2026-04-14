@@ -19,7 +19,7 @@ import { errorResponse } from "../../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { z } from "zod";
 
-const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD", "BRAIN"]);
 const patchBodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("equip"), slot: equipSlotSchema }),
   z.object({ action: z.literal("unequip"), slot: equipSlotSchema }),

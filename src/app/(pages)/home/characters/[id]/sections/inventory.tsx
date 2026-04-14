@@ -13,6 +13,7 @@ import {
 } from "@/app/lib/constants/inventory";
 import {
   getCarriedWeight,
+  getCarryWeightInventoryPillClassName,
   getEffectiveMaxCarryWeight,
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
@@ -440,24 +441,15 @@ export function getInventorySection(
     inventory
   );
   const overCarryLimit = isOverCarryLimit(totalInventoryWeight, maxCarryWeight);
-  const ratio =
-    maxCarryWeight != null && maxCarryWeight > 0
-      ? totalInventoryWeight / maxCarryWeight
-      : 0;
 
   const titleSupplement =
     maxCarryWeight != null ? (
       <span className="group relative inline-block">
         <span
-          className={
-            overCarryLimit
-              ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
-              : ratio > 1
-                ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
-                : ratio >= 0.5
-                  ? "rounded border border-neblirWarning-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirWarning-400"
-                  : "rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirSafe-400"
-          }
+          className={getCarryWeightInventoryPillClassName(
+            totalInventoryWeight,
+            maxCarryWeight
+          )}
         >
           {totalInventoryWeight} / {maxCarryWeight} kg
         </span>
