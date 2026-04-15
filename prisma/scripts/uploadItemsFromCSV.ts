@@ -30,7 +30,7 @@
  * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
  * - areaType: optional; RADIUS or CONE. primaryRadius/secondaryRadius/coneLength apply when area is used.
  * - modifiesAttribute: optional; level-up path (e.g. strength.bruteForce) or Prisma enum key (e.g. STRENGTH_BRUTE_FORCE).
- * - attributeMod, skillMod: optional integers.
+ * - attributeMod, skillMod: optional integers (negatives allowed).
  * - modifiesSkill: optional; general skill key (e.g. aim, GRID) or Prisma enum key (e.g. AIM).
  *
  * Shared CSV helpers (`csvRowToItem`, `normalizeItemNameKey`, etc.) are exported for
@@ -309,7 +309,7 @@ export function csvRowToItem(row: Record<string, string>): Item {
     modifiesAttribute: parseOptionalAttributePath(
       getColumn(row, "modifiesAttribute", "modifies_attribute")
     ),
-    attributeMod: parseOptionalInt(
+    attributeMod: parseOptionalFloat(
       getColumn(row, "attributeMod", "attribute_mod")
     ),
     modifiesSkill: parseOptionalGeneralSkill(

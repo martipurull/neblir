@@ -139,6 +139,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       equipSlotTypes: createData.equipSlotTypes ?? undefined,
       equipSlotCost: createData.equipSlotCost ?? undefined,
       maxUses: createData.maxUses ?? undefined,
+      isSpeedAltered: createData.isSpeedAltered ?? undefined,
       ...mapApiModifiersToPrismaFields(createData),
     });
 

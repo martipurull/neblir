@@ -539,6 +539,7 @@ model Item {
   attributeMod         Int?
   modifiesSkill        ItemGeneralSkill?
   skillMod             Int?
+  isSpeedAltered       Boolean                    @default(false)
 }
 
 model CustomItem {
@@ -573,6 +574,7 @@ model CustomItem {
   attributeMod         Int?
   modifiesSkill        ItemGeneralSkill?
   skillMod             Int?
+  isSpeedAltered       Boolean                    @default(false)
 }
 
 model UniqueItem {
@@ -613,6 +615,7 @@ model UniqueItem {
   attributeModOverride      Int?
   modifiesSkillOverride     ItemGeneralSkill?
   skillModOverride          Int?
+  isSpeedAlteredOverride    Boolean?
   @@index([ownerUserId])
   @@index([gameId])
 }

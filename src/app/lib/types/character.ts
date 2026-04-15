@@ -64,9 +64,10 @@ const resolvedItemSchema = z
     equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
     equipSlotCost: equipSlotCostSchema.optional().nullable(),
     modifiesAttribute: itemAttributePathSchema.optional().nullable(),
-    attributeMod: z.number().optional().nullable(),
+    attributeMod: z.number().int().optional().nullable(),
     modifiesSkill: itemGeneralSkillSchema.optional().nullable(),
-    skillMod: z.number().optional().nullable(),
+    skillMod: z.number().int().optional().nullable(),
+    isSpeedAltered: z.boolean().optional().nullable(),
     _resolvedFrom: z.literal("UNIQUE_ITEM").optional(),
     _uniqueItemId: z.string().nullish(),
   })

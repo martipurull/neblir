@@ -77,6 +77,7 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
         ? null
         : PRISMA_TO_GENERAL_SKILL_API[uniqueItem.modifiesSkillOverride],
     skillMod: uniqueItem.skillModOverride ?? null,
+    isSpeedAltered: uniqueItem.isSpeedAlteredOverride ?? false,
     specialTag: uniqueItem.specialTag,
     _resolvedFrom: "UNIQUE_ITEM" as const,
     _uniqueItemId: uniqueItem.id,
@@ -120,6 +121,9 @@ export function prismaDataFromUniqueItemCreate(
     equipSlotTypesOverride: parsed.equipSlotTypesOverride ?? undefined,
     equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
     maxUsesOverride: parsed.maxUsesOverride ?? undefined,
+    ...(parsed.isSpeedAlteredOverride !== undefined && {
+      isSpeedAlteredOverride: parsed.isSpeedAlteredOverride,
+    }),
   };
 
   const mod = mapApiModifiersToPrismaFields({
@@ -296,6 +300,9 @@ function applyUniqueItemOverrides(
     }),
     ...(uniqueItem.skillModOverride != null && {
       skillMod: uniqueItem.skillModOverride,
+    }),
+    ...(uniqueItem.isSpeedAlteredOverride != null && {
+      isSpeedAltered: uniqueItem.isSpeedAlteredOverride,
     }),
   };
 }

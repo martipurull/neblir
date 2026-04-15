@@ -164,6 +164,7 @@ const baseItemSchema = z.object({
   attributeMod: z.number().int().nullish(),
   modifiesSkill: itemGeneralSkillSchema.nullish(),
   skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().optional(),
 });
 
 export const generalItemSchema = baseItemSchema.extend({
@@ -228,6 +229,7 @@ export const customItemCreateSchema = z.object({
   attributeMod: z.number().int().nullish(),
   modifiesSkill: itemGeneralSkillSchema.nullish(),
   skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().optional(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -269,6 +271,7 @@ const uniqueItemMutableBodySchema = z.object({
   attributeModOverride: z.number().int().nullish(),
   modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
   skillModOverride: z.number().int().nullish(),
+  isSpeedAlteredOverride: z.boolean().nullish(),
 });
 
 export const uniqueItemCreateSchema = z.union([
@@ -336,6 +339,7 @@ export const itemResponseSchema = z.object({
   attributeMod: z.number().int().nullish(),
   modifiesSkill: itemGeneralSkillSchema.nullish(),
   skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().nullish(),
 });
 export const itemListResponseSchema = z.array(itemResponseSchema);
 export type ItemResponse = z.infer<typeof itemResponseSchema>;
@@ -372,6 +376,7 @@ export const customItemResponseSchema = z.object({
   attributeMod: z.number().int().nullish(),
   modifiesSkill: itemGeneralSkillSchema.nullish(),
   skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().nullish(),
 });
 export const customItemListResponseSchema = z.array(customItemResponseSchema);
 export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
@@ -431,6 +436,7 @@ export const uniqueItemResolvedResponseSchema = z.object({
   attributeModOverride: z.number().int().nullish(),
   modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
   skillModOverride: z.number().int().nullish(),
+  isSpeedAlteredOverride: z.boolean().nullish(),
   templateItem: z
     .union([itemResponseSchema, customItemResponseSchema])
     .nullish(),

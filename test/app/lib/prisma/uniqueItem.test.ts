@@ -52,6 +52,11 @@ function minimalUniqueRow(
     equipSlotTypesOverride: null,
     equipSlotCostOverride: null,
     maxUsesOverride: null,
+    modifiesAttributeOverride: null,
+    modifiesSkillOverride: null,
+    attributeModOverride: null,
+    skillModOverride: null,
+    isSpeedAlteredOverride: null,
     ...overrides,
   } as UniqueItem;
 }
@@ -77,6 +82,7 @@ describe("buildStandaloneResolvedItem", () => {
     expect(r.description).toBe("");
     expect(r.equippable).toBe(false);
     expect(r.attackRoll).toEqual([]);
+    expect(r.isSpeedAltered).toBe(false);
   });
 
   it("uses Unknown item when name is blank after trim", async () => {

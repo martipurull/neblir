@@ -3,7 +3,7 @@ import {
   getArmourAttributePenalty,
 } from "./carryWeightUtils";
 import {
-  capAttributeOrSkill,
+  capInnateAttributeDiceWithEquipment,
   getEquippedItemStatBonusDetails,
 } from "./equippedStatBonuses";
 import { getEquippedInstanceCount } from "./equipUtils";
@@ -494,7 +494,7 @@ export function getEffectiveAgilityDiceForArmourPenalty(
   const innate = character.innateAttributes.dexterity.agility;
   const equip = getEquippedItemStatBonusDetails(character);
   const bonus = equip.byAttributePath.get("dexterity.agility")?.total ?? 0;
-  const capped = capAttributeOrSkill(innate, bonus);
+  const capped = capInnateAttributeDiceWithEquipment(innate, bonus);
   const penalty = getArmourAttributePenalty(armourModPenaltyTier);
   return applyArmourPenaltyToInnateAttributeDice(capped, penalty);
 }

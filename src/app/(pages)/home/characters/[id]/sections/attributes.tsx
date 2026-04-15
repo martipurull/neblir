@@ -4,10 +4,11 @@ import type { CharacterSectionSlide } from "@/app/components/character/Character
 import {
   applyArmourPenaltyToInnateAttributeDice,
   getArmourAttributePenalty,
+  MIN_INNATE_ATTRIBUTE_DICE,
 } from "@/app/lib/carryWeightUtils";
 import {
   ATTRIBUTE_SKILL_CAP,
-  capAttributeOrSkill,
+  capInnateAttributeDiceWithEquipment,
   equipmentBonusTooltip,
   getEquippedItemStatBonusDetails,
 } from "@/app/lib/equippedStatBonuses";
@@ -94,7 +95,9 @@ export function getAttributesSection(
                   const equipBonus = equipDetail?.total ?? 0;
                   const rawWithEquip = value + equipBonus;
                   const wasCapped = rawWithEquip > ATTRIBUTE_SKILL_CAP;
-                  const cappedWithEquip = capAttributeOrSkill(
+                  const wasFlooredAtMin =
+                    rawWithEquip < MIN_INNATE_ATTRIBUTE_DICE;
+                  const cappedWithEquip = capInnateAttributeDiceWithEquipment(
                     value,
                     equipBonus
                   );
@@ -108,7 +111,8 @@ export function getAttributesSection(
                   const equipTip = equipmentBonusTooltip(
                     value,
                     equipDetail,
-                    wasCapped
+                    wasCapped,
+                    wasFlooredAtMin
                   );
                   const armourTip = showArmourPenalty
                     ? `Innate ${value} (before equipment cap), reduced by ${armourAttrPenalty} due to armour (grade ${armourMod}). Never below 1 on this scale. UI only; affects rolls.`
@@ -117,6 +121,7 @@ export function getAttributesSection(
                     .filter(Boolean)
                     .join(" ");
                   const showEquipStyle = equipBonus !== 0;
+                  const equipPenalty = equipBonus < 0;
                   return (
                     <li key={key}>
                       <button
@@ -142,19 +147,25 @@ export function getAttributesSection(
                           )}
                           {showEquipStyle && (
                             <span
-                              className="rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                              className={
+                                equipPenalty
+                                  ? "rounded border border-neblirDanger-400 bg-neblirDanger-400/15 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-neblirDanger-600"
+                                  : "rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                              }
                               title={valueTitle || undefined}
                             >
-                              enhanced
+                              {equipPenalty ? "reduced" : "enhanced"}
                             </span>
                           )}
                           <span
                             className={`text-sm tabular-nums ${
-                              showEquipStyle
-                                ? "font-bold text-paleBlue"
-                                : showArmourPenalty
-                                  ? "font-medium text-neblirDanger-600"
-                                  : "font-medium text-black"
+                              equipPenalty
+                                ? "font-bold text-neblirDanger-600"
+                                : showEquipStyle
+                                  ? "font-bold text-paleBlue"
+                                  : showArmourPenalty
+                                    ? "font-medium text-neblirDanger-600"
+                                    : "font-medium text-black"
                             }`}
                             title={valueTitle || undefined}
                           >

@@ -1,3 +1,4 @@
+import { MIN_INNATE_ATTRIBUTE_DICE } from "@/app/lib/carryWeightUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
 
 export const ATTRIBUTE_SKILL_CAP = 5;
@@ -52,6 +53,7 @@ export function getEquippedItemStatBonusDetails(character: CharacterDetail): {
   return { byAttributePath, bySkill };
 }
 
+/** General skills (and similar): 0–5 after equipment; no minimum above 0. */
 export function capAttributeOrSkill(
   base: number,
   equipmentBonus: number
@@ -59,17 +61,41 @@ export function capAttributeOrSkill(
   return Math.min(ATTRIBUTE_SKILL_CAP, base + equipmentBonus);
 }
 
+/** Innate attribute dice: 1–5 after equipment, before armour agility/stealth penalty. */
+export function capInnateAttributeDiceWithEquipment(
+  base: number,
+  equipmentBonus: number
+): number {
+  return Math.max(
+    MIN_INNATE_ATTRIBUTE_DICE,
+    Math.min(ATTRIBUTE_SKILL_CAP, base + equipmentBonus)
+  );
+}
+
 /** Tooltip for carousel / title when equipment changes the stat. */
 export function equipmentBonusTooltip(
   base: number,
   detail: EquipmentBonusDetail | undefined,
-  wasCapped: boolean
+  wasCapped: boolean,
+  wasFlooredAtMin = false
 ): string | undefined {
   if (!detail || detail.total === 0) return undefined;
-  const src = detail.sources.map((s) => `${s.label} (+${s.amount})`).join(", ");
-  let t = `Base ${base}. Bonus from equipped: ${src}.`;
+  const src = detail.sources
+    .map((s) => {
+      const sign = s.amount >= 0 ? "+" : "";
+      return `${s.label} (${sign}${s.amount})`;
+    })
+    .join(", ");
+  const fromItems =
+    detail.total < 0
+      ? "Penalty from equipped items"
+      : "Bonus from equipped items";
+  let t = `Base ${base}. ${fromItems}: ${src}.`;
   if (wasCapped) {
     t += ` Shown value is capped at ${ATTRIBUTE_SKILL_CAP} (maximum for attributes and skills).`;
+  }
+  if (wasFlooredAtMin) {
+    t += ` Shown value is at least ${MIN_INNATE_ATTRIBUTE_DICE} (minimum for attribute dice).`;
   }
   return t;
 }

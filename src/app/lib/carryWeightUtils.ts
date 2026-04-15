@@ -269,3 +269,38 @@ export function getSpeedReductionTooltipText(
 
   return parts.join(" ");
 }
+
+type SpeedAlterInventoryEntry = {
+  isEquipped?: boolean;
+  customName?: string | null;
+  item?: { name?: string | null; isSpeedAltered?: boolean | null } | null;
+};
+
+/**
+ * Equipped stack rows whose resolved item has `isSpeedAltered` (inventory API).
+ */
+export function getEquippedSpeedAlteringItems(
+  inventory: SpeedAlterInventoryEntry[] | undefined
+): { displayNames: string[]; tooltip: string } {
+  const displayNames: string[] = [];
+  for (const row of inventory ?? []) {
+    if (!row.isEquipped) continue;
+    if (row.item?.isSpeedAltered !== true) continue;
+    const label =
+      row.customName?.trim() ?? row.item?.name?.trim() ?? "Unknown item";
+    displayNames.push(label);
+  }
+  const uniqueNames = [...new Set(displayNames)];
+  const tooltip = formatSpeedAlteredTooltip(uniqueNames);
+  return { displayNames: uniqueNames, tooltip };
+}
+
+function formatSpeedAlteredTooltip(names: string[]): string {
+  if (names.length === 0) return "";
+  if (names.length === 1) {
+    return `${names[0]} alters speed, check usage for more information.`;
+  }
+  const last = names[names.length - 1];
+  const rest = names.slice(0, -1).join(", ");
+  return `${rest} and ${last} alter speed, check each item's usage for more information.`;
+}

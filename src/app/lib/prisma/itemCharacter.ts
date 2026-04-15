@@ -216,6 +216,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.skillModOverride != null && {
           skillMod: uniqueItem.skillModOverride,
         }),
+        ...(uniqueItem.isSpeedAlteredOverride != null && {
+          isSpeedAltered: uniqueItem.isSpeedAlteredOverride,
+        }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,
         _uniqueItemId: uniqueItem.id,

@@ -2,7 +2,7 @@ import {
   applyArmourPenaltyToInnateAttributeDice,
   getArmourAttributePenalty,
 } from "@/app/lib/carryWeightUtils";
-import { capAttributeOrSkill } from "@/app/lib/equippedStatBonuses";
+import { capInnateAttributeDiceWithEquipment } from "@/app/lib/equippedStatBonuses";
 import { ValidationError } from "../shared/errors";
 import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
 import type { CharacterCreationRequest } from "./schemas";
@@ -180,7 +180,7 @@ export function computeCharacterRequestData(
       const innateAgility =
         parsedCharacterCreationRequest.innateAttributes.dexterity.agility;
       const effAgility = applyArmourPenaltyToInnateAttributeDice(
-        capAttributeOrSkill(innateAgility, 0),
+        capInnateAttributeDiceWithEquipment(innateAgility, 0),
         getArmourAttributePenalty(armourMod)
       );
       return {

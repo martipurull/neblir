@@ -69,6 +69,7 @@ export function getSkillsSection(
                 const wasCapped = rawWithEquip > ATTRIBUTE_SKILL_CAP;
                 const displayValue = capAttributeOrSkill(value, equipBonus);
                 const showEquipStyle = equipBonus !== 0;
+                const equipPenalty = equipBonus < 0;
                 const valueTitle = equipmentBonusTooltip(
                   value,
                   equipDetail,
@@ -91,17 +92,23 @@ export function getSkillsSection(
                       <span className="flex shrink-0 items-center gap-2">
                         {showEquipStyle && (
                           <span
-                            className="rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                            className={
+                              equipPenalty
+                                ? "rounded border border-neblirDanger-400 bg-neblirDanger-400/15 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-neblirDanger-600"
+                                : "rounded border border-customPrimary/20 bg-paleBlue/35 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-customPrimary"
+                            }
                             title={valueTitle ?? undefined}
                           >
-                            enhanced
+                            {equipPenalty ? "reduced" : "enhanced"}
                           </span>
                         )}
                         <span
                           className={`text-sm tabular-nums ${
-                            showEquipStyle
-                              ? "font-bold text-paleBlue"
-                              : "font-medium text-black"
+                            equipPenalty
+                              ? "font-bold text-neblirDanger-600"
+                              : showEquipStyle
+                                ? "font-bold text-paleBlue"
+                                : "font-medium text-black"
                           }`}
                           title={valueTitle ?? undefined}
                         >

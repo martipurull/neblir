@@ -62,11 +62,14 @@ export function serializeError(error: unknown): string {
     });
   }
   if (error instanceof Error) {
-    return JSON.stringify({
+    const payload: Record<string, unknown> = {
       name: error.name,
       message: error.message,
       stack: error.stack,
-    });
+    };
+    const cv = (error as { clientVersion?: unknown }).clientVersion;
+    if (typeof cv === "string") payload.clientVersion = cv;
+    return JSON.stringify(payload);
   }
   return JSON.stringify(error);
 }

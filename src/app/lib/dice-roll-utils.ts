@@ -4,6 +4,7 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import {
   capAttributeOrSkill,
+  capInnateAttributeDiceWithEquipment,
   getEquippedItemStatBonusDetails,
 } from "@/app/lib/equippedStatBonuses";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -34,7 +35,7 @@ export function getDiceValue(
         : 0;
     const path = `${item.attributeGroup}.${item.skillKey}`;
     const bonus = equip.byAttributePath.get(path)?.total ?? 0;
-    let v = capAttributeOrSkill(base, bonus);
+    let v = capInnateAttributeDiceWithEquipment(base, bonus);
     const armourMod = character.combatInformation?.armourMod ?? 0;
     const armourPenalty = getArmourAttributePenalty(armourMod);
     if (
