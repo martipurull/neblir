@@ -5,6 +5,7 @@ import {
   SafeButton,
   WarningButton,
 } from "@/app/components/shared/SemanticActionButton";
+import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -39,8 +40,11 @@ export function InitiativeRollModal({
   onRegistered,
   onNavigateToShowOrder,
 }: InitiativeRollModalProps) {
-  const mod = character.combatInformation.initiativeMod;
-  const modLabel = `${mod >= 0 ? "+ " : ""}${mod}`;
+  const mod = useMemo(
+    () => getInitiativeModifierFromCharacter(character),
+    [character]
+  );
+  const modLabel = `${mod >= 0 ? "+" : ""}${mod}`;
 
   const [selectedGameId, setSelectedGameId] = useState("");
   const [phase, setPhase] = useState<"pick" | "rolled" | "success" | "error">(

@@ -48,10 +48,10 @@ export function getHealthSection(
           <div className="border-t border-black pt-4">
             <span className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">
               <span className="h-3 w-px bg-black" aria-hidden />
-              Death Saves
+              Death Rolls
             </span>
-            <div className="mt-3 flex gap-6">
-              <div className="flex flex-col items-center gap-1.5">
+            <div className="mt-5 flex w-full gap-6">
+              <div className="flex flex-1 flex-col items-center gap-1.5">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-black">
                   Successes
                 </span>
@@ -71,7 +71,7 @@ export function getHealthSection(
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-1 flex-col items-center gap-1.5">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-black">
                   Failures
                 </span>

@@ -2,14 +2,13 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import type { EquipSlot } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
-import { EquipSlotChoiceModal } from "@/app/components/character/EquipSlotChoiceModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
 import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
+  sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
   getCarriedWeight,
@@ -18,7 +17,9 @@ import {
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
 import { getGameById } from "@/lib/api/game";
+import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -171,11 +172,9 @@ function InventorySectionContent({
   const [detailEntry, setDetailEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
-  const [equipEntry, setEquipEntry] = useState<
-    NonNullable<CharacterDetail["inventory"]>[number] | null
-  >(null);
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
+  const [equipError, setEquipError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -192,34 +191,36 @@ function InventorySectionContent({
     [character.games]
   );
   const carriedInventory = useMemo(
-    () => getCarriedInventory(inventory),
+    () => sortInventoryEntriesAlphabetically(getCarriedInventory(inventory)),
     [inventory]
   );
   const storedInventory = useMemo(
     () =>
-      inventory.filter(
-        (e) =>
-          e.itemLocation !== undefined &&
-          e.itemLocation !== null &&
-          e.itemLocation !== ITEM_LOCATION_CARRIED
+      sortInventoryEntriesAlphabetically(
+        inventory.filter(
+          (e) =>
+            e.itemLocation !== undefined &&
+            e.itemLocation !== null &&
+            e.itemLocation !== ITEM_LOCATION_CARRIED
+        )
       ),
     [inventory]
   );
 
-  const handleEquipSelect = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number],
-    slot: EquipSlot
+  const handleAutoEquip = async (
+    entry: NonNullable<CharacterDetail["inventory"]>[number]
   ) => {
     setEquippingId(entry.id);
+    setEquipError(null);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
         action: "equip",
-        slot,
       });
       await mutate();
-      setEquipEntry(null);
-    } catch {
-      setEquipEntry(null);
+    } catch (e) {
+      setEquipError(
+        getUserSafeErrorMessage(e, "Could not equip this item. Try again.")
+      );
     } finally {
       setEquippingId(null);
     }
@@ -331,7 +332,9 @@ function InventorySectionContent({
             variant="carried"
             entries={carriedInventory}
             onSelectDetail={setDetailEntry}
-            onSelectEquip={setEquipEntry}
+            onSelectEquip={(e) => {
+              void handleAutoEquip(e);
+            }}
             onUnequip={(entry) => {
               void handleUnequip(entry);
             }}
@@ -393,17 +396,11 @@ function InventorySectionContent({
         />
       )}
 
-      {equipEntry && (
-        <EquipSlotChoiceModal
-          isOpen={!!equipEntry}
-          onClose={() => setEquipEntry(null)}
-          entry={equipEntry}
-          inventory={carriedInventory}
-          onSelect={(slot) => {
-            void handleEquipSelect(equipEntry, slot);
-          }}
-        />
-      )}
+      <EquipErrorModal
+        isOpen={equipError != null}
+        message={equipError ?? ""}
+        onClose={() => setEquipError(null)}
+      />
     </div>
   );
 }

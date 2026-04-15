@@ -1,3 +1,5 @@
+import { getEffectiveAgilityDiceForArmourPenalty } from "@/app/lib/equipCombatUtils";
+import type { CharacterDetail } from "@/app/lib/types/character";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { combatInformationUpdateRequestSchema } from "./schema";
@@ -83,11 +85,16 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       (parsedBody.armourMod || parsedBody.armourMod === 0) &&
       parsedBody.armourMod !== existingCharacter.combatInformation.armourMod
     ) {
+      const detail = existingCharacter as CharacterDetail;
+      const effAgility = getEffectiveAgilityDiceForArmourPenalty(
+        detail,
+        parsedBody.armourMod
+      );
       updateBody = {
         ...updateBody,
         armourMod: parsedBody.armourMod,
         rangeDefenceMod:
-          existingCharacter.innateAttributes.dexterity.agility +
+          effAgility +
           existingCharacter.learnedSkills.generalSkills.acrobatics +
           parsedBody.armourMod,
         meleeDefenceMod:
@@ -95,16 +102,24 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           existingCharacter.learnedSkills.generalSkills.melee +
           parsedBody.armourMod,
         armourMaxHP: parsedBody.armourMod * 5,
+        initiativeMod:
+          existingCharacter.innateAttributes.personality.mentality + effAgility,
+        speed:
+          existingCharacter.innateAttributes.strength.athletics +
+          effAgility +
+          10,
       };
     }
     // Handle the case where the armour is destroyed
     if (parsedBody.armourCurrentHP === 0) {
+      const detail = existingCharacter as CharacterDetail;
+      const effAgility = getEffectiveAgilityDiceForArmourPenalty(detail, 0);
       updateBody = {
         ...updateBody,
         armourCurrentHP: 0,
         armourMod: 0,
         rangeDefenceMod:
-          existingCharacter.innateAttributes.dexterity.agility +
+          effAgility +
           existingCharacter.learnedSkills.generalSkills.acrobatics +
           0,
         meleeDefenceMod:
@@ -112,6 +127,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           existingCharacter.learnedSkills.generalSkills.melee +
           0,
         armourMaxHP: 0,
+        initiativeMod:
+          existingCharacter.innateAttributes.personality.mentality + effAgility,
+        speed:
+          existingCharacter.innateAttributes.strength.athletics +
+          effAgility +
+          10,
       };
     }
     await updateCharacter(id, {

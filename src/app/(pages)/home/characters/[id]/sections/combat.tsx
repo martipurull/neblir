@@ -3,6 +3,7 @@
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
+import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import {
   getCarriedWeight,
   getEffectiveMaxCarryWeight,
@@ -50,7 +51,7 @@ export function getCombatSection(
     maxCarryWeight,
     combat.armourMod ?? 0
   );
-  const mod = combat.initiativeMod;
+  const mod = getInitiativeModifierFromCharacter(character);
   const modLabel = `${mod >= 0 ? "+" : ""}${mod}`;
   const gameLinkCount = character.games?.length ?? 0;
   const { gameDetails, gamesLoading, onOpenRoll, onOpenOrder } =

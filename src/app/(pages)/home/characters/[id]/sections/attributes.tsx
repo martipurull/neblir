@@ -1,7 +1,10 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
-import { getArmourAttributePenalty } from "@/app/lib/carryWeightUtils";
+import {
+  applyArmourPenaltyToInnateAttributeDice,
+  getArmourAttributePenalty,
+} from "@/app/lib/carryWeightUtils";
 import {
   ATTRIBUTE_SKILL_CAP,
   capAttributeOrSkill,
@@ -97,7 +100,10 @@ export function getAttributesSection(
                   );
                   const showArmourPenalty = armourPenaltyApplies(attrKey, key);
                   const displayValue = showArmourPenalty
-                    ? cappedWithEquip - armourAttrPenalty
+                    ? applyArmourPenaltyToInnateAttributeDice(
+                        cappedWithEquip,
+                        armourAttrPenalty
+                      )
                     : cappedWithEquip;
                   const equipTip = equipmentBonusTooltip(
                     value,
@@ -105,7 +111,7 @@ export function getAttributesSection(
                     wasCapped
                   );
                   const armourTip = showArmourPenalty
-                    ? `Innate ${value} (before equipment cap), reduced by ${armourAttrPenalty} due to armour (grade ${armourMod}). UI only; affects rolls.`
+                    ? `Innate ${value} (before equipment cap), reduced by ${armourAttrPenalty} due to armour (grade ${armourMod}). Never below 1 on this scale. UI only; affects rolls.`
                     : undefined;
                   const valueTitle = [equipTip, armourTip]
                     .filter(Boolean)

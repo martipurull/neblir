@@ -1,3 +1,12 @@
+import {
+  applyArmourPenaltyToInnateAttributeDice,
+  getArmourAttributePenalty,
+} from "./carryWeightUtils";
+import {
+  capAttributeOrSkill,
+  getEquippedItemStatBonusDetails,
+} from "./equippedStatBonuses";
+import { getEquippedInstanceCount } from "./equipUtils";
 import { getCarriedInventory } from "./constants/inventory";
 import type { CharacterDetail } from "./types/character";
 
@@ -362,6 +371,76 @@ export function getGridDefenceDice(character: CharacterDetail): number {
   return base + getEquippedBrainGridBonusesDisplay(character).gridDefenceBonus;
 }
 
+export function inventoryEntryOccupiesBodyOrHead(entry: {
+  equipSlots?: string[];
+}): boolean {
+  return (entry.equipSlots ?? []).some((s) => s === "BODY" || s === "HEAD");
+}
+
+/** Body/head armour piece (defence dice), for “one suit at a time” rules. */
+export function itemProvidesArmourDefenceBonus(
+  item:
+    | {
+        defenceMeleeBonus?: number | null;
+        defenceRangeBonus?: number | null;
+      }
+    | null
+    | undefined
+): boolean {
+  if (!item) return false;
+  return (item.defenceMeleeBonus ?? 0) > 0 || (item.defenceRangeBonus ?? 0) > 0;
+}
+
+/**
+ * True if equipping would add armour on body/head while another suit is already
+ * worn, or add a second worn suit from the same stack.
+ */
+export function equipViolatesSingleArmourRule(args: {
+  carriedInventory: Array<{
+    id: string;
+    equipSlots?: string[];
+    item?: {
+      defenceMeleeBonus?: number | null;
+      defenceRangeBonus?: number | null;
+    } | null;
+  }>;
+  itemCharacterId: string;
+  equipSlotsBefore: string[];
+  slotsToAdd: string[];
+  item: {
+    defenceMeleeBonus?: number | null;
+    defenceRangeBonus?: number | null;
+    equipSlotTypes?: string[] | null;
+  } | null;
+  equipSlotTypes: string[] | undefined | null;
+}): boolean {
+  const {
+    item,
+    equipSlotsBefore,
+    slotsToAdd,
+    equipSlotTypes,
+    carriedInventory,
+    itemCharacterId,
+  } = args;
+  if (!itemProvidesArmourDefenceBonus(item)) return false;
+  if (!slotsToAdd.some((s) => s === "BODY" || s === "HEAD")) return false;
+
+  const otherWorn = carriedInventory.some(
+    (e) =>
+      e.id !== itemCharacterId &&
+      inventoryEntryOccupiesBodyOrHead(e) &&
+      itemProvidesArmourDefenceBonus(e.item)
+  );
+  if (otherWorn) return true;
+
+  const beforeInst = getEquippedInstanceCount(equipSlotsBefore, equipSlotTypes);
+  const afterInst = getEquippedInstanceCount(
+    [...equipSlotsBefore, ...slotsToAdd],
+    equipSlotTypes
+  );
+  return beforeInst >= 1 && afterInst > beforeInst;
+}
+
 /** Armour defence bonuses from BODY/HEAD-equipped items (carried only) */
 export function getArmourBonusesFromInventory(
   inventory: InventoryEntry[] | undefined
@@ -371,19 +450,15 @@ export function getArmourBonusesFromInventory(
   if (!carried.length) return result;
 
   for (const entry of carried) {
-    const slots = entry.equipSlots ?? [];
-    const bodyHeadCount = slots.filter(
-      (s) => s === "BODY" || s === "HEAD"
-    ).length;
-    if (bodyHeadCount === 0 || !entry.item) continue;
+    if (!inventoryEntryOccupiesBodyOrHead(entry) || !entry.item) continue;
 
     const meleeBonus = entry.item.defenceMeleeBonus ?? 0;
     const rangeBonus = entry.item.defenceRangeBonus ?? 0;
 
-    for (let i = 0; i < bodyHeadCount; i++) {
-      result.melee += meleeBonus;
-      result.range += rangeBonus;
-    }
+    // One suit occupying HEAD+BODY is still a single armour piece: one bonus each,
+    // not one per slot (e.g. grade 4 = 4d10 once, not twice).
+    result.melee += meleeBonus;
+    result.range += rangeBonus;
   }
   return result;
 }
@@ -408,8 +483,46 @@ export function getArmourDisplayFromInventory(
   };
 }
 
+/**
+ * Agility dice (1–5) after equipment cap and armour agility/stealth penalty.
+ * Matches attribute display / dice rolls for dexterity.agility.
+ */
+export function getEffectiveAgilityDiceForArmourPenalty(
+  character: CharacterDetail,
+  armourModPenaltyTier: number
+): number {
+  const innate = character.innateAttributes.dexterity.agility;
+  const equip = getEquippedItemStatBonusDetails(character);
+  const bonus = equip.byAttributePath.get("dexterity.agility")?.total ?? 0;
+  const capped = capAttributeOrSkill(innate, bonus);
+  const penalty = getArmourAttributePenalty(armourModPenaltyTier);
+  return applyArmourPenaltyToInnateAttributeDice(capped, penalty);
+}
+
+/**
+ * Initiative modifier shown in combat UI and submitted when rolling: Mentality +
+ * effective Agility (equipment cap + armour penalty). Prefer this over
+ * `combatInformation.initiativeMod` so the client matches equipment before DB sync.
+ */
+export function getInitiativeModifierFromCharacter(
+  character: CharacterDetail
+): number {
+  const carried = getCarriedInventory(character.inventory ?? undefined);
+  const armourMod = getArmourDisplayFromInventory(
+    carried,
+    character.combatInformation?.armourCurrentHP ?? 0
+  ).armourMod;
+  return (
+    character.innateAttributes.personality.mentality +
+    getEffectiveAgilityDiceForArmourPenalty(character, armourMod)
+  );
+}
+
 /** Effective combat mods including weapon and armour bonuses from equipment. Attack mods use max of per-weapon modifiers for DB/API. */
-export function getEffectiveCombatMods(character: CharacterDetail): {
+export function getEffectiveCombatMods(
+  character: CharacterDetail,
+  options?: { armourModPenaltyTier?: number }
+): {
   meleeAttackMod: number;
   rangeAttackMod: number;
   throwAttackMod: number;
@@ -418,9 +531,21 @@ export function getEffectiveCombatMods(character: CharacterDetail): {
 } {
   const { innateAttributes, learnedSkills, inventory } = character;
   const gs = learnedSkills.generalSkills;
+  const carried = getCarriedInventory(inventory ?? undefined);
+  const armourPenaltyTier =
+    options?.armourModPenaltyTier ??
+    getArmourDisplayFromInventory(
+      carried,
+      character.combatInformation?.armourCurrentHP ?? 0
+    ).armourMod;
+
+  const effectiveAgility = getEffectiveAgilityDiceForArmourPenalty(
+    character,
+    armourPenaltyTier
+  );
 
   const baseMeleeDef = innateAttributes.strength.resilience + gs.melee;
-  const baseRangeDef = innateAttributes.dexterity.agility + gs.acrobatics;
+  const baseRangeDef = effectiveAgility + gs.acrobatics;
 
   const attackArrays = getAttackModifierArrays(character);
   const armourBonuses = getArmourBonusesFromInventory(inventory ?? undefined);
@@ -465,16 +590,28 @@ export function computeCombatInfoUpdateForCharacter(
   throwAttackMod: number;
   meleeDefenceMod: number;
   rangeDefenceMod: number;
+  initiativeMod: number;
+  speed: number;
 } {
   const carried = getCarriedInventory(character.inventory ?? undefined);
   const armourDisplay = getArmourDisplayFromInventory(
     carried,
     character.combatInformation?.armourCurrentHP ?? 0
   );
-  const mods = getEffectiveCombatMods(character as CharacterDetail);
+  const penaltyTier = armourDisplay.armourMod;
+  const mods = getEffectiveCombatMods(character as CharacterDetail, {
+    armourModPenaltyTier: penaltyTier,
+  });
 
   const hasArmour = armourDisplay.armourMod > 0;
   const armourCurrentHP = hasArmour ? armourDisplay.armourMaxHP : 0;
+
+  const asDetail = character as CharacterDetail;
+  const effectiveAgility = getEffectiveAgilityDiceForArmourPenalty(
+    asDetail,
+    penaltyTier
+  );
+  const athletics = character.innateAttributes.strength.athletics;
 
   return {
     armourMod: armourDisplay.armourMod,
@@ -485,5 +622,7 @@ export function computeCombatInfoUpdateForCharacter(
     throwAttackMod: mods.throwAttackMod,
     meleeDefenceMod: mods.meleeDefenceMod,
     rangeDefenceMod: mods.rangeDefenceMod,
+    initiativeMod: getInitiativeModifierFromCharacter(asDetail),
+    speed: athletics + effectiveAgility + 10,
   };
 }

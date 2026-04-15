@@ -1,4 +1,7 @@
-import { getArmourAttributePenalty } from "@/app/lib/carryWeightUtils";
+import {
+  applyArmourPenaltyToInnateAttributeDice,
+  getArmourAttributePenalty,
+} from "@/app/lib/carryWeightUtils";
 import {
   capAttributeOrSkill,
   getEquippedItemStatBonusDetails,
@@ -39,7 +42,7 @@ export function getDiceValue(
       (item.skillKey === "agility" || item.skillKey === "stealth") &&
       armourPenalty > 0
     ) {
-      v -= armourPenalty;
+      v = applyArmourPenaltyToInnateAttributeDice(v, armourPenalty);
     }
     return v;
   }

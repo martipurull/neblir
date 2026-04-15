@@ -181,6 +181,17 @@ export function getArmourAttributePenalty(armourMod: number): number {
   return 0;
 }
 
+/** Innate attribute dice use a 1–5 scale; armour never reduces them below 1. */
+export const MIN_INNATE_ATTRIBUTE_DICE = 1;
+
+export function applyArmourPenaltyToInnateAttributeDice(
+  cappedWithEquip: number,
+  armourPenalty: number
+): number {
+  if (armourPenalty <= 0) return cappedWithEquip;
+  return Math.max(MIN_INNATE_ATTRIBUTE_DICE, cappedWithEquip - armourPenalty);
+}
+
 /**
  * Final effective speed: base from combat, then carry weight effect, then armour penalty.
  */

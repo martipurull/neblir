@@ -3,6 +3,141 @@ import type { EquipSlot } from "@/app/lib/types/character";
 /** Header equip cells map 1:1 to API equip slots */
 export type DisplayEquipSlot = EquipSlot;
 
+/** Order used when an item has no equipSlotTypes (fits any slot). */
+export const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+] as const;
+
+type CarriedEntryForCapacity = {
+  id: string;
+  equipSlots?: string[];
+  item?: {
+    equipSlotCost?: number | null;
+    equipSlotTypes?: string[] | null;
+  } | null;
+};
+
+/** Item template spans body + head as one garment (shared body/head slot budget). */
+export function isCombinedBodyHeadSuit(
+  equipSlotTypes: string[] | undefined | null
+): boolean {
+  const types = equipSlotTypes?.filter(Boolean) ?? [];
+  return types.includes("BODY") && types.includes("HEAD");
+}
+
+/**
+ * How many fully equipped "copies" this stack represents.
+ * Multi-slot items (e.g. HEAD+BODY armour): one copy needs one of each type.
+ */
+export function getEquippedInstanceCount(
+  equipSlots: string[] | undefined,
+  equipSlotTypes: string[] | undefined | null
+): number {
+  const slots = equipSlots ?? [];
+  const types = equipSlotTypes?.filter(Boolean) ?? [];
+  if (types.length === 0) {
+    return slots.length;
+  }
+  if (types.length === 1) {
+    return slots.filter((s) => s === types[0]).length;
+  }
+  const uniqueTypes = [...new Set(types)];
+  return Math.min(
+    ...uniqueTypes.map((t) => slots.filter((s) => s === t).length)
+  );
+}
+
+/**
+ * Slots to add so the next equipped instance is complete (fills missing types
+ * for partial multi-slot state, or adds one slot for single/flexible items).
+ */
+export function getAutoEquipSlotAdds(
+  equipSlots: string[],
+  equipSlotTypes: string[] | undefined | null
+): EquipSlot[] {
+  const types = equipSlotTypes?.filter(Boolean) ?? [];
+  if (types.length === 0) {
+    return [];
+  }
+  const uniqueTypes = [...new Set(types)] as EquipSlot[];
+  const instances = getEquippedInstanceCount(equipSlots, types);
+  const target = instances + 1;
+  const adds: EquipSlot[] = [];
+  for (const t of uniqueTypes) {
+    const have = equipSlots.filter((s) => s === t).length;
+    for (let i = have; i < target; i++) {
+      adds.push(t);
+    }
+  }
+  return adds;
+}
+
+/** True if assigning these equip slots to the entry stays within capacity everywhere. */
+export function isWithinSlotCapacity(
+  carriedInventory: CarriedEntryForCapacity[],
+  entryId: string,
+  nextEquipSlots: string[]
+): boolean {
+  const hyp = carriedInventory.map((e) =>
+    e.id === entryId ? { ...e, equipSlots: nextEquipSlots } : e
+  );
+  for (const slot of AUTO_EQUIP_SLOT_TRY_ORDER) {
+    if (getUsedCapacityInApiSlot(hyp, slot) > API_SLOT_CAPACITY) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function pickFirstFlexibleEquipSlot(
+  carriedInventory: CarriedEntryForCapacity[],
+  entryId: string,
+  currentEquipSlots: string[]
+): EquipSlot | null {
+  for (const slot of AUTO_EQUIP_SLOT_TRY_ORDER) {
+    const next = [...currentEquipSlots, slot];
+    if (isWithinSlotCapacity(carriedInventory, entryId, next)) {
+      return slot;
+    }
+  }
+  return null;
+}
+
+/** Whether one more auto-equip (all required slots) is allowed for this stack. */
+export function entryCanAutoEquip(
+  entry: CarriedEntryForCapacity & {
+    quantity: number;
+    item?: {
+      equippable?: boolean | null;
+      equipSlotTypes?: string[] | null;
+    } | null;
+  },
+  carriedInventory: CarriedEntryForCapacity[]
+): boolean {
+  if (entry.item?.equippable !== true) return false;
+  const types = entry.item?.equipSlotTypes;
+  if (getEquippedInstanceCount(entry.equipSlots, types) >= entry.quantity) {
+    return false;
+  }
+  const typesList = types?.filter(Boolean) ?? [];
+  if (typesList.length === 0) {
+    return (
+      pickFirstFlexibleEquipSlot(
+        carriedInventory,
+        entry.id,
+        entry.equipSlots ?? []
+      ) != null
+    );
+  }
+  const adds = getAutoEquipSlotAdds(entry.equipSlots ?? [], types);
+  const nextSlots = [...(entry.equipSlots ?? []), ...adds];
+  return isWithinSlotCapacity(carriedInventory, entry.id, nextSlots);
+}
+
 /** First header row: Hand, Foot, Body */
 export const HEADER_EQUIP_SLOTS_ROW1: {
   slot: DisplayEquipSlot;
@@ -58,13 +193,23 @@ export function itemCanEquipInSlot(
 export function getUsedCapacityInApiSlot(
   inventory: {
     equipSlots?: string[];
-    item?: { equipSlotCost?: number | null } | null;
+    item?: {
+      equipSlotCost?: number | null;
+      equipSlotTypes?: string[] | null;
+    } | null;
   }[],
   slot: EquipSlot
 ): number {
   let sum = 0;
   for (const entry of inventory) {
-    const cost = getItemCost(entry.item?.equipSlotCost);
+    const rawCost = getItemCost(entry.item?.equipSlotCost);
+    const suit =
+      isCombinedBodyHeadSuit(entry.item?.equipSlotTypes) &&
+      (slot === "BODY" || slot === "HEAD");
+    const cost =
+      suit && (entry.equipSlots ?? []).includes(slot)
+        ? Math.min(rawCost, 1)
+        : rawCost;
     const count = (entry.equipSlots ?? []).filter((s) => s === slot).length;
     sum += count * cost;
   }
@@ -75,7 +220,10 @@ export function getUsedCapacityInApiSlot(
 export function getUsedCapacityForDisplaySlot(
   inventory: {
     equipSlots?: string[];
-    item?: { equipSlotCost?: number | null } | null;
+    item?: {
+      equipSlotCost?: number | null;
+      equipSlotTypes?: string[] | null;
+    } | null;
   }[],
   displaySlot: DisplayEquipSlot
 ): number {

@@ -9,13 +9,13 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import {
-  API_SLOT_CAPACITY,
+  entryCanAutoEquip,
   getApiSlotsForDisplay,
-  getItemCost,
-  getUsedCapacityInApiSlot,
   itemCanEquipInSlot,
 } from "@/app/lib/equipUtils";
+import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import React, { useMemo, useState } from "react";
 
@@ -76,6 +76,10 @@ export function EquipItemPickerModal({
   mutate,
 }: EquipItemPickerModalProps) {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [equipError, setEquipError] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   const carriedInventory = useMemo(
     () => getCarriedInventory(character.inventory ?? undefined),
@@ -104,43 +108,30 @@ export function EquipItemPickerModal({
     }
   }
 
-  const _usedCapacity = useMemo(
-    () =>
-      apiSlots.reduce(
-        (sum, s) => sum + getUsedCapacityInApiSlot(carriedInventory, s),
-        0
-      ),
-    [carriedInventory, apiSlots]
-  );
-
-  const entriesAvailableToEquip = equippableEntries.filter(
-    (entry) => (entry.equipSlots ?? []).length < entry.quantity
+  const entriesAvailableToEquip = equippableEntries.filter((entry) =>
+    entryCanAutoEquip(entry, carriedInventory)
   );
 
   const slotLabel = SLOT_MODAL_LABELS[slot];
 
-  function pickApiSlotForEquip(entry: InventoryEntry): EquipSlot | null {
-    const itemCost = getItemCost(entry.item?.equipSlotCost);
-    for (const apiSlot of apiSlots) {
-      if (!itemCanEquipInSlot(apiSlot, entry.item?.equipSlotTypes ?? undefined))
-        continue;
-      const used = getUsedCapacityInApiSlot(carriedInventory, apiSlot);
-      if (used + itemCost <= API_SLOT_CAPACITY) return apiSlot;
-    }
-    return null;
-  }
-
   const handleEquip = async (entry: InventoryEntry) => {
-    const apiSlot = pickApiSlotForEquip(entry);
-    if (!apiSlot) return;
+    if (!entryCanAutoEquip(entry, carriedInventory)) return;
     setSubmittingId(entry.id);
+    setEquipError(null);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
         action: "equip",
-        slot: apiSlot,
       });
       await mutate();
       onClose();
+    } catch (e) {
+      setEquipError({
+        title: "Can't equip",
+        message: getUserSafeErrorMessage(
+          e,
+          "Could not equip this item. Try again."
+        ),
+      });
     } finally {
       setSubmittingId(null);
     }
@@ -148,6 +139,7 @@ export function EquipItemPickerModal({
 
   const handleUnequip = async (entry: InventoryEntry, apiSlot: EquipSlot) => {
     setSubmittingId(entry.id);
+    setEquipError(null);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
         action: "unequip",
@@ -155,6 +147,14 @@ export function EquipItemPickerModal({
       });
       await mutate();
       onClose();
+    } catch (e) {
+      setEquipError({
+        title: "Can't unequip",
+        message: getUserSafeErrorMessage(
+          e,
+          "Could not remove this item from the slot. Try again."
+        ),
+      });
     } finally {
       setSubmittingId(null);
     }
@@ -228,8 +228,8 @@ export function EquipItemPickerModal({
                 const name =
                   entry.customName ?? entry.item?.name ?? "Unknown item";
                 const isSubmitting = submittingId === entry.id;
-                const targetSlot = pickApiSlotForEquip(entry);
-                const equipDisabled = !targetSlot || isSubmitting;
+                const equipDisabled =
+                  !entryCanAutoEquip(entry, carriedInventory) || isSubmitting;
                 return (
                   <li
                     key={entry.id}
@@ -256,6 +256,13 @@ export function EquipItemPickerModal({
           )}
         </ul>
       </div>
+
+      <EquipErrorModal
+        isOpen={equipError != null}
+        title={equipError?.title}
+        message={equipError?.message ?? ""}
+        onClose={() => setEquipError(null)}
+      />
     </div>
   );
 }

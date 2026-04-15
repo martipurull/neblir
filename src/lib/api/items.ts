@@ -111,7 +111,7 @@ export async function addItemToCharacterInventory(
 export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
 
 export type UpdateInventoryEntryBody =
-  | { action: "equip"; slot: EquipSlot }
+  | { action: "equip"; slot?: EquipSlot }
   | { action: "unequip"; slot: EquipSlot }
   | { action: "unequipAll" }
   | { action: "setLocation"; itemLocation: string }

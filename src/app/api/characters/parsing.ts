@@ -1,3 +1,8 @@
+import {
+  applyArmourPenaltyToInnateAttributeDice,
+  getArmourAttributePenalty,
+} from "@/app/lib/carryWeightUtils";
+import { capAttributeOrSkill } from "@/app/lib/equippedStatBonuses";
 import { ValidationError } from "../shared/errors";
 import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
 import type { CharacterCreationRequest } from "./schemas";
@@ -169,34 +174,44 @@ export function computeCharacterRequestData(
         failures: 0,
       },
     },
-    combatInformation: {
-      ...requestWithoutPathAndWallet.combatInformation,
-      initiativeMod:
-        parsedCharacterCreationRequest.innateAttributes.personality.mentality +
-        parsedCharacterCreationRequest.innateAttributes.dexterity.agility,
-      speed:
-        parsedCharacterCreationRequest.innateAttributes.strength.athletics +
-        parsedCharacterCreationRequest.innateAttributes.dexterity.agility +
-        10,
-      maxCarryWeight: calculateMaxCarryWeight(parsedCharacterCreationRequest),
-      reactionsPerRound: reactionsPerRound,
-      rangeAttackMod:
-        parsedCharacterCreationRequest.innateAttributes.dexterity.manual +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
-      meleeAttackMod:
-        parsedCharacterCreationRequest.innateAttributes.strength.bruteForce +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-      throwAttackMod:
-        parsedCharacterCreationRequest.innateAttributes.strength.athletics +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
-      rangeDefenceMod:
-        parsedCharacterCreationRequest.combatInformation.armourMod +
-        parsedCharacterCreationRequest.innateAttributes.dexterity.agility +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.acrobatics,
-      meleeDefenceMod:
-        parsedCharacterCreationRequest.combatInformation.armourMod +
-        parsedCharacterCreationRequest.innateAttributes.strength.resilience +
-        parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
-    },
+    combatInformation: (() => {
+      const armourMod =
+        parsedCharacterCreationRequest.combatInformation.armourMod;
+      const innateAgility =
+        parsedCharacterCreationRequest.innateAttributes.dexterity.agility;
+      const effAgility = applyArmourPenaltyToInnateAttributeDice(
+        capAttributeOrSkill(innateAgility, 0),
+        getArmourAttributePenalty(armourMod)
+      );
+      return {
+        ...requestWithoutPathAndWallet.combatInformation,
+        initiativeMod:
+          parsedCharacterCreationRequest.innateAttributes.personality
+            .mentality + effAgility,
+        speed:
+          parsedCharacterCreationRequest.innateAttributes.strength.athletics +
+          effAgility +
+          10,
+        maxCarryWeight: calculateMaxCarryWeight(parsedCharacterCreationRequest),
+        reactionsPerRound: reactionsPerRound,
+        rangeAttackMod:
+          parsedCharacterCreationRequest.innateAttributes.dexterity.manual +
+          parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
+        meleeAttackMod:
+          parsedCharacterCreationRequest.innateAttributes.strength.bruteForce +
+          parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
+        throwAttackMod:
+          parsedCharacterCreationRequest.innateAttributes.strength.athletics +
+          parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,
+        rangeDefenceMod:
+          armourMod +
+          effAgility +
+          parsedCharacterCreationRequest.learnedSkills.generalSkills.acrobatics,
+        meleeDefenceMod:
+          armourMod +
+          parsedCharacterCreationRequest.innateAttributes.strength.resilience +
+          parsedCharacterCreationRequest.learnedSkills.generalSkills.melee,
+      };
+    })(),
   };
 }
