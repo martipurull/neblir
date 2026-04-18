@@ -44,8 +44,12 @@ export function GameFormModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
+      onClick={submitting ? undefined : onClose}
     >
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-lg border-2 border-white bg-modalBackground-200 shadow-lg">
+      <div
+        className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-lg border-2 border-white bg-modalBackground-200 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-white/20 p-4 sm:p-5">
           <div>
             <h2 id={titleId} className="text-lg font-semibold text-white">

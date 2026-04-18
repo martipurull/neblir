@@ -10,6 +10,7 @@ import {
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -213,192 +214,169 @@ export function ItemDetailModal({
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="item-detail-modal-title"
-        onClick={onClose}
+      <ModalShell
+        isOpen
+        onClose={onClose}
+        title="Item details"
+        titleId="item-detail-modal-title"
+        maxWidthClass="max-w-md"
+        maxHeightClass="max-h-[90vh]"
       >
-        <div
-          className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between">
-            <h2
-              id="item-detail-modal-title"
-              className="text-lg font-semibold text-white"
-            >
-              Item details
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
-              aria-label="Close"
-            >
-              <span className="text-xl leading-none">×</span>
-            </button>
-          </div>
-
-          <div className="mt-4 space-y-3 text-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <span className="text-white/60 uppercase tracking-wider">
-                  Name
-                </span>
-                <p className="mt-0.5 text-white">{name}</p>
-              </div>
-              {itemImageKey ? (
-                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
-                  {itemImageUrl ? (
-                    <Image
-                      src={itemImageUrl}
-                      alt=""
-                      width={80}
-                      height={80}
-                      className="h-20 w-20 object-cover object-center"
-                      unoptimized
-                    />
-                  ) : itemImageUrl === undefined ? (
-                    <ImageLoadingSkeleton variant="item" />
-                  ) : null}
-                </div>
-              ) : null}
+        <div className="space-y-3 text-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <span className="text-white/60 uppercase tracking-wider">
+                Name
+              </span>
+              <p className="mt-0.5 text-white">{name}</p>
             </div>
+            {itemImageKey ? (
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
+                {itemImageUrl ? (
+                  <Image
+                    src={itemImageUrl}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 object-cover object-center"
+                    unoptimized
+                  />
+                ) : itemImageUrl === undefined ? (
+                  <ImageLoadingSkeleton variant="item" />
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <div>
+            <span className="text-white/60 uppercase tracking-wider">
+              Status
+            </span>
+            <div className="mt-0.5 rounded-md bg-transparent p-2">
+              <SelectDropdown
+                id={`item-detail-status-${entry.id}`}
+                label="Item condition"
+                showLabel={false}
+                placeholder="Choose status…"
+                value={entry.status}
+                options={statusOptions}
+                disabled={isUpdatingStatus}
+                pinValueFirst={entry.status}
+                onChange={(v) => void handleStatusChange(v as ItemStatus)}
+              />
+            </div>
+            {statusError ? (
+              <p className="mt-1 text-xs text-neblirDanger-600">
+                {statusError}
+              </p>
+            ) : null}
+          </div>
+          {item?.description && (
             <div>
               <span className="text-white/60 uppercase tracking-wider">
-                Status
+                Description
               </span>
-              <div className="mt-0.5 rounded-md bg-transparent p-2">
-                <SelectDropdown
-                  id={`item-detail-status-${entry.id}`}
-                  label="Item condition"
-                  showLabel={false}
-                  placeholder="Choose status…"
-                  value={entry.status}
-                  options={statusOptions}
-                  disabled={isUpdatingStatus}
-                  pinValueFirst={entry.status}
-                  onChange={(v) => void handleStatusChange(v as ItemStatus)}
-                />
-              </div>
-              {statusError ? (
-                <p className="mt-1 text-xs text-neblirDanger-600">
-                  {statusError}
-                </p>
-              ) : null}
+              <p className="mt-0.5 text-white whitespace-pre-wrap">
+                {item.description}
+              </p>
             </div>
-            {item?.description && (
-              <div>
-                <span className="text-white/60 uppercase tracking-wider">
-                  Description
-                </span>
-                <p className="mt-0.5 text-white whitespace-pre-wrap">
-                  {item.description}
-                </p>
-              </div>
-            )}
-            {item && "usage" in item && item.usage && (
-              <div>
-                <span className="text-white/60 uppercase tracking-wider">
-                  Usage
-                </span>
-                <p className="mt-0.5 text-white">{item.usage}</p>
-              </div>
-            )}
+          )}
+          {item && "usage" in item && item.usage && (
+            <div>
+              <span className="text-white/60 uppercase tracking-wider">
+                Usage
+              </span>
+              <p className="mt-0.5 text-white">{item.usage}</p>
+            </div>
+          )}
 
-            <ItemDetailSummaryGrid
-              entry={entry}
-              item={item ?? undefined}
-              displayLocation={displayLocation}
-              isWeapon={isWeapon}
-              hasRangeAtkBonus={hasRangeAtkBonus}
-              weaponDamage={weaponDamage}
-              onOpenDamageRoll={() => setDamageRollOpen(true)}
+          <ItemDetailSummaryGrid
+            entry={entry}
+            item={item ?? undefined}
+            displayLocation={displayLocation}
+            isWeapon={isWeapon}
+            hasRangeAtkBonus={hasRangeAtkBonus}
+            weaponDamage={weaponDamage}
+            onOpenDamageRoll={() => setDamageRollOpen(true)}
+          />
+
+          {maxUses != null && (
+            <ItemDetailUsesSection
+              displayUses={displayUses}
+              maxUses={maxUses}
+              onDelta={updateUses}
+              allowIncrease={canIncreaseUses}
             />
+          )}
 
-            {maxUses != null && (
-              <ItemDetailUsesSection
-                displayUses={displayUses}
-                maxUses={maxUses}
-                onDelta={updateUses}
-                allowIncrease={canIncreaseUses}
-              />
-            )}
+          <ItemDetailLocationSection
+            carried={carried}
+            leaveLocationInput={leaveLocationInput}
+            onLeaveInputChange={setLeaveLocationInput}
+            onLeaveSomewhere={() => {
+              const loc = leaveLocationInput.trim();
+              if (loc) void handleSetLocation(loc);
+            }}
+            onTakeWithYou={() => void handleSetLocation(ITEM_LOCATION_CARRIED)}
+            isSettingLocation={isSettingLocation}
+            locationError={locationError}
+          />
 
-            <ItemDetailLocationSection
-              carried={carried}
-              leaveLocationInput={leaveLocationInput}
-              onLeaveInputChange={setLeaveLocationInput}
-              onLeaveSomewhere={() => {
-                const loc = leaveLocationInput.trim();
-                if (loc) void handleSetLocation(loc);
-              }}
-              onTakeWithYou={() =>
-                void handleSetLocation(ITEM_LOCATION_CARRIED)
-              }
-              isSettingLocation={isSettingLocation}
-              locationError={locationError}
-            />
+          {showExtraWeaponGrid && item && (
+            <ItemDetailExtraWeaponGrid item={item} />
+          )}
 
-            {showExtraWeaponGrid && item && (
-              <ItemDetailExtraWeaponGrid item={item} />
-            )}
+          {item?.notes && (
+            <div>
+              <span className="text-white/60 uppercase tracking-wider">
+                Notes
+              </span>
+              <p className="mt-0.5 text-white whitespace-pre-wrap">
+                {item.notes}
+              </p>
+            </div>
+          )}
 
-            {item?.notes && (
-              <div>
-                <span className="text-white/60 uppercase tracking-wider">
-                  Notes
-                </span>
-                <p className="mt-0.5 text-white whitespace-pre-wrap">
-                  {item.notes}
-                </p>
-              </div>
-            )}
-
-            <ItemDetailGiveRemoveSection
-              showGiveFlow={Boolean(resolveGiveRecipients)}
-              entry={entry}
-              itemName={name}
-              giveOpen={giveOpen}
-              giveQuantity={giveQuantity}
-              onGiveQuantityChange={setGiveQuantity}
-              recipientId={recipientId}
-              onRecipientIdChange={setRecipientId}
-              recipientOptions={recipientOptions}
-              recipientsLoading={recipientsLoading}
-              recipientsError={recipientsError}
-              giveError={giveError}
-              giveSubmitting={giveSubmitting}
-              onGiveConfirm={() => void handleGiveConfirm()}
-              removeConfirmOpen={removeConfirmOpen}
-              isRemoving={isRemoving}
-              removeError={removeError}
-              onGiveOpen={() => {
-                setGiveOpen(true);
-                setRemoveConfirmOpen(false);
-                setRemoveError(null);
-              }}
-              onGiveCancel={() => {
-                setGiveOpen(false);
-                setGiveError(null);
-              }}
-              onRemoveConfirmOpen={() => {
-                setRemoveConfirmOpen(true);
-                setGiveOpen(false);
-                setGiveError(null);
-                setRemoveError(null);
-              }}
-              onRemoveConfirmCancel={() => {
-                setRemoveConfirmOpen(false);
-                setRemoveError(null);
-              }}
-              onRemoveConfirm={() => void handleRemove()}
-            />
-          </div>
+          <ItemDetailGiveRemoveSection
+            showGiveFlow={Boolean(resolveGiveRecipients)}
+            entry={entry}
+            itemName={name}
+            giveOpen={giveOpen}
+            giveQuantity={giveQuantity}
+            onGiveQuantityChange={setGiveQuantity}
+            recipientId={recipientId}
+            onRecipientIdChange={setRecipientId}
+            recipientOptions={recipientOptions}
+            recipientsLoading={recipientsLoading}
+            recipientsError={recipientsError}
+            giveError={giveError}
+            giveSubmitting={giveSubmitting}
+            onGiveConfirm={() => void handleGiveConfirm()}
+            removeConfirmOpen={removeConfirmOpen}
+            isRemoving={isRemoving}
+            removeError={removeError}
+            onGiveOpen={() => {
+              setGiveOpen(true);
+              setRemoveConfirmOpen(false);
+              setRemoveError(null);
+            }}
+            onGiveCancel={() => {
+              setGiveOpen(false);
+              setGiveError(null);
+            }}
+            onRemoveConfirmOpen={() => {
+              setRemoveConfirmOpen(true);
+              setGiveOpen(false);
+              setGiveError(null);
+              setRemoveError(null);
+            }}
+            onRemoveConfirmCancel={() => {
+              setRemoveConfirmOpen(false);
+              setRemoveError(null);
+            }}
+            onRemoveConfirm={() => void handleRemove()}
+          />
         </div>
-      </div>
+      </ModalShell>
 
       {weaponDamage && (
         <ItemDamageRollModal

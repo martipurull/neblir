@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import React, { useState } from "react";
 
 export type StatEditType = "physical" | "mental" | "armour";
@@ -195,71 +196,14 @@ export function StatEditModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="stat-edit-modal-title"
-      onClick={cancelAndClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h2
-            id="stat-edit-modal-title"
-            className="text-lg font-semibold text-white"
-          >
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={cancelAndClose}
-            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
-            aria-label="Cancel"
-          >
-            <span className="text-xl leading-none">×</span>
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-4">
-          {maxHP > 0 && (
-            <QuickAdjustRow
-              label="HP"
-              value={draftHP}
-              min={0}
-              max={maxHP}
-              onAdjust={handleHPAdjust}
-            />
-          )}
-
-          {type === "physical" && (
-            <QuickAdjustRow
-              label="Serious injuries"
-              value={displayInjuries}
-              min={0}
-              max={3}
-              onAdjust={adjustManualInjuries}
-            />
-          )}
-
-          {type === "mental" && (
-            <QuickAdjustRow
-              label="Trauma"
-              value={displayTrauma}
-              min={0}
-              max={3}
-              onAdjust={adjustManualTrauma}
-            />
-          )}
-
-          {type === "armour" && maxHP <= 0 && (
-            <p className="text-sm text-white/80">No armour equipped.</p>
-          )}
-        </div>
-
-        <div className="mt-6 flex flex-wrap justify-end gap-2">
+    <ModalShell
+      isOpen
+      onClose={cancelAndClose}
+      title={title}
+      titleId="stat-edit-modal-title"
+      maxWidthClass="max-w-sm"
+      footer={
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={cancelAndClose}
@@ -275,7 +219,43 @@ export function StatEditModal({
             Save
           </button>
         </div>
+      }
+    >
+      <div className="space-y-4">
+        {maxHP > 0 && (
+          <QuickAdjustRow
+            label="HP"
+            value={draftHP}
+            min={0}
+            max={maxHP}
+            onAdjust={handleHPAdjust}
+          />
+        )}
+
+        {type === "physical" && (
+          <QuickAdjustRow
+            label="Serious injuries"
+            value={displayInjuries}
+            min={0}
+            max={3}
+            onAdjust={adjustManualInjuries}
+          />
+        )}
+
+        {type === "mental" && (
+          <QuickAdjustRow
+            label="Trauma"
+            value={displayTrauma}
+            min={0}
+            max={3}
+            onAdjust={adjustManualTrauma}
+          />
+        )}
+
+        {type === "armour" && maxHP <= 0 && (
+          <p className="text-sm text-white/80">No armour equipped.</p>
+        )}
       </div>
-    </div>
+    </ModalShell>
   );
 }

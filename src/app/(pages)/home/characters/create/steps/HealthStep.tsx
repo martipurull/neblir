@@ -302,11 +302,26 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
       </div>
 
       {(physicalRollModal.open || mentalRollModal.open) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded border border-black/20 bg-modalBackground-200 p-4 shadow-lg">
-            <div className="flex items-start justify-between gap-3">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="health-hp-roll-title"
+          onClick={() => {
+            setPhysicalRollModal((p) => ({ ...p, open: false }));
+            setMentalRollModal((m) => ({ ...m, open: false }));
+          }}
+        >
+          <div
+            className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded border border-black/20 bg-modalBackground-200 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/15 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-black">
+                <p
+                  id="health-hp-roll-title"
+                  className="text-sm font-semibold text-black"
+                >
                   {physicalRollModal.open
                     ? "Physical HP roll"
                     : "Mental HP roll"}
@@ -318,36 +333,38 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
               <button
                 type="button"
                 aria-label="Close roll results"
-                className="text-sm font-semibold text-black/60 transition-colors hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                className="rounded p-1.5 text-xl leading-none text-black/70 transition-colors hover:bg-black/10"
                 onClick={() => {
                   setPhysicalRollModal((p) => ({ ...p, open: false }));
                   setMentalRollModal((m) => ({ ...m, open: false }));
                 }}
               >
-                X
+                ×
               </button>
             </div>
 
-            <div className="mt-3 rounded border border-black/10 bg-modalBackground-200 p-3">
-              {(() => {
-                const state = physicalRollModal.open
-                  ? physicalRollModal
-                  : mentalRollModal;
-                return (
-                  <>
-                    <p className="text-sm font-medium text-customSecondary">
-                      Dice ({state.dice.length}):{" "}
-                      {state.dice.length > 0 ? state.dice.join(", ") : "none"}
-                    </p>
-                    <p className="mt-1 text-sm text-customSecondary/70">
-                      Total:{" "}
-                      <span className="font-semibold text-customSecondary">
-                        {state.total}
-                      </span>
-                    </p>
-                  </>
-                );
-              })()}
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <div className="rounded border border-black/10 bg-modalBackground-200 p-3">
+                {(() => {
+                  const state = physicalRollModal.open
+                    ? physicalRollModal
+                    : mentalRollModal;
+                  return (
+                    <>
+                      <p className="text-sm font-medium text-customSecondary">
+                        Dice ({state.dice.length}):{" "}
+                        {state.dice.length > 0 ? state.dice.join(", ") : "none"}
+                      </p>
+                      <p className="mt-1 text-sm text-customSecondary/70">
+                        Total:{" "}
+                        <span className="font-semibold text-customSecondary">
+                          {state.total}
+                        </span>
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>

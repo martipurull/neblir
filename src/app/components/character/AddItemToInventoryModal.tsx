@@ -221,7 +221,7 @@ export function AddItemToInventoryModal({
         className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between shrink-0">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/20 pb-4">
           <h2
             id="add-item-modal-title"
             className="text-lg font-semibold text-white"

@@ -171,10 +171,10 @@ export function EquipItemPickerModal({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[70vh] w-full max-w-sm flex-col rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
+        className="flex max-h-[70vh] w-full max-w-sm flex-col overflow-hidden rounded-lg border-2 border-white bg-modalBackground-200 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/20 px-5 pb-3 pt-5">
           <h2
             id="equip-picker-modal-title"
             className="text-lg font-semibold text-white"
@@ -190,7 +190,7 @@ export function EquipItemPickerModal({
             <span className="text-xl leading-none">×</span>
           </button>
         </div>
-        <ul className="mt-4 flex min-h-0 flex-col divide-y divide-white/20 overflow-y-auto">
+        <ul className="flex min-h-0 flex-1 flex-col divide-y divide-white/20 overflow-y-auto px-5 pb-5 pt-4">
           {equippedInstances.length === 0 &&
           entriesAvailableToEquip.length === 0 ? (
             <li className="py-3 text-sm text-white/70">

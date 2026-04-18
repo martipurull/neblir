@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
@@ -120,37 +121,36 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="invite-users-title"
-    >
-      <div className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="invite-users-title"
-              className="text-lg font-semibold text-white"
-            >
-              Invite users to {gameName}
-            </h2>
-            <p className="mt-1 text-sm text-white/80">
-              Add email addresses below. They must already have an account.
-            </p>
-          </div>
+    <ModalShell
+      isOpen
+      onClose={handleClose}
+      title={`Invite users to ${gameName}`}
+      titleId="invite-users-title"
+      subtitle="Add email addresses below. They must already have an account."
+      closeDisabled={submitting}
+      footer={
+        <div className="flex flex-wrap justify-end gap-3">
           <button
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
-            aria-label="Close"
+            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
-            <span className="text-xl leading-none">×</span>
+            {result && emails.length === 0 ? "Close" : "Cancel"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleSubmit()}
+            disabled={submitting || emails.length === 0}
+            className="rounded-md border-2 border-white bg-paleBlue px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
+          >
+            {submitting ? "Sending…" : "Invite to game"}
           </button>
         </div>
-
-        <div className="mt-4 flex gap-2">
+      }
+    >
+      <>
+        <div className="flex gap-2">
           <input
             type="email"
             value={emailInput}
@@ -230,27 +230,8 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             )}
           </div>
         )}
-
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
-          >
-            {result && emails.length === 0 ? "Close" : "Cancel"}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={submitting || emails.length === 0}
-            className="rounded-md border-2 border-white bg-paleBlue px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
-          >
-            {submitting ? "Sending…" : "Invite to game"}
-          </button>
-        </div>
-      </div>
-    </div>
+      </>
+    </ModalShell>
   );
 };
 
