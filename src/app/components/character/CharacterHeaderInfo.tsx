@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { Chevron } from "@/app/components/shared/Chevron";
 import Image from "next/image";
@@ -32,15 +33,17 @@ export function CharacterHeaderInfo({
   return (
     <div className={`flex items-center gap-5 pb-2 ${className ?? ""}`}>
       {onOpenDiceRoller ? (
-        <button
+        <Button
           type="button"
+          variant="lightHeaderIconAffordance"
+          fullWidth={false}
           onClick={onOpenDiceRoller}
           title="Dice roller — roll with two attributes or one attribute and a skill"
           aria-label="Open dice roller"
-          className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="h-11 w-11"
         >
           <DicePairIcon className="h-9 w-9" />
-        </button>
+        </Button>
       ) : null}
 
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
@@ -68,20 +71,22 @@ export function CharacterHeaderInfo({
           </p>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="lightHeaderIconAffordance"
+          fullWidth={false}
           aria-label={`Character actions for ${name}`}
           aria-haspopup="dialog"
           aria-expanded={actionsOpen}
           onClick={() => setActionsOpen(true)}
-          className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="min-h-11 min-w-11"
         >
           <Chevron
             direction="right"
             strokeWidth={2.75}
             className="h-7 w-7 shrink-0"
           />
-        </button>
+        </Button>
       </div>
 
       <CharacterNameActionsModal

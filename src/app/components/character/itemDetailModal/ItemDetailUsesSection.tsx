@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 type ItemDetailUsesSectionProps = {
@@ -22,27 +23,29 @@ export function ItemDetailUsesSection({
         Uses
       </span>
       <div className="flex items-center gap-3">
-        <button
+        <Button
           type="button"
+          variant="modalIconStepperLg"
+          fullWidth={false}
           onClick={() => onDelta(-1)}
           disabled={displayUses <= 0}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Decrease uses"
         >
           −
-        </button>
+        </Button>
         <span className="min-w-[4rem] text-center text-lg font-semibold tabular-nums text-white">
           {displayUses} / {maxUses}
         </span>
-        <button
+        <Button
           type="button"
+          variant="modalIconStepperLg"
+          fullWidth={false}
           onClick={() => onDelta(1)}
           disabled={displayUses >= maxUses || !allowIncrease}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Increase uses"
         >
           +
-        </button>
+        </Button>
       </div>
       <p className="text-xs text-white/60">
         {allowIncrease

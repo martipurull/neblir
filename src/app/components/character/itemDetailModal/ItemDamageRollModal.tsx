@@ -1,6 +1,7 @@
 "use client";
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import Button from "@/app/components/shared/Button";
 import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import React, { useEffect, useState } from "react";
@@ -64,13 +65,14 @@ export function ItemDamageRollModal({
       zIndexClass="z-[70]"
       maxWidthClass="max-w-xs"
       footer={
-        <button
+        <Button
           type="button"
+          variant="modalFooterGhostFull"
+          fullWidth
           onClick={onClose}
-          className="w-full rounded border border-white/40 bg-transparent py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10"
         >
           Close
-        </button>
+        </Button>
       }
     >
       <div className="space-y-3 text-sm">
@@ -80,23 +82,25 @@ export function ItemDamageRollModal({
         <div className="flex items-center justify-between gap-4">
           <span className="text-white/80">Extra dice</span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="modalIconStepperFlatSm"
+              fullWidth={false}
               onClick={() => setExtraDice((v) => v - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-paleBlue/10"
             >
               −
-            </button>
+            </Button>
             <span className="min-w-[2rem] text-center text-sm font-semibold text-white">
               {extraDice >= 0 ? `+${extraDice}` : extraDice}
             </span>
-            <button
+            <Button
               type="button"
+              variant="modalIconStepperFlatSm"
+              fullWidth={false}
               onClick={() => setExtraDice((v) => v + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-paleBlue/10"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
         <p className="text-white">

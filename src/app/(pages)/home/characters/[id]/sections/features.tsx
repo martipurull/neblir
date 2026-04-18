@@ -2,6 +2,7 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import Button from "@/app/components/shared/Button";
 import React, { useState } from "react";
 
 type FeatureCharacterEntry = NonNullable<CharacterDetail["features"]>[number];
@@ -21,10 +22,12 @@ function FeaturesList({ features }: { features: FeatureCharacterEntry[] }) {
             key={fc.id}
             className="rounded border border-black bg-transparent"
           >
-            <button
+            <Button
               type="button"
+              variant="lightDisclosureRow"
+              fullWidth={false}
+              className="w-full"
               onClick={() => setExpandedId(isExpanded ? null : fc.id)}
-              className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors hover:bg-black/5"
             >
               <span className="font-medium text-black">
                 {fc.feature.name}
@@ -38,7 +41,7 @@ function FeaturesList({ features }: { features: FeatureCharacterEntry[] }) {
                   {isExpanded ? "−" : "+"}
                 </span>
               )}
-            </button>
+            </Button>
             {hasDescription && isExpanded && (
               <div className="border-t border-black px-3 py-2.5 text-sm text-black">
                 {fc.feature.description}

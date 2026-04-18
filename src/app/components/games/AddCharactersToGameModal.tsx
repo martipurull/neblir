@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useCharacters } from "@/hooks/use-characters";
@@ -166,22 +167,26 @@ export default function AddCharactersToGameModal({
       closeDisabled={submitting}
       footer={
         <div className="flex flex-wrap justify-end gap-3">
-          <button
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="font-medium"
             onClick={closeAndReset}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="!text-modalBackground-200"
             onClick={() => void handleSubmit()}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-paleBlue px-3 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
           >
             {submitting ? "Adding..." : "Add to game"}
-          </button>
+          </Button>
         </div>
       }
     >
@@ -195,14 +200,15 @@ export default function AddCharactersToGameModal({
             aria-label="Search characters"
             disabled={submitting}
           />
-          <button
+          <Button
             type="button"
+            variant="modalToolbarAction"
+            fullWidth={false}
             onClick={() => void refetch()}
             disabled={submitting}
-            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Refresh
-          </button>
+          </Button>
         </div>
 
         {error && <p className="mt-3 text-sm text-neblirDanger-400">{error}</p>}

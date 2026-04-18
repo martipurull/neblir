@@ -4,6 +4,7 @@ import {
   CharacterNoteEditorModal,
   type CharacterNoteModalMode,
 } from "@/app/components/character/CharacterNoteEditorModal";
+import Button from "@/app/components/shared/Button";
 import { CharacterNoteListItem } from "@/app/components/character/CharacterNoteListItem";
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -62,14 +63,15 @@ function CharacterNotesSectionContent({
     <>
       <div className="flex flex-col gap-3">
         <div className="flex justify-end">
-          <button
+          <Button
             type="button"
+            variant="lightSquareIcon"
+            fullWidth={false}
             onClick={openCreate}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded border-2 border-black text-lg font-semibold text-black transition-colors hover:bg-black/5"
             aria-label="Add note"
           >
             +
-          </button>
+          </Button>
         </div>
 
         {notes.length === 0 ? (

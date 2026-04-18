@@ -3,6 +3,7 @@
 import { BrowseItemDetailModal } from "@/app/components/character/BrowseItemDetailModal";
 import ErrorState from "@/app/components/shared/ErrorState";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
@@ -160,11 +161,13 @@ export default function GameCustomItemsPage() {
                 const opening = openingItemId === item.id;
                 return (
                   <li key={item.id}>
-                    <button
+                    <Button
                       type="button"
+                      variant="lightBrowseRow"
+                      fullWidth={false}
+                      className={`w-full ${item.imageKey ? "gap-3" : ""}`}
                       disabled={opening}
                       onClick={() => void openItemDetail(game.id, item.id)}
-                      className={`flex w-full items-stretch rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2 text-left text-sm text-black transition-colors hover:bg-paleBlue/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-wait disabled:opacity-70 ${item.imageKey ? "gap-3" : ""}`}
                     >
                       {item.imageKey ? (
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-transparent">
@@ -205,7 +208,7 @@ export default function GameCustomItemsPage() {
                           </p>
                         )}
                       </div>
-                    </button>
+                    </Button>
                   </li>
                 );
               })}

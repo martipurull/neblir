@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React, {
   useEffect,
   useMemo,
@@ -120,12 +121,14 @@ export function SelectDropdown({
       >
         {label}
       </label>
-      <button
+      <Button
         id={id}
+        variant="selectTriggerLight"
+        fullWidth
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`relative ${showLabel ? "mt-1" : ""} flex min-h-11 w-full cursor-pointer items-center rounded-md border-2 border-black/30 bg-paleBlue px-3 py-2 pr-9 text-left text-sm text-black focus:border-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover disabled:cursor-not-allowed disabled:opacity-50 ${!selectedOption ? "text-black/60" : ""}`}
+        className={`${showLabel ? "mt-1" : ""} ${!selectedOption ? "text-black/60" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={`${id}-label`}
@@ -139,7 +142,7 @@ export function SelectDropdown({
         >
           {open ? "▲" : "▼"}
         </span>
-      </button>
+      </Button>
       {open && (
         <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg">
           <div className="sticky top-0 border-b border-black/20 bg-paleBlue p-1.5">

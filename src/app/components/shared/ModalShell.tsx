@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-
-const closeBtnClass =
-  "shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50";
+import Button from "./Button";
 
 type ModalShellBase = {
   isOpen: boolean;
@@ -89,15 +87,16 @@ export function ModalShell({
               <p className="mt-1 text-sm text-white/80">{subtitle}</p>
             ) : null}
           </div>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
             disabled={closeDisabled}
-            className={closeBtnClass}
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4 sm:px-5 sm:pb-5">

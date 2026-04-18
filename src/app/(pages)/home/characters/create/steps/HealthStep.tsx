@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { SafeButtonFilled } from "@/app/components/shared/SemanticActionButton";
 
 function rollD10(): number {
@@ -330,17 +331,18 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   Rolls: {extraDice}d10 + 10
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="modalCloseLight"
+                fullWidth={false}
                 aria-label="Close roll results"
-                className="rounded p-1.5 text-xl leading-none text-black/70 transition-colors hover:bg-black/10"
                 onClick={() => {
                   setPhysicalRollModal((p) => ({ ...p, open: false }));
                   setMentalRollModal((m) => ({ ...m, open: false }));
                 }}
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4">

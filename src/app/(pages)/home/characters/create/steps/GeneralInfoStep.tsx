@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import TextInput from "@/app/components/shared/TextInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import NumberInput from "@/app/components/shared/NumberInput";
@@ -196,10 +197,11 @@ export function GeneralInfoStep() {
                   return (
                     <div key={cn} className="flex flex-wrap items-center gap-2">
                       {!isAdded ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="lightCurrencyAddRow"
+                          fullWidth={false}
                           onClick={() => addCurrency(cn)}
-                          className="w-44 rounded border border-black/40 px-2 py-1 text-sm hover:bg-black/10"
                         >
                           <span className="inline-flex w-full items-center justify-between gap-2">
                             <span className="truncate">
@@ -221,7 +223,7 @@ export function GeneralInfoStep() {
                               )}
                             </span>
                           </span>
-                        </button>
+                        </Button>
                       ) : (
                         <>
                           <span className="inline-flex w-44 items-center justify-between gap-2 rounded border border-black/30 bg-black/0 px-2 py-1">
@@ -256,13 +258,14 @@ export function GeneralInfoStep() {
                             }
                             className="ml-auto w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-right text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
                           />
-                          <button
+                          <Button
                             type="button"
+                            variant="lightDangerLink"
+                            fullWidth={false}
                             onClick={() => remove(cn)}
-                            className="text-xs text-neblirDanger-600 underline"
                           >
                             Remove
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>

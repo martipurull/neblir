@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { ItemTemplatePeekModal } from "@/app/components/games/ItemTemplatePeekModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
@@ -119,9 +120,10 @@ export function UniqueItemModalSourceSection({ f }: Props) {
                     f.setSelectedTemplate(t ?? null);
                   }}
                   renderOptionSuffix={(opt, closeMenu) => (
-                    <button
+                    <Button
                       type="button"
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-black/30 bg-white/90 text-xs font-bold text-black/80 shadow-sm hover:bg-white"
+                      variant="lightTemplateInfoIcon"
+                      fullWidth={false}
                       aria-label={`View template details: ${opt.label}`}
                       title="Template details"
                       onClick={() => {
@@ -131,7 +133,7 @@ export function UniqueItemModalSourceSection({ f }: Props) {
                       }}
                     >
                       i
-                    </button>
+                    </Button>
                   )}
                 />
                 {f.templateOptions.length === 0 && (

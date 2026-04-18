@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml";
 import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
 import { DangerButton as DangerOutlineButton } from "@/app/components/shared/SemanticActionButton";
@@ -60,9 +61,10 @@ export function CharacterNoteListItem({
   return (
     <li className="border-b border-black last:border-b-0">
       <div className="flex items-start gap-2 py-2 pl-3 pr-2">
-        <button
+        <Button
           type="button"
-          className="min-w-0 flex-1 flex-col rounded-sm px-1 py-1 text-left -ml-1 transition-colors hover:bg-black/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          variant="lightNoteListRow"
+          fullWidth={false}
           onClick={() => onEdit(index)}
         >
           <div className="max-h-32 min-h-0 overflow-hidden">
@@ -72,7 +74,7 @@ export function CharacterNoteListItem({
             <div>Created {formatNoteTimestamp(entry.createdAt)}</div>
             <div>Edited {formatNoteTimestamp(entry.updatedAt)}</div>
           </div>
-        </button>
+        </Button>
 
         <div className="shrink-0 self-start pt-1">
           <DangerOutlineButton

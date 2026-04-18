@@ -11,6 +11,12 @@ type CharacterCreateFooterProps = {
   onNext: () => void;
 };
 
+function blurAfterStepAction(
+  e: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement>
+) {
+  e.currentTarget.blur();
+}
+
 export function CharacterCreateFooter({
   currentStepIndex,
   isLastStep,
@@ -21,48 +27,52 @@ export function CharacterCreateFooter({
   return (
     <div className="flex gap-3">
       {currentStepIndex > 0 ? (
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          fullWidth={false}
+          className="flex-1"
           onClick={(e) => {
-            (e.currentTarget as HTMLButtonElement).blur();
+            blurAfterStepAction(e);
             onBack();
           }}
           onMouseDown={(e) => e.preventDefault()}
           onPointerDown={(e) => e.preventDefault()}
-          onMouseUp={(e) => (e.currentTarget as HTMLButtonElement).blur()}
+          onMouseUp={blurAfterStepAction}
           onKeyUp={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               (e.currentTarget as HTMLButtonElement).blur();
             }
           }}
-          className="min-h-11 flex-1 rounded-md border-2 border-black/30 px-4 py-2 text-black transition-colors hover:border-black/50"
         >
           Back
-        </button>
+        </Button>
       ) : (
         <div className="flex-1" />
       )}
 
       {!isLastStep ? (
-        <button
+        <Button
           type="button"
+          variant="primary"
+          fullWidth={false}
+          className="flex-1"
+          suppressHydrationWarning
           onClick={(e) => {
-            (e.currentTarget as HTMLButtonElement).blur();
+            blurAfterStepAction(e);
             onNext();
           }}
-          suppressHydrationWarning
           onMouseDown={(e) => e.preventDefault()}
           onPointerDown={(e) => e.preventDefault()}
-          onMouseUp={(e) => (e.currentTarget as HTMLButtonElement).blur()}
+          onMouseUp={blurAfterStepAction}
           onKeyUp={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               (e.currentTarget as HTMLButtonElement).blur();
             }
           }}
-          className="min-h-11 flex-1 rounded-md bg-customPrimary px-4 py-2 text-customSecondary transition-colors hover:bg-customPrimaryHover"
         >
           Next
-        </button>
+        </Button>
       ) : (
         <div className="flex-1">
           <Button

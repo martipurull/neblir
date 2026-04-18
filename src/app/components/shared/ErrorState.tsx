@@ -1,5 +1,6 @@
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
+import Button from "./Button";
 
 interface ErrorStateProps {
   message: string;
@@ -19,15 +20,16 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         Error: {safeMessage}
       </p>
       {onRetry && (
-        <button
+        <Button
           type="button"
+          variant="quiet"
+          fullWidth={false}
           onClick={() => {
             void onRetry?.();
           }}
-          className="rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10"
         >
           {retryLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import React from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
@@ -17,27 +18,30 @@ export function GmItemsSection({
     <InfoCard border>
       <GmSectionTitle>Items</GmSectionTitle>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
+          variant="primarySm"
+          fullWidth={false}
           onClick={onCreateCustom}
-          className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
         >
           Create custom item
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="primarySm"
+          fullWidth={false}
           onClick={onCreateUnique}
-          className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
         >
           Create unique item
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="primarySm"
+          fullWidth={false}
           onClick={onGiveItem}
-          className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
         >
           Give item to character
-        </button>
+        </Button>
       </div>
     </InfoCard>
   );

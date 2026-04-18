@@ -6,6 +6,7 @@ import type { ItemWithId } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import Button from "@/app/components/shared/Button";
 import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import React, {
   useCallback,
@@ -228,14 +229,15 @@ export function AddItemToInventoryModal({
           >
             Add item to inventory
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <div className="mt-4 shrink-0">
@@ -280,10 +282,12 @@ export function AddItemToInventoryModal({
                     key={row.key}
                     className="flex items-center gap-3 py-2.5 first:pt-0"
                   >
-                    <button
+                    <Button
                       type="button"
+                      variant="modalListRowHit"
+                      fullWidth={false}
                       onClick={() => setSelectedRow(row)}
-                      className="min-w-0 flex-1 text-left hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent rounded"
+                      className="min-w-0 flex-1"
                     >
                       <p className="text-sm font-medium text-white truncate">
                         {row.item.name}
@@ -301,7 +305,7 @@ export function AddItemToInventoryModal({
                           ? `${row.item.weight} kg`
                           : "—"}
                       </p>
-                    </button>
+                    </Button>
                     <div className="shrink-0">
                       <SafeButton
                         type="button"

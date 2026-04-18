@@ -1,3 +1,4 @@
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import React from "react";
 import { gmSectionTitleClassName } from "./GmSectionTitle";
@@ -24,23 +25,25 @@ export function GmInvitesSection({
 }: GmInvitesSectionProps) {
   return (
     <InfoCard border className="bg-paleBlue/20">
-      <button
+      <Button
         type="button"
+        variant="lightSectionDisclosure"
+        fullWidth
         onClick={onToggle}
-        className="flex w-full items-center justify-between text-left"
       >
         <span className={gmSectionTitleClassName}>Invites</span>
         <span className="text-black/70">{open ? "▼" : "▶"}</span>
-      </button>
+      </Button>
       {open && (
         <div className="mt-3 space-y-3">
-          <button
+          <Button
             type="button"
+            variant="primarySm"
+            fullWidth={false}
             onClick={onInviteUsers}
-            className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
           >
             Invite users
-          </button>
+          </Button>
           {pendingInvites.length > 0 && (
             <div>
               <p className="text-xs font-medium text-black/70">

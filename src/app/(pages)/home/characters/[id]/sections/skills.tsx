@@ -1,6 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import Button from "@/app/components/shared/Button";
 import {
   ATTRIBUTE_SKILL_CAP,
   capAttributeOrSkill,
@@ -77,14 +78,16 @@ export function getSkillsSection(
                 );
                 return (
                   <li key={skillKey}>
-                    <button
+                    <Button
                       type="button"
+                      variant="lightSkillDiceRow"
+                      fullWidth={false}
+                      className={`w-full transition ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                       data-skill-type="general"
                       data-skill={skillKey}
                       disabled={isDisabled}
                       onClick={handleClick}
                       title={valueTitle ?? undefined}
-                      className={`flex w-full items-baseline justify-between gap-4 px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                     >
                       <span className="text-sm text-black">
                         {formatLabel(skillKey)}
@@ -115,7 +118,7 @@ export function getSkillsSection(
                           {displayValue}
                         </span>
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
@@ -135,15 +138,17 @@ export function getSkillsSection(
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map(({ name, storageIndex }) => (
                     <li key={storageIndex}>
-                      <button
+                      <Button
                         type="button"
+                        variant="lightSpecialSkillRow"
+                        fullWidth={false}
+                        className="w-full"
                         data-skill-type="special"
                         data-skill-index={storageIndex}
                         data-skill-name={name}
-                        className="flex w-full items-center px-3 py-2.5 text-left text-sm text-black transition hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset"
                       >
                         {name}
-                      </button>
+                      </Button>
                     </li>
                   ))}
               </ul>

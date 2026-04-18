@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -106,8 +107,9 @@ export function GmNpcInitiativeRollModal({
                 <span className="min-w-0 flex-1 truncate text-sm text-white">
                   {name}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="modalCompactWarning"
                   disabled={done || busy}
                   title={
                     done
@@ -115,14 +117,13 @@ export function GmNpcInitiativeRollModal({
                       : undefined
                   }
                   onClick={() => void handleRoll(id, mod)}
-                  className="shrink-0 rounded border border-neblirWarning-200 px-2 py-1 text-xs font-medium text-neblirWarning-200 transition-colors hover:bg-neblirWarning-200/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busy
                     ? "Rolling…"
                     : done
                       ? "Rolled"
                       : `Roll (${modLabel(mod)})`}
-                </button>
+                </Button>
               </li>
             );
           })}

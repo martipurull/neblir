@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 const FORM_ID = "game-form-modal-form";
@@ -57,15 +58,16 @@ export function GameFormModal({
             </h2>
             <p className="mt-1 text-sm text-white/80">{subtitle}</p>
           </div>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <form
@@ -85,22 +87,25 @@ export function GameFormModal({
         )}
 
         <div className="mt-4 flex flex-wrap justify-end gap-3 border-t border-white/20 p-4 sm:p-5">
-          <button
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="font-medium"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form={FORM_ID}
+            variant="modalFooterPrimary"
+            fullWidth={false}
             disabled={submitting || submitDisabled}
-            className="rounded-md border-2 border-white bg-paleBlue px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50"
           >
             {submitting ? submittingLabel : submitLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

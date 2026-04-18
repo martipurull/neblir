@@ -4,6 +4,7 @@ import type { CharacterSectionSlide } from "@/app/components/character/Character
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
+import Button from "@/app/components/shared/Button";
 import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
@@ -93,10 +94,11 @@ function InventoryList({
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
-              <button
+              <Button
                 type="button"
+                variant="lightRowHit"
+                fullWidth={false}
                 onClick={() => onSelectDetail(entry)}
-                className="min-w-0 cursor-pointer text-left hover:opacity-80"
               >
                 <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
                   <span className="break-words text-sm text-black">{name}</span>
@@ -108,7 +110,7 @@ function InventoryList({
                     </span>
                   )}
                 </div>
-              </button>
+              </Button>
               <span className="text-right text-sm tabular-nums text-black">
                 {entry.quantity ?? 1}
               </span>
@@ -127,8 +129,10 @@ function InventoryList({
               ) : (
                 <div className="flex justify-end">
                   {showUnequip ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="lightPillAction"
+                      fullWidth={false}
                       onClick={(e) => {
                         e.stopPropagation();
                         void onUnequip(entry);
@@ -136,22 +140,22 @@ function InventoryList({
                       disabled={
                         unequippingId === entry.id || equippingId === entry.id
                       }
-                      className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
                     >
                       {unequippingId === entry.id ? "Unequipping…" : "Unequip"}
-                    </button>
+                    </Button>
                   ) : showEquipButton ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="lightPillAction"
+                      fullWidth={false}
                       disabled={equippingId === entry.id}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectEquip(entry);
                       }}
-                      className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
                     >
                       {equippingId === entry.id ? "Equipping…" : "Equip"}
-                    </button>
+                    </Button>
                   ) : equippable && !operational ? (
                     <div className="flex w-full justify-end">
                       <div className="flex flex-col p-1 text-right text-[10px] font-medium leading-tight text-neblirDanger-600">
@@ -326,22 +330,24 @@ function InventorySectionContent({
     <div className="space-y-0">
       <div className="mb-2 flex flex-col gap-1.5 pb-2">
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
             onClick={() => setBrowseModalOpen(true)}
             disabled={!canAddItems}
-            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Browse items
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
             onClick={openCreateUnique}
             disabled={!canAddItems}
-            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create unique item
-          </button>
+          </Button>
         </div>
         {!canAddItems && (
           <p className="text-xs text-neblirDanger-600">

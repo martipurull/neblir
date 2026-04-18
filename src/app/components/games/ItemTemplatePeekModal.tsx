@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 
@@ -32,14 +33,15 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
           >
             {item.name}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
-            className="shrink-0 rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-lg leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-3 space-y-2.5 text-xs text-white/90">

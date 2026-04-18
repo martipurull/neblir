@@ -89,25 +89,29 @@ export function CharacterUpdateFormContent() {
 
         <div className="flex gap-3">
           {currentStepIndex > 0 ? (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              fullWidth={false}
+              className="flex-1"
               onClick={onBack}
-              className="min-h-11 flex-1 rounded-md border-2 border-black/30 px-4 py-2 text-black transition-colors hover:border-black/50"
             >
               Back
-            </button>
+            </Button>
           ) : (
             <div className="flex-1" />
           )}
 
           {!isLastStep ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              fullWidth={false}
+              className="flex-1"
               onClick={onNext}
-              className="min-h-11 flex-1 rounded-md bg-customPrimary px-4 py-2 text-customSecondary transition-colors hover:bg-customPrimaryHover"
             >
               Next
-            </button>
+            </Button>
           ) : (
             <div className="flex-1">
               <Button

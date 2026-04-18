@@ -1,3 +1,6 @@
+"use client";
+
+import Button from "@/app/components/shared/Button";
 import { ATTRIBUTE_GROUP_LABELS } from "./constants";
 
 type Props = {
@@ -41,14 +44,15 @@ export default function LevelUpQuickCheckModal({
           >
             {title}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalCloseLight"
+            fullWidth={false}
             onClick={onClose}
-            className="rounded p-1.5 text-xl leading-none text-black/70 transition-colors hover:bg-black/10"
             aria-label="Close"
           >
             ×
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">

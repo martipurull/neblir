@@ -1,3 +1,4 @@
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { SafeButton } from "@/app/components/shared/SemanticActionButton";
@@ -119,31 +120,35 @@ export function GmDiscordSection({
 
       <div className="mt-4 flex flex-wrap gap-2">
         {!hasSavedIntegration && (
-          <button
+          <Button
             type="button"
+            variant="primaryXs"
+            fullWidth={false}
             onClick={() =>
               void getDiscordConnectUrl(gameId).then((url) => {
                 window.location.href = url;
               })
             }
-            className="rounded-md bg-customPrimary px-3 py-2 text-xs font-medium text-customSecondary hover:bg-customPrimaryHover"
           >
             {pendingOAuthWithoutSave
               ? "Add bot to another server"
               : "Connect Discord"}
-          </button>
+          </Button>
         )}
         {hasSavedIntegration && (
           <>
-            <button
+            <Button
               type="button"
+              variant="lightOutlineBlackSm"
+              fullWidth={false}
               onClick={() => void queueGameDiscordTest(gameId)}
-              className="rounded-md border border-black px-3 py-2 text-xs font-medium text-black hover:bg-black/10"
             >
               Send test message
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="lightOutlineDangerSm"
+              fullWidth={false}
               onClick={() =>
                 void disconnectGameDiscordIntegration(gameId).then(async () => {
                   setChannelId("");
@@ -154,21 +159,21 @@ export function GmDiscordSection({
                   );
                 })
               }
-              className="rounded-md border border-neblirDanger-500 px-3 py-2 text-xs font-medium text-neblirDanger-600 hover:bg-neblirDanger-500/10"
             >
               Disconnect
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="lightOutlineMutedSm"
+              fullWidth={false}
               onClick={() =>
                 void getDiscordConnectUrl(gameId).then((url) => {
                   window.location.href = url;
                 })
               }
-              className="rounded-md border border-black/30 px-3 py-2 text-xs font-medium text-black/80 hover:bg-black/10"
             >
               Reinstall bot / change server
-            </button>
+            </Button>
           </>
         )}
       </div>

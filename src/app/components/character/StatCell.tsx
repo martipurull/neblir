@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 export interface StatCellProps {
@@ -77,14 +78,16 @@ export function StatCell({
     const className = `${baseCompact} ${borderClass} ${disabledClass} ${clickableClass}`;
     if (onClick != null) {
       return (
-        <button
+        <Button
           type="button"
+          variant="surfaceInherit"
+          fullWidth={false}
           onClick={disabled ? undefined : onClick}
           disabled={disabled}
           className={className}
         >
           {cellContent}
-        </button>
+        </Button>
       );
     }
     return <div className={className}>{cellContent}</div>;
@@ -93,14 +96,16 @@ export function StatCell({
   const className = `${baseDefault} ${borderClass} ${disabledClass} ${clickableClass}`;
   if (onClick != null) {
     return (
-      <button
+      <Button
         type="button"
+        variant="surfaceInherit"
+        fullWidth={false}
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
         className={className}
       >
         {cellContent}
-      </button>
+      </Button>
     );
   }
   return <div className={className}>{cellContent}</div>;

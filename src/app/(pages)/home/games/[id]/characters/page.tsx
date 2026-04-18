@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import ErrorState from "@/app/components/shared/ErrorState";
 import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
@@ -76,13 +77,14 @@ export default function GameCharactersPage() {
             <span className="font-semibold">{game.name}</span>
           </p>
         </div>
-        <button
+        <Button
           type="button"
+          variant="solidDark"
+          fullWidth={false}
           onClick={() => setAddModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
         >
           Add characters
-        </button>
+        </Button>
       </div>
 
       <AddCharactersToGameModal
@@ -120,9 +122,10 @@ export default function GameCharactersPage() {
               const canExpand = summaryText.length > 180;
 
               const rightAccessory = canExpand ? (
-                <button
+                <Button
                   type="button"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/15 text-black/70 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                  variant="lightChevronExpand"
+                  fullWidth={false}
                   aria-label={expanded ? "Collapse summary" : "Expand summary"}
                   aria-expanded={expanded}
                   onClick={(e) => {
@@ -135,7 +138,7 @@ export default function GameCharactersPage() {
                   }}
                 >
                   <span aria-hidden>{expanded ? "▾" : "▸"}</span>
-                </button>
+                </Button>
               ) : null;
 
               const summaryBlock = summaryHtml ? (

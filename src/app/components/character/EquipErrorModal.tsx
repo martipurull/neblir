@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import React from "react";
 
@@ -37,14 +38,15 @@ export function EquipErrorModal({
           >
             {title}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-4">
           <p

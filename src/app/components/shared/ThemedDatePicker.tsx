@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React, { useRef, useEffect, useLayoutEffect, useState } from "react";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -114,17 +115,18 @@ export function ThemedDatePicker({
 
   return (
     <div ref={containerRef} className="relative inline-block">
-      <button
+      <Button
+        variant="datePickerTrigger"
+        fullWidth={false}
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="min-w-[10rem] rounded border border-black/20 bg-paleBlue px-3 py-2 text-left text-sm text-black placeholder:text-black/50 focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-paleBlue/60 disabled:text-black/60"
       >
         {displayLabel}
-      </button>
+      </Button>
 
       {open && (
         <div
@@ -133,25 +135,27 @@ export function ThemedDatePicker({
           className="absolute left-0 top-full z-20 mt-1 min-w-[280px] max-w-[calc(100vw-2rem)] rounded-lg border-2 border-white bg-modalBackground-200 p-3 shadow-lg"
         >
           <div className="mb-3 flex items-center justify-between gap-2">
-            <button
+            <Button
+              variant="datePickerMonthNav"
+              fullWidth={false}
               type="button"
               onClick={goPrev}
               aria-label="Previous month"
-              className="rounded p-1.5 text-white/80 hover:bg-paleBlue/10"
             >
               ‹
-            </button>
+            </Button>
             <span className="text-sm font-semibold text-white">
               {MONTHS[viewMonth]} {viewYear}
             </span>
-            <button
+            <Button
+              variant="datePickerMonthNav"
+              fullWidth={false}
               type="button"
               onClick={goNext}
               aria-label="Next month"
-              className="rounded p-1.5 text-white/80 hover:bg-paleBlue/10"
             >
               ›
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center">
@@ -167,34 +171,36 @@ export function ThemedDatePicker({
               day === null ? (
                 <div key={`empty-${i}`} className="min-w-[2rem] py-1" />
               ) : (
-                <button
+                <Button
                   key={day}
-                  type="button"
-                  onClick={() => handleSelect(day)}
-                  className={`min-w-[2rem] rounded py-2 text-sm transition-colors ${
+                  variant={
                     viewYear === todayY &&
                     viewMonth === todayM &&
                     day === todayD
-                      ? "bg-paleBlue/20 font-medium text-white"
-                      : "text-white hover:bg-paleBlue/10"
-                  }`}
+                      ? "datePickerDayToday"
+                      : "datePickerDay"
+                  }
+                  fullWidth={false}
+                  type="button"
+                  onClick={() => handleSelect(day)}
                 >
                   {day}
-                </button>
+                </Button>
               )
             )}
           </div>
           {value && (
-            <button
+            <Button
+              variant="datePickerClear"
+              fullWidth
               type="button"
               onClick={() => {
                 onChange("");
                 setOpen(false);
               }}
-              className="mt-3 w-full rounded border border-white/40 py-2 text-xs text-white/80 hover:bg-paleBlue/10"
             >
               Clear date
-            </button>
+            </Button>
           )}
         </div>
       )}

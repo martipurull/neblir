@@ -1,6 +1,7 @@
 "use client";
 
 import type { GameListItem } from "@/app/lib/types/game";
+import Button from "@/app/components/shared/Button";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";
 import Link from "next/link";
@@ -67,20 +68,21 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
             <p className="truncate text-xs text-black">GM: {gm}</p>
           </div>
         </Link>
-        <button
+        <Button
           type="button"
+          variant="lightDisclosureChevron"
+          fullWidth={false}
           onClick={(e) => {
             e.preventDefault();
             setOpen((o) => !o);
           }}
-          className="shrink-0 rounded p-1 text-xs text-black hover:bg-black/10"
           aria-expanded={open}
           aria-label={
             open ? "Collapse GM and players" : "Expand GM and players"
           }
         >
           {open ? "▲" : "▼"}
-        </button>
+        </Button>
       </div>
       {open && (
         <div className="border-t border-black/10 px-5 py-3 pl-[4.25rem] space-y-3">

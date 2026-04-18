@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React, { useRef, useEffect, useState, useMemo } from "react";
 
 export type ModalSelectOption = { value: string; label: string };
@@ -76,12 +77,14 @@ export function ModalSelect({
       <label htmlFor={id} className="block text-sm font-medium text-white/90">
         {label}
       </label>
-      <button
+      <Button
         id={id}
+        variant="selectTriggerModal"
+        fullWidth
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`relative mt-1 flex w-full min-h-[48px] cursor-pointer items-center rounded border-2 border-white/50 bg-transparent px-3 py-2 pr-9 text-left text-base text-white focus:border-white focus:outline-none focus:ring-1 focus:ring-white disabled:opacity-50 ${!selectedOption ? "text-white/60" : ""}`}
+        className={!selectedOption ? "text-white/60" : ""}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={`${id}-label`}
@@ -95,7 +98,7 @@ export function ModalSelect({
         >
           {open ? "▲" : "▼"}
         </span>
-      </button>
+      </Button>
       {open && (
         <div className="absolute z-10 mt-1 w-full rounded border-2 border-white/50 bg-modalBackground-200 shadow-lg overflow-hidden">
           <div className="sticky top-0 border-b border-white/30 bg-modalBackground-200 p-1.5">

@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import type { Path } from "@/app/lib/types/path";
 import React from "react";
 
@@ -29,14 +30,15 @@ export function PathDescriptionModal({
           <h2 id={titleId} className="text-base font-semibold text-paleBlue">
             {String(path.name)}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClosePale"
+            fullWidth={false}
             onClick={onClose}
-            className="shrink-0 rounded p-1 text-paleBlue transition-colors hover:bg-black/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
           {path.description && (

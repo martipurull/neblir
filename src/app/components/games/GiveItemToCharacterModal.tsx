@@ -9,6 +9,7 @@ import { giveItemToCharacter } from "@/lib/api/game";
 import type { ItemWithId } from "@/lib/api/items";
 import { getItems } from "@/lib/api/items";
 import { getGameUniqueItems } from "@/lib/api/uniqueItems";
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useState } from "react";
@@ -195,24 +196,28 @@ export function GiveItemToCharacterModal({
       maxWidthClass="max-w-md"
       footer={
         <div className="flex justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="!border-white/50 font-medium"
             onClick={handleClose}
             disabled={submitting}
-            className="rounded-md border-2 border-white/50 bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="give-item-modal-form"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="font-medium !text-modalBackground-200 disabled:pointer-events-none"
             disabled={
               submitting || !characterId || !itemId || characters.length === 0
             }
-            className="rounded-md border-2 border-white bg-paleBlue px-3 py-2 text-sm font-medium text-modalBackground-200 transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:pointer-events-none"
           >
             {submitting ? "Giving…" : "Give item"}
-          </button>
+          </Button>
         </div>
       }
     >

@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import React, { useCallback, useEffect, useState } from "react";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -90,21 +91,25 @@ export function GridDefenceRollModal({
       maxWidthClass="max-w-sm"
       footer={
         <div className="flex gap-3">
-          <button
+          <Button
             type="button"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="flex-1"
             onClick={() => void handleRoll()}
             disabled={reactionDisabled || totalDice === 0}
-            className="flex-1 rounded-md border-2 border-white bg-paleBlue py-2.5 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
           >
             ROLL
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="flex-1"
             onClick={onClose}
-            className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
           >
             Close
-          </button>
+          </Button>
         </div>
       }
     >
@@ -115,25 +120,27 @@ export function GridDefenceRollModal({
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Extra dice</span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
               onClick={() => setExtraDice((d) => d - 1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
               aria-label="Decrease extra dice"
             >
               −
-            </button>
+            </Button>
             <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
               {extraDice >= 0 ? `+${extraDice}` : extraDice}
             </span>
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
               onClick={() => setExtraDice((d) => d + 1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
               aria-label="Increase extra dice"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
 

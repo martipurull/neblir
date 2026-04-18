@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import React, { useState } from "react";
 
@@ -55,27 +56,31 @@ function QuickAdjustRow({
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm font-medium text-white">{label}</span>
       <div className="flex items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant="modalIconStepper"
+          fullWidth={false}
+          className="disabled:!opacity-40"
           onClick={() => onAdjust(-1)}
           disabled={value <= min}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Decrease ${label}`}
         >
           −
-        </button>
+        </Button>
         <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
           {value}
         </span>
-        <button
+        <Button
           type="button"
+          variant="modalIconStepper"
+          fullWidth={false}
+          className="disabled:!opacity-40"
           onClick={() => onAdjust(1)}
           disabled={value >= max}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Increase ${label}`}
         >
           +
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -204,20 +209,22 @@ export function StatEditModal({
       maxWidthClass="max-w-sm"
       footer={
         <div className="flex flex-wrap justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="modalPaleOutline"
+            fullWidth={false}
             onClick={cancelAndClose}
-            className="rounded-md border-2 border-paleBlue bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="modalPalePrimary"
+            fullWidth={false}
             onClick={commitAndClose}
-            className="rounded-md border-2 border-paleBlue bg-paleBlue px-4 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-paleBlue/90"
           >
             Save
-          </button>
+          </Button>
         </div>
       }
     >

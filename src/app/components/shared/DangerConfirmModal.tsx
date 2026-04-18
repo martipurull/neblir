@@ -2,6 +2,7 @@
 
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
+import Button from "./Button";
 import DangerButton from "./DangerButton";
 import { SafeButton } from "./SemanticActionButton";
 
@@ -49,9 +50,6 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
     : "text-neblirDanger-600";
   const headerBorder = isModalBg ? "border-paleBlue/25" : "border-black/15";
   const footerBorder = headerBorder;
-  const closeBtn = isModalBg
-    ? "rounded p-1.5 text-paleBlue transition-colors hover:bg-paleBlue/10"
-    : "rounded p-1.5 text-black transition-colors hover:bg-black/10";
 
   return (
     <div
@@ -74,15 +72,17 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
           >
             {title}
           </h2>
-          <button
+          <Button
             type="button"
+            variant={isModalBg ? "modalClosePale" : "modalCloseLight"}
+            fullWidth={false}
+            className={isModalBg ? undefined : "!text-black"}
             onClick={onCancel}
             disabled={isSubmitting}
-            className={`${closeBtn} shrink-0 disabled:opacity-50`}
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

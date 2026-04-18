@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { LevelUpGeneralSkill } from "@/lib/api/character";
 import { GENERAL_SKILL_OPTIONS } from "./constants";
@@ -17,13 +18,14 @@ export default function LevelUpSkillStep({
 }: Props) {
   return (
     <div className="space-y-4">
-      <button
+      <Button
         type="button"
+        variant="lightOutlineMuted"
+        fullWidth={false}
         onClick={onOpenQuickCheck}
-        className="rounded border border-black/30 px-3 py-1.5 text-sm text-black transition-colors hover:border-black/50"
       >
         Check current skill points
-      </button>
+      </Button>
       <p className="text-sm text-black/70">
         Choose one learned skill to improve by +1 at level {targetLevel}.
       </p>

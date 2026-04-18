@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { LevelUpFormValues } from "./types";
@@ -59,13 +60,14 @@ export default function LevelUpAttributesStep({
 
       {seriousFlag === "yes" && (
         <div className="space-y-4">
-          <button
+          <Button
             type="button"
+            variant="lightOutlineMuted"
+            fullWidth={false}
             onClick={onOpenQuickCheck}
-            className="rounded border border-black/30 px-3 py-1.5 text-sm text-black transition-colors hover:border-black/50"
           >
             Check current attributes
-          </button>
+          </Button>
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectDropdown
               id="attribute-from"

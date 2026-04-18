@@ -1,6 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import Button from "@/app/components/shared/Button";
 import {
   applyArmourPenaltyToInnateAttributeDice,
   getArmourAttributePenalty,
@@ -124,14 +125,16 @@ export function getAttributesSection(
                   const equipPenalty = equipBonus < 0;
                   return (
                     <li key={key}>
-                      <button
+                      <Button
                         type="button"
+                        variant="lightAttributeDiceRow"
+                        fullWidth={false}
+                        className={`w-full transition ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                         data-attribute-group={attrKey}
                         data-skill={key}
                         disabled={isDisabled}
                         onClick={handleClick}
                         title={valueTitle || undefined}
-                        className={`flex w-full items-center justify-between gap-4 px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-inset ${isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-black/10"} ${isSelected ? "ring-2 ring-inset ring-white bg-black/10" : ""}`}
                       >
                         <span className="text-sm text-black">
                           {formatLabel(key)}
@@ -172,7 +175,7 @@ export function getAttributesSection(
                             {displayValue}
                           </span>
                         </span>
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}

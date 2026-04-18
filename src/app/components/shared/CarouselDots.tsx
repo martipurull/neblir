@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 interface CarouselDotsProps {
@@ -16,16 +17,16 @@ export function CarouselDots({
   return (
     <div className="mt-2 flex shrink-0 justify-center gap-2 pb-1">
       {Array.from({ length: totalCount }, (_, index) => (
-        <button
+        <Button
           key={index}
+          variant={
+            index === currentIndex ? "carouselDotActive" : "carouselDotInactive"
+          }
+          fullWidth={false}
           type="button"
           onClick={() => onSelect(index)}
           aria-label={`Go to slide ${index + 1}`}
-          className={`rounded-full transition focus:outline-none focus:ring-0 focus-visible:ring-0 ${
-            index === currentIndex
-              ? "h-2.5 w-2.5 bg-customPrimary"
-              : "h-2 w-2 bg-customSecondary/10"
-          }`}
+          className="rounded-full"
         />
       ))}
     </div>

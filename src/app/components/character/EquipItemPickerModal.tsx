@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import {
   DangerButton,
   SafeButton,
@@ -181,14 +182,15 @@ export function EquipItemPickerModal({
           >
             {slotLabel} Equip
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-paleBlue/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
         <ul className="flex min-h-0 flex-1 flex-col divide-y divide-white/20 overflow-y-auto px-5 pb-5 pt-4">
           {equippedInstances.length === 0 &&

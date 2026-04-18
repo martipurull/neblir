@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { ModalFieldLabel } from "./ModalFieldLabel";
 import React from "react";
 
@@ -71,18 +72,17 @@ export function ImageUploadDropzone({
             >
               Image uploaded: {imageKey}
             </span>
-            <button
+            <Button
               type="button"
+              variant={
+                isLight ? "lightRemoveLinkOnPale" : "lightRemoveLinkOnModal"
+              }
+              fullWidth={false}
               onClick={() => onFileChange(null)}
               disabled={disabled || uploading}
-              className={
-                isLight
-                  ? "shrink-0 text-sm text-black/70 underline hover:text-black disabled:opacity-50"
-                  : "shrink-0 text-sm text-white/80 underline hover:text-white disabled:opacity-50"
-              }
             >
               Remove
-            </button>
+            </Button>
           </div>
         ) : (
           <label

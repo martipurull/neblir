@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import {
   formatWeightKgForDisplay,
@@ -422,14 +423,15 @@ export function CharacterSummaryHeader({
           )}
 
           <div className="mt-1.5 grid w-full grid-cols-3 gap-1.5">
-            <button
+            <Button
               type="button"
+              variant="lightCombatToggle"
+              fullWidth={false}
               onClick={() => setCombatExpanded((v) => !v)}
               aria-expanded={combatExpanded}
-              className="col-span-3 flex w-full min-w-0 items-center justify-center rounded-lg border border-black bg-transparent px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-black transition hover:bg-black/10 active:bg-black/15"
             >
               {combatExpanded ? "HIDE COMBAT" : "SHOW COMBAT"}
-            </button>
+            </Button>
           </div>
         </div>
 

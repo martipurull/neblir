@@ -1,6 +1,7 @@
 "use client";
 
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
+import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -195,21 +196,25 @@ export function AttackRollModal({
       maxWidthClass="max-w-sm"
       footer={
         <div className="flex gap-3">
-          <button
+          <Button
             type="button"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="flex-1"
             onClick={() => void handleRoll()}
             disabled={totalDice === 0}
-            className="flex-1 rounded-md border-2 border-white bg-paleBlue py-2.5 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
           >
             ROLL
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="flex-1"
             onClick={onClose}
-            className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-paleBlue/10"
           >
             Close
-          </button>
+          </Button>
         </div>
       }
     >
@@ -222,18 +227,20 @@ export function AttackRollModal({
             <p className="mb-2 text-sm font-medium text-white">Select weapon</p>
             <div className="flex flex-col gap-2">
               {options.map((opt, i) => (
-                <button
+                <Button
                   key={i}
                   type="button"
-                  onClick={() => setSelectedIndex(i)}
-                  className={`rounded-md border-2 px-3 py-2 text-left text-sm font-semibold transition-colors ${
+                  variant={
                     selectedIndex === i
-                      ? "border-white bg-paleBlue text-black"
-                      : "border-white bg-transparent text-white hover:bg-paleBlue/10"
-                  }`}
+                      ? "modalOptionSelected"
+                      : "modalOptionUnselected"
+                  }
+                  fullWidth={false}
+                  className="w-full"
+                  onClick={() => setSelectedIndex(i)}
                 >
                   {optionLabel(opt)}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -242,25 +249,27 @@ export function AttackRollModal({
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Extra dice</span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
               onClick={() => setExtraDice((d) => d - 1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
               aria-label="Decrease extra dice"
             >
               −
-            </button>
+            </Button>
             <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
               {extraDice >= 0 ? `+${extraDice}` : extraDice}
             </span>
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
               onClick={() => setExtraDice((d) => d + 1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10"
               aria-label="Increase extra dice"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -310,27 +319,29 @@ export function AttackRollModal({
               )}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/80">Extra dice (GM)</span>
-                <button
+                <Button
                   type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
                   onClick={() => setDamageExtraDice((d) => d - 1)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-paleBlue/10"
                   aria-label="Decrease extra damage dice"
                 >
                   −
-                </button>
+                </Button>
                 <span className="min-w-[2rem] text-center text-sm font-bold text-white">
                   {damageExtraDice >= 0
                     ? `+${damageExtraDice}`
                     : damageExtraDice}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
                   onClick={() => setDamageExtraDice((d) => d + 1)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-paleBlue/10"
                   aria-label="Increase extra damage dice"
                 >
                   +
-                </button>
+                </Button>
               </div>
               <p className="text-md text-white">
                 {damageDice
@@ -342,14 +353,14 @@ export function AttackRollModal({
                   : ""}{" "}
                 = {totalDamageDice} total dice
               </p>
-              <button
+              <Button
                 type="button"
+                variant="modalBlockPrimary"
                 onClick={handleDamageRoll}
                 disabled={totalDamageDice === 0}
-                className="w-full rounded border-2 border-white bg-paleBlue py-2 text-sm font-semibold text-black transition-colors hover:bg-paleBlue/90 disabled:opacity-50 disabled:hover:bg-paleBlue"
               >
                 ROLL DAMAGE
-              </button>
+              </Button>
               {damageRollResult !== null &&
                 (() => {
                   const total = damageRollResult.reduce((a, b) => a + b, 0);
