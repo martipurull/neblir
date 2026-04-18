@@ -5,6 +5,7 @@ import { Chevron } from "@/app/components/shared/Chevron";
 import Image from "next/image";
 import React, { useState } from "react";
 import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
+import { DicePairIcon } from "./DicePairIcon";
 
 export interface CharacterHeaderInfoProps {
   avatarUrl: string | null;
@@ -12,6 +13,8 @@ export interface CharacterHeaderInfoProps {
   level: number;
   pathsLabel: string;
   characterId: string;
+  /** Opens the dedicated attribute/skill dice roller */
+  onOpenDiceRoller?: () => void;
   className?: string;
 }
 
@@ -21,12 +24,25 @@ export function CharacterHeaderInfo({
   level,
   pathsLabel,
   characterId,
+  onOpenDiceRoller,
   className,
 }: CharacterHeaderInfoProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
 
   return (
     <div className={`flex items-center gap-5 pb-2 ${className ?? ""}`}>
+      {onOpenDiceRoller ? (
+        <button
+          type="button"
+          onClick={onOpenDiceRoller}
+          title="Dice roller — roll with two attributes or one attribute and a skill"
+          aria-label="Open dice roller"
+          className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+        >
+          <DicePairIcon className="h-9 w-9" />
+        </button>
+      ) : null}
+
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {avatarUrl ? (
           <Image

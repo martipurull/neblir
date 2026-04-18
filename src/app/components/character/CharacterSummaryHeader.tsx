@@ -53,6 +53,8 @@ interface CharacterSummaryHeaderProps {
   onArmourUpdate?: (partial: ArmourPartial) => void;
   /** When provided, header equip cells show equipped items and are clickable to equip */
   mutate?: KeyedMutator<CharacterDetail | null>;
+  /** Opens the dedicated dice roller (attribute + skill picker) */
+  onOpenDiceRoller?: () => void;
   className?: string;
 }
 
@@ -65,6 +67,7 @@ export function CharacterSummaryHeader({
   onHealthUpdate,
   onArmourUpdate,
   mutate,
+  onOpenDiceRoller,
   className,
 }: CharacterSummaryHeaderProps) {
   const {
@@ -240,6 +243,7 @@ export function CharacterSummaryHeader({
           level={generalInformation.level}
           pathsLabel={pathsLabel}
           characterId={character.id}
+          onOpenDiceRoller={onOpenDiceRoller}
         />
 
         <div className="mt-3 w-full">
