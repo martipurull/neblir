@@ -6,7 +6,7 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface DiceRollModalProps {
   isOpen: boolean;

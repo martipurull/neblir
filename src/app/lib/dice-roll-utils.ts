@@ -60,7 +60,7 @@ export function getDiceLabel(
   item: DiceSelectionItem
 ): string {
   if (item.type === "attribute") {
-    return `${formatLabel(item.attributeGroup)} (${formatLabel(item.skillKey)})`;
+    return `${formatLabel(item.skillKey)} (${formatLabel(item.attributeGroup)})`;
   }
   return formatLabel(item.skillKey);
 }

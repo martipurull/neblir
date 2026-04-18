@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -57,6 +58,8 @@ export function SelectDropdown({
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
+  /** Index into `filteredOptions`; -1 = no row highlighted (focus stays in filter input). */
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const filterInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,10 +88,56 @@ export function SelectDropdown({
 
   useEffect(() => {
     if (!open) return;
-    queueMicrotask(() => setFilterQuery(""));
+    queueMicrotask(() => {
+      setFilterQuery("");
+      const first = sortedOptions.findIndex((o) => !o.disabled);
+      setHighlightedIndex(first >= 0 ? first : -1);
+    });
     const focusTimer = setTimeout(() => filterInputRef.current?.focus(), 0);
     return () => clearTimeout(focusTimer);
-  }, [open]);
+  }, [open, sortedOptions]);
+
+  const handleFilterInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextQuery = e.target.value;
+    setFilterQuery(nextQuery);
+    const q = nextQuery.trim().toLowerCase();
+    const nextFiltered = !q
+      ? sortedOptions
+      : sortedOptions.filter((opt) => opt.label.toLowerCase().includes(q));
+    const first = nextFiltered.findIndex((o) => !o.disabled);
+    setHighlightedIndex(first >= 0 ? first : -1);
+  };
+
+  const findNextHighlight = useCallback(
+    (current: number, dir: 1 | -1): number => {
+      const opts = filteredOptions;
+      const enabledIndices = opts
+        .map((_, i) => i)
+        .filter((i) => !opts[i].disabled);
+      if (enabledIndices.length === 0) return -1;
+
+      if (current === -1) {
+        return dir === 1 ? enabledIndices[0] : -1;
+      }
+
+      const pos = enabledIndices.indexOf(current);
+      if (pos === -1) return enabledIndices[0];
+
+      if (dir === -1 && pos === 0) return -1;
+      if (dir === -1) return enabledIndices[pos - 1];
+      if (dir === 1 && pos === enabledIndices.length - 1)
+        return enabledIndices[0];
+      if (dir === 1) return enabledIndices[pos + 1];
+      return current;
+    },
+    [filteredOptions]
+  );
+
+  useEffect(() => {
+    if (!open || highlightedIndex < 0) return;
+    const el = document.getElementById(`${id}-option-${highlightedIndex}`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, open, id]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +156,40 @@ export function SelectDropdown({
   const handleSelect = (opt: SelectDropdownOption) => {
     onChange(opt.value);
     setOpen(false);
+  };
+
+  const handleFilterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((h) => findNextHighlight(h, 1));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((h) => findNextHighlight(h, -1));
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const enabled = filteredOptions.filter((o) => !o.disabled);
+      if (enabled.length === 0) return;
+      const byHighlight =
+        highlightedIndex >= 0 ? filteredOptions[highlightedIndex] : undefined;
+      if (byHighlight && !byHighlight.disabled) {
+        handleSelect(byHighlight);
+        return;
+      }
+      if (enabled.length === 1) {
+        handleSelect(enabled[0]);
+      }
+      return;
+    }
   };
 
   const closeMenu = () => setOpen(false);
@@ -150,14 +233,21 @@ export function SelectDropdown({
               ref={filterInputRef}
               type="text"
               value={filterQuery}
-              onChange={(e) => setFilterQuery(e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()}
+              onChange={handleFilterInputChange}
+              onKeyDown={handleFilterKeyDown}
               placeholder="Type to filter…"
               aria-label="Filter options"
+              aria-controls={`${id}-listbox`}
+              aria-activedescendant={
+                highlightedIndex >= 0
+                  ? `${id}-option-${highlightedIndex}`
+                  : undefined
+              }
               className="w-full rounded border border-black/30 px-2 py-1.5 text-sm text-black placeholder:text-black/50 focus:border-customPrimaryHover focus:outline-none focus-visible:ring-1 focus-visible:ring-customPrimaryHover"
             />
           </div>
           <ul
+            id={`${id}-listbox`}
             role="listbox"
             aria-labelledby={`${id}-label`}
             className="max-h-44 overflow-y-auto py-1"
@@ -171,8 +261,9 @@ export function SelectDropdown({
                 {options.length === 0 ? "No options" : "No matches"}
               </li>
             ) : (
-              filteredOptions.map((opt) => {
+              filteredOptions.map((opt, idx) => {
                 const isDisabled = !!opt.disabled;
+                const isHighlighted = !isDisabled && highlightedIndex === idx;
                 const suffix =
                   renderOptionSuffix && !isDisabled
                     ? renderOptionSuffix(opt, closeMenu)
@@ -180,9 +271,13 @@ export function SelectDropdown({
                 return (
                   <li
                     key={opt.value}
+                    id={`${id}-option-${idx}`}
                     role="option"
                     aria-selected={value === opt.value}
                     aria-disabled={isDisabled}
+                    onMouseEnter={() => {
+                      if (!isDisabled) setHighlightedIndex(idx);
+                    }}
                     onClick={(e) => {
                       if (isDisabled) return;
                       if (
@@ -201,14 +296,19 @@ export function SelectDropdown({
                         handleSelect(opt);
                       }
                     }}
-                    tabIndex={isDisabled ? -1 : 0}
+                    tabIndex={-1}
                     className={`flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors bg-paleBlue ${
                       isDisabled
                         ? "cursor-not-allowed text-black/40"
-                        : `cursor-pointer hover:bg-paleBlueHover ${
-                            value === opt.value
-                              ? "bg-black/10 font-medium text-black"
-                              : "text-black"
+                        : `cursor-pointer hover:bg-paleBlueHover text-black ${
+                            value === opt.value ? "bg-black/10 font-medium" : ""
+                          } ${
+                            isHighlighted
+                              ? "ring-2 ring-inset ring-customPrimaryHover " +
+                                (value === opt.value
+                                  ? "bg-black/10"
+                                  : "bg-paleBlueHover")
+                              : ""
                           }`
                     }`}
                   >
