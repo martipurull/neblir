@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import { Chevron } from "@/app/components/shared/Chevron";
+import { UpArrowIcon } from "@/app/components/shared/CoiledArrowIcon";
 import Image from "next/image";
 import React, { useState } from "react";
 import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
@@ -31,7 +31,7 @@ export function CharacterHeaderInfo({
   const [actionsOpen, setActionsOpen] = useState(false);
 
   return (
-    <div className={`flex items-center gap-5 pb-2 ${className ?? ""}`}>
+    <div className={`flex items-center gap-4 pb-2 ${className ?? ""}`}>
       {onOpenDiceRoller ? (
         <Button
           type="button"
@@ -81,11 +81,7 @@ export function CharacterHeaderInfo({
           onClick={() => setActionsOpen(true)}
           className="min-h-11 min-w-11"
         >
-          <Chevron
-            direction="right"
-            strokeWidth={2.75}
-            className="h-7 w-7 shrink-0"
-          />
+          <UpArrowIcon className="h-8 w-8" />
         </Button>
       </div>
 
