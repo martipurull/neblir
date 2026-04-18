@@ -1,4 +1,6 @@
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
+import type { ItemStatus } from "@/app/lib/types/item";
+import { isItemInventoryOperational } from "@/app/lib/types/item";
 
 const BACKPACK_BONUSES: Record<string, number> = {
   "backpack (small)": 0.1,
@@ -55,6 +57,13 @@ export function getCarriedWeight(
     (sum, entry) => sum + (entry.item?.weight ?? 0) * (entry.quantity ?? 1),
     0
   );
+}
+
+/** UI: kg with at most one decimal (avoids long float noise from per-item weights). */
+export function formatWeightKgForDisplay(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  const s = rounded.toFixed(1);
+  return s.endsWith(".0") ? s.slice(0, -2) : s;
 }
 
 /** Carry weight ratio (carried / max). Returns 0 if max is 0 or missing. */
@@ -272,6 +281,7 @@ export function getSpeedReductionTooltipText(
 
 type SpeedAlterInventoryEntry = {
   isEquipped?: boolean;
+  status?: ItemStatus;
   customName?: string | null;
   item?: { name?: string | null; isSpeedAltered?: boolean | null } | null;
 };
@@ -285,6 +295,9 @@ export function getEquippedSpeedAlteringItems(
   const displayNames: string[] = [];
   for (const row of inventory ?? []) {
     if (!row.isEquipped) continue;
+    if (row.status != null && !isItemInventoryOperational(row.status)) {
+      continue;
+    }
     if (row.item?.isSpeedAltered !== true) continue;
     const label =
       row.customName?.trim() ?? row.item?.name?.trim() ?? "Unknown item";

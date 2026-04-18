@@ -2,6 +2,7 @@
 
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import {
+  formatWeightKgForDisplay,
   getCarriedWeight,
   getCarryWeightStatCellStyles,
   getEffectiveMaxCarryWeight,
@@ -223,8 +224,8 @@ export function CharacterSummaryHeader({
   );
   const carryWeightDisplay =
     maxCarryWeight != null && maxCarryWeight > 0
-      ? `${carriedWeight} / ${maxCarryWeight} kg`
-      : `${carriedWeight} kg`;
+      ? `${formatWeightKgForDisplay(carriedWeight)} / ${formatWeightKgForDisplay(maxCarryWeight)} kg`
+      : `${formatWeightKgForDisplay(carriedWeight)} kg`;
 
   const canEquip = !!mutate;
 

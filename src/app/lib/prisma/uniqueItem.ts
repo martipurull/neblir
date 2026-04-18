@@ -120,7 +120,7 @@ export function prismaDataFromUniqueItemCreate(
     equippableOverride: parsed.equippableOverride ?? undefined,
     equipSlotTypesOverride: parsed.equipSlotTypesOverride ?? undefined,
     equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
-    maxUsesOverride: parsed.maxUsesOverride ?? undefined,
+    maxUsesOverride: parsed.maxUsesOverride ?? parsed.maxUses ?? undefined,
     ...(parsed.isSpeedAlteredOverride !== undefined && {
       isSpeedAlteredOverride: parsed.isSpeedAlteredOverride,
     }),

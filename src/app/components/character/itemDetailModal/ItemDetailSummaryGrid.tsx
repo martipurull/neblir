@@ -37,8 +37,9 @@ export function ItemDetailSummaryGrid({
       <DetailField label="Weight">
         {item?.weight != null ? `${item.weight} kg` : "—"}
       </DetailField>
-      <DetailField label="Quantity">{entry.quantity}</DetailField>
-      <DetailField label="Status">{entry.status}</DetailField>
+      <DetailField label="Quantity" className="col-span-2">
+        {entry.quantity}
+      </DetailField>
 
       {item?.equippable ? (
         <>

@@ -24,6 +24,10 @@ import logger from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import {
+  isItemInventoryOperational,
+  itemStatusSchema,
+} from "@/app/lib/types/item";
 import { z } from "zod";
 
 const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD", "BRAIN"]);
@@ -43,6 +47,10 @@ const patchBodySchema = z.discriminatedUnion("action", [
     currentUses: z.number().int().min(0),
   }),
   z.object({ action: z.literal("decrementUse") }),
+  z.object({
+    action: z.literal("setStatus"),
+    status: itemStatusSchema,
+  }),
 ]);
 
 type InventoryEntry = {
@@ -127,6 +135,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         entry.item.equippable === true;
       if (!equippable) {
         return errorResponse("This item is not equippable", 400);
+      }
+      if (!isItemInventoryOperational(entry.status)) {
+        return errorResponse(
+          "Broken or unusable items cannot be equipped. Repair the item first.",
+          400
+        );
       }
       const requestedSlot = parsed.data.slot;
       const itemWithEquip = entry.item as {
@@ -247,6 +261,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       await updateItemCharacter(itemCharacterId, updateData);
     } else if (action === "setCurrentUses") {
       const { currentUses } = parsed.data;
+      if (!isItemInventoryOperational(entry.status) && currentUses > 0) {
+        return errorResponse(
+          "Damaged items cannot hold charges. Set the item to functional first.",
+          400
+        );
+      }
       const maxUses = await getMaxUsesForItem(entry.sourceType, entry.itemId);
       if (maxUses != null && currentUses > maxUses) {
         return errorResponse(
@@ -259,6 +279,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       const current = entry.currentUses ?? 0;
       const next = Math.max(0, current - 1);
       await updateItemCharacter(itemCharacterId, { currentUses: next });
+    } else if (action === "setStatus") {
+      const nextStatus = parsed.data.status;
+      await updateItemCharacter(itemCharacterId, {
+        status: nextStatus,
+        ...(!isItemInventoryOperational(nextStatus)
+          ? {
+              currentUses: 0,
+              equipSlots: [],
+              isEquipped: false,
+            }
+          : {}),
+      });
     } else {
       await updateItemCharacter(itemCharacterId, {
         equipSlots: [],

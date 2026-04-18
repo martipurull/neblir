@@ -1,4 +1,8 @@
 import type { EquipSlot } from "@/app/lib/types/character";
+import {
+  isItemInventoryOperational,
+  type ItemStatus,
+} from "@/app/lib/types/item";
 
 /** Header equip cells map 1:1 to API equip slots */
 export type DisplayEquipSlot = EquipSlot;
@@ -14,6 +18,7 @@ export const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
 
 type CarriedEntryForCapacity = {
   id: string;
+  status?: ItemStatus;
   equipSlots?: string[];
   item?: {
     equipSlotCost?: number | null;
@@ -118,6 +123,9 @@ export function entryCanAutoEquip(
   },
   carriedInventory: CarriedEntryForCapacity[]
 ): boolean {
+  if (entry.status != null && !isItemInventoryOperational(entry.status)) {
+    return false;
+  }
   if (entry.item?.equippable !== true) return false;
   const types = entry.item?.equipSlotTypes;
   if (getEquippedInstanceCount(entry.equipSlots, types) >= entry.quantity) {
@@ -192,6 +200,7 @@ export function itemCanEquipInSlot(
 /** Get used capacity in a single API slot */
 export function getUsedCapacityInApiSlot(
   inventory: {
+    status?: ItemStatus;
     equipSlots?: string[];
     item?: {
       equipSlotCost?: number | null;
@@ -202,6 +211,9 @@ export function getUsedCapacityInApiSlot(
 ): number {
   let sum = 0;
   for (const entry of inventory) {
+    if (entry.status != null && !isItemInventoryOperational(entry.status)) {
+      continue;
+    }
     const rawCost = getItemCost(entry.item?.equipSlotCost);
     const suit =
       isCombinedBodyHeadSuit(entry.item?.equipSlotTypes) &&

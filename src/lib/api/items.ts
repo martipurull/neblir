@@ -1,5 +1,6 @@
 import {
   type ItemResponse,
+  type ItemStatus,
   itemResponseSchema,
   itemListResponseSchema,
 } from "@/app/lib/types/item";
@@ -116,7 +117,8 @@ export type UpdateInventoryEntryBody =
   | { action: "unequipAll" }
   | { action: "setLocation"; itemLocation: string }
   | { action: "setCurrentUses"; currentUses: number }
-  | { action: "decrementUse" };
+  | { action: "decrementUse" }
+  | { action: "setStatus"; status: ItemStatus };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,

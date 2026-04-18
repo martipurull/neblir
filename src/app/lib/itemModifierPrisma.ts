@@ -171,6 +171,8 @@ export function mapUniqueItemUpdateZodToPrisma(
     modifiesSkillOverride,
     attributeModOverride,
     skillModOverride,
+    maxUses,
+    maxUsesOverride,
     ...rest
   } = data;
   const mod = mapApiModifiersToPrismaFields({
@@ -179,7 +181,7 @@ export function mapUniqueItemUpdateZodToPrisma(
     attributeMod: attributeModOverride,
     skillMod: skillModOverride,
   });
-  return {
+  const out: Prisma.UniqueItemUpdateInput = {
     ...rest,
     ...(mod.modifiesAttribute !== undefined && {
       modifiesAttributeOverride: mod.modifiesAttribute,
@@ -194,4 +196,8 @@ export function mapUniqueItemUpdateZodToPrisma(
       skillModOverride: mod.skillMod,
     }),
   };
+  if (maxUsesOverride !== undefined || maxUses !== undefined) {
+    out.maxUsesOverride = maxUsesOverride ?? maxUses ?? null;
+  }
+  return out;
 }

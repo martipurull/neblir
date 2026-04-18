@@ -97,6 +97,26 @@ export const itemStatusSchema = z.enum([
 ]);
 export type ItemStatus = z.infer<typeof itemStatusSchema>;
 
+export const ITEM_STATUS_LABELS: Record<ItemStatus, string> = {
+  FUNCTIONAL: "Functional",
+  BROKEN: "Broken",
+  BEYOND_REPAIR: "Beyond repair",
+};
+
+/** Only functional items may be equipped, grant combat/armour bonuses, or hold charges. */
+export function isItemInventoryOperational(status: ItemStatus): boolean {
+  return status === "FUNCTIONAL";
+}
+
+/** Inventory list equip column when an equippable item is damaged (short lowercase line). */
+export function itemStatusEquipColumnDamageLabel(
+  status: ItemStatus
+): string | null {
+  if (status === "BROKEN") return "broken";
+  if (status === "BEYOND_REPAIR") return "beyond repair";
+  return null;
+}
+
 /** Source type stored on UniqueItem (template or standalone). */
 export const uniqueItemSourceTypeSchema = z.enum([
   "GLOBAL_ITEM",
@@ -266,7 +286,9 @@ const uniqueItemMutableBodySchema = z.object({
   equippableOverride: z.boolean().optional(),
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
   equipSlotCostOverride: equipSlotCostSchema.optional(),
+  /** Prefer `maxUsesOverride`; `maxUses` is an accepted alias for clients. */
   maxUsesOverride: z.number().int().positive().optional().nullable(),
+  maxUses: z.number().int().positive().optional().nullable(),
   modifiesAttributeOverride: itemAttributePathSchema.nullish(),
   attributeModOverride: z.number().int().nullish(),
   modifiesSkillOverride: itemGeneralSkillSchema.nullish(),

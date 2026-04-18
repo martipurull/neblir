@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/items";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import Image from "next/image";
@@ -23,6 +24,8 @@ import { ItemDetailSummaryGrid } from "./itemDetailModal/ItemDetailSummaryGrid";
 import { ItemDetailUsesSection } from "./itemDetailModal/ItemDetailUsesSection";
 import type { ItemDetailModalProps } from "./itemDetailModal/types";
 import { useInventoryUses } from "./itemDetailModal/useInventoryUses";
+import type { ItemStatus } from "@/app/lib/types/item";
+import { ITEM_STATUS_LABELS } from "@/app/lib/types/item";
 import {
   getWeaponDamage,
   hasExtraWeaponCombatStats,
@@ -56,12 +59,15 @@ export function ItemDetailModal({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [leaveLocationInput, setLeaveLocationInput] = useState("");
   const [damageRollOpen, setDamageRollOpen] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const { maxUses, displayUses, updateUses } = useInventoryUses({
-    entry,
-    characterId,
-    mutate,
-  });
+  const { maxUses, displayUses, updateUses, canIncreaseUses } =
+    useInventoryUses({
+      entry,
+      characterId,
+      mutate,
+    });
 
   useEffect(() => {
     if (!isOpen) {
@@ -73,6 +79,7 @@ export function ItemDetailModal({
       setGiveError(null);
       setGiveQuantity(1);
       setDamageRollOpen(false);
+      setStatusError(null);
     }
   }, [isOpen]);
 
@@ -113,6 +120,15 @@ export function ItemDetailModal({
   const imageUrls = useImageUrls(imageEntries);
   const itemImageUrl = itemImageKey ? imageUrls[`item-${entry.id}`] : null;
 
+  const statusOptions = useMemo(
+    () =>
+      (Object.keys(ITEM_STATUS_LABELS) as ItemStatus[]).map((value) => ({
+        value,
+        label: ITEM_STATUS_LABELS[value],
+      })),
+    []
+  );
+
   const handleSetLocation = async (itemLocation: string) => {
     setLocationError(null);
     setIsSettingLocation(true);
@@ -141,6 +157,25 @@ export function ItemDetailModal({
       setRemoveError(getUserSafeErrorMessage(e, "Failed to remove item"));
     } finally {
       setIsRemoving(false);
+    }
+  };
+
+  const handleStatusChange = async (status: ItemStatus) => {
+    if (status === entry.status) return;
+    setStatusError(null);
+    setIsUpdatingStatus(true);
+    try {
+      await updateCharacterInventoryEntry(characterId, entry.id, {
+        action: "setStatus",
+        status,
+      });
+      await mutate();
+    } catch (e) {
+      setStatusError(
+        getUserSafeErrorMessage(e, "Failed to update item status")
+      );
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -231,6 +266,29 @@ export function ItemDetailModal({
                 </div>
               ) : null}
             </div>
+            <div>
+              <span className="text-white/60 uppercase tracking-wider">
+                Status
+              </span>
+              <div className="mt-0.5 rounded-md bg-transparent p-2">
+                <SelectDropdown
+                  id={`item-detail-status-${entry.id}`}
+                  label="Item condition"
+                  showLabel={false}
+                  placeholder="Choose status…"
+                  value={entry.status}
+                  options={statusOptions}
+                  disabled={isUpdatingStatus}
+                  pinValueFirst={entry.status}
+                  onChange={(v) => void handleStatusChange(v as ItemStatus)}
+                />
+              </div>
+              {statusError ? (
+                <p className="mt-1 text-xs text-neblirDanger-600">
+                  {statusError}
+                </p>
+              ) : null}
+            </div>
             {item?.description && (
               <div>
                 <span className="text-white/60 uppercase tracking-wider">
@@ -265,6 +323,7 @@ export function ItemDetailModal({
                 displayUses={displayUses}
                 maxUses={maxUses}
                 onDelta={updateUses}
+                allowIncrease={canIncreaseUses}
               />
             )}
 

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type SelectDropdownOption = {
   value: string;
@@ -14,6 +20,8 @@ export type SelectDropdownOption = {
 export type SelectDropdownProps = {
   id: string;
   label: string;
+  /** When false, label is visually hidden but kept for accessibility (paired with an external heading). */
+  showLabel?: boolean;
   placeholder: string;
   value: string;
   options: SelectDropdownOption[];
@@ -24,17 +32,27 @@ export type SelectDropdownProps = {
    * remaining options are sorted by label.
    */
   pinValueFirst?: string;
+  /**
+   * Extra control per option (e.g. info button). Receives `closeMenu` so the parent can dismiss the list first.
+   * Clicks on the suffix do not select the option.
+   */
+  renderOptionSuffix?: (
+    option: SelectDropdownOption,
+    closeMenu: () => void
+  ) => ReactNode;
 };
 
 export function SelectDropdown({
   id,
   label,
+  showLabel = true,
   placeholder,
   value,
   options,
   disabled = false,
   onChange,
   pinValueFirst,
+  renderOptionSuffix,
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
@@ -90,9 +108,16 @@ export function SelectDropdown({
     setOpen(false);
   };
 
+  const closeMenu = () => setOpen(false);
+
   return (
     <div ref={containerRef} className="relative">
-      <label htmlFor={id} className="mb-1 block text-sm font-bold text-black">
+      <label
+        htmlFor={id}
+        className={
+          showLabel ? "mb-1 block text-sm font-bold text-black" : "sr-only"
+        }
+      >
         {label}
       </label>
       <button
@@ -100,7 +125,7 @@ export function SelectDropdown({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`relative mt-1 flex min-h-11 w-full cursor-pointer items-center rounded-md border-2 border-black/30 bg-paleBlue px-3 py-2 pr-9 text-left text-sm text-black focus:border-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover disabled:cursor-not-allowed disabled:opacity-50 ${!selectedOption ? "text-black/60" : ""}`}
+        className={`relative ${showLabel ? "mt-1" : ""} flex min-h-11 w-full cursor-pointer items-center rounded-md border-2 border-black/30 bg-paleBlue px-3 py-2 pr-9 text-left text-sm text-black focus:border-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover disabled:cursor-not-allowed disabled:opacity-50 ${!selectedOption ? "text-black/60" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={`${id}-label`}
@@ -145,13 +170,27 @@ export function SelectDropdown({
             ) : (
               filteredOptions.map((opt) => {
                 const isDisabled = !!opt.disabled;
+                const suffix =
+                  renderOptionSuffix && !isDisabled
+                    ? renderOptionSuffix(opt, closeMenu)
+                    : null;
                 return (
                   <li
                     key={opt.value}
                     role="option"
                     aria-selected={value === opt.value}
                     aria-disabled={isDisabled}
-                    onClick={() => !isDisabled && handleSelect(opt)}
+                    onClick={(e) => {
+                      if (isDisabled) return;
+                      if (
+                        (e.target as HTMLElement).closest(
+                          "[data-select-dropdown-suffix]"
+                        )
+                      ) {
+                        return;
+                      }
+                      handleSelect(opt);
+                    }}
                     onKeyDown={(e) => {
                       if (isDisabled) return;
                       if (e.key === "Enter" || e.key === " ") {
@@ -160,7 +199,7 @@ export function SelectDropdown({
                       }
                     }}
                     tabIndex={isDisabled ? -1 : 0}
-                    className={`px-3 py-2 text-left text-sm transition-colors bg-paleBlue ${
+                    className={`flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors bg-paleBlue ${
                       isDisabled
                         ? "cursor-not-allowed text-black/40"
                         : `cursor-pointer hover:bg-paleBlueHover ${
@@ -170,10 +209,22 @@ export function SelectDropdown({
                           }`
                     }`}
                   >
-                    {opt.label}
-                    {isDisabled ? (
-                      <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
-                        {opt.disabledHint ?? "(already rolled)"}
+                    <span className="min-w-0 flex-1 px-3 py-2">
+                      {opt.label}
+                      {isDisabled ? (
+                        <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
+                          {opt.disabledHint ?? "(already rolled)"}
+                        </span>
+                      ) : null}
+                    </span>
+                    {suffix ? (
+                      <span
+                        data-select-dropdown-suffix
+                        className="flex shrink-0 items-center pr-2"
+                        onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        {suffix}
                       </span>
                     ) : null}
                   </li>

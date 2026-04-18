@@ -1,3 +1,9 @@
+import type {
+  LevelUpAttributePath,
+  LevelUpGeneralSkill,
+} from "@/app/lib/levelUpPaths";
+import type { ItemWithId } from "@/lib/api/items";
+
 export type ItemBrowseDamage = {
   damageType: Array<
     | "BULLET"
@@ -24,11 +30,6 @@ export type ItemBrowseDamage = {
     successfulDefenceResult: string;
   } | null;
 };
-
-import type {
-  LevelUpAttributePath,
-  LevelUpGeneralSkill,
-} from "@/app/lib/levelUpPaths";
 
 /** Shape used by `BrowseItemDetailModal` for global + custom items */
 export type ItemBrowseDetailFields = {
@@ -62,3 +63,40 @@ export type ItemBrowseDetailFields = {
   modifiesSkill?: LevelUpGeneralSkill | null;
   skillMod?: number | null;
 };
+
+/** Map global catalog item to browse shape (e.g. unique-item template preview). */
+export function itemWithIdToBrowseDetail(
+  item: ItemWithId
+): ItemBrowseDetailFields {
+  return {
+    id: item.id,
+    name: item.name,
+    type: item.type,
+    imageKey: item.imageKey ?? null,
+    description: item.description,
+    weight: item.weight,
+    confCost: item.confCost,
+    costInfo: item.costInfo ?? null,
+    maxUses: item.maxUses ?? null,
+    equippable: item.equippable ?? null,
+    equipSlotTypes: item.equipSlotTypes ?? null,
+    equipSlotCost: item.equipSlotCost ?? null,
+    attackRoll: item.attackRoll ?? null,
+    attackMeleeBonus: item.attackMeleeBonus ?? null,
+    attackRangeBonus: item.attackRangeBonus ?? null,
+    attackThrowBonus: item.attackThrowBonus ?? null,
+    defenceMeleeBonus: item.defenceMeleeBonus ?? null,
+    defenceRangeBonus: item.defenceRangeBonus ?? null,
+    gridAttackBonus: item.gridAttackBonus ?? null,
+    gridDefenceBonus: item.gridDefenceBonus ?? null,
+    effectiveRange: item.effectiveRange ?? null,
+    maxRange: item.maxRange ?? null,
+    damage: item.damage as ItemBrowseDetailFields["damage"],
+    usage: item.usage ?? null,
+    notes: item.notes ?? null,
+    modifiesAttribute: item.modifiesAttribute ?? null,
+    attributeMod: item.attributeMod ?? null,
+    modifiesSkill: item.modifiesSkill ?? null,
+    skillMod: item.skillMod ?? null,
+  };
+}

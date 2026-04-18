@@ -14,6 +14,7 @@ const userIsInGameMock = vi.fn();
 const getItemMock = vi.fn();
 const createUniqueItemMock = vi.fn();
 const addOrIncrementItemCharacterMock = vi.fn();
+const getEffectiveMaxUsesForUniqueCreateMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: characterBelongsToUserMock,
@@ -51,6 +52,7 @@ vi.mock("@/app/lib/prisma/uniqueItem", () => ({
 
 vi.mock("@/app/lib/prisma/itemCharacter", () => ({
   addOrIncrementItemCharacter: addOrIncrementItemCharacterMock,
+  getEffectiveMaxUsesForUniqueCreate: getEffectiveMaxUsesForUniqueCreateMock,
 }));
 
 describe("POST /api/characters/[id]/unique-items", () => {
@@ -59,6 +61,7 @@ describe("POST /api/characters/[id]/unique-items", () => {
     getCharacterMock.mockResolvedValue({ id: "char-1" });
     createUniqueItemMock.mockResolvedValue({ id: "unique-1" });
     addOrIncrementItemCharacterMock.mockResolvedValue({ id: "ic-1" });
+    getEffectiveMaxUsesForUniqueCreateMock.mockResolvedValue(null);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -179,10 +182,17 @@ describe("POST /api/characters/[id]/unique-items", () => {
         weightOverride: 0.05,
       })
     );
+    expect(getEffectiveMaxUsesForUniqueCreateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceType: "STANDALONE",
+        nameOverride: "Mysterious bracelet",
+      })
+    );
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "char-1",
       "UNIQUE_ITEM",
-      "unique-1"
+      "unique-1",
+      { initialCurrentUsesMax: null }
     );
     expect(userIsInGameMock).not.toHaveBeenCalled();
   });
@@ -281,7 +291,37 @@ describe("POST /api/characters/[id]/unique-items", () => {
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "char-1",
       "UNIQUE_ITEM",
-      "unique-1"
+      "unique-1",
+      { initialCurrentUsesMax: null }
+    );
+  });
+
+  it("passes effective max uses into inventory when maxUsesOverride is set", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getItemMock.mockResolvedValue({ id: "item-1", name: "Knife" });
+    getEffectiveMaxUsesForUniqueCreateMock.mockResolvedValue(7);
+    const { POST } = await import(
+      "@/app/api/characters/[id]/unique-items/route"
+    );
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          sourceType: "GLOBAL_ITEM",
+          itemId: "item-1",
+          maxUsesOverride: 7,
+        },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(getEffectiveMaxUsesForUniqueCreateMock).toHaveBeenCalled();
+    expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      "UNIQUE_ITEM",
+      "unique-1",
+      { initialCurrentUsesMax: 7 }
     );
   });
 

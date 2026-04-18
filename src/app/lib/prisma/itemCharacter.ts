@@ -1,4 +1,5 @@
 import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
+import type { UniqueItemCreate } from "@/app/lib/types/item";
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
 import {
   PRISMA_TO_ATTRIBUTE_PATH_API,
@@ -20,7 +21,8 @@ export async function createItemCharacter(
 export async function addOrIncrementItemCharacter(
   characterId: string,
   sourceType: ItemSourceType,
-  itemId: string
+  itemId: string,
+  options?: { initialCurrentUsesMax?: number | null }
 ) {
   const existing = await prisma.itemCharacter.findFirst({
     where: { characterId, sourceType, itemId },
@@ -31,7 +33,10 @@ export async function addOrIncrementItemCharacter(
       data: { quantity: { increment: 1 } },
     });
   }
-  const maxUses = await getMaxUsesForItem(sourceType, itemId);
+  const maxUses =
+    options?.initialCurrentUsesMax !== undefined
+      ? options.initialCurrentUsesMax
+      : await getMaxUsesForItem(sourceType, itemId);
   return prisma.itemCharacter.create({
     data: {
       characterId,
@@ -42,6 +47,20 @@ export async function addOrIncrementItemCharacter(
       itemLocation: ITEM_LOCATION_CARRIED,
     },
   });
+}
+
+/**
+ * Effective maxUses for a unique item the same way as {@link getMaxUsesForItem}
+ * for a persisted UNIQUE_ITEM, but using the create payload so inventory can be
+ * seeded without relying on an immediate re-read of the new UniqueItem row.
+ */
+export async function getEffectiveMaxUsesForUniqueCreate(
+  parsed: UniqueItemCreate
+): Promise<number | null> {
+  const override = parsed.maxUsesOverride ?? parsed.maxUses ?? null;
+  if (override != null) return override;
+  if (parsed.sourceType === "STANDALONE") return null;
+  return getMaxUsesForItem(parsed.sourceType, parsed.itemId);
 }
 
 /** Resolve effective maxUses for an item (template or unique override). */

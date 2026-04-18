@@ -3,6 +3,10 @@ import {
   getArmourAttributePenalty,
 } from "./carryWeightUtils";
 import {
+  isItemInventoryOperational,
+  type ItemStatus,
+} from "@/app/lib/types/item";
+import {
   capInnateAttributeDiceWithEquipment,
   getEquippedItemStatBonusDetails,
 } from "./equippedStatBonuses";
@@ -12,6 +16,7 @@ import type { CharacterDetail } from "./types/character";
 
 type InventoryEntry = {
   id?: string;
+  status?: ItemStatus;
   currentUses?: number;
   equipSlots?: string[];
   itemLocation?: string | null;
@@ -32,6 +37,10 @@ type InventoryEntry = {
     } | null;
   } | null;
 };
+
+function inventoryRowOperational(entry: { status?: ItemStatus }): boolean {
+  return isItemInventoryOperational(entry.status ?? "FUNCTIONAL");
+}
 
 function isEquippedInBrainSlot(entry: { equipSlots?: string[] }): boolean {
   return (entry.equipSlots ?? []).some((s) => s === "BRAIN");
@@ -59,6 +68,7 @@ function getNonStackingEquippedBrainGridBonuses(character: CharacterDetail): {
   } | null = null;
 
   for (const entry of carried) {
+    if (!inventoryRowOperational(entry)) continue;
     if (!isEquippedInBrainSlot(entry)) continue;
     const item = entry.item;
     if (!item) continue;
@@ -167,6 +177,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
   }
 
   for (const entry of carried) {
+    if (!inventoryRowOperational(entry)) continue;
     const slots = entry.equipSlots ?? [];
     const handCount = slots.filter((s) => s === "HAND").length;
     if (handCount === 0 || !entry.item) continue;
@@ -398,6 +409,7 @@ export function itemProvidesArmourDefenceBonus(
 export function equipViolatesSingleArmourRule(args: {
   carriedInventory: Array<{
     id: string;
+    status?: ItemStatus;
     equipSlots?: string[];
     item?: {
       defenceMeleeBonus?: number | null;
@@ -428,6 +440,7 @@ export function equipViolatesSingleArmourRule(args: {
   const otherWorn = carriedInventory.some(
     (e) =>
       e.id !== itemCharacterId &&
+      inventoryRowOperational(e) &&
       inventoryEntryOccupiesBodyOrHead(e) &&
       itemProvidesArmourDefenceBonus(e.item)
   );
@@ -450,6 +463,7 @@ export function getArmourBonusesFromInventory(
   if (!carried.length) return result;
 
   for (const entry of carried) {
+    if (!inventoryRowOperational(entry)) continue;
     if (!inventoryEntryOccupiesBodyOrHead(entry) || !entry.item) continue;
 
     const meleeBonus = entry.item.defenceMeleeBonus ?? 0;
@@ -565,6 +579,7 @@ export type CharacterForCombatSync = {
   learnedSkills: CharacterDetail["learnedSkills"];
   combatInformation?: { armourCurrentHP?: number };
   inventory?: Array<{
+    status?: ItemStatus;
     itemLocation?: string | null;
     equipSlots?: string[];
     item?: {

@@ -5,10 +5,13 @@ import {
   type UniqueItemCreate,
   type ItemDamage,
 } from "@/app/lib/types/item";
+import {
+  itemWithIdToBrowseDetail,
+  type ItemBrowseDetailFields,
+} from "@/app/lib/types/itemBrowseDetail";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { TemplateItem } from "./uniqueItemModalTypes";
 import { templateOptionLabel } from "./uniqueItemModalTypes";
 
 type Args = {
@@ -31,11 +34,13 @@ export function useCreateUniqueItemModal({
   const [sourceType, setSourceType] = useState<
     "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE"
   >("GLOBAL_ITEM");
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(
-    null
-  );
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    ItemWithId | ItemBrowseDetailFields | null
+  >(null);
   const [globalItems, setGlobalItems] = useState<ItemWithId[]>([]);
-  const [customItems, setCustomItems] = useState<TemplateItem[]>([]);
+  const [customTemplateBrowseItems, setCustomTemplateBrowseItems] = useState<
+    ItemBrowseDetailFields[]
+  >([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   const [nameOverride, setNameOverride] = useState("");
@@ -91,9 +96,9 @@ export function useCreateUniqueItemModal({
       sourceType === "GLOBAL_ITEM"
         ? globalItems
         : sourceType === "CUSTOM_ITEM"
-          ? customItems
+          ? customTemplateBrowseItems
           : [],
-    [sourceType, globalItems, customItems]
+    [sourceType, globalItems, customTemplateBrowseItems]
   );
 
   const templateOptions = useMemo(
@@ -122,22 +127,22 @@ export function useCreateUniqueItemModal({
           "@/lib/api/customItems"
         );
         if (customTemplateGameIds.length === 0) {
-          setCustomItems([]);
+          setCustomTemplateBrowseItems([]);
         } else {
           const lists = await Promise.all(
             customTemplateGameIds.map((gid) =>
               fetchGameCustomItemsForBrowse(gid)
             )
           );
-          const byId = new Map<string, TemplateItem>();
+          const byId = new Map<string, ItemBrowseDetailFields>();
           for (const data of lists) {
             for (const c of data) {
               if (!byId.has(c.id)) {
-                byId.set(c.id, { id: c.id, name: c.name, type: c.type });
+                byId.set(c.id, c);
               }
             }
           }
-          setCustomItems(Array.from(byId.values()));
+          setCustomTemplateBrowseItems(Array.from(byId.values()));
         }
       }
     } catch (e) {
@@ -146,6 +151,20 @@ export function useCreateUniqueItemModal({
       setLoadingTemplates(false);
     }
   }, [customTemplateGameIds, sourceType]);
+
+  const getTemplateBrowseDetail = useCallback(
+    (id: string): ItemBrowseDetailFields | null => {
+      if (sourceType === "GLOBAL_ITEM") {
+        const g = globalItems.find((x) => x.id === id);
+        return g ? itemWithIdToBrowseDetail(g) : null;
+      }
+      if (sourceType === "CUSTOM_ITEM") {
+        return customTemplateBrowseItems.find((x) => x.id === id) ?? null;
+      }
+      return null;
+    },
+    [sourceType, globalItems, customTemplateBrowseItems]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -437,6 +456,7 @@ export function useCreateUniqueItemModal({
     handleSubmit,
     handleClose,
     submitDisabled,
+    getTemplateBrowseDetail,
   };
 }
 

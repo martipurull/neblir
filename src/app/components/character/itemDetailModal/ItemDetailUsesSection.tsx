@@ -6,12 +6,15 @@ type ItemDetailUsesSectionProps = {
   displayUses: number;
   maxUses: number;
   onDelta: (delta: number) => void;
+  /** When false, the + control is disabled (e.g. broken / beyond repair). */
+  allowIncrease?: boolean;
 };
 
 export function ItemDetailUsesSection({
   displayUses,
   maxUses,
   onDelta,
+  allowIncrease = true,
 }: ItemDetailUsesSectionProps) {
   return (
     <div className="mt-3 flex flex-col gap-2 rounded border border-white/20 p-3">
@@ -34,7 +37,7 @@ export function ItemDetailUsesSection({
         <button
           type="button"
           onClick={() => onDelta(1)}
-          disabled={displayUses >= maxUses}
+          disabled={displayUses >= maxUses || !allowIncrease}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Increase uses"
         >
@@ -42,7 +45,9 @@ export function ItemDetailUsesSection({
         </button>
       </div>
       <p className="text-xs text-white/60">
-        Changes save automatically after a short delay.
+        {allowIncrease
+          ? "Changes save automatically after a short delay."
+          : "Damaged items cannot hold charges. Set status to functional first."}
       </p>
     </div>
   );
