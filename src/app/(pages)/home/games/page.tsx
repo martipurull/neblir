@@ -8,49 +8,18 @@ import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageSubtitle from "@/app/components/shared/PageSubtitle";
 import PageTitle from "@/app/components/shared/PageTitle";
+import { useGameInviteActions } from "@/hooks/use-game-invite-actions";
 import { useGameInvites } from "@/hooks/use-game-invites";
 import { useGames } from "@/hooks/use-games";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 
 const GamesPage: React.FC = () => {
   const { games, loading, error, refetch, mutate: mutateGames } = useGames();
   const { invites, mutate: mutateInvites } = useGameInvites();
-  const router = useRouter();
-  const [acceptingId, setAcceptingId] = useState<string | null>(null);
-  const [decliningId, setDecliningId] = useState<string | null>(null);
-
-  const handleAccept = async (gameId: string) => {
-    setAcceptingId(gameId);
-    try {
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/invites/accept`,
-        { method: "POST" }
-      );
-      if (!res.ok) throw new Error("Failed to accept");
-      void mutateInvites();
-      void mutateGames();
-      router.push(`/home/games/${gameId}`);
-    } finally {
-      setAcceptingId(null);
-    }
-  };
-
-  const handleDecline = async (gameId: string) => {
-    setDecliningId(gameId);
-    try {
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/invites/decline`,
-        { method: "POST" }
-      );
-      if (!res.ok) throw new Error("Failed to decline");
-      void mutateInvites();
-    } finally {
-      setDecliningId(null);
-    }
-  };
+  const { acceptingId, decliningId, handleAccept, handleDecline } =
+    useGameInviteActions({ mutateInvites, mutateGames });
 
   const imageEntries = useMemo(
     () =>
@@ -100,7 +69,7 @@ const GamesPage: React.FC = () => {
         )}
 
         {!loading && !error && games.length > 0 && (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {games.map((game) => (
               <GameListCard
                 key={game.id}

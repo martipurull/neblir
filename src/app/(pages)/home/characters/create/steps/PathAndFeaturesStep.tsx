@@ -1,6 +1,7 @@
 "use client";
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -216,36 +217,42 @@ export function PathAndFeaturesStep({
         slots (2 slots per level above 1).
       </p>
 
-      <div className="mb-6">
-        <Controller
-          name="path.pathId"
-          control={control}
-          render={({ field }) => (
-            <SelectDropdown
-              id="path.pathId"
-              label="Path"
-              placeholder={loadingPaths ? "Loading paths…" : "Select a path"}
-              value={field.value ?? ""}
-              options={pathOptions}
-              disabled={loadingPaths}
-              onChange={(value) => {
-                field.onChange(value);
-                setValue("path.rank", level);
-              }}
-            />
+      <div className="mb-6 space-y-3">
+        <div className="mx-auto max-w-2xl">
+          <Controller
+            name="path.pathId"
+            control={control}
+            render={({ field }) => (
+              <SelectDropdown
+                id="path.pathId"
+                label="Path"
+                placeholder={loadingPaths ? "Loading paths…" : "Select a path"}
+                value={field.value ?? ""}
+                options={pathOptions}
+                disabled={loadingPaths}
+                onChange={(value) => {
+                  field.onChange(value);
+                  setValue("path.rank", level);
+                }}
+              />
+            )}
+          />
+          {loadingPaths && (
+            <p className="mt-1 text-xs text-black/60">Loading paths…</p>
           )}
-        />
-        {loadingPaths && (
-          <p className="mt-1 text-xs text-black/60">Loading paths…</p>
-        )}
-        {selectedPath && (
-          <div className="mt-2 rounded border border-black/20 bg-black/5 p-2 text-sm">
+        </div>
+        {selectedPath ? (
+          <div className="mx-auto max-w-2xl rounded border border-black/20 bg-black/5 p-2 text-sm">
             <p className="font-medium">
               Base feature: {selectedPath.baseFeature}
             </p>
             {selectedPath.description && (
               <p className="mt-1 text-black/70">{selectedPath.description}</p>
             )}
+          </div>
+        ) : (
+          <div className="mx-auto max-w-2xl rounded border border-black/10 bg-black/[0.02] p-2 text-sm text-black/50">
+            Select a path to see its base feature.
           </div>
         )}
       </div>
@@ -265,7 +272,7 @@ export function PathAndFeaturesStep({
       {pathId && level > 1 && (
         <div className="space-y-2">
           <div className="sticky top-2 z-10 flex justify-end">
-            <div className="rounded-md border border-black/20 bg-white/60 px-3 py-2 text-sm font-semibold text-black shadow-sm backdrop-blur">
+            <div className="rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-sm font-semibold text-black shadow-sm backdrop-blur">
               Slots used: {selectedGradeSum} / {featureSlots}
             </div>
           </div>
@@ -277,92 +284,99 @@ export function PathAndFeaturesStep({
               No features available for this path and rank.
             </p>
           )}
-          {!loadingFeatures &&
-            features.map((f) => {
-              const sel = selectedFeatures.find((e) => e.featureId === f.id);
-              const desc = f.description ?? "";
-              const isExpandedDesc = !!expandedFeatureDescriptions[f.id];
-              return (
-                <div
-                  key={f.id}
-                  className={`flex flex-wrap items-center gap-2 rounded border p-2 ${
-                    sel ? "border-neblirSafe-400" : "border-black/20"
-                  }`}
-                >
-                  <span className="font-medium">{f.name}</span>
-                  <span className="text-xs text-black/60">
-                    (grade 1–{f.maxGrade})
-                  </span>
+          {!loadingFeatures && features.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {features.map((f) => {
+                const sel = selectedFeatures.find((e) => e.featureId === f.id);
+                const desc = f.description ?? "";
+                const isExpandedDesc = !!expandedFeatureDescriptions[f.id];
+                return (
+                  <div
+                    key={f.id}
+                    className={`flex flex-wrap items-center gap-2 rounded border p-2 ${
+                      sel ? "border-neblirSafe-400" : "border-black/20"
+                    }`}
+                  >
+                    <span className="font-medium">{f.name}</span>
+                    <span className="text-xs text-black/60">
+                      (grade 1–{f.maxGrade})
+                    </span>
 
-                  {desc.trim().length > 0 && (
-                    <div className="w-full">
-                      <div
-                        className="mt-1 text-xs text-black/70"
-                        style={{
-                          maxHeight: isExpandedDesc ? 96 : 48,
-                          overflowY: isExpandedDesc ? "auto" : "hidden",
-                        }}
-                      >
-                        {desc}
+                    {desc.trim().length > 0 && (
+                      <div className="w-full">
+                        <div
+                          className="mt-1 text-xs text-black/70"
+                          style={{
+                            maxHeight: isExpandedDesc ? 96 : 48,
+                            overflowY: isExpandedDesc ? "auto" : "hidden",
+                          }}
+                        >
+                          {desc}
+                        </div>
+
+                        <Button
+                          type="button"
+                          variant="lightLinkSubtle"
+                          fullWidth={false}
+                          onClick={() => toggleExpandedDescription(f.id)}
+                          disabled={!(desc.trim().length > 120)}
+                        >
+                          {isExpandedDesc ? "Show less" : "Show more"}
+                        </Button>
                       </div>
-
-                      <button
+                    )}
+                    {!sel ? (
+                      <Button
                         type="button"
-                        onClick={() => toggleExpandedDescription(f.id)}
-                        className="mt-1 text-[10px] font-medium text-black/50 underline"
-                        disabled={!(desc.trim().length > 120)}
-                      >
-                        {isExpandedDesc ? "Show less" : "Show more"}
-                      </button>
-                    </div>
-                  )}
-                  {!sel ? (
-                    <button
-                      type="button"
-                      onClick={() => addFeature(f.id)}
-                      disabled={slotsLeft < 1}
-                      className="rounded border border-neblirSafe-400 px-2 py-1 text-sm text-neblirSafe-600 hover:bg-neblirSafe-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      + Add (grade 1)
-                    </button>
-                  ) : (
-                    <>
-                      <label className="text-sm">
-                        Grade:
-                        <input
-                          type="number"
-                          min={1}
-                          max={f.maxGrade}
-                          value={sel.grade}
-                          onChange={(e) =>
-                            setFeatureGrade(
-                              f.id,
-                              Math.max(1, parseInt(e.target.value, 10) || 1)
-                            )
-                          }
-                          className="ml-1 w-14 rounded border border-black/30 px-1 py-0.5 text-sm"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setFeatureGrade(f.id, sel.grade - 1)}
-                        className="rounded border border-neblirDanger-400 px-2 py-1 text-xs text-neblirDanger-600 hover:bg-neblirDanger-50"
-                      >
-                        - Grade
-                      </button>
-                      <button
-                        type="button"
+                        variant="lightChipSafe"
+                        fullWidth={false}
                         onClick={() => addFeature(f.id)}
-                        disabled={sel.grade >= f.maxGrade || slotsLeft < 1}
-                        className="rounded border border-neblirSafe-400 px-2 py-1 text-xs text-neblirSafe-600 hover:bg-neblirSafe-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={slotsLeft < 1}
                       >
-                        + Grade
-                      </button>
-                    </>
-                  )}
-                </div>
-              );
-            })}
+                        + Add (grade 1)
+                      </Button>
+                    ) : (
+                      <>
+                        <label className="text-sm">
+                          Grade:
+                          <input
+                            type="number"
+                            min={1}
+                            max={f.maxGrade}
+                            value={sel.grade}
+                            onChange={(e) =>
+                              setFeatureGrade(
+                                f.id,
+                                Math.max(1, parseInt(e.target.value, 10) || 1)
+                              )
+                            }
+                            className="ml-1 w-14 rounded border border-black/30 px-1 py-0.5 text-sm"
+                          />
+                        </label>
+                        <Button
+                          type="button"
+                          variant="lightChipDangerCompact"
+                          fullWidth={false}
+                          onClick={() => setFeatureGrade(f.id, sel.grade - 1)}
+                        >
+                          - Grade
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="lightChipSafeCompact"
+                          fullWidth={false}
+                          onClick={() => addFeature(f.id)}
+                          disabled={sel.grade >= f.maxGrade || slotsLeft < 1}
+                        >
+                          + Grade
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

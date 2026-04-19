@@ -5,6 +5,7 @@ import {
   type CharacterSectionSlide,
 } from "@/app/components/character/CharacterSectionCarousel";
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
+import { DedicatedDiceRollModal } from "@/app/components/character/DedicatedDiceRollModal";
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
 import { InitiativeOrderModal } from "@/app/components/character/InitiativeOrderModal";
 import { InitiativeRollModal } from "@/app/components/character/InitiativeRollModal";
@@ -51,6 +52,7 @@ export default function CharacterDetailPage() {
   const [initiativeOrderOpen, setInitiativeOrderOpen] = useState(false);
   const [initiativeOrderInitialGameId, setInitiativeOrderInitialGameId] =
     useState<string | null>(null);
+  const [dedicatedDiceRollerOpen, setDedicatedDiceRollerOpen] = useState(false);
 
   const {
     gameDetails: initiativeGameDetails,
@@ -172,7 +174,6 @@ export default function CharacterDetailPage() {
   }
 
   const primaryGameId = character.games?.[0]?.gameId ?? null;
-  console.log(diceSelection);
   return (
     <div className="flex h-full min-h-0 flex-col">
       <CharacterSummaryHeader
@@ -184,6 +185,7 @@ export default function CharacterDetailPage() {
         onHealthUpdate={updateHealth}
         onArmourUpdate={updateArmour}
         mutate={mutate}
+        onOpenDiceRoller={() => setDedicatedDiceRollerOpen(true)}
         className="shrink-0"
       />
       <CharacterSectionCarousel
@@ -198,6 +200,15 @@ export default function CharacterDetailPage() {
           character={character}
           gameId={primaryGameId}
           selection={[diceSelection[0], diceSelection[1]]}
+        />
+      )}
+
+      {character && (
+        <DedicatedDiceRollModal
+          isOpen={dedicatedDiceRollerOpen}
+          onClose={() => setDedicatedDiceRollerOpen(false)}
+          character={character}
+          gameId={primaryGameId}
         />
       )}
 

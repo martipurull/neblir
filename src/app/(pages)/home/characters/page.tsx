@@ -52,7 +52,7 @@ const CharactersPage: React.FC = () => {
         )}
 
         {!loading && !error && characters.length > 0 && (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {characters.map((character) => {
               const imageUrl = character.avatarKey
                 ? (avatarUrls[character.id] ?? undefined)

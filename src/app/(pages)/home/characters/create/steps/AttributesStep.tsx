@@ -40,6 +40,18 @@ const ATTRIBUTE_ENTRIES: {
   { group: "constitution", key: "stamina", label: "Stamina" },
 ];
 
+const GROUP_LABELS: Record<
+  keyof CharacterCreationRequest["innateAttributes"],
+  string
+> = {
+  intelligence: "Intelligence",
+  wisdom: "Wisdom",
+  personality: "Personality",
+  strength: "Strength",
+  dexterity: "Dexterity",
+  constitution: "Constitution",
+};
+
 const TOTAL_POINTS = 36;
 const BASE_POINTS = 18; // 18 attributes at 1
 const RACE_BONUS_POINTS = 2;
@@ -131,7 +143,7 @@ export function AttributesStep() {
           className={`rounded-md border px-3 py-2 text-sm font-semibold shadow-sm backdrop-blur bg-transparent ${
             isOverAllocated
               ? "border-neblirDanger-600 bg-neblirDanger-50/70 text-neblirDanger-700"
-              : "border-black/20 bg-white/60 text-black"
+              : "border-black/20 bg-paleBlue/60 text-black"
           }`}
         >
           Points allocated: {spent} / {POINTS_TO_ALLOCATE}
@@ -147,48 +159,75 @@ export function AttributesStep() {
           You have allocated too many points. Reduce one or more attributes.
         </p>
       )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {ATTRIBUTE_ENTRIES.map(({ group, key, label }) => {
-          const min = isRaceBonus(race, group, key) ? 2 : 1;
-          const name = `innateAttributes.${group}.${key}` as const;
+      <div className="space-y-3">
+        {(
+          Object.keys(GROUP_LABELS) as Array<
+            keyof CharacterCreationRequest["innateAttributes"]
+          >
+        ).map((group) => {
+          const groupEntries = ATTRIBUTE_ENTRIES.filter(
+            (e) => e.group === group
+          );
           return (
-            <Controller
-              key={`${group}.${key}`}
-              // FieldPath typing doesn’t like template strings here; keep runtime correct.
-              name={name as never}
-              control={control}
-              render={({ field }) => {
-                const current =
-                  typeof field.value === "number" ? field.value : min;
-                // Don’t let the user increase past their remaining pool.
-                // If remaining is negative, cap at current so only decreasing is possible.
-                const effectiveRemaining = Math.max(0, remaining);
-                const maxByPool = current + effectiveRemaining;
-                // Guard: for race-bonus attributes, never let the pool cap
-                // push allowedMax below min (can otherwise visually drop the
-                // race-bonus attribute to 1).
-                const allowedMax = Math.max(min, Math.min(5, maxByPool));
-                const isInvalid = current > 5;
-                return (
-                  <RangeSlider
-                    id={`attr-${group}-${key}`}
-                    label={label}
-                    labelSuffix={
-                      isRaceBonus(race, group, key) ? "(race +1)" : undefined
-                    }
-                    value={current}
-                    allowedMin={min}
-                    allowedMax={allowedMax}
-                    visualMin={1}
-                    visualMax={5}
-                    step={1}
-                    error={isInvalid || isOverAllocated}
-                    onChange={(v) => field.onChange(v)}
-                    className="mb-0"
-                  />
-                );
-              }}
-            />
+            <section
+              key={group}
+              className="rounded-md border border-black/15 bg-transparent px-3 py-2"
+            >
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-black/70">
+                {GROUP_LABELS[group]}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-black/10">
+                {groupEntries.map(({ key, label }) => {
+                  const min = isRaceBonus(race, group, key) ? 2 : 1;
+                  const name = `innateAttributes.${group}.${key}` as const;
+                  return (
+                    <div key={`${group}.${key}`} className="lg:px-3">
+                      <Controller
+                        // FieldPath typing doesn’t like template strings here; keep runtime correct.
+                        name={name as never}
+                        control={control}
+                        render={({ field }) => {
+                          const current =
+                            typeof field.value === "number" ? field.value : min;
+                          // Don’t let the user increase past their remaining pool.
+                          // If remaining is negative, cap at current so only decreasing is possible.
+                          const effectiveRemaining = Math.max(0, remaining);
+                          const maxByPool = current + effectiveRemaining;
+                          // Guard: for race-bonus attributes, never let the pool cap
+                          // push allowedMax below min (can otherwise visually drop the
+                          // race-bonus attribute to 1).
+                          const allowedMax = Math.max(
+                            min,
+                            Math.min(5, maxByPool)
+                          );
+                          const isInvalid = current > 5;
+                          return (
+                            <RangeSlider
+                              id={`attr-${group}-${key}`}
+                              label={label}
+                              labelSuffix={
+                                isRaceBonus(race, group, key)
+                                  ? "(race +1)"
+                                  : undefined
+                              }
+                              value={current}
+                              allowedMin={min}
+                              allowedMax={allowedMax}
+                              visualMin={1}
+                              visualMax={5}
+                              step={1}
+                              error={isInvalid || isOverAllocated}
+                              onChange={(v) => field.onChange(v)}
+                              className="mb-0"
+                            />
+                          );
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
       </div>

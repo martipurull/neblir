@@ -1,4 +1,6 @@
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
+import type { ItemStatus } from "@/app/lib/types/item";
+import { isItemInventoryOperational } from "@/app/lib/types/item";
 
 const BACKPACK_BONUSES: Record<string, number> = {
   "backpack (small)": 0.1,
@@ -57,6 +59,13 @@ export function getCarriedWeight(
   );
 }
 
+/** UI: kg with at most one decimal (avoids long float noise from per-item weights). */
+export function formatWeightKgForDisplay(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  const s = rounded.toFixed(1);
+  return s.endsWith(".0") ? s.slice(0, -2) : s;
+}
+
 /** Carry weight ratio (carried / max). Returns 0 if max is 0 or missing. */
 export function getCarryWeightRatio(
   carriedWeight: number,
@@ -72,6 +81,58 @@ export function isOverCarryLimit(
   maxCarryWeight: number | null | undefined
 ): boolean {
   return getCarryWeightRatio(carriedWeight, maxCarryWeight) >= 1.5;
+}
+
+/** Border + text classes for carry weight UI (Inventory pill + header StatCell). */
+function getCarryWeightSemanticBorderAndText(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): { border: string; text: string } {
+  if (maxCarryWeight == null || maxCarryWeight <= 0) {
+    return { border: "border-black", text: "text-black" };
+  }
+  const overCarryLimit = isOverCarryLimit(carriedWeight, maxCarryWeight);
+  const ratio = getCarryWeightRatio(carriedWeight, maxCarryWeight);
+  if (overCarryLimit || ratio > 1) {
+    return {
+      border: "border-neblirDanger-200",
+      text: "text-neblirDanger-400",
+    };
+  }
+  if (ratio >= 0.5) {
+    return {
+      border: "border-neblirWarning-200",
+      text: "text-neblirWarning-400",
+    };
+  }
+  return {
+    border: "border-neblirSafe-200",
+    text: "text-neblirSafe-400",
+  };
+}
+
+/** Full className for the Inventory section carry-weight pill (matches prior inline logic). */
+export function getCarryWeightInventoryPillClassName(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): string {
+  const { border, text } = getCarryWeightSemanticBorderAndText(
+    carriedWeight,
+    maxCarryWeight
+  );
+  return `rounded border ${border} bg-transparent px-2 py-0.5 text-sm tabular-nums ${text}`;
+}
+
+/** StatCell border + value colors for header carry weight. */
+export function getCarryWeightStatCellStyles(
+  carriedWeight: number,
+  maxCarryWeight: number | null | undefined
+): { borderClassName: string; valueClassName: string } {
+  const { border, text } = getCarryWeightSemanticBorderAndText(
+    carriedWeight,
+    maxCarryWeight
+  );
+  return { borderClassName: border, valueClassName: text };
 }
 
 /**
@@ -127,6 +188,17 @@ export function getArmourAttributePenalty(armourMod: number): number {
   if (armourMod >= 4) return 2;
   if (armourMod >= 3) return 1;
   return 0;
+}
+
+/** Innate attribute dice use a 1–5 scale; armour never reduces them below 1. */
+export const MIN_INNATE_ATTRIBUTE_DICE = 1;
+
+export function applyArmourPenaltyToInnateAttributeDice(
+  cappedWithEquip: number,
+  armourPenalty: number
+): number {
+  if (armourPenalty <= 0) return cappedWithEquip;
+  return Math.max(MIN_INNATE_ATTRIBUTE_DICE, cappedWithEquip - armourPenalty);
 }
 
 /**
@@ -205,4 +277,43 @@ export function getSpeedReductionTooltipText(
   }
 
   return parts.join(" ");
+}
+
+type SpeedAlterInventoryEntry = {
+  isEquipped?: boolean;
+  status?: ItemStatus;
+  customName?: string | null;
+  item?: { name?: string | null; isSpeedAltered?: boolean | null } | null;
+};
+
+/**
+ * Equipped stack rows whose resolved item has `isSpeedAltered` (inventory API).
+ */
+export function getEquippedSpeedAlteringItems(
+  inventory: SpeedAlterInventoryEntry[] | undefined
+): { displayNames: string[]; tooltip: string } {
+  const displayNames: string[] = [];
+  for (const row of inventory ?? []) {
+    if (!row.isEquipped) continue;
+    if (row.status != null && !isItemInventoryOperational(row.status)) {
+      continue;
+    }
+    if (row.item?.isSpeedAltered !== true) continue;
+    const label =
+      row.customName?.trim() ?? row.item?.name?.trim() ?? "Unknown item";
+    displayNames.push(label);
+  }
+  const uniqueNames = [...new Set(displayNames)];
+  const tooltip = formatSpeedAlteredTooltip(uniqueNames);
+  return { displayNames: uniqueNames, tooltip };
+}
+
+function formatSpeedAlteredTooltip(names: string[]): string {
+  if (names.length === 0) return "";
+  if (names.length === 1) {
+    return `${names[0]} alters speed, check usage for more information.`;
+  }
+  const last = names[names.length - 1];
+  const rest = names.slice(0, -1).join(", ");
+  return `${rest} and ${last} alter speed, check each item's usage for more information.`;
 }

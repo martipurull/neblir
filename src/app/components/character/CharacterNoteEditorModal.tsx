@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { CharacterNoteEditor } from "@/app/components/character/CharacterNoteEditor";
 import {
   isNoteDocEmpty,
@@ -214,14 +215,15 @@ export function CharacterNoteEditorModal({
           >
             {mode.type === "create" ? "New note" : "Edit note"}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClosePaleBordered"
+            fullWidth={false}
             onClick={handleClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-paleBlue/25 text-lg font-medium text-paleBlue transition-colors hover:bg-white/10"
             aria-label="Close"
           >
             ×
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-modalBackground-200 p-4">

@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { LevelUpFormValues } from "./types";
@@ -31,14 +32,7 @@ export default function LevelUpAttributesStep({
 }: Props) {
   return (
     <div className="space-y-4">
-      <button
-        type="button"
-        onClick={onOpenQuickCheck}
-        className="rounded border border-black/30 px-3 py-1.5 text-sm text-black transition-colors hover:border-black/50"
-      >
-        Check current attributes
-      </button>
-      <p className="text-sm text-black/70">
+      <p className="text-sm text-black/70 lg:text-center">
         Has the character sustained a serious injury or serious trauma?
       </p>
       <RadioGroup
@@ -65,41 +59,51 @@ export default function LevelUpAttributesStep({
       )}
 
       {seriousFlag === "yes" && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectDropdown
-            id="attribute-from"
-            label="From"
-            placeholder="No attribute moved"
-            value={form.watch("fromAttribute")}
-            options={attributeSwapFromOptions}
-            pinValueFirst=""
-            onChange={(v) =>
-              form.setValue(
-                "fromAttribute",
-                v as LevelUpFormValues["fromAttribute"],
-                {
-                  shouldDirty: true,
-                }
-              )
-            }
-          />
-          <SelectDropdown
-            id="attribute-to"
-            label="To"
-            placeholder="No attribute moved"
-            value={form.watch("toAttribute")}
-            options={attributeSwapToOptions}
-            pinValueFirst=""
-            onChange={(v) =>
-              form.setValue(
-                "toAttribute",
-                v as LevelUpFormValues["toAttribute"],
-                {
-                  shouldDirty: true,
-                }
-              )
-            }
-          />
+        <div className="space-y-4">
+          <Button
+            type="button"
+            variant="lightOutlineMuted"
+            fullWidth={false}
+            onClick={onOpenQuickCheck}
+          >
+            Check current attributes
+          </Button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectDropdown
+              id="attribute-from"
+              label="From"
+              placeholder="No attribute moved"
+              value={form.watch("fromAttribute")}
+              options={attributeSwapFromOptions}
+              pinValueFirst=""
+              onChange={(v) =>
+                form.setValue(
+                  "fromAttribute",
+                  v as LevelUpFormValues["fromAttribute"],
+                  {
+                    shouldDirty: true,
+                  }
+                )
+              }
+            />
+            <SelectDropdown
+              id="attribute-to"
+              label="To"
+              placeholder="No attribute moved"
+              value={form.watch("toAttribute")}
+              options={attributeSwapToOptions}
+              pinValueFirst=""
+              onChange={(v) =>
+                form.setValue(
+                  "toAttribute",
+                  v as LevelUpFormValues["toAttribute"],
+                  {
+                    shouldDirty: true,
+                  }
+                )
+              }
+            />
+          </div>
         </div>
       )}
       {attributeError && (

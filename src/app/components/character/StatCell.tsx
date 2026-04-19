@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 export interface StatCellProps {
@@ -7,6 +8,8 @@ export interface StatCellProps {
   value: React.ReactNode;
   subValue?: React.ReactNode;
   compact?: boolean;
+  /** Non-compact cells are square by default; use "short" to reduce height. */
+  layout?: "square" | "short";
   onClick?: () => void;
   disabled?: boolean;
   /** Override border color (e.g. border-neblirSafe-200) */
@@ -24,6 +27,7 @@ export function StatCell({
   value,
   subValue,
   compact = false,
+  layout = "square",
   onClick,
   disabled = false,
   borderClassName,
@@ -62,7 +66,8 @@ export function StatCell({
     "flex min-h-14 min-w-0 flex-col items-center overflow-hidden rounded-lg border bg-transparent p-1.5 " +
     (alignTop ? "justify-start" : "justify-center");
   const baseDefault =
-    "flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-2";
+    (layout === "short" ? "flex min-h-16" : "flex aspect-square") +
+    " min-w-0 flex-col items-center justify-center rounded-lg border bg-transparent p-2";
   const disabledClass = disabled ? "cursor-not-allowed opacity-50" : "";
   const clickableClass =
     onClick && !disabled
@@ -73,14 +78,16 @@ export function StatCell({
     const className = `${baseCompact} ${borderClass} ${disabledClass} ${clickableClass}`;
     if (onClick != null) {
       return (
-        <button
+        <Button
           type="button"
+          variant="surfaceInherit"
+          fullWidth={false}
           onClick={disabled ? undefined : onClick}
           disabled={disabled}
           className={className}
         >
           {cellContent}
-        </button>
+        </Button>
       );
     }
     return <div className={className}>{cellContent}</div>;
@@ -89,14 +96,16 @@ export function StatCell({
   const className = `${baseDefault} ${borderClass} ${disabledClass} ${clickableClass}`;
   if (onClick != null) {
     return (
-      <button
+      <Button
         type="button"
+        variant="surfaceInherit"
+        fullWidth={false}
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
         className={className}
       >
         {cellContent}
-      </button>
+      </Button>
     );
   }
   return <div className={className}>{cellContent}</div>;

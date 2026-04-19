@@ -66,7 +66,7 @@ function WalletSectionContent({
               key={entry.currencyName}
               className="flex items-center gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
             >
-              <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-white/20">
+              <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/30">
                 {currencyImageUrl ? (
                   <Image
                     src={currencyImageUrl}

@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import type { GameInviteItem } from "@/hooks/use-game-invites";
 import Link from "next/link";
@@ -35,7 +36,7 @@ const GameInvitesReceivedBlock: React.FC<GameInvitesReceivedBlockProps> = ({
         {invites.map((inv) => (
           <li
             key={inv.gameId}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-black/10 bg-white/50 px-3 py-2"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-black/10 bg-paleBlue/50 px-3 py-2"
           >
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-black">
@@ -46,22 +47,24 @@ const GameInvitesReceivedBlock: React.FC<GameInvitesReceivedBlockProps> = ({
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <button
+              <Button
                 type="button"
+                variant="primaryXs"
+                fullWidth={false}
                 onClick={() => void onAccept(inv.gameId)}
                 disabled={acceptingId !== null}
-                className="rounded-md bg-customPrimary px-3 py-1.5 text-xs font-medium text-customSecondary transition-colors hover:bg-customPrimaryHover disabled:opacity-50"
               >
                 {acceptingId === inv.gameId ? "Accepting…" : "Accept"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondaryOutlineXs"
+                fullWidth={false}
                 onClick={() => void onDecline(inv.gameId)}
                 disabled={decliningId !== null}
-                className="rounded-md border border-black/30 bg-transparent px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
               >
                 {decliningId === inv.gameId ? "Declining…" : "Decline"}
-              </button>
+              </Button>
             </div>
           </li>
         ))}

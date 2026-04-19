@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import TextInput from "@/app/components/shared/TextInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import NumberInput from "@/app/components/shared/NumberInput";
@@ -54,22 +55,47 @@ export function GeneralInfoStep() {
   }, [imageUpload.imageKey, setValue]);
 
   return (
-    <div className="space-y-4">
-      <ImageUploadDropzone
-        id="character-avatar"
-        label="Character image"
-        imageKey={formAvatarKey || imageUpload.imageKey}
-        onFileChange={(file) => {
-          void imageUpload.handleFile(file);
-          // If the user explicitly removes the image, clear the form value too.
-          if (!file) setValue("generalInformation.avatarKey", "");
-        }}
-        onDrop={imageUpload.handleDrop}
-        onDragOver={imageUpload.handleDragOver}
-        uploading={imageUpload.uploading}
-        error={imageUpload.uploadError}
-        variant="light"
-      />
+    <div className="grid grid-cols-1 gap-x-4 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
+        <Controller
+          name="generalInformation.level"
+          control={control}
+          render={({ field }) => {
+            const value = typeof field.value === "number" ? field.value : 1;
+            return (
+              <RangeSlider
+                id="generalInformation.level"
+                label="Character level"
+                value={value}
+                onChange={(v) => field.onChange(v)}
+                allowedMin={1}
+                allowedMax={10}
+                visualMin={1}
+                visualMax={10}
+                step={1}
+                showTicks
+              />
+            );
+          }}
+        />
+      </div>
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
+        <ImageUploadDropzone
+          id="character-avatar"
+          label="Character image"
+          imageKey={formAvatarKey || imageUpload.imageKey}
+          onFileChange={(file) => {
+            void imageUpload.handleFile(file);
+            // If the user explicitly removes the image, clear the form value too.
+            if (!file) setValue("generalInformation.avatarKey", "");
+          }}
+          onDrop={imageUpload.handleDrop}
+          onDragOver={imageUpload.handleDragOver}
+          uploading={imageUpload.uploading}
+          error={imageUpload.uploadError}
+          variant="light"
+        />
+      </div>
       <TextInput
         name="generalInformation.name"
         label="Name"
@@ -123,7 +149,17 @@ export function GeneralInfoStep() {
         label="Birthplace"
         placeholder="e.g. New Haven"
       />
-      <div className="mb-6">
+      <NumberInput
+        name="generalInformation.height"
+        label="Height (cm)"
+        min={1}
+      />
+      <NumberInput
+        name="generalInformation.weight"
+        label="Weight (kg)"
+        min={1}
+      />
+      <div className="mb-6 sm:col-span-2 lg:col-span-3">
         <p className="mb-2 block font-bold text-black">Money (wallet)</p>
         <p className="mb-2 text-xs text-black/70">
           Disposable income you think your character would have access to. Add
@@ -161,16 +197,17 @@ export function GeneralInfoStep() {
                   return (
                     <div key={cn} className="flex flex-wrap items-center gap-2">
                       {!isAdded ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="lightCurrencyAddRow"
+                          fullWidth={false}
                           onClick={() => addCurrency(cn)}
-                          className="w-44 rounded border border-black/40 px-2 py-1 text-sm hover:bg-black/10"
                         >
                           <span className="inline-flex w-full items-center justify-between gap-2">
                             <span className="truncate">
                               + {CURRENCY_LABELS[cn]}
                             </span>
-                            <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-white/50">
+                            <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
                                 <Image
                                   src={currencyImageUrl}
@@ -186,14 +223,14 @@ export function GeneralInfoStep() {
                               )}
                             </span>
                           </span>
-                        </button>
+                        </Button>
                       ) : (
                         <>
                           <span className="inline-flex w-44 items-center justify-between gap-2 rounded border border-black/30 bg-black/0 px-2 py-1">
                             <span className="truncate text-sm font-medium">
                               {CURRENCY_LABELS[cn]}
                             </span>
-                            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-white/50">
+                            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
                                 <Image
                                   src={currencyImageUrl}
@@ -221,13 +258,14 @@ export function GeneralInfoStep() {
                             }
                             className="ml-auto w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-right text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
                           />
-                          <button
+                          <Button
                             type="button"
+                            variant="lightDangerLink"
+                            fullWidth={false}
                             onClick={() => remove(cn)}
-                            className="text-xs text-neblirDanger-600 underline"
                           >
                             Remove
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>
@@ -238,37 +276,6 @@ export function GeneralInfoStep() {
           }}
         />
       </div>
-      <Controller
-        name="generalInformation.level"
-        control={control}
-        render={({ field }) => {
-          const value = typeof field.value === "number" ? field.value : 1;
-          return (
-            <RangeSlider
-              id="generalInformation.level"
-              label="Character level"
-              value={value}
-              onChange={(v) => field.onChange(v)}
-              allowedMin={1}
-              allowedMax={10}
-              visualMin={1}
-              visualMax={10}
-              step={1}
-              showTicks
-            />
-          );
-        }}
-      />
-      <NumberInput
-        name="generalInformation.height"
-        label="Height (cm)"
-        min={1}
-      />
-      <NumberInput
-        name="generalInformation.weight"
-        label="Weight (kg)"
-        min={1}
-      />
     </div>
   );
 }

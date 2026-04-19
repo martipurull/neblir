@@ -1,3 +1,4 @@
+import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import DangerButtonFilled from "@/app/components/shared/DangerButton";
 import { DangerButton } from "@/app/components/shared/SemanticActionButton";
@@ -78,13 +79,14 @@ export function GmInitiativeSection({
       )}
 
       <div className="mt-6">
-        <button
+        <Button
           type="button"
+          variant="primarySm"
+          fullWidth={false}
           onClick={onOpenRollModal}
-          className="rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary hover:bg-customPrimaryHover"
         >
           Roll initiative
-        </button>
+        </Button>
       </div>
     </InfoCard>
   );

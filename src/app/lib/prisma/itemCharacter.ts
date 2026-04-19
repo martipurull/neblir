@@ -1,5 +1,14 @@
 import type { ItemCharacter, ItemSourceType, Prisma } from "@prisma/client";
+import type { UniqueItemCreate } from "@/app/lib/types/item";
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
+import {
+  PRISMA_TO_ATTRIBUTE_PATH_API,
+  PRISMA_TO_GENERAL_SKILL_API,
+} from "@/app/lib/itemModifierEnums";
+import {
+  mapPrismaCustomItemToApi,
+  mapPrismaItemToApi,
+} from "@/app/lib/itemModifierPrisma";
 import { prisma } from "./client";
 import { buildStandaloneResolvedItem } from "./uniqueItem";
 
@@ -12,7 +21,8 @@ export async function createItemCharacter(
 export async function addOrIncrementItemCharacter(
   characterId: string,
   sourceType: ItemSourceType,
-  itemId: string
+  itemId: string,
+  options?: { initialCurrentUsesMax?: number | null }
 ) {
   const existing = await prisma.itemCharacter.findFirst({
     where: { characterId, sourceType, itemId },
@@ -23,7 +33,10 @@ export async function addOrIncrementItemCharacter(
       data: { quantity: { increment: 1 } },
     });
   }
-  const maxUses = await getMaxUsesForItem(sourceType, itemId);
+  const maxUses =
+    options?.initialCurrentUsesMax !== undefined
+      ? options.initialCurrentUsesMax
+      : await getMaxUsesForItem(sourceType, itemId);
   return prisma.itemCharacter.create({
     data: {
       characterId,
@@ -34,6 +47,20 @@ export async function addOrIncrementItemCharacter(
       itemLocation: ITEM_LOCATION_CARRIED,
     },
   });
+}
+
+/**
+ * Effective maxUses for a unique item the same way as {@link getMaxUsesForItem}
+ * for a persisted UNIQUE_ITEM, but using the create payload so inventory can be
+ * seeded without relying on an immediate re-read of the new UniqueItem row.
+ */
+export async function getEffectiveMaxUsesForUniqueCreate(
+  parsed: UniqueItemCreate
+): Promise<number | null> {
+  const override = parsed.maxUsesOverride ?? parsed.maxUses ?? null;
+  if (override != null) return override;
+  if (parsed.sourceType === "STANDALONE") return null;
+  return getMaxUsesForItem(parsed.sourceType, parsed.itemId);
 }
 
 /** Resolve effective maxUses for an item (template or unique override). */
@@ -86,10 +113,12 @@ export async function getMaxUsesForItem(
 async function resolveItem(sourceType: ItemSourceType, itemId: string) {
   switch (sourceType) {
     case "GLOBAL_ITEM": {
-      return prisma.item.findUnique({ where: { id: itemId } });
+      const row = await prisma.item.findUnique({ where: { id: itemId } });
+      return row ? mapPrismaItemToApi(row) : null;
     }
     case "CUSTOM_ITEM": {
-      return prisma.customItem.findUnique({ where: { id: itemId } });
+      const row = await prisma.customItem.findUnique({ where: { id: itemId } });
+      return row ? mapPrismaCustomItemToApi(row) : null;
     }
     case "UNIQUE_ITEM": {
       const uniqueItem = await prisma.uniqueItem.findUnique({
@@ -112,8 +141,13 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
 
       if (!template) return uniqueItem;
 
+      const templateApi =
+        "gameId" in template
+          ? mapPrismaCustomItemToApi(template)
+          : mapPrismaItemToApi(template);
+
       return {
-        ...template,
+        ...templateApi,
         ...(uniqueItem.nameOverride != null && {
           name: uniqueItem.nameOverride,
         }),
@@ -186,6 +220,23 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
           }),
         ...(uniqueItem.maxUsesOverride != null && {
           maxUses: uniqueItem.maxUsesOverride,
+        }),
+        ...(uniqueItem.modifiesAttributeOverride != null && {
+          modifiesAttribute:
+            PRISMA_TO_ATTRIBUTE_PATH_API[uniqueItem.modifiesAttributeOverride],
+        }),
+        ...(uniqueItem.attributeModOverride != null && {
+          attributeMod: uniqueItem.attributeModOverride,
+        }),
+        ...(uniqueItem.modifiesSkillOverride != null && {
+          modifiesSkill:
+            PRISMA_TO_GENERAL_SKILL_API[uniqueItem.modifiesSkillOverride],
+        }),
+        ...(uniqueItem.skillModOverride != null && {
+          skillMod: uniqueItem.skillModOverride,
+        }),
+        ...(uniqueItem.isSpeedAlteredOverride != null && {
+          isSpeedAltered: uniqueItem.isSpeedAlteredOverride,
         }),
         specialTag: uniqueItem.specialTag,
         _resolvedFrom: "UNIQUE_ITEM" as const,

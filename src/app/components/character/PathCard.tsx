@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import type { Path } from "@/app/lib/types/path";
 import React from "react";
 
@@ -14,13 +15,14 @@ export function PathCard({ path, onOpenDescription }: PathCardProps) {
     <div className="rounded-lg border-2 border-black bg-transparent p-3 shadow-sm">
       <div>
         {onOpenDescription ? (
-          <button
+          <Button
             type="button"
+            variant="lightPathTitleLink"
+            fullWidth={false}
             onClick={onOpenDescription}
-            className="text-left text-base font-semibold text-black underline decoration-black/35 underline-offset-2 transition-colors hover:decoration-black"
           >
             {String(path.name)}
-          </button>
+          </Button>
         ) : (
           <span className="text-base font-semibold text-black">
             {String(path.name)}

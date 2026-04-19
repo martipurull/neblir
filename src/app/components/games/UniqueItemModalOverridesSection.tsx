@@ -50,24 +50,24 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
         </div>
         <div>
           <ModalFieldLabel id="unique-usage-override" label="Usage override" />
-          <input
+          <textarea
             id="unique-usage-override"
-            type="text"
             value={f.usageOverride}
             onChange={(e) => f.setUsageOverride(e.target.value)}
-            className={modalInputClass}
+            className={modalInputClass + " min-h-[60px]"}
             disabled={f.submitting}
+            rows={2}
           />
         </div>
         <div>
           <ModalFieldLabel id="unique-notes-override" label="Notes override" />
-          <input
+          <textarea
             id="unique-notes-override"
-            type="text"
             value={f.notesOverride}
             onChange={(e) => f.setNotesOverride(e.target.value)}
-            className={modalInputClass}
+            className={modalInputClass + " min-h-[60px]"}
             disabled={f.submitting}
+            rows={2}
           />
         </div>
         <div>

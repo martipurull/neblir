@@ -6,6 +6,9 @@
  *
  * Usage: npx tsx prisma/scripts/uploadItemsFromCSV.ts <path-to-items.csv>
  *
+ * Env: MONGODB_URI (required). Optional MONGODB_DB_NAME defaults to "neblir-dev"
+ * (same pattern as other prisma/scripts CSV tools).
+ *
  * CSV columns (order flexible via header): name, type, accessType, confCost,
  * costInfo, description, notes, weight, usage, imageKey, equippable,
  * equipSlotTypes, equipSlotCost, maxUses,
@@ -19,13 +22,24 @@
  * - weight is required (number). Use 0 if not applicable.
  * - accessType defaults to PLAYER if missing.
  * - equippable: optional; "true", "1", "yes" (case-insensitive) = true, otherwise false.
- * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD.
+ * - equipSlotTypes: optional; semicolon- or comma-separated (e.g. "HAND;BODY"). Values: HAND, FOOT, BODY, HEAD, BRAIN.
  * - equipSlotCost: optional; 0, 1, or 2. Omit or leave empty for no value.
  * - maxUses: optional; positive integer. Omit or leave empty for unlimited/no value.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
  * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
  * - areaType: optional; RADIUS or CONE. primaryRadius/secondaryRadius/coneLength apply when area is used.
+ * - modifiesAttribute: optional; level-up path (e.g. strength.bruteForce) or Prisma enum key (e.g. STRENGTH_BRUTE_FORCE).
+ * - attributeMod, skillMod: optional integers (negatives allowed).
+ * - modifiesSkill: optional; general skill key (e.g. aim, GRID) or Prisma enum key (e.g. AIM).
+ *
+ * Shared CSV helpers (`csvRowToItem`, `normalizeItemNameKey`, etc.) are exported for
+ * `upsertGlobalItemsFromCsv.ts`.
+ *
+ * Extra guards (upload-only, stricter than bare Zod):
+ * - Names must be unique vs the DB and within this CSV after removing all whitespace (e.g. "Iron  Sword" clashes with "IronSword").
+ * - WEAPON rows must have non-empty usage.
+ * - WEAPON rows with RANGE or THROW in attackRoll must set effectiveRange and maxRange (integers; 0 allowed).
  */
 
 import "dotenv/config";
@@ -34,9 +48,80 @@ import path from "path";
 import type { ObjectId } from "mongodb";
 import { MongoClient } from "mongodb";
 import { parse } from "csv-parse/sync";
+import { ItemAttributePath, ItemGeneralSkill } from "@prisma/client";
+import {
+  ATTRIBUTE_PATH_API_TO_PRISMA,
+  GENERAL_SKILL_API_TO_PRISMA,
+  PRISMA_TO_ATTRIBUTE_PATH_API,
+  PRISMA_TO_GENERAL_SKILL_API,
+} from "../../src/app/lib/itemModifierEnums";
+import type {
+  LevelUpAttributePath,
+  LevelUpGeneralSkill,
+} from "../../src/app/lib/levelUpPaths";
 import { itemSchema, type Item } from "../../src/app/lib/types/item";
 
 const ITEM_COLLECTION = "Item";
+const DB_NAME = process.env.MONGODB_DB_NAME || "neblir-dev";
+
+/** Dedup key: trim edges, then remove all whitespace so "My Sword" matches "MySword". */
+export function normalizeItemNameKey(name: string): string {
+  return String(name).trim().replace(/\s/g, "");
+}
+
+type UploadCheckFailure = {
+  message: string;
+  details?: Record<string, unknown>;
+};
+
+function checkUploadConstraints(
+  item: Item,
+  rowIndex: number
+): UploadCheckFailure | null {
+  const nameKey = normalizeItemNameKey(item.name);
+  if (!nameKey) {
+    return {
+      message: "Name is empty or only whitespace",
+      details: { rowIndex },
+    };
+  }
+
+  if (item.type === "WEAPON") {
+    const usage = item.usage?.trim() ?? "";
+    if (!usage) {
+      return {
+        message:
+          "WEAPON rows must include a non-empty usage (describe action cost / how the weapon is used)",
+        details: { rowIndex, name: item.name },
+      };
+    }
+
+    const needsRange =
+      item.attackRoll.includes("RANGE") || item.attackRoll.includes("THROW");
+    if (needsRange) {
+      if (
+        item.effectiveRange === undefined ||
+        item.effectiveRange === null ||
+        item.maxRange === undefined ||
+        item.maxRange === null
+      ) {
+        return {
+          message:
+            "WEAPON rows with RANGE or THROW in attackRoll must set effectiveRange and maxRange (integers; use 0 if not applicable)",
+          details: {
+            rowIndex,
+            name: item.name,
+            attackRoll: item.attackRoll,
+            effectiveRange: item.effectiveRange,
+            maxRange: item.maxRange,
+          },
+        };
+      }
+    }
+  }
+
+  return null;
+}
 
 /** Get CSV value with flexible column matching (exact, then case-insensitive) */
 function getColumn(
@@ -91,7 +176,13 @@ function parseBoolean(value: string | undefined): boolean {
   return s === "true" || s === "1" || s === "yes";
 }
 
-const VALID_EQUIP_SLOT_TYPES = ["HAND", "FOOT", "BODY", "HEAD"] as const;
+const VALID_EQUIP_SLOT_TYPES = [
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+] as const;
 
 function parseEquipSlotTypes(
   value: string | undefined
@@ -140,7 +231,37 @@ function parseDamageTypes(
     ) as (typeof VALID_DAMAGE_TYPES)[number][];
 }
 
-function csvRowToItem(row: Record<string, string>): Item {
+function parseOptionalAttributePath(
+  value: string | undefined
+): LevelUpAttributePath | undefined {
+  const s = parseOptionalString(value);
+  if (s === undefined) return undefined;
+  if (Object.prototype.hasOwnProperty.call(ATTRIBUTE_PATH_API_TO_PRISMA, s)) {
+    return s as LevelUpAttributePath;
+  }
+  const asPrisma = Object.values(ItemAttributePath).find((v) => v === s);
+  if (asPrisma) {
+    return PRISMA_TO_ATTRIBUTE_PATH_API[asPrisma];
+  }
+  throw new Error(`Unknown modifiesAttribute value: ${s}`);
+}
+
+function parseOptionalGeneralSkill(
+  value: string | undefined
+): LevelUpGeneralSkill | undefined {
+  const s = parseOptionalString(value);
+  if (s === undefined) return undefined;
+  if (Object.prototype.hasOwnProperty.call(GENERAL_SKILL_API_TO_PRISMA, s)) {
+    return s as LevelUpGeneralSkill;
+  }
+  const asPrisma = Object.values(ItemGeneralSkill).find((v) => v === s);
+  if (asPrisma) {
+    return PRISMA_TO_GENERAL_SKILL_API[asPrisma];
+  }
+  throw new Error(`Unknown modifiesSkill value: ${s}`);
+}
+
+export function csvRowToItem(row: Record<string, string>): Item {
   const type = (parseOptionalString(row.type) ?? "").toUpperCase() as
     | "GENERAL_ITEM"
     | "WEAPON";
@@ -185,6 +306,16 @@ function csvRowToItem(row: Record<string, string>): Item {
       getColumn(row, "effectiveRange", "effective_range")
     ),
     maxRange: parseOptionalInt(getColumn(row, "maxRange", "max_range")),
+    modifiesAttribute: parseOptionalAttributePath(
+      getColumn(row, "modifiesAttribute", "modifies_attribute")
+    ),
+    attributeMod: parseOptionalFloat(
+      getColumn(row, "attributeMod", "attribute_mod")
+    ),
+    modifiesSkill: parseOptionalGeneralSkill(
+      getColumn(row, "modifiesSkill", "modifies_skill")
+    ),
+    skillMod: parseOptionalInt(getColumn(row, "skillMod", "skill_mod")),
   };
 
   if (type === "GENERAL_ITEM") {
@@ -249,6 +380,63 @@ function csvRowToItem(row: Record<string, string>): Item {
   };
 }
 
+/** Optional Mongo id column for upsert scripts (`id` or `_id`). */
+export function csvRowOptionalId(
+  row: Record<string, string>
+): string | undefined {
+  return parseOptionalString(getColumn(row, "id", "_id"));
+}
+
+/** Row is a full global Item when `type` is GENERAL_ITEM or WEAPON. */
+export function csvRowDeclaresFullItem(row: Record<string, string>): boolean {
+  const t = parseOptionalString(getColumn(row, "type"));
+  return (
+    t !== undefined &&
+    (t.toUpperCase() === "GENERAL_ITEM" || t.toUpperCase() === "WEAPON")
+  );
+}
+
+/**
+ * Modifier-only CSV row (no `type` required). Used by upsertGlobalItemsFromCsv.
+ * Column names match the main items CSV (flexible header matching via getColumn).
+ */
+export function csvRowToItemModifierPatch(row: Record<string, string>): {
+  id?: string;
+  name?: string;
+  modifiesAttribute?: LevelUpAttributePath;
+  attributeMod?: number;
+  modifiesSkill?: LevelUpGeneralSkill;
+  skillMod?: number;
+} {
+  const id = csvRowOptionalId(row);
+  const name = parseOptionalString(getColumn(row, "name"));
+  const attrRaw = getColumn(row, "modifiesAttribute", "modifies_attribute");
+  const skillRaw = getColumn(row, "modifiesSkill", "modifies_skill");
+  const out: {
+    id?: string;
+    name?: string;
+    modifiesAttribute?: LevelUpAttributePath;
+    attributeMod?: number;
+    modifiesSkill?: LevelUpGeneralSkill;
+    skillMod?: number;
+  } = {};
+  if (id !== undefined) out.id = id;
+  if (name !== undefined) out.name = name;
+  if (attrRaw !== undefined && String(attrRaw).trim() !== "") {
+    out.modifiesAttribute = parseOptionalAttributePath(attrRaw);
+  }
+  if (skillRaw !== undefined && String(skillRaw).trim() !== "") {
+    out.modifiesSkill = parseOptionalGeneralSkill(skillRaw);
+  }
+  const attributeMod = parseOptionalInt(
+    getColumn(row, "attributeMod", "attribute_mod")
+  );
+  const skillMod = parseOptionalInt(getColumn(row, "skillMod", "skill_mod"));
+  if (attributeMod !== undefined) out.attributeMod = attributeMod;
+  if (skillMod !== undefined) out.skillMod = skillMod;
+  return out;
+}
+
 function itemToMongoDoc(item: Item): Record<string, unknown> {
   const itemWithEquip = item as Item & {
     equipSlotTypes?: string[];
@@ -275,6 +463,10 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     gridDefenceBonus: item.gridDefenceBonus ?? null,
     effectiveRange: item.effectiveRange ?? null,
     maxRange: item.maxRange ?? null,
+    modifiesAttribute: item.modifiesAttribute ?? null,
+    attributeMod: item.attributeMod ?? null,
+    modifiesSkill: item.modifiesSkill ?? null,
+    skillMod: item.skillMod ?? null,
   };
 
   if (item.type === "GENERAL_ITEM") {
@@ -345,9 +537,28 @@ async function main() {
 
   const client = new MongoClient(mongoUri);
   await client.connect();
-  const db = client.db("neblir-dev");
+  const db = client.db(DB_NAME);
   const collection = db.collection(ITEM_COLLECTION);
   const insertedIds: ObjectId[] = [];
+
+  const existingNames = await collection
+    .find({}, { projection: { _id: 0, name: 1 } })
+    .toArray();
+  const usedNameKeys = new Set(
+    existingNames.map((d) =>
+      normalizeItemNameKey(d.name != null ? String(d.name) : "")
+    )
+  );
+
+  async function rollbackInsertedThisRun(): Promise<void> {
+    if (insertedIds.length === 0) return;
+    const deleteResult = await collection.deleteMany({
+      _id: { $in: insertedIds },
+    });
+    console.error(
+      `Rollback: removed ${deleteResult.deletedCount} previously inserted item(s).`
+    );
+  }
 
   try {
     for (let i = 0; i < rows.length; i++) {
@@ -355,29 +566,50 @@ async function main() {
       const rowIndex = i + 2; // 1-based + header line
 
       const candidate = csvRowToItem(row);
-      const result = itemSchema.safeParse(candidate);
+      const zodResult = itemSchema.safeParse(candidate);
 
-      if (!result.success) {
+      if (zodResult.success) {
+        const item = zodResult.data;
+        const uploadCheck = checkUploadConstraints(item, rowIndex);
+        if (uploadCheck) {
+          console.error("\n--- Upload validation failed ---");
+          console.error(uploadCheck.message);
+          if (uploadCheck.details) {
+            console.error("Details:", uploadCheck.details);
+          }
+          console.error("Parsed item:", JSON.stringify(item, null, 2));
+
+          await rollbackInsertedThisRun();
+          process.exit(1);
+        }
+
+        const nameKey = normalizeItemNameKey(item.name);
+        if (usedNameKeys.has(nameKey)) {
+          console.error("\n--- Duplicate name ---");
+          console.error("Row index (1-based, including header):", rowIndex);
+          console.error(
+            `An item already exists in the database or appears earlier in this CSV with the same name key (all whitespace removed for comparison): '${nameKey}'`
+          );
+          console.error("Parsed name:", item.name);
+
+          await rollbackInsertedThisRun();
+          process.exit(1);
+        }
+
+        const doc = itemToMongoDoc(item);
+        const insertResult = await collection.insertOne(doc);
+        insertedIds.push(insertResult.insertedId as ObjectId);
+        usedNameKeys.add(nameKey);
+      } else {
         console.error("\n--- Validation failed ---");
         console.error("Row index (1-based, including header):", rowIndex);
         console.error("Conflicting item (parsed from CSV):");
         console.error(JSON.stringify(candidate, null, 2));
-        console.error("Zod errors:", result.error.flatten());
+        console.error("Zod errors:", zodResult.error.flatten());
 
-        if (insertedIds.length > 0) {
-          const deleteResult = await collection.deleteMany({
-            _id: { $in: insertedIds },
-          });
-          console.error(
-            `Rollback: removed ${deleteResult.deletedCount} previously inserted item(s).`
-          );
-        }
+        await rollbackInsertedThisRun();
         process.exit(1);
       }
-
-      const doc = itemToMongoDoc(result.data);
-      const insertResult = await collection.insertOne(doc);
-      insertedIds.push(insertResult.insertedId as ObjectId);
     }
 
     console.log(

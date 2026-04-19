@@ -1,6 +1,7 @@
 "use client";
 
 import type { GameListItem } from "@/app/lib/types/game";
+import Button from "@/app/components/shared/Button";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,16 +35,16 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
 
   return (
     <div
-      className={`overflow-hidden rounded-md border border-black transition-colors ${
-        open ? "bg-black/5" : ""
+      className={`overflow-hidden rounded-md border border-black transition-colors duration-500 ease-in-out ${
+        open ? "bg-black/5" : "md:hover:bg-paleBlue/30"
       }`}
     >
       <div className="flex items-center gap-3 px-5 py-4">
         <Link
           href={gameHref}
-          className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-90"
+          className="flex min-w-0 flex-1 items-center gap-3"
         >
-          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/20">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
             {showImage ? (
               <Image
                 src={imageUrl}
@@ -67,20 +68,21 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
             <p className="truncate text-xs text-black">GM: {gm}</p>
           </div>
         </Link>
-        <button
+        <Button
           type="button"
+          variant="lightDisclosureChevron"
+          fullWidth={false}
           onClick={(e) => {
             e.preventDefault();
             setOpen((o) => !o);
           }}
-          className="shrink-0 rounded p-1 text-xs text-black hover:bg-black/10"
           aria-expanded={open}
           aria-label={
             open ? "Collapse GM and players" : "Expand GM and players"
           }
         >
           {open ? "▲" : "▼"}
-        </button>
+        </Button>
       </div>
       {open && (
         <div className="border-t border-black/10 px-5 py-3 pl-[4.25rem] space-y-3">

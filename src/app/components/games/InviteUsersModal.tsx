@@ -1,5 +1,7 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
@@ -120,37 +122,39 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="invite-users-title"
-    >
-      <div className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="invite-users-title"
-              className="text-lg font-semibold text-white"
-            >
-              Invite users to {gameName}
-            </h2>
-            <p className="mt-1 text-sm text-white/80">
-              Add email addresses below. They must already have an account.
-            </p>
-          </div>
-          <button
+    <ModalShell
+      isOpen
+      onClose={handleClose}
+      title={`Invite users to ${gameName}`}
+      titleId="invite-users-title"
+      subtitle="Add email addresses below. They must already have an account."
+      closeDisabled={submitting}
+      footer={
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="font-medium"
             onClick={handleClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-            aria-label="Close"
           >
-            <span className="text-xl leading-none">×</span>
-          </button>
+            {result && emails.length === 0 ? "Close" : "Cancel"}
+          </Button>
+          <Button
+            type="button"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            onClick={() => void handleSubmit()}
+            disabled={submitting || emails.length === 0}
+          >
+            {submitting ? "Sending…" : "Invite to game"}
+          </Button>
         </div>
-
-        <div className="mt-4 flex gap-2">
+      }
+    >
+      <>
+        <div className="flex gap-2">
           <input
             type="email"
             value={emailInput}
@@ -163,14 +167,15 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             aria-label="Email address"
             disabled={submitting}
           />
-          <button
+          <Button
             type="button"
+            variant="modalToolbarAction"
+            fullWidth={false}
             onClick={addEmail}
             disabled={submitting}
-            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
           >
             Add
-          </button>
+          </Button>
         </div>
 
         {emails.length > 0 && (
@@ -178,21 +183,22 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             <p className="text-xs font-medium text-white/70">
               To invite ({emails.length})
             </p>
-            <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto rounded border border-white/30 bg-white/5 p-2">
+            <ul className="mt-1 max-h-32 space-y-1 overflow-y-auto rounded border border-white/30 bg-paleBlue/5 p-2">
               {emails.map((email) => (
                 <li
                   key={email}
                   className="flex items-center justify-between gap-2 text-sm text-white"
                 >
                   <span className="truncate">{email}</span>
-                  <button
+                  <Button
                     type="button"
+                    variant="modalInlineLink"
+                    fullWidth={false}
                     onClick={() => removeEmail(email)}
                     disabled={submitting}
-                    className="shrink-0 text-xs text-white/70 underline hover:text-white disabled:opacity-50"
                   >
                     Remove
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -230,27 +236,8 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
             )}
           </div>
         )}
-
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-          >
-            {result && emails.length === 0 ? "Close" : "Cancel"}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={submitting || emails.length === 0}
-            className="rounded-md border-2 border-white bg-white px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50"
-          >
-            {submitting ? "Sending…" : "Invite to game"}
-          </button>
-        </div>
-      </div>
-    </div>
+      </>
+    </ModalShell>
   );
 };
 

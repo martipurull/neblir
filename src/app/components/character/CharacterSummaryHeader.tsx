@@ -1,30 +1,35 @@
 "use client";
 
-import type { CharacterDetail } from "@/app/lib/types/character";
+import Button from "@/app/components/shared/Button";
+import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import {
-  getArmourDisplayFromInventory,
-  getAttackModifierArrays,
-  getCarriedGridBonusesDisplay,
-  getEffectiveCombatMods,
-  getGridAttackModifierOptions,
-  getGridAttackRollData,
-  getGridDefenceDice,
-} from "@/app/lib/equipCombatUtils";
+  formatWeightKgForDisplay,
+  getCarriedWeight,
+  getCarryWeightStatCellStyles,
+  getEffectiveMaxCarryWeight,
+} from "@/app/lib/carryWeightUtils";
+import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
+import {
+  getApiSlotsForDisplay,
+  HEADER_EQUIP_SLOTS_ROW1,
+  HEADER_EQUIP_SLOTS_ROW2,
+} from "@/app/lib/equipUtils";
+import type { CharacterDetail } from "@/app/lib/types/character";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import React, { useCallback, useMemo, useState } from "react";
-import { AttackRollModal, type AttackType } from "./AttackRollModal";
+import { AttackRollModal } from "./AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
 import { GridDefenceRollModal } from "./GridDefenceRollModal";
 import { DefenceRollModal } from "./DefenceRollModal";
-import { HeaderStatsCarouselRow } from "./HeaderStatsCarouselRow";
+import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
-import { StatEditModal, type StatEditType } from "./StatEditModal";
-
-const SOFTWARE_WARRIOR_FEATURE_NAME = "Software Warrior";
+import { StatEditModal } from "./StatEditModal";
+import { useCharacterHeaderModals } from "./useCharacterHeaderModals";
+import { useCharacterHeaderStats } from "./useCharacterHeaderStats";
 
 type HealthPartial = {
   currentPhysicalHealth?: number;
@@ -47,8 +52,10 @@ interface CharacterSummaryHeaderProps {
   onHealthUpdate?: (partial: HealthPartial) => void;
   /** Called when user updates armour; enables stat edit modal */
   onArmourUpdate?: (partial: ArmourPartial) => void;
-  /** When provided, Hand/Foot/Body equip cells show equipped items and are clickable to equip */
+  /** When provided, header equip cells show equipped items and are clickable to equip */
   mutate?: KeyedMutator<CharacterDetail | null>;
+  /** Opens the dedicated dice roller (attribute + skill picker) */
+  onOpenDiceRoller?: () => void;
   className?: string;
 }
 
@@ -61,115 +68,52 @@ export function CharacterSummaryHeader({
   onHealthUpdate,
   onArmourUpdate,
   mutate,
+  onOpenDiceRoller,
   className,
 }: CharacterSummaryHeaderProps) {
-  const [statModalOpen, setStatModalOpen] = useState<StatEditType | null>(null);
-  const [attackRollModal, setAttackRollModal] = useState<AttackType | null>(
-    null
-  );
-  const [gridDefenceRollOpen, setGridDefenceRollOpen] = useState(false);
-  const [meleeDefenceRollOpen, setMeleeDefenceRollOpen] = useState(false);
-  const [rangeDefenceRollOpen, setRangeDefenceRollOpen] = useState(false);
-  const { generalInformation, health, combatInformation } = character;
-  const name = `${generalInformation.name}${generalInformation.surname ? ` ${generalInformation.surname}` : ""}`;
-  const pathsLabel =
-    character.paths && character.paths.length > 0
-      ? character.paths.map((p) => String(p.name)).join(" / ")
-      : "No path";
+  const {
+    statModalOpen,
+    setStatModalOpen,
+    attackRollModal,
+    setAttackRollModal,
+    gridDefenceRollOpen,
+    setGridDefenceRollOpen,
+    meleeDefenceRollOpen,
+    setMeleeDefenceRollOpen,
+    rangeDefenceRollOpen,
+    setRangeDefenceRollOpen,
+  } = useCharacterHeaderModals();
+
+  const [physicalEditKey, setPhysicalEditKey] = useState(0);
+  const [mentalEditKey, setMentalEditKey] = useState(0);
+  const [armourEditKey, setArmourEditKey] = useState(0);
+  const [pickerSlot, setPickerSlot] = useState<DisplayEquipSlot | null>(null);
+  const [combatExpanded, setCombatExpanded] = useState(false);
+
+  const {
+    generalInformation,
+    health,
+    combatInformation,
+    name,
+    pathsLabel,
+    armourDisplay,
+    effectiveMods,
+    attackModArrays,
+    gridAttackOptions,
+    showGridAttack,
+    gridAttackDisplayMod,
+    gridDefenceDice,
+    gridModCellValue,
+    gridAttackModifierHint,
+    gridAttackDamageHint,
+    gridDefenceModifierHint,
+  } = useCharacterHeaderStats(character);
   const { physicalStyles, mentalStyles } = useHealthStyles({
     currentPhysical: health.currentPhysicalHealth,
     maxPhysical: health.maxPhysicalHealth,
     currentMental: health.currentMentalHealth,
     maxMental: health.maxMentalHealth,
   });
-
-  const armourDisplay = getArmourDisplayFromInventory(
-    character.inventory ?? undefined,
-    combatInformation.armourCurrentHP
-  );
-  const effectiveMods = getEffectiveCombatMods(character);
-  const attackModArrays = getAttackModifierArrays(character);
-  const gridAttackOptions = useMemo(
-    () => getGridAttackModifierOptions(character),
-    [character]
-  );
-  const gridRollData = useMemo(
-    () => getGridAttackRollData(character),
-    [character]
-  );
-  const softwareWarriorFeature = useMemo(
-    () =>
-      character.features?.find(
-        (f) => f.feature.name === SOFTWARE_WARRIOR_FEATURE_NAME
-      ) ?? null,
-    [character.features]
-  );
-  const hasSoftwareWarrior = softwareWarriorFeature != null;
-  const showGridAttack = gridRollData.gridMod > 0 || hasSoftwareWarrior;
-  const gridAttackDisplayMod = useMemo(
-    () => Math.max(0, gridRollData.gridAttackDice),
-    [gridRollData.gridAttackDice]
-  );
-  const gridDefenceDice = useMemo(
-    () => getGridDefenceDice(character),
-    [character]
-  );
-  const gridModCellValue = useMemo(() => {
-    const bonuses = getCarriedGridBonusesDisplay(character);
-    if (bonuses.gridAttackBonus === 0 && bonuses.gridDefenceBonus === 0) {
-      return "—";
-    }
-    const fmtPart = (n: number) => (n >= 0 ? `+${n}` : String(n));
-    const cellPart = (n: number) => (n === 0 ? "—" : fmtPart(n));
-    return `${cellPart(bonuses.gridAttackBonus)} / ${cellPart(bonuses.gridDefenceBonus)}`;
-  }, [character]);
-  const gridBonuses = useMemo(
-    () => getCarriedGridBonusesDisplay(character),
-    [character]
-  );
-  const formatSigned = (n: number) => (n >= 0 ? `+${n}` : String(n));
-  const gridAttackModifierHint = useMemo(() => {
-    const parts = [
-      `Mentality ${formatSigned(character.innateAttributes.personality.mentality)}`,
-      `GRID ${formatSigned(character.learnedSkills.generalSkills.GRID)}`,
-    ];
-    if (gridBonuses.gridAttackBonus > 0) {
-      parts.push(
-        `GRID Attack Patch ${formatSigned(gridBonuses.gridAttackBonus)}`
-      );
-    }
-    return `Modifier = ${parts.join(" + ")}`;
-  }, [
-    character.innateAttributes.personality.mentality,
-    character.learnedSkills.generalSkills.GRID,
-    gridBonuses.gridAttackBonus,
-  ]);
-  const gridAttackDamageHint = useMemo(() => {
-    if (!softwareWarriorFeature?.grade) return undefined;
-    if (softwareWarriorFeature.grade >= 4) {
-      return "Software Warrior: +2d6 damage";
-    }
-    if (softwareWarriorFeature.grade > 1) {
-      return "Software Warrior: +1d6 damage";
-    }
-    return undefined;
-  }, [softwareWarriorFeature]);
-  const gridDefenceModifierHint = useMemo(() => {
-    const parts = [
-      `Mentality ${formatSigned(character.innateAttributes.personality.mentality)}`,
-      `GRID ${formatSigned(character.learnedSkills.generalSkills.GRID)}`,
-    ];
-    if (gridBonuses.gridDefenceBonus > 0) {
-      parts.push(
-        `GRID Defence Patch ${formatSigned(gridBonuses.gridDefenceBonus)}`
-      );
-    }
-    return `Modifier = ${parts.join(" + ")}`;
-  }, [
-    character.innateAttributes.personality.mentality,
-    character.learnedSkills.generalSkills.GRID,
-    gridBonuses.gridDefenceBonus,
-  ]);
 
   const handleWeaponUsed = useCallback(
     async (itemCharacterId: string) => {
@@ -192,6 +136,8 @@ export function CharacterSummaryHeader({
     armourDisplay.armourCurrentHP,
     armourDisplay.armourMaxHP
   );
+  const armourInactive =
+    armourDisplay.armourMaxHP <= 0 || armourDisplay.armourCurrentHP <= 0;
 
   const { value: reactionsValue, disabled: reactionsDisabled } =
     useReactionDisplay({
@@ -201,6 +147,91 @@ export function CharacterSummaryHeader({
     });
 
   const fmt = (n: number) => (n >= 0 ? `+${n}` : String(n));
+
+  const slotValues = useMemo((): Record<DisplayEquipSlot, React.ReactNode> => {
+    const carried = getCarriedInventory(character.inventory ?? undefined);
+    const empty: Record<DisplayEquipSlot, React.ReactNode> = {
+      HAND: "—",
+      FOOT: "—",
+      BODY: "—",
+      HEAD: "—",
+      BRAIN: "—",
+    };
+    if (!carried.length) {
+      return empty;
+    }
+    const values = { ...empty };
+    const maxItems = 2;
+    for (const displaySlot of [
+      "HAND",
+      "FOOT",
+      "BODY",
+      "HEAD",
+      "BRAIN",
+    ] as const) {
+      const apiSlots = getApiSlotsForDisplay(displaySlot);
+      const names: string[] = [];
+      for (const entry of carried) {
+        const name = entry.customName ?? entry.item?.name ?? "?";
+        for (const apiSlot of apiSlots) {
+          const count = (entry.equipSlots ?? []).filter(
+            (s) => s === apiSlot
+          ).length;
+          for (let i = 0; i < count && names.length < maxItems; i++) {
+            names.push(name);
+          }
+        }
+      }
+      if (names.length === 0) {
+        values[displaySlot] = "—";
+      } else {
+        const maxLen = Math.max(...names.map((n) => n.length));
+        const textSize =
+          maxLen > 14 || names.length > 3
+            ? "text-[9px]"
+            : maxLen > 8 || names.length > 1
+              ? "text-[10px]"
+              : "text-xs";
+        values[displaySlot] = (
+          <div className="flex min-w-0 w-full max-w-full flex-col items-center gap-0 overflow-hidden">
+            {names.map((name, i) => (
+              <span
+                key={i}
+                className={`block w-full min-w-0 truncate text-center ${textSize}`}
+                title={name}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        );
+      }
+    }
+    return values;
+  }, [character.inventory]);
+
+  const carriedWeight = useMemo(
+    () => getCarriedWeight(character.inventory ?? undefined),
+    [character.inventory]
+  );
+  const maxCarryWeight = useMemo(
+    () =>
+      getEffectiveMaxCarryWeight(
+        character.combatInformation?.maxCarryWeight,
+        character.inventory ?? undefined
+      ),
+    [character.combatInformation?.maxCarryWeight, character.inventory]
+  );
+  const carryWeightStyles = useMemo(
+    () => getCarryWeightStatCellStyles(carriedWeight, maxCarryWeight),
+    [carriedWeight, maxCarryWeight]
+  );
+  const carryWeightDisplay =
+    maxCarryWeight != null && maxCarryWeight > 0
+      ? `${formatWeightKgForDisplay(carriedWeight)} / ${formatWeightKgForDisplay(maxCarryWeight)} kg`
+      : `${formatWeightKgForDisplay(carriedWeight)} kg`;
+
+  const canEquip = !!mutate;
 
   return (
     <header
@@ -213,110 +244,210 @@ export function CharacterSummaryHeader({
           level={generalInformation.level}
           pathsLabel={pathsLabel}
           characterId={character.id}
+          onOpenDiceRoller={onOpenDiceRoller}
         />
 
-        <div className="mt-3 grid w-full max-w-xs grid-cols-3 gap-1.5">
-          <StatCell
-            label="Physical"
-            value={`${health.currentPhysicalHealth}/${health.maxPhysicalHealth}`}
-            subValue={
-              health.seriousPhysicalInjuries > 0
-                ? `${health.seriousPhysicalInjuries} serious`
-                : undefined
-            }
-            borderClassName={physicalStyles.borderClassName}
-            valueClassName={physicalStyles.valueClassName}
-            onClick={
-              onHealthUpdate ? () => setStatModalOpen("physical") : undefined
-            }
-          />
-          <StatCell
-            label="Mental"
-            value={`${health.currentMentalHealth}/${health.maxMentalHealth}`}
-            subValue={
-              health.seriousTrauma > 0
-                ? `${health.seriousTrauma} trauma`
-                : undefined
-            }
-            borderClassName={mentalStyles.borderClassName}
-            valueClassName={mentalStyles.valueClassName}
-            onClick={
-              onHealthUpdate ? () => setStatModalOpen("mental") : undefined
-            }
-          />
-          <StatCell
-            label="Armour"
-            value={`${armourDisplay.armourCurrentHP}/${armourDisplay.armourMaxHP}`}
-            subValue={fmt(armourDisplay.armourMod)}
-            borderClassName={armourStyles.borderClassName}
-            valueClassName={armourStyles.valueClassName}
-            subValueClassName={armourStyles.subValueClassName}
-            onClick={
-              armourDisplay.armourMaxHP > 0 && onArmourUpdate
-                ? () => setStatModalOpen("armour")
-                : undefined
-            }
-          />
-          <StatCell
-            label="Melee Atk"
-            value={formatAttackMod(attackModArrays.melee)}
-            compact
-            onClick={() => setAttackRollModal("melee")}
-          />
-          <StatCell
-            label="Range Atk"
-            value={formatAttackMod(attackModArrays.range)}
-            compact
-            onClick={() => setAttackRollModal("range")}
-          />
-          <StatCell
-            label="Throw Atk"
-            value={formatAttackMod(attackModArrays.throw)}
-            compact
-            onClick={() => setAttackRollModal("throw")}
-          />
-          <StatCell
-            label="Melee Def"
-            value={fmt(effectiveMods.meleeDefenceMod)}
-            compact
-            onClick={
-              onUseReaction ? () => setMeleeDefenceRollOpen(true) : undefined
-            }
-            disabled={!onUseReaction || reactionsDisabled}
-          />
-          <StatCell
-            label="Range Def"
-            value={fmt(effectiveMods.rangeDefenceMod)}
-            compact
-            onClick={
-              onUseReaction ? () => setRangeDefenceRollOpen(true) : undefined
-            }
-            disabled={!onUseReaction || reactionsDisabled}
-          />
-          <StatCell
-            label="Reactions"
-            value={reactionsValue}
-            compact
-            onClick={onUseReaction}
-            disabled={reactionsDisabled}
-          />
+        <div className="mt-3 w-full">
+          {/* Top row: featured stats (always 3 across, fill available width) */}
+          <div className="grid w-full grid-cols-3 gap-1.5">
+            <StatCell
+              label="Physical"
+              value={`${health.currentPhysicalHealth}/${health.maxPhysicalHealth}`}
+              subValue={
+                health.seriousPhysicalInjuries > 0
+                  ? `${health.seriousPhysicalInjuries} serious`
+                  : undefined
+              }
+              layout="short"
+              borderClassName={physicalStyles.borderClassName}
+              valueClassName={physicalStyles.valueClassName}
+              onClick={
+                onHealthUpdate
+                  ? () => {
+                      setPhysicalEditKey((k) => k + 1);
+                      setStatModalOpen("physical");
+                    }
+                  : undefined
+              }
+            />
+            <StatCell
+              label="Mental"
+              value={`${health.currentMentalHealth}/${health.maxMentalHealth}`}
+              subValue={
+                health.seriousTrauma > 0
+                  ? `${health.seriousTrauma} trauma`
+                  : undefined
+              }
+              layout="short"
+              borderClassName={mentalStyles.borderClassName}
+              valueClassName={mentalStyles.valueClassName}
+              onClick={
+                onHealthUpdate
+                  ? () => {
+                      setMentalEditKey((k) => k + 1);
+                      setStatModalOpen("mental");
+                    }
+                  : undefined
+              }
+            />
+            <StatCell
+              label="Armour"
+              value={`${armourDisplay.armourCurrentHP}/${armourDisplay.armourMaxHP}`}
+              subValue={fmt(armourDisplay.armourMod)}
+              layout="short"
+              borderClassName={armourStyles.borderClassName}
+              valueClassName={armourStyles.valueClassName}
+              subValueClassName={armourStyles.subValueClassName}
+              disabled={armourInactive}
+              onClick={
+                onArmourUpdate && !armourInactive
+                  ? () => {
+                      setArmourEditKey((k) => k + 1);
+                      setStatModalOpen("armour");
+                    }
+                  : undefined
+              }
+            />
+          </div>
+
+          <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5 [&>*]:min-w-0 [&>*]:overflow-hidden">
+            {HEADER_EQUIP_SLOTS_ROW1.map(({ slot, label }) => (
+              <StatCell
+                key={slot}
+                label={label}
+                value={slotValues[slot]}
+                compact
+                alignTop
+                onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+              />
+            ))}
+          </div>
+
+          <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5 [&>*]:min-w-0 [&>*]:overflow-hidden">
+            {HEADER_EQUIP_SLOTS_ROW2.map(({ slot, label }) => (
+              <StatCell
+                key={slot}
+                label={label}
+                value={slotValues[slot]}
+                compact
+                alignTop
+                onClick={canEquip ? () => setPickerSlot(slot) : undefined}
+              />
+            ))}
+            <StatCell
+              label="Carry"
+              value={carryWeightDisplay}
+              compact
+              borderClassName={carryWeightStyles.borderClassName}
+              valueClassName={carryWeightStyles.valueClassName}
+            />
+          </div>
+
+          {combatExpanded && (
+            <>
+              <div className="mt-1.5 grid w-full grid-cols-3 gap-1.5">
+                <StatCell
+                  label="Melee Atk"
+                  value={formatAttackMod(attackModArrays.melee)}
+                  compact
+                  onClick={() => setAttackRollModal("melee")}
+                />
+                <StatCell
+                  label="Range Atk"
+                  value={formatAttackMod(attackModArrays.range)}
+                  compact
+                  onClick={() => setAttackRollModal("range")}
+                />
+                <StatCell
+                  label="Throw Atk"
+                  value={formatAttackMod(attackModArrays.throw)}
+                  compact
+                  onClick={() => setAttackRollModal("throw")}
+                />
+                <StatCell
+                  label="Melee Def"
+                  value={fmt(effectiveMods.meleeDefenceMod)}
+                  compact
+                  onClick={
+                    onUseReaction
+                      ? () => setMeleeDefenceRollOpen(true)
+                      : undefined
+                  }
+                  disabled={!onUseReaction || reactionsDisabled}
+                />
+                <StatCell
+                  label="Range Def"
+                  value={fmt(effectiveMods.rangeDefenceMod)}
+                  compact
+                  onClick={
+                    onUseReaction
+                      ? () => setRangeDefenceRollOpen(true)
+                      : undefined
+                  }
+                  disabled={!onUseReaction || reactionsDisabled}
+                />
+                <StatCell
+                  label="Reactions"
+                  value={reactionsValue}
+                  compact
+                  onClick={onUseReaction}
+                  disabled={reactionsDisabled}
+                />
+              </div>
+
+              <div className="mt-1.5 grid w-full min-w-0 grid-cols-3 gap-1.5">
+                <StatCell
+                  label="GRID Atk"
+                  value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
+                  compact
+                  onClick={
+                    showGridAttack
+                      ? () => setAttackRollModal("grid")
+                      : undefined
+                  }
+                />
+                <StatCell
+                  label="GRID Def"
+                  value={fmt(gridDefenceDice)}
+                  compact
+                  onClick={
+                    reactionsDisabled
+                      ? undefined
+                      : () => setGridDefenceRollOpen(true)
+                  }
+                  disabled={reactionsDisabled}
+                />
+                <StatCell label="GRID Mods" value={gridModCellValue} compact />
+              </div>
+            </>
+          )}
+
+          <div className="mt-1.5 grid w-full grid-cols-3 gap-1.5">
+            <Button
+              type="button"
+              variant="lightCombatToggle"
+              fullWidth={false}
+              onClick={() => setCombatExpanded((v) => !v)}
+              aria-expanded={combatExpanded}
+            >
+              {combatExpanded ? "HIDE COMBAT" : "SHOW COMBAT"}
+            </Button>
+          </div>
         </div>
 
-        <HeaderStatsCarouselRow
-          fmt={fmt}
-          character={character}
-          mutate={mutate}
-          showGridAttack={showGridAttack}
-          gridAttackDisplayMod={gridAttackDisplayMod}
-          gridDefenceDisplayMod={gridDefenceDice}
-          gridModCellValue={gridModCellValue}
-          onGridAttack={() => setAttackRollModal("grid")}
-          onGridDefence={() => setGridDefenceRollOpen(true)}
-          gridDefenceDisabled={reactionsDisabled}
-        />
+        {mutate && pickerSlot && (
+          <EquipItemPickerModal
+            isOpen={!!pickerSlot}
+            onClose={() => setPickerSlot(null)}
+            slot={pickerSlot}
+            character={character}
+            mutate={mutate}
+          />
+        )}
 
         {onHealthUpdate && (
           <StatEditModal
+            key={`stat-edit-physical-${physicalEditKey}`}
             isOpen={statModalOpen === "physical"}
             onClose={() => setStatModalOpen(null)}
             type="physical"
@@ -337,6 +468,7 @@ export function CharacterSummaryHeader({
         )}
         {onHealthUpdate && (
           <StatEditModal
+            key={`stat-edit-mental-${mentalEditKey}`}
             isOpen={statModalOpen === "mental"}
             onClose={() => setStatModalOpen(null)}
             type="mental"
@@ -357,6 +489,7 @@ export function CharacterSummaryHeader({
         )}
         {onArmourUpdate && armourDisplay.armourMaxHP > 0 && (
           <StatEditModal
+            key={`stat-edit-armour-${armourEditKey}`}
             isOpen={statModalOpen === "armour"}
             onClose={() => setStatModalOpen(null)}
             type="armour"

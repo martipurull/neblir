@@ -2,7 +2,6 @@
 
 import ErrorState from "@/app/components/shared/ErrorState";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
@@ -94,7 +93,7 @@ export default function GameDetailPage() {
       <div className="flex flex-col gap-6">
         {/* Header: game name + thumbnail */}
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-black bg-white/20">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-black bg-paleBlue/20">
             {gameImageUrl ? (
               <Image
                 src={gameImageUrl}
@@ -114,31 +113,31 @@ export default function GameDetailPage() {
           <PageTitle>{game.name}</PageTitle>
         </div>
 
-        {/* Next session */}
-        <InfoCard border>
-          <h2 className="text-sm font-semibold text-black">Next Session</h2>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <ThemedDatePicker
-              value={nextSessionValue}
-              onChange={(dateString) =>
-                void handleNextSessionChange(dateString)
-              }
-              disabled={!isGameMaster || nextSessionBusy}
-              ariaLabel="Next session date"
-              placeholder="Set date"
-            />
-            {nextSessionError && (
-              <p className="text-sm text-red-600">{nextSessionError}</p>
-            )}
+        {/* Section boxes: Next session, GM (only for GM), Characters, Custom items, Lore */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="flex flex-col rounded-md border border-black p-4">
+            <span className="text-sm font-semibold text-black">
+              Next Session
+            </span>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <ThemedDatePicker
+                value={nextSessionValue}
+                onChange={(dateString) =>
+                  void handleNextSessionChange(dateString)
+                }
+                disabled={!isGameMaster || nextSessionBusy}
+                ariaLabel="Next session date"
+                placeholder="Set date"
+              />
+              {nextSessionError && (
+                <p className="text-sm text-red-600">{nextSessionError}</p>
+              )}
+            </div>
           </div>
-        </InfoCard>
-
-        {/* Section boxes: GM (only for GM), Characters, Custom items, Lore */}
-        <div className="grid gap-3 sm:grid-cols-3">
           {isGameMaster && (
             <Link
               href={`/home/games/${game.id}/gm`}
-              className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+              className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
             >
               <span className="text-sm font-semibold text-black">
                 Game Master
@@ -150,7 +149,7 @@ export default function GameDetailPage() {
           )}
           <Link
             href={`/home/games/${game.id}/characters`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">Characters</span>
             <span className="mt-1 text-xs text-black/70">
@@ -159,7 +158,7 @@ export default function GameDetailPage() {
           </Link>
           <Link
             href={`/home/games/${game.id}/custom-items`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">
               Custom Items
@@ -170,7 +169,7 @@ export default function GameDetailPage() {
           </Link>
           <Link
             href={`/home/games/${game.id}/lore`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors hover:bg-black/5"
+            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">Lore</span>
             <span className="mt-1 text-xs text-black/70">World & story</span>

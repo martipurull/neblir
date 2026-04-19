@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState } from "react";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import Button from "@/app/components/shared/Button";
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -156,37 +158,40 @@ export default function AddCharactersToGameModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-characters-title"
-    >
-      <div className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="add-characters-title"
-              className="text-lg font-semibold text-white"
-            >
-              Add characters to {gameName}
-            </h2>
-            <p className="mt-1 text-sm text-white/80">
-              Select one or more of your characters to link to this game.
-            </p>
-          </div>
-          <button
+    <ModalShell
+      isOpen
+      onClose={closeAndReset}
+      title={`Add characters to ${gameName}`}
+      titleId="add-characters-title"
+      subtitle="Select one or more of your characters to link to this game."
+      closeDisabled={submitting}
+      footer={
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="font-medium"
             onClick={closeAndReset}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-            aria-label="Close"
           >
-            <span className="text-xl leading-none">×</span>
-          </button>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="!text-modalBackground-200"
+            onClick={() => void handleSubmit()}
+            disabled={submitting}
+          >
+            {submitting ? "Adding..." : "Add to game"}
+          </Button>
         </div>
-
-        <div className="mt-4 flex gap-2">
+      }
+    >
+      <>
+        <div className="flex gap-2">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -195,19 +200,20 @@ export default function AddCharactersToGameModal({
             aria-label="Search characters"
             disabled={submitting}
           />
-          <button
+          <Button
             type="button"
+            variant="modalToolbarAction"
+            fullWidth={false}
             onClick={() => void refetch()}
             disabled={submitting}
-            className="shrink-0 rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
           >
             Refresh
-          </button>
+          </Button>
         </div>
 
         {error && <p className="mt-3 text-sm text-neblirDanger-400">{error}</p>}
 
-        <div className="mt-3 max-h-72 overflow-y-auto rounded border border-white/30 bg-white/5 p-2">
+        <div className="mt-3 max-h-72 overflow-y-auto rounded border border-white/30 bg-paleBlue/5 p-2">
           {loading ? (
             <p className="p-2 text-sm text-white/80">Loading characters...</p>
           ) : filtered.length === 0 ? (
@@ -230,7 +236,7 @@ export default function AddCharactersToGameModal({
                     <label
                       className={[
                         "flex items-center gap-3 rounded-md border border-white/20 px-3 py-2 text-white",
-                        isLinked ? "opacity-60" : "hover:bg-white/10",
+                        isLinked ? "opacity-60" : "hover:bg-paleBlue/10",
                       ].join(" ")}
                     >
                       <Checkbox
@@ -241,7 +247,7 @@ export default function AddCharactersToGameModal({
                         label={<span className="sr-only">{name}</span>}
                         className="shrink-0"
                       />
-                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-white/10">
+                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
                         {avatarUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -317,26 +323,7 @@ export default function AddCharactersToGameModal({
         {submitError && (
           <p className="mt-3 text-sm text-neblirDanger-400">{submitError}</p>
         )}
-
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={closeAndReset}
-            disabled={submitting}
-            className="rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={submitting}
-            className="rounded-md border-2 border-white bg-white px-3 py-2 text-sm font-semibold text-modalBackground-200 transition-colors hover:bg-white/90 disabled:opacity-50"
-          >
-            {submitting ? "Adding..." : "Add to game"}
-          </button>
-        </div>
-      </div>
-    </div>
+      </>
+    </ModalShell>
   );
 }

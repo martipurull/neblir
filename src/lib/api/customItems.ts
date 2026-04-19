@@ -37,6 +37,10 @@ export function mapCustomItemJsonToBrowseDetail(
     damage: data.damage ?? undefined,
     usage: data.usage ?? null,
     notes: data.notes ?? null,
+    modifiesAttribute: data.modifiesAttribute ?? null,
+    attributeMod: data.attributeMod ?? null,
+    modifiesSkill: data.modifiesSkill ?? null,
+    skillMod: data.skillMod ?? null,
   };
 }
 

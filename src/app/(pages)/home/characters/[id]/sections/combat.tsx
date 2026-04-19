@@ -3,10 +3,12 @@
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
+import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import {
   getCarriedWeight,
   getEffectiveMaxCarryWeight,
   getEffectiveSpeed,
+  getEquippedSpeedAlteringItems,
   getSpeedReductionTooltipText,
 } from "@/app/lib/carryWeightUtils";
 import {
@@ -50,7 +52,11 @@ export function getCombatSection(
     maxCarryWeight,
     combat.armourMod ?? 0
   );
-  const mod = combat.initiativeMod;
+  const speedAltering = getEquippedSpeedAlteringItems(inventory);
+  const showSpeedAlteredBadge = speedAltering.displayNames.length > 0;
+  const showSpeedReducedBadge =
+    showStrikethrough && effectiveSpeed !== combat.speed;
+  const mod = getInitiativeModifierFromCharacter(character);
   const modLabel = `${mod >= 0 ? "+" : ""}${mod}`;
   const gameLinkCount = character.games?.length ?? 0;
   const { gameDetails, gamesLoading, onOpenRoll, onOpenOrder } =
@@ -78,27 +84,43 @@ export function getCombatSection(
         : "Not in any game"
       : undefined;
 
-  const speedValue =
-    showStrikethrough && effectiveSpeed !== combat.speed ? (
-      <span className="inline-flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-baseline gap-1.5">
-          <span className="tabular-nums line-through text-black/60">
-            {combat.speed}m
-          </span>
+  const speedValue = (
+    <span className="inline-flex max-w-full flex-row flex-wrap items-center justify-end gap-x-2 gap-y-1">
+      <span className="inline-flex shrink-0 flex-wrap items-baseline gap-1">
+        {showStrikethrough && effectiveSpeed !== combat.speed ? (
+          <>
+            <span className="tabular-nums line-through text-black/60">
+              {combat.speed}m
+            </span>
+            <span className="tabular-nums text-black">{effectiveSpeed}m</span>
+          </>
+        ) : (
           <span className="tabular-nums text-black">{effectiveSpeed}m</span>
-        </span>
-        <span
-          className="cursor-help rounded-md bg-neblirDanger-400/12 py-1.5 text-[10px] font-medium uppercase tracking-wide text-neblirDanger-600"
-          title={speedReductionTooltip}
-        >
-          Speed reduced
-        </span>
+        )}
       </span>
-    ) : (
-      `${effectiveSpeed}m`
-    );
+      {showSpeedReducedBadge || showSpeedAlteredBadge ? (
+        <span className="inline-flex shrink-0 flex-col items-start gap-px leading-none">
+          {showSpeedReducedBadge ? (
+            <span
+              className="cursor-help rounded bg-neblirDanger-400/12 px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neblirDanger-600"
+              title={speedReductionTooltip}
+            >
+              Speed reduced
+            </span>
+          ) : null}
+          {showSpeedAlteredBadge ? (
+            <span
+              className="cursor-help rounded text-paleBlue px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide"
+              title={speedAltering.tooltip}
+            >
+              Speed altered
+            </span>
+          ) : null}
+        </span>
+      ) : null}
+    </span>
+  );
   const entries = [
-    { label: "Speed", value: speedValue },
     {
       label: "Reactions per round",
       value: String(combat.reactionsPerRound),
@@ -167,6 +189,12 @@ export function getCombatSection(
             </SafeButton>
           </div>
         </li>
+        <KeyValueRow
+          multilineValue
+          className="!items-center py-2.5 first:pt-0"
+          label="Speed"
+          value={speedValue}
+        />
         {entries.map(({ label, value }) => (
           <KeyValueRow key={label} label={label} value={value} />
         ))}

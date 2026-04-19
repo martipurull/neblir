@@ -3,9 +3,15 @@ import React from "react";
 interface ChevronProps {
   direction: "left" | "right";
   className?: string;
+  /** Stroke width; default matches previous 2px look. */
+  strokeWidth?: number;
 }
 
-export function Chevron({ direction, className }: ChevronProps) {
+export function Chevron({
+  direction,
+  className,
+  strokeWidth = 2,
+}: ChevronProps) {
   const pathD = direction === "left" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6";
   return (
     <svg
@@ -13,7 +19,7 @@ export function Chevron({ direction, className }: ChevronProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}

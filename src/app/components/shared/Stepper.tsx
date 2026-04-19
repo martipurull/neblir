@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 export interface StepperStep {
@@ -47,20 +48,21 @@ export function Stepper({
                   aria-hidden
                 />
                 {clickable ? (
-                  <button
+                  <Button
                     type="button"
+                    variant={
+                      isComplete
+                        ? "stepperDotComplete"
+                        : isCurrent
+                          ? "stepperDotCurrent"
+                          : "stepperDotIdle"
+                    }
+                    fullWidth={false}
                     aria-label={`Go to ${step.label}`}
                     onClick={() => onStepClick?.(index)}
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-medium transition-colors hover:scale-105 sm:h-7 sm:w-7 sm:text-xs ${
-                      isComplete
-                        ? "border-customPrimary bg-customPrimary text-customSecondary"
-                        : isCurrent
-                          ? "border-customPrimary bg-transparent text-customPrimary"
-                          : "border-black/30 bg-transparent text-black/50 hover:border-black/50 hover:text-black/80"
-                    }`}
                   >
                     {isComplete ? "✓" : index + 1}
-                  </button>
+                  </Button>
                 ) : (
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-medium transition-colors sm:h-7 sm:w-7 sm:text-xs ${

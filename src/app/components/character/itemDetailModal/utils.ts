@@ -1,7 +1,7 @@
 export const USES_DEBOUNCE_MS = 2500;
 
 export const innerActionPanelClass =
-  "rounded border border-white/20 bg-white/5 p-3 space-y-3";
+  "rounded border border-white/20 bg-paleBlue/5 p-3 space-y-3";
 
 export function fmtSignedBonus(n: number) {
   return n >= 0 ? `+${n}` : String(n);

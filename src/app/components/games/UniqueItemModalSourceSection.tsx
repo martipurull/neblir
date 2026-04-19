@@ -1,14 +1,22 @@
+"use client";
+
+import Button from "@/app/components/shared/Button";
+import { ItemTemplatePeekModal } from "@/app/components/games/ItemTemplatePeekModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
+import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
+import { useState } from "react";
 
 type Props = {
   f: CreateUniqueItemModalModel;
 };
 
 export function UniqueItemModalSourceSection({ f }: Props) {
+  const [peekItem, setPeekItem] = useState<ItemBrowseDetailFields | null>(null);
+
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold text-white/90">
@@ -34,6 +42,7 @@ export function UniqueItemModalSourceSection({ f }: Props) {
             ) {
               return;
             }
+            setPeekItem(null);
             f.setSourceType(
               value as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE"
             );
@@ -48,7 +57,7 @@ export function UniqueItemModalSourceSection({ f }: Props) {
         )}
 
         {f.sourceType === "STANDALONE" ? (
-          <div className="space-y-3 rounded border border-white/20 bg-white/5 p-3">
+          <div className="space-y-3 rounded border border-white/20 bg-paleBlue/5 p-3">
             <p className="text-sm text-white/80">
               For found objects, gifts, or anything that is not in the catalogs
               — only a name and weight are required.
@@ -110,6 +119,22 @@ export function UniqueItemModalSourceSection({ f }: Props) {
                     const t = f.templates.find((x) => x.id === id);
                     f.setSelectedTemplate(t ?? null);
                   }}
+                  renderOptionSuffix={(opt, closeMenu) => (
+                    <Button
+                      type="button"
+                      variant="lightTemplateInfoIcon"
+                      fullWidth={false}
+                      aria-label={`View template details: ${opt.label}`}
+                      title="Template details"
+                      onClick={() => {
+                        closeMenu();
+                        const detail = f.getTemplateBrowseDetail(opt.value);
+                        if (detail) setPeekItem(detail);
+                      }}
+                    >
+                      i
+                    </Button>
+                  )}
                 />
                 {f.templateOptions.length === 0 && (
                   <p className="mt-2 text-sm text-white/60">
@@ -124,6 +149,11 @@ export function UniqueItemModalSourceSection({ f }: Props) {
           </>
         )}
       </div>
+
+      <ItemTemplatePeekModal
+        item={peekItem}
+        onClose={() => setPeekItem(null)}
+      />
     </section>
   );
 }

@@ -1,4 +1,10 @@
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
+import {
+  getAutoEquipSlotAdds,
+  getEquippedInstanceCount,
+  isWithinSlotCapacity,
+  pickFirstFlexibleEquipSlot,
+} from "@/app/lib/equipUtils";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import {
   deleteItemCharacter,
@@ -9,6 +15,7 @@ import {
 import {
   type CharacterForCombatSync,
   computeCombatInfoUpdateForCharacter,
+  equipViolatesSingleArmourRule,
 } from "@/app/lib/equipCombatUtils";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -17,11 +24,18 @@ import logger from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import {
+  isItemInventoryOperational,
+  itemStatusSchema,
+} from "@/app/lib/types/item";
 import { z } from "zod";
 
-const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD", "BRAIN"]);
 const patchBodySchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("equip"), slot: equipSlotSchema }),
+  z.object({
+    action: z.literal("equip"),
+    slot: equipSlotSchema.optional(),
+  }),
   z.object({ action: z.literal("unequip"), slot: equipSlotSchema }),
   z.object({ action: z.literal("unequipAll") }),
   z.object({
@@ -33,28 +47,23 @@ const patchBodySchema = z.discriminatedUnion("action", [
     currentUses: z.number().int().min(0),
   }),
   z.object({ action: z.literal("decrementUse") }),
+  z.object({
+    action: z.literal("setStatus"),
+    status: itemStatusSchema,
+  }),
 ]);
 
-const SLOT_CAPACITY = 2;
-
 type InventoryEntry = {
+  id: string;
   equipSlots?: string[];
-  item?: { equipSlotTypes?: string[]; equipSlotCost?: number | null } | null;
+  item?: {
+    equipSlotTypes?: string[];
+    equipSlotCost?: number | null;
+    defenceMeleeBonus?: number | null;
+    defenceRangeBonus?: number | null;
+  } | null;
   itemLocation?: string | null;
 };
-
-function getUsedCapacityInSlot(
-  inventory: InventoryEntry[],
-  slot: string
-): number {
-  let sum = 0;
-  for (const entry of inventory) {
-    const cost = entry.item?.equipSlotCost ?? 1;
-    const count = (entry.equipSlots ?? []).filter((s) => s === slot).length;
-    sum += count * cost;
-  }
-  return sum;
-}
 
 function slotAllowsItem(
   slot: string,
@@ -127,30 +136,97 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       if (!equippable) {
         return errorResponse("This item is not equippable", 400);
       }
-      const slot = parsed.data.slot;
+      if (!isItemInventoryOperational(entry.status)) {
+        return errorResponse(
+          "Broken or unusable items cannot be equipped. Repair the item first.",
+          400
+        );
+      }
+      const requestedSlot = parsed.data.slot;
       const itemWithEquip = entry.item as {
         equipSlotTypes?: string[];
         equipSlotCost?: number | null;
+        defenceMeleeBonus?: number | null;
+        defenceRangeBonus?: number | null;
       } | null;
-      if (!slotAllowsItem(slot, itemWithEquip?.equipSlotTypes)) {
-        return errorResponse("This item cannot be equipped in that slot", 400);
-      }
-      const itemCost = itemWithEquip?.equipSlotCost ?? 1;
+      const equipSlotTypes = itemWithEquip?.equipSlotTypes;
       const carriedInventory = (inventory as InventoryEntry[]).filter(
         (e) =>
           e.itemLocation === ITEM_LOCATION_CARRIED || e.itemLocation == null
       );
-      const usedCapacity = getUsedCapacityInSlot(carriedInventory, slot);
-      if (usedCapacity + itemCost > SLOT_CAPACITY) {
-        return errorResponse("That slot does not have enough space", 400);
-      }
-      if (equipSlots.length >= entry.quantity) {
+      const instancesEquipped = getEquippedInstanceCount(
+        equipSlots,
+        equipSlotTypes
+      );
+      if (instancesEquipped >= entry.quantity) {
         return errorResponse(
           "All copies of this item are already equipped",
           400
         );
       }
-      const updatedSlots: string[] = [...equipSlots, slot];
+
+      const typesList = equipSlotTypes?.filter(Boolean) ?? [];
+      if (requestedSlot != null && typesList.length > 1) {
+        return errorResponse(
+          "This item must be equipped to all of its slots at once",
+          400
+        );
+      }
+
+      let slotsToAdd: string[];
+
+      if (requestedSlot != null) {
+        const slot = requestedSlot;
+        if (!slotAllowsItem(slot, itemWithEquip?.equipSlotTypes)) {
+          return errorResponse(
+            "This item cannot be equipped in that slot",
+            400
+          );
+        }
+        slotsToAdd = [slot];
+      } else if (typesList.length === 0) {
+        const flex = pickFirstFlexibleEquipSlot(
+          carriedInventory,
+          itemCharacterId,
+          equipSlots
+        );
+        if (flex == null) {
+          return errorResponse(
+            "No equipment slot has enough free space. Unequip something and try again.",
+            400
+          );
+        }
+        slotsToAdd = [flex];
+      } else {
+        slotsToAdd = getAutoEquipSlotAdds(equipSlots, equipSlotTypes);
+      }
+
+      const updatedSlots: string[] = [...equipSlots, ...slotsToAdd];
+      if (
+        !isWithinSlotCapacity(carriedInventory, itemCharacterId, updatedSlots)
+      ) {
+        return errorResponse(
+          "Not enough free space on the slots this item needs. Unequip something and try again.",
+          400
+        );
+      }
+
+      if (
+        equipViolatesSingleArmourRule({
+          carriedInventory,
+          itemCharacterId,
+          equipSlotsBefore: equipSlots,
+          slotsToAdd,
+          item: itemWithEquip,
+          equipSlotTypes,
+        })
+      ) {
+        return errorResponse(
+          "You already have body armour equipped. Unequip it before wearing another suit.",
+          400
+        );
+      }
+
       await updateItemCharacter(itemCharacterId, {
         equipSlots: updatedSlots,
         isEquipped: updatedSlots.length > 0,
@@ -185,6 +261,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       await updateItemCharacter(itemCharacterId, updateData);
     } else if (action === "setCurrentUses") {
       const { currentUses } = parsed.data;
+      if (!isItemInventoryOperational(entry.status) && currentUses > 0) {
+        return errorResponse(
+          "Damaged items cannot hold charges. Set the item to functional first.",
+          400
+        );
+      }
       const maxUses = await getMaxUsesForItem(entry.sourceType, entry.itemId);
       if (maxUses != null && currentUses > maxUses) {
         return errorResponse(
@@ -197,6 +279,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       const current = entry.currentUses ?? 0;
       const next = Math.max(0, current - 1);
       await updateItemCharacter(itemCharacterId, { currentUses: next });
+    } else if (action === "setStatus") {
+      const nextStatus = parsed.data.status;
+      await updateItemCharacter(itemCharacterId, {
+        status: nextStatus,
+        ...(!isItemInventoryOperational(nextStatus)
+          ? {
+              currentUses: 0,
+              equipSlots: [],
+              isEquipped: false,
+            }
+          : {}),
+      });
     } else {
       await updateItemCharacter(itemCharacterId, {
         equipSlots: [],

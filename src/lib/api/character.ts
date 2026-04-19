@@ -8,44 +8,13 @@ import {
 import { walletSchema } from "@/app/lib/types/item";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { getUserSafeApiError } from "@/lib/userSafeError";
+import type {
+  LevelUpAttributePath,
+  LevelUpGeneralSkill,
+} from "@/app/lib/levelUpPaths";
 
 type ApiErrorPayload = { message?: string; details?: string };
-export type LevelUpAttributePath =
-  | "intelligence.investigation"
-  | "intelligence.memory"
-  | "intelligence.deduction"
-  | "wisdom.sense"
-  | "wisdom.perception"
-  | "wisdom.insight"
-  | "personality.persuasion"
-  | "personality.deception"
-  | "personality.mentality"
-  | "strength.athletics"
-  | "strength.resilience"
-  | "strength.bruteForce"
-  | "dexterity.manual"
-  | "dexterity.stealth"
-  | "dexterity.agility"
-  | "constitution.resistanceInternal"
-  | "constitution.resistanceExternal"
-  | "constitution.stamina";
-export type LevelUpGeneralSkill =
-  | "mechanics"
-  | "software"
-  | "generalKnowledge"
-  | "history"
-  | "driving"
-  | "acrobatics"
-  | "aim"
-  | "melee"
-  | "GRID"
-  | "research"
-  | "medicine"
-  | "science"
-  | "survival"
-  | "streetwise"
-  | "performance"
-  | "manipulationNegotiation";
+export type { LevelUpAttributePath, LevelUpGeneralSkill };
 
 export type CharacterCreateBody = CharacterCreationRequest & {
   initialFeatures?: Array<{ featureId: string; grade: number }>;

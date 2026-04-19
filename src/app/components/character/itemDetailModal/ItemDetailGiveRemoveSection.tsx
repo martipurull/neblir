@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import {
   DangerButton,
   WarningButton,
@@ -73,13 +74,15 @@ export function ItemDetailGiveRemoveSection({
               <span className="text-xs font-bold uppercase tracking-wider text-white/70">
                 Give to another character
               </span>
-              <button
+              <Button
                 type="button"
+                variant="modalInlineLink"
+                fullWidth={false}
                 onClick={onGiveCancel}
-                className="text-xs text-white/80 underline hover:text-white"
+                className="text-xs text-white/80"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
             <div>
               <label
@@ -101,7 +104,7 @@ export function ItemDetailGiveRemoveSection({
                     Math.min(Math.max(1, n), Math.max(1, entry.quantity))
                   );
                 }}
-                className="w-full rounded border border-white/30 bg-white/5 px-3 py-2 text-sm text-white tabular-nums"
+                className="w-full rounded border border-white/30 bg-paleBlue/5 px-3 py-2 text-sm text-white tabular-nums"
               />
               <p className="mt-1 text-xs text-white/50">
                 You have {entry.quantity} in this stack.
@@ -158,14 +161,16 @@ export function ItemDetailGiveRemoveSection({
             <span className="text-xs font-bold uppercase tracking-wider text-white/70">
               Remove from inventory
             </span>
-            <button
+            <Button
               type="button"
+              variant="modalInlineLink"
+              fullWidth={false}
               onClick={onRemoveConfirmCancel}
               disabled={isRemoving}
-              className="text-xs text-white/80 underline hover:text-white disabled:opacity-50"
+              className="text-xs text-white/80"
             >
               Cancel
-            </button>
+            </Button>
           </div>
           <p className="text-sm text-white/85">
             Remove <span className="font-medium text-white">{itemName}</span>{" "}

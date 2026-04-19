@@ -1,7 +1,10 @@
 import { getCharacter } from "@/app/lib/prisma/character";
 import { getCustomItem } from "@/app/lib/prisma/customItem";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
-import { addOrIncrementItemCharacter } from "@/app/lib/prisma/itemCharacter";
+import {
+  addOrIncrementItemCharacter,
+  getEffectiveMaxUsesForUniqueCreate,
+} from "@/app/lib/prisma/itemCharacter";
 import { getItem } from "@/app/lib/prisma/item";
 import {
   createUniqueItem,
@@ -96,10 +99,13 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       )
     );
 
+    const initialCurrentUsesMax =
+      await getEffectiveMaxUsesForUniqueCreate(parsedBody);
     await addOrIncrementItemCharacter(
       characterId,
       "UNIQUE_ITEM",
-      uniqueItem.id
+      uniqueItem.id,
+      { initialCurrentUsesMax }
     );
 
     return NextResponse.json({ id: uniqueItem.id }, { status: 201 });

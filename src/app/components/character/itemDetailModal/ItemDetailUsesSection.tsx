@@ -1,17 +1,21 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 type ItemDetailUsesSectionProps = {
   displayUses: number;
   maxUses: number;
   onDelta: (delta: number) => void;
+  /** When false, the + control is disabled (e.g. broken / beyond repair). */
+  allowIncrease?: boolean;
 };
 
 export function ItemDetailUsesSection({
   displayUses,
   maxUses,
   onDelta,
+  allowIncrease = true,
 }: ItemDetailUsesSectionProps) {
   return (
     <div className="mt-3 flex flex-col gap-2 rounded border border-white/20 p-3">
@@ -19,30 +23,34 @@ export function ItemDetailUsesSection({
         Uses
       </span>
       <div className="flex items-center gap-3">
-        <button
+        <Button
           type="button"
+          variant="modalIconStepperLg"
+          fullWidth={false}
           onClick={() => onDelta(-1)}
           disabled={displayUses <= 0}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
           aria-label="Decrease uses"
         >
           −
-        </button>
+        </Button>
         <span className="min-w-[4rem] text-center text-lg font-semibold tabular-nums text-white">
           {displayUses} / {maxUses}
         </span>
-        <button
+        <Button
           type="button"
+          variant="modalIconStepperLg"
+          fullWidth={false}
           onClick={() => onDelta(1)}
-          disabled={displayUses >= maxUses}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-transparent"
+          disabled={displayUses >= maxUses || !allowIncrease}
           aria-label="Increase uses"
         >
           +
-        </button>
+        </Button>
       </div>
       <p className="text-xs text-white/60">
-        Changes save automatically after a short delay.
+        {allowIncrease
+          ? "Changes save automatically after a short delay."
+          : "Damaged items cannot hold charges. Set status to functional first."}
       </p>
     </div>
   );

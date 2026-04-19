@@ -2,22 +2,30 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import type { EquipSlot } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
-import { EquipSlotChoiceModal } from "@/app/components/character/EquipSlotChoiceModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
+import Button from "@/app/components/shared/Button";
 import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
+  sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
+  formatWeightKgForDisplay,
   getCarriedWeight,
+  getCarryWeightInventoryPillClassName,
   getEffectiveMaxCarryWeight,
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
+import {
+  isItemInventoryOperational,
+  itemStatusEquipColumnDamageLabel,
+} from "@/app/lib/types/item";
 import { getGameById } from "@/lib/api/game";
+import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -71,18 +79,26 @@ function InventoryList({
           const name = entry.customName ?? entry.item?.name ?? "Unknown item";
           const weight = entry.item?.weight;
           const equippable = entry.item?.equippable === true;
-          const showEquip =
-            variant === "carried" && onSelectEquip != null && equippable;
+          const operational = isItemInventoryOperational(entry.status);
+          const hasEquippedSlots = (entry.equipSlots?.length ?? 0) > 0;
+          const showUnequip = variant === "carried" && hasEquippedSlots;
+          const showEquipButton =
+            variant === "carried" &&
+            onSelectEquip != null &&
+            equippable &&
+            operational &&
+            !hasEquippedSlots;
           const location =
             variant === "stored" && entry.itemLocation?.trim()
               ? entry.itemLocation.trim()
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
-              <button
+              <Button
                 type="button"
+                variant="lightRowHit"
+                fullWidth={false}
                 onClick={() => onSelectDetail(entry)}
-                className="min-w-0 cursor-pointer text-left hover:opacity-80"
               >
                 <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
                   <span className="break-words text-sm text-black">{name}</span>
@@ -94,12 +110,14 @@ function InventoryList({
                     </span>
                   )}
                 </div>
-              </button>
+              </Button>
               <span className="text-right text-sm tabular-nums text-black">
                 {entry.quantity ?? 1}
               </span>
               <span className="text-right text-sm tabular-nums text-black">
-                {weight != null ? `${weight}kg` : "—"}
+                {weight != null
+                  ? `${formatWeightKgForDisplay(weight)} kg`
+                  : "—"}
               </span>
               {variant === "stored" ? (
                 <span
@@ -110,36 +128,50 @@ function InventoryList({
                 </span>
               ) : (
                 <div className="flex justify-end">
-                  {showEquip ? (
-                    (entry.equipSlots?.length ?? 0) > 0 ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void onUnequip(entry);
-                        }}
-                        disabled={
-                          unequippingId === entry.id || equippingId === entry.id
-                        }
-                        className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
-                      >
-                        {unequippingId === entry.id
-                          ? "Unequipping…"
-                          : "Unequip"}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={equippingId === entry.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectEquip(entry);
-                        }}
-                        className="w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 disabled:opacity-50"
-                      >
-                        {equippingId === entry.id ? "Equipping…" : "Equip"}
-                      </button>
-                    )
+                  {showUnequip ? (
+                    <Button
+                      type="button"
+                      variant="lightPillAction"
+                      fullWidth={false}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void onUnequip(entry);
+                      }}
+                      disabled={
+                        unequippingId === entry.id || equippingId === entry.id
+                      }
+                    >
+                      {unequippingId === entry.id ? "Unequipping…" : "Unequip"}
+                    </Button>
+                  ) : showEquipButton ? (
+                    <Button
+                      type="button"
+                      variant="lightPillAction"
+                      fullWidth={false}
+                      disabled={equippingId === entry.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectEquip(entry);
+                      }}
+                    >
+                      {equippingId === entry.id ? "Equipping…" : "Equip"}
+                    </Button>
+                  ) : equippable && !operational ? (
+                    <div className="flex w-full justify-end">
+                      <div className="flex flex-col p-1 text-right text-[10px] font-medium leading-tight text-neblirDanger-600">
+                        {entry.status === "BEYOND_REPAIR" ? (
+                          <>
+                            <span>beyond</span>
+                            <span>repair</span>
+                          </>
+                        ) : (
+                          <span>
+                            {itemStatusEquipColumnDamageLabel(entry.status) ??
+                              "—"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <span className="text-xs text-black/50">—</span>
                   )}
@@ -170,11 +202,9 @@ function InventorySectionContent({
   const [detailEntry, setDetailEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
-  const [equipEntry, setEquipEntry] = useState<
-    NonNullable<CharacterDetail["inventory"]>[number] | null
-  >(null);
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
+  const [equipError, setEquipError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -191,34 +221,36 @@ function InventorySectionContent({
     [character.games]
   );
   const carriedInventory = useMemo(
-    () => getCarriedInventory(inventory),
+    () => sortInventoryEntriesAlphabetically(getCarriedInventory(inventory)),
     [inventory]
   );
   const storedInventory = useMemo(
     () =>
-      inventory.filter(
-        (e) =>
-          e.itemLocation !== undefined &&
-          e.itemLocation !== null &&
-          e.itemLocation !== ITEM_LOCATION_CARRIED
+      sortInventoryEntriesAlphabetically(
+        inventory.filter(
+          (e) =>
+            e.itemLocation !== undefined &&
+            e.itemLocation !== null &&
+            e.itemLocation !== ITEM_LOCATION_CARRIED
+        )
       ),
     [inventory]
   );
 
-  const handleEquipSelect = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number],
-    slot: EquipSlot
+  const handleAutoEquip = async (
+    entry: NonNullable<CharacterDetail["inventory"]>[number]
   ) => {
     setEquippingId(entry.id);
+    setEquipError(null);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
         action: "equip",
-        slot,
       });
       await mutate();
-      setEquipEntry(null);
-    } catch {
-      setEquipEntry(null);
+    } catch (e) {
+      setEquipError(
+        getUserSafeErrorMessage(e, "Could not equip this item. Try again.")
+      );
     } finally {
       setEquippingId(null);
     }
@@ -298,22 +330,24 @@ function InventorySectionContent({
     <div className="space-y-0">
       <div className="mb-2 flex flex-col gap-1.5 pb-2">
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
             onClick={() => setBrowseModalOpen(true)}
             disabled={!canAddItems}
-            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Browse items
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
             onClick={openCreateUnique}
             disabled={!canAddItems}
-            className="w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create unique item
-          </button>
+          </Button>
         </div>
         {!canAddItems && (
           <p className="text-xs text-neblirDanger-600">
@@ -330,7 +364,9 @@ function InventorySectionContent({
             variant="carried"
             entries={carriedInventory}
             onSelectDetail={setDetailEntry}
-            onSelectEquip={setEquipEntry}
+            onSelectEquip={(e) => {
+              void handleAutoEquip(e);
+            }}
             onUnequip={(entry) => {
               void handleUnequip(entry);
             }}
@@ -392,17 +428,11 @@ function InventorySectionContent({
         />
       )}
 
-      {equipEntry && (
-        <EquipSlotChoiceModal
-          isOpen={!!equipEntry}
-          onClose={() => setEquipEntry(null)}
-          entry={equipEntry}
-          inventory={carriedInventory}
-          onSelect={(slot) => {
-            void handleEquipSelect(equipEntry, slot);
-          }}
-        />
-      )}
+      <EquipErrorModal
+        isOpen={equipError != null}
+        message={equipError ?? ""}
+        onClose={() => setEquipError(null)}
+      />
     </div>
   );
 }
@@ -440,26 +470,18 @@ export function getInventorySection(
     inventory
   );
   const overCarryLimit = isOverCarryLimit(totalInventoryWeight, maxCarryWeight);
-  const ratio =
-    maxCarryWeight != null && maxCarryWeight > 0
-      ? totalInventoryWeight / maxCarryWeight
-      : 0;
 
   const titleSupplement =
     maxCarryWeight != null ? (
       <span className="group relative inline-block">
         <span
-          className={
-            overCarryLimit
-              ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
-              : ratio > 1
-                ? "rounded border border-neblirDanger-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirDanger-400"
-                : ratio >= 0.5
-                  ? "rounded border border-neblirWarning-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirWarning-400"
-                  : "rounded border border-neblirSafe-200 bg-transparent px-2 py-0.5 text-sm tabular-nums text-neblirSafe-400"
-          }
+          className={getCarryWeightInventoryPillClassName(
+            totalInventoryWeight,
+            maxCarryWeight
+          )}
         >
-          {totalInventoryWeight} / {maxCarryWeight} kg
+          {formatWeightKgForDisplay(totalInventoryWeight)} /{" "}
+          {formatWeightKgForDisplay(maxCarryWeight)} kg
         </span>
         <span
           className="pointer-events-none absolute top-full right-0 z-10 mt-1 hidden max-h-[40vh] w-72 overflow-y-auto rounded border border-white/30 bg-modalBackground-200 px-2.5 py-2 shadow-lg group-hover:block"
@@ -470,7 +492,7 @@ export function getInventorySection(
       </span>
     ) : totalInventoryWeight > 0 ? (
       <span className="rounded border border-black bg-transparent px-2 py-0.5 text-sm tabular-nums text-black">
-        {totalInventoryWeight} kg
+        {formatWeightKgForDisplay(totalInventoryWeight)} kg
       </span>
     ) : undefined;
 

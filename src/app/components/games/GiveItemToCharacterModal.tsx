@@ -9,6 +9,8 @@ import { giveItemToCharacter } from "@/lib/api/game";
 import type { ItemWithId } from "@/lib/api/items";
 import { getItems } from "@/lib/api/items";
 import { getGameUniqueItems } from "@/lib/api/uniqueItems";
+import Button from "@/app/components/shared/Button";
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -184,103 +186,91 @@ export function GiveItemToCharacterModal({
             : "Select item";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="give-item-title"
-    >
-      <div className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="give-item-title"
-              className="text-lg font-semibold text-white"
-            >
-              Give item to character
-            </h2>
-            <p className="mt-1 text-sm text-white/80">
-              Choose a character and an item to add to their inventory.
-            </p>
-          </div>
-          <button
+    <ModalShell
+      isOpen
+      onClose={handleClose}
+      title="Give item to character"
+      titleId="give-item-title"
+      subtitle="Choose a character and an item to add to their inventory."
+      closeDisabled={submitting}
+      maxWidthClass="max-w-md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button
             type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="!border-white/50 font-medium"
             onClick={handleClose}
             disabled={submitting}
-            className="shrink-0 rounded p-1.5 text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-            aria-label="Close"
           >
-            <span className="text-xl leading-none">×</span>
-          </button>
-        </div>
-
-        <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 space-y-4">
-          <ModalSelect
-            id="give-item-character"
-            label="Character"
-            placeholder={
-              characters.length === 0
-                ? "No characters in game"
-                : "Select character"
-            }
-            value={characterId}
-            options={characterOptions}
-            disabled={submitting || characters.length === 0}
-            onChange={setCharacterId}
-          />
-
-          <ModalSelect
-            id="give-item-source"
-            label="Item type"
-            placeholder="Item type"
-            value={sourceType}
-            options={sourceTypeOptions}
-            disabled={submitting}
-            onChange={(v) =>
-              setSourceType(v as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM")
-            }
-          />
-
-          <ModalSelect
-            id="give-item-item"
-            label="Item"
-            placeholder={itemSelectPlaceholder}
-            value={itemId}
-            options={selectItemOptions}
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="give-item-modal-form"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="font-medium !text-modalBackground-200 disabled:pointer-events-none"
             disabled={
-              submitting ||
-              (sourceType === "GLOBAL_ITEM" &&
-                (loadingItems || globalItems.length === 0)) ||
-              (sourceType === "CUSTOM_ITEM" && customItems.length === 0) ||
-              (sourceType === "UNIQUE_ITEM" &&
-                (loadingUniqueItems || uniqueItems.length === 0))
+              submitting || !characterId || !itemId || characters.length === 0
             }
-            onChange={setItemId}
-          />
+          >
+            {submitting ? "Giving…" : "Give item"}
+          </Button>
+        </div>
+      }
+    >
+      <form
+        id="give-item-modal-form"
+        onSubmit={(e) => void handleSubmit(e)}
+        className="space-y-4"
+      >
+        <ModalSelect
+          id="give-item-character"
+          label="Character"
+          placeholder={
+            characters.length === 0
+              ? "No characters in game"
+              : "Select character"
+          }
+          value={characterId}
+          options={characterOptions}
+          disabled={submitting || characters.length === 0}
+          onChange={setCharacterId}
+        />
 
-          {error && <p className="text-sm text-red-300 break-words">{error}</p>}
+        <ModalSelect
+          id="give-item-source"
+          label="Item type"
+          placeholder="Item type"
+          value={sourceType}
+          options={sourceTypeOptions}
+          disabled={submitting}
+          onChange={(v) =>
+            setSourceType(v as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM")
+          }
+        />
 
-          <div className="flex gap-2 justify-end pt-2">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={submitting}
-              className="rounded-md border-2 border-white/50 bg-transparent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={
-                submitting || !characterId || !itemId || characters.length === 0
-              }
-              className="rounded-md border-2 border-white bg-white px-3 py-2 text-sm font-medium text-modalBackground-200 transition-colors hover:bg-white/90 disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {submitting ? "Giving…" : "Give item"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <ModalSelect
+          id="give-item-item"
+          label="Item"
+          placeholder={itemSelectPlaceholder}
+          value={itemId}
+          options={selectItemOptions}
+          disabled={
+            submitting ||
+            (sourceType === "GLOBAL_ITEM" &&
+              (loadingItems || globalItems.length === 0)) ||
+            (sourceType === "CUSTOM_ITEM" && customItems.length === 0) ||
+            (sourceType === "UNIQUE_ITEM" &&
+              (loadingUniqueItems || uniqueItems.length === 0))
+          }
+          onChange={setItemId}
+        />
+
+        {error && <p className="text-sm text-red-300 break-words">{error}</p>}
+      </form>
+    </ModalShell>
   );
 }

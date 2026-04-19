@@ -1,5 +1,6 @@
 import {
   type ItemResponse,
+  type ItemStatus,
   itemResponseSchema,
   itemListResponseSchema,
 } from "@/app/lib/types/item";
@@ -108,15 +109,16 @@ export async function addItemToCharacterInventory(
   }
 }
 
-export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD";
+export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
 
 export type UpdateInventoryEntryBody =
-  | { action: "equip"; slot: EquipSlot }
+  | { action: "equip"; slot?: EquipSlot }
   | { action: "unequip"; slot: EquipSlot }
   | { action: "unequipAll" }
   | { action: "setLocation"; itemLocation: string }
   | { action: "setCurrentUses"; currentUses: number }
-  | { action: "decrementUse" };
+  | { action: "decrementUse" }
+  | { action: "setStatus"; status: ItemStatus };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,

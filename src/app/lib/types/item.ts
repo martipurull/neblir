@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  itemAttributePathSchema,
+  itemGeneralSkillSchema,
+} from "@/app/lib/itemModifierEnums";
 
 export const currencyNameSchema = z.enum([
   "CONF",
@@ -61,8 +65,14 @@ export const weaponDamageTypeSchema = z.enum([
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
 export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;
 
-/** Slot types an item can be equipped to (HAND, FOOT, BODY, HEAD) */
-export const equipSlotTypeSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD"]);
+/** Slot types an item can be equipped to */
+export const equipSlotTypeSchema = z.enum([
+  "HAND",
+  "FOOT",
+  "BODY",
+  "HEAD",
+  "BRAIN",
+]);
 export type EquipSlotType = z.infer<typeof equipSlotTypeSchema>;
 
 /** Cost in slots when equipping (0, 1, or 2) */
@@ -86,6 +96,26 @@ export const itemStatusSchema = z.enum([
   "BEYOND_REPAIR",
 ]);
 export type ItemStatus = z.infer<typeof itemStatusSchema>;
+
+export const ITEM_STATUS_LABELS: Record<ItemStatus, string> = {
+  FUNCTIONAL: "Functional",
+  BROKEN: "Broken",
+  BEYOND_REPAIR: "Beyond repair",
+};
+
+/** Only functional items may be equipped, grant combat/armour bonuses, or hold charges. */
+export function isItemInventoryOperational(status: ItemStatus): boolean {
+  return status === "FUNCTIONAL";
+}
+
+/** Inventory list equip column when an equippable item is damaged (short lowercase line). */
+export function itemStatusEquipColumnDamageLabel(
+  status: ItemStatus
+): string | null {
+  if (status === "BROKEN") return "broken";
+  if (status === "BEYOND_REPAIR") return "beyond repair";
+  return null;
+}
 
 /** Source type stored on UniqueItem (template or standalone). */
 export const uniqueItemSourceTypeSchema = z.enum([
@@ -150,6 +180,11 @@ const baseItemSchema = z.object({
   gridDefenceBonus: z.number().optional(),
   effectiveRange: z.number().int().optional().nullable(),
   maxRange: z.number().int().optional().nullable(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().optional(),
 });
 
 export const generalItemSchema = baseItemSchema.extend({
@@ -210,6 +245,11 @@ export const customItemCreateSchema = z.object({
   equipSlotTypes: z.array(equipSlotTypeSchema).optional(),
   equipSlotCost: equipSlotCostSchema.optional(),
   maxUses: z.number().int().positive().optional().nullable(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().optional(),
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
@@ -246,7 +286,14 @@ const uniqueItemMutableBodySchema = z.object({
   equippableOverride: z.boolean().optional(),
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
   equipSlotCostOverride: equipSlotCostSchema.optional(),
+  /** Prefer `maxUsesOverride`; `maxUses` is an accepted alias for clients. */
   maxUsesOverride: z.number().int().positive().optional().nullable(),
+  maxUses: z.number().int().positive().optional().nullable(),
+  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
+  attributeModOverride: z.number().int().nullish(),
+  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
+  skillModOverride: z.number().int().nullish(),
+  isSpeedAlteredOverride: z.boolean().nullish(),
 });
 
 export const uniqueItemCreateSchema = z.union([
@@ -310,6 +357,11 @@ export const itemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   maxUses: z.number().int().positive().nullish(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().nullish(),
 });
 export const itemListResponseSchema = z.array(itemResponseSchema);
 export type ItemResponse = z.infer<typeof itemResponseSchema>;
@@ -342,6 +394,11 @@ export const customItemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   maxUses: z.number().int().positive().nullish(),
+  modifiesAttribute: itemAttributePathSchema.nullish(),
+  attributeMod: z.number().int().nullish(),
+  modifiesSkill: itemGeneralSkillSchema.nullish(),
+  skillMod: z.number().int().nullish(),
+  isSpeedAltered: z.boolean().nullish(),
 });
 export const customItemListResponseSchema = z.array(customItemResponseSchema);
 export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
@@ -397,6 +454,11 @@ export const uniqueItemResolvedResponseSchema = z.object({
   equipSlotTypesOverride: z.unknown().nullish(),
   equipSlotCostOverride: z.number().nullish(),
   maxUsesOverride: z.number().int().positive().nullish(),
+  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
+  attributeModOverride: z.number().int().nullish(),
+  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
+  skillModOverride: z.number().int().nullish(),
+  isSpeedAlteredOverride: z.boolean().nullish(),
   templateItem: z
     .union([itemResponseSchema, customItemResponseSchema])
     .nullish(),

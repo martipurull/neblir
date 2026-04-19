@@ -30,12 +30,12 @@ export function RadioGroup({
 }: RadioGroupProps) {
   const selectedClass =
     tone === "inverse"
-      ? "border-white bg-white/20 text-white"
-      : "border-customPrimary bg-customPrimary/10 text-black";
+      ? "border-white bg-paleBlue/20 text-white"
+      : "border-customPrimary bg-customPrimary text-black";
   const unselectedClass =
     tone === "inverse"
-      ? "border-white/30 bg-white/5 text-white hover:border-white/50"
-      : "border-black/30 bg-paleBlue text-black hover:border-black/50";
+      ? "border-white/30 bg-transparent text-white hover:border-white/50"
+      : "border-customPrimary bg-transparent text-black hover:border-black/50";
   const baseShape =
     variant === "chip"
       ? "rounded px-3 py-1.5"
@@ -45,14 +45,14 @@ export function RadioGroup({
     <fieldset className="space-y-2" disabled={disabled}>
       {label ? (
         <legend
-          className={`mb-1 block text-sm font-bold ${
+          className={`mb-1 block text-sm font-bold lg:text-center ${
             tone === "inverse" ? "text-white" : "text-black"
           }`}
         >
           {label}
         </legend>
       ) : null}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 lg:justify-center">
         {options.map((option) => {
           const checked = value === option.value;
           return (

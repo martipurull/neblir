@@ -1,10 +1,12 @@
 "use client";
 
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import {
   SafeButton,
   WarningButton,
 } from "@/app/components/shared/SemanticActionButton";
+import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -39,8 +41,11 @@ export function InitiativeRollModal({
   onRegistered,
   onNavigateToShowOrder,
 }: InitiativeRollModalProps) {
-  const mod = character.combatInformation.initiativeMod;
-  const modLabel = `${mod >= 0 ? "+ " : ""}${mod}`;
+  const mod = useMemo(
+    () => getInitiativeModifierFromCharacter(character),
+    [character]
+  );
+  const modLabel = `${mod >= 0 ? "+" : ""}${mod}`;
 
   const [selectedGameId, setSelectedGameId] = useState("");
   const [phase, setPhase] = useState<"pick" | "rolled" | "success" | "error">(
@@ -159,115 +164,91 @@ export function InitiativeRollModal({
   const total = roll != null ? roll + mod : null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="initiative-roll-modal-title"
-      onClick={onClose}
+    <ModalShell
+      isOpen
+      onClose={onClose}
+      title="Initiative roll"
+      titleId="initiative-roll-modal-title"
+      maxWidthClass="max-w-md"
     >
-      <div
-        className="w-full max-w-md rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h2
-            id="initiative-roll-modal-title"
-            className="text-lg font-semibold text-white"
-          >
-            Initiative roll
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
-            aria-label="Close"
-          >
-            <span className="text-xl leading-none">×</span>
-          </button>
-        </div>
+      <p className="text-sm text-white/90">
+        Roll{" "}
+        <span className="font-semibold tabular-nums text-white">
+          1d10 {modLabel}
+        </span>{" "}
+        and register the result for the selected game.
+      </p>
 
-        <p className="mt-3 text-sm text-white/90">
-          Roll{" "}
-          <span className="font-semibold tabular-nums text-white">
-            1d10 {modLabel}
-          </span>{" "}
-          and register the result for the selected game.
+      {gameDetails.length === 0 ? (
+        <p className="mt-4 text-sm text-neblirWarning-300">
+          This character is not in any game yet.
         </p>
+      ) : gameDetails.length === 1 ? (
+        <p className="mt-4 text-sm text-white/80">
+          Game:{" "}
+          <span className="font-medium text-white">{gameDetails[0].name}</span>
+        </p>
+      ) : (
+        <div className="mt-4">
+          <SelectDropdown
+            id="initiative-roll-game"
+            label="Game"
+            placeholder="Select a game"
+            value={selectedGameId}
+            options={dropdownOptions}
+            onChange={handleGameChange}
+          />
+        </div>
+      )}
 
-        {gameDetails.length === 0 ? (
-          <p className="mt-4 text-sm text-neblirWarning-300">
-            This character is not in any game yet.
-          </p>
-        ) : gameDetails.length === 1 ? (
-          <p className="mt-4 text-sm text-white/80">
-            Game:{" "}
-            <span className="font-medium text-white">
-              {gameDetails[0].name}
-            </span>
-          </p>
+      <div className="mt-6 flex flex-col gap-3">
+        {phase === "success" && selectedGameId ? (
+          <SafeButton
+            type="button"
+            onClick={() => onNavigateToShowOrder(selectedGameId)}
+            className="w-full !border-neblirSafe-200 !text-neblirSafe-200 hover:!bg-neblirSafe-200/20"
+          >
+            Show initiative
+          </SafeButton>
         ) : (
-          <div className="mt-4">
-            <SelectDropdown
-              id="initiative-roll-game"
-              label="Game"
-              placeholder="Select a game"
-              value={selectedGameId}
-              options={dropdownOptions}
-              onChange={handleGameChange}
-            />
+          <WarningButton
+            type="button"
+            disabled={
+              gameDetails.length === 0 ||
+              !selectedGameId ||
+              !selectedAllowsRoll ||
+              submitting
+            }
+            onClick={() => void handleRoll()}
+            className="w-full !border-neblirWarning-200 !text-neblirWarning-200 hover:!bg-neblirWarning-200/20"
+          >
+            {submitting ? "Registering…" : "Roll initiative"}
+          </WarningButton>
+        )}
+
+        {roll != null && (
+          <div className="rounded border border-white/20 bg-black/20 px-3 py-2 text-sm text-white">
+            <p className="tabular-nums">
+              d10: <span className="font-semibold">{roll}</span>
+              {" · "}
+              Modifier: <span className="font-semibold">{modLabel}</span>
+              {" · "}
+              Total: <span className="font-semibold">{total ?? "—"}</span>
+            </p>
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-3">
-          {phase === "success" && selectedGameId ? (
-            <SafeButton
-              type="button"
-              onClick={() => onNavigateToShowOrder(selectedGameId)}
-              className="w-full !border-neblirSafe-200 !text-neblirSafe-200 hover:!bg-neblirSafe-200/20"
-            >
-              Show initiative
-            </SafeButton>
-          ) : (
-            <WarningButton
-              type="button"
-              disabled={
-                gameDetails.length === 0 ||
-                !selectedGameId ||
-                !selectedAllowsRoll ||
-                submitting
-              }
-              onClick={() => void handleRoll()}
-              className="w-full !border-neblirWarning-200 !text-neblirWarning-200 hover:!bg-neblirWarning-200/20"
-            >
-              {submitting ? "Registering…" : "Roll initiative"}
-            </WarningButton>
-          )}
+        {phase === "success" && selectedGame && (
+          <p className="text-sm text-neblirSafe-300">
+            Initiative registered for{" "}
+            <span className="font-medium">{selectedGame.name}</span>.
+          </p>
+        )}
 
-          {roll != null && (
-            <div className="rounded border border-white/20 bg-black/20 px-3 py-2 text-sm text-white">
-              <p className="tabular-nums">
-                d10: <span className="font-semibold">{roll}</span>
-                {" · "}
-                Modifier: <span className="font-semibold">{modLabel}</span>
-                {" · "}
-                Total: <span className="font-semibold">{total ?? "—"}</span>
-              </p>
-            </div>
-          )}
-
-          {phase === "success" && selectedGame && (
-            <p className="text-sm text-neblirSafe-300">
-              Initiative registered for{" "}
-              <span className="font-medium">{selectedGame.name}</span>.
-            </p>
-          )}
-
-          {phase === "error" && errorMessage && (
-            <p className="text-sm text-neblirDanger-300">{errorMessage}</p>
-          )}
-        </div>
+        {phase === "error" && errorMessage && (
+          <p className="text-sm text-neblirDanger-300">{errorMessage}</p>
+        )}
       </div>
-    </div>
+    </ModalShell>
   );
 }

@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { rollD10 } from "./character-helpers";
 import type { LevelUpFormValues } from "./types";
 
@@ -43,9 +44,10 @@ export default function LevelUpHealthStep({
               })}
               className="w-24 rounded border border-black/30 px-2 py-1"
             />
-            <button
+            <Button
               type="button"
-              className="rounded border border-black/30 px-2 py-1 text-sm"
+              variant="lightRollChip"
+              fullWidth={false}
               onClick={() =>
                 form.setValue("rolledPhysicalHealth", rollD10(), {
                   shouldDirty: true,
@@ -53,7 +55,7 @@ export default function LevelUpHealthStep({
               }
             >
               Roll d10
-            </button>
+            </Button>
           </div>
           {healthPreview && (
             <div className="mt-2 flex items-center gap-2 rounded border border-black/15 bg-transparent px-2 py-1.5 text-xs">
@@ -92,9 +94,10 @@ export default function LevelUpHealthStep({
               })}
               className="w-24 rounded border border-black/30 px-2 py-1"
             />
-            <button
+            <Button
               type="button"
-              className="rounded border border-black/30 px-2 py-1 text-sm"
+              variant="lightRollChip"
+              fullWidth={false}
               onClick={() =>
                 form.setValue("rolledMentalHealth", rollD10(), {
                   shouldDirty: true,
@@ -102,7 +105,7 @@ export default function LevelUpHealthStep({
               }
             >
               Roll d10
-            </button>
+            </Button>
           </div>
           {healthPreview && (
             <div className="mt-2 flex items-center gap-2 rounded border border-black/15 bg-transparent px-2 py-1.5 text-xs">

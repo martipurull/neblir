@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { FEATURE_SLOT_INDEXES } from "./constants";
 import type {
@@ -87,13 +88,15 @@ export default function LevelUpPathFeaturesStep({
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {alternativeNewPathOptions.map((path) => (
-              <button
+              <Button
                 key={path.id}
                 type="button"
+                variant="lightPathCard"
+                fullWidth={false}
+                className="h-auto w-full"
                 onClick={() =>
                   form.setValue("pathId", path.id, { shouldDirty: true })
                 }
-                className="rounded border border-black/20 bg-transparent p-3 text-left transition-colors hover:border-black/40"
               >
                 <p className="font-semibold text-black">
                   {path.name.replace(/_/g, " ")}
@@ -107,7 +110,7 @@ export default function LevelUpPathFeaturesStep({
                     {path.description}
                   </p>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -127,15 +130,13 @@ export default function LevelUpPathFeaturesStep({
               (f) => f.id === slotChoice?.featureId
             )?.name;
             return (
-              <button
+              <Button
                 key={idx}
                 type="button"
+                variant={isActive ? "lightSlotActive" : "lightSlotIdle"}
+                fullWidth={false}
+                className="min-w-0"
                 onClick={() => setActiveFeatureSlot(idx)}
-                className={`flex-1 rounded border-2 px-2 py-2 text-left text-sm ${
-                  isActive
-                    ? "border-customPrimary bg-customPrimary/10 shadow-sm"
-                    : "border-black/20 bg-transparent"
-                }`}
               >
                 <p className="font-semibold">Slot {idx + 1}</p>
                 <p className="text-xs text-black/70">
@@ -143,13 +144,14 @@ export default function LevelUpPathFeaturesStep({
                     ? "Not selected"
                     : `${slotChoice.mode === "new" ? "New" : "Increase"}: ${featureName ?? slotChoice.featureId}`}
                 </p>
-              </button>
+              </Button>
             );
           })}
         </div>
-        <button
+        <Button
           type="button"
-          className="rounded border border-black/30 px-2 py-1 text-xs text-black hover:border-black/50"
+          variant="lightCompactXsMuted"
+          fullWidth={false}
           onClick={() => {
             setFeatureChoiceAtSlot(activeFeatureSlot, "none", "");
             form.clearErrors([
@@ -160,10 +162,10 @@ export default function LevelUpPathFeaturesStep({
           }}
         >
           Clear active slot
-        </button>
+        </Button>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {features.map((feature) => {
           const existing = existingFeatureById.get(feature.id);
           const canPickNew = !existing;
@@ -179,7 +181,7 @@ export default function LevelUpPathFeaturesStep({
           return (
             <div
               key={feature.id}
-              className={`rounded border-2 p-3 ${
+              className={`flex h-40 flex-col rounded border-2 p-3 sm:h-44 xl:h-48 ${
                 isSelected
                   ? "border-customPrimary bg-customPrimary/5"
                   : "border-black/20"
@@ -209,24 +211,35 @@ export default function LevelUpPathFeaturesStep({
                   <span className="text-xs text-black/60">Not learned yet</span>
                 )}
               </div>
-              {feature.description && (
-                <p className="mt-1 text-sm text-black/70">
-                  {feature.description}
-                </p>
-              )}
+              <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
+                {feature.description && (
+                  <p className="text-sm text-black/70">{feature.description}</p>
+                )}
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                <button
+                <Button
                   type="button"
+                  variant={
+                    canPickNew
+                      ? "lightChipSafeCompact"
+                      : "lightChipNeutralMuted"
+                  }
+                  fullWidth={false}
                   disabled={!canPickNew}
                   onClick={() =>
                     setFeatureChoiceAtSlot(activeFeatureSlot, "new", feature.id)
                   }
-                  className="rounded border border-neblirSafe-400 px-2 py-1 text-xs text-neblirSafe-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Pick as new
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={
+                    canIncrease
+                      ? "lightChipSafeCompact"
+                      : "lightChipNeutralMuted"
+                  }
+                  fullWidth={false}
                   disabled={!canIncrease}
                   onClick={() =>
                     setFeatureChoiceAtSlot(
@@ -235,10 +248,9 @@ export default function LevelUpPathFeaturesStep({
                       feature.id
                     )
                   }
-                  className="rounded border border-customPrimary px-2 py-1 text-xs text-customPrimary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Increase grade
-                </button>
+                </Button>
               </div>
             </div>
           );

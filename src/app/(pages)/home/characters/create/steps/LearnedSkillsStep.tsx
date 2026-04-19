@@ -92,7 +92,7 @@ export function LearnedSkillsStep() {
           className={`rounded-md border px-3 py-2 text-sm font-semibold shadow-sm backdrop-blur bg-transparent ${
             isOverAllocated
               ? "border-neblirDanger-600 bg-neblirDanger-50/70 text-neblirDanger-700"
-              : "border-black/20 bg-white/60 text-black"
+              : "border-black/20 bg-paleBlue/60 text-black"
           }`}
         >
           Skill points used: {used} / {maxPoints}
@@ -114,7 +114,7 @@ export function LearnedSkillsStep() {
           {stepError}
         </p>
       )}
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {GENERAL_SKILL_ENTRIES.map(({ key, label }) => (
           <Controller
             key={key}

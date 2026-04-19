@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState, useEffect } from "react";
 
@@ -97,14 +98,15 @@ export function WalletAdjustModal({
           >
             {title}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="modalClose"
+            fullWidth={false}
             onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
             aria-label="Close"
           >
             <span className="text-xl leading-none">×</span>
-          </button>
+          </Button>
         </div>
 
         <p className="mt-2 text-sm text-white/80">{currencyName}</p>
@@ -112,15 +114,17 @@ export function WalletAdjustModal({
         <div className="mt-4 flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Amount</span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
+              className="disabled:!opacity-40"
               onClick={() => handleAdjust(-1)}
               disabled={amount <= 0}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Decrease amount"
             >
               −
-            </button>
+            </Button>
             <input
               type="number"
               min={0}
@@ -130,14 +134,15 @@ export function WalletAdjustModal({
               className="h-9 w-20 rounded-md border-2 border-white bg-transparent px-2 text-center text-sm font-bold text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               aria-label="Amount"
             />
-            <button
+            <Button
               type="button"
+              variant="modalIconStepper"
+              fullWidth={false}
               onClick={() => handleAdjust(1)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
               aria-label="Increase amount"
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -157,20 +162,21 @@ export function WalletAdjustModal({
 
         {error && <p className="mt-2 text-sm text-neblirDanger-400">{error}</p>}
 
-        <button
+        <Button
           type="button"
+          variant="modalMutedPrimary"
+          className="mt-5"
           onClick={() => {
             void handleSubmit();
           }}
           disabled={!isValid || subtractExceedsBalance || isSubmitting}
-          className="mt-5 w-full rounded-md border-2 border-white bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting
             ? "Please wait…"
             : mode === "add"
               ? "Add money to wallet"
               : "Subtract money from wallet"}
-        </button>
+        </Button>
       </div>
     </div>
   );

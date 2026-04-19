@@ -1,6 +1,8 @@
 "use client";
 
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
+import Button from "@/app/components/shared/Button";
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -186,214 +188,203 @@ export function AttackRollModal({
   const title = ATTACK_LABELS[attackType];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="attack-roll-modal-title"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-lg border-2 border-white bg-modalBackground-200 p-5 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h2
-            id="attack-roll-modal-title"
-            className="text-lg font-semibold text-white"
-          >
-            {title} roll
-          </h2>
-          <button
+    <ModalShell
+      isOpen
+      onClose={onClose}
+      title={`${title} roll`}
+      titleId="attack-roll-modal-title"
+      maxWidthClass="max-w-sm"
+      footer={
+        <div className="flex gap-3">
+          <Button
             type="button"
-            onClick={onClose}
-            className="rounded p-1 text-white transition-colors hover:bg-white/10"
-            aria-label="Close"
+            variant="modalFooterPrimary"
+            fullWidth={false}
+            className="flex-1"
+            onClick={() => void handleRoll()}
+            disabled={totalDice === 0}
           >
-            <span className="text-xl leading-none">×</span>
-          </button>
+            ROLL
+          </Button>
+          <Button
+            type="button"
+            variant="modalFooterSecondary"
+            fullWidth={false}
+            className="flex-1"
+            onClick={onClose}
+          >
+            Close
+          </Button>
         </div>
-
-        <div className="mt-4 space-y-4">
-          {modifierHint && (
-            <p className="text-xs text-white/75">{modifierHint}</p>
-          )}
-          {attackType !== "grid" && (
-            <div>
-              <p className="mb-2 text-sm font-medium text-white">
-                Select weapon
-              </p>
-              <div className="flex flex-col gap-2">
-                {options.map((opt, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setSelectedIndex(i)}
-                    className={`rounded-md border-2 px-3 py-2 text-left text-sm font-semibold transition-colors ${
-                      selectedIndex === i
-                        ? "border-white bg-white text-black"
-                        : "border-white bg-transparent text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {optionLabel(opt)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm font-medium text-white">Extra dice</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setExtraDice((d) => d - 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
-                aria-label="Decrease extra dice"
-              >
-                −
-              </button>
-              <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
-                {extraDice >= 0 ? `+${extraDice}` : extraDice}
-              </span>
-              <button
-                type="button"
-                onClick={() => setExtraDice((d) => d + 1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-white/10"
-                aria-label="Increase extra dice"
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <p className="text-sm font-medium text-white">
-            Total: {totalDice} d10{totalDice !== 1 ? "s" : ""}
-          </p>
-
-          {rollResult !== null && (
-            <div className="rounded border border-white/30 bg-black/20 p-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/80">
-                Result
-              </p>
-              <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
-                {rollResult.map((value, i) => {
-                  const isSuccess = value >= 8;
-                  const isTen = value === 10;
-                  const isOne = value === 1;
-                  const colorClass = isSuccess
-                    ? "text-neblirSafe-600"
-                    : isOne
-                      ? "text-neblirDanger-400"
-                      : "";
-                  const boldClass = isTen ? "font-bold" : "";
-                  const spanClass = [colorClass, boldClass]
-                    .filter(Boolean)
-                    .join(" ");
-                  return (
-                    <span key={i} className={spanClass || undefined}>
-                      {value}
-                      {i < rollResult.length - 1 ? ", " : ""}
-                    </span>
-                  );
-                })}
-              </p>
-            </div>
-          )}
-
-          {rollResult !== null &&
-            rollResult.some((v) => v >= 8) &&
-            (attackType !== "grid" || baseDamageDice > 0) && (
-              <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
-                <p className="text-sm font-medium text-white">Deal Damage</p>
-                {damageHint && (
-                  <p className="text-xs text-white/75">{damageHint}</p>
-                )}
-                <p className="text-xs text-white/80">
-                  {damageDice
-                    .filter((d) => d.numberOfDice > 0)
-                    .map((d) => `${d.numberOfDice}d${d.diceType}`)
-                    .join(" + ")}
-                  {damageExtraDice !== 0
-                    ? ` + ${damageExtraDice} extra d${baseDamageType}`
-                    : ""}{" "}
-                  = {totalDamageDice} total dice
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/80">Extra dice (GM)</span>
-                  <button
-                    type="button"
-                    onClick={() => setDamageExtraDice((d) => d - 1)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
-                    aria-label="Decrease extra damage dice"
-                  >
-                    −
-                  </button>
-                  <span className="min-w-[2rem] text-center text-sm font-bold text-white">
-                    {damageExtraDice >= 0
-                      ? `+${damageExtraDice}`
-                      : damageExtraDice}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setDamageExtraDice((d) => d + 1)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-2 border-white bg-transparent text-sm font-bold text-white transition-colors hover:bg-white/10"
-                    aria-label="Increase extra damage dice"
-                  >
-                    +
-                  </button>
-                </div>
-                <button
+      }
+    >
+      <div className="space-y-4">
+        {modifierHint && (
+          <p className="text-xs text-white/75">{modifierHint}</p>
+        )}
+        {attackType !== "grid" && (
+          <div>
+            <p className="mb-2 text-sm font-medium text-white">Select weapon</p>
+            <div className="flex flex-col gap-2">
+              {options.map((opt, i) => (
+                <Button
+                  key={i}
                   type="button"
-                  onClick={handleDamageRoll}
-                  disabled={totalDamageDice === 0}
-                  className="w-full rounded border-2 border-white bg-white py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
+                  variant={
+                    selectedIndex === i
+                      ? "modalOptionSelected"
+                      : "modalOptionUnselected"
+                  }
+                  fullWidth={false}
+                  className="w-full"
+                  onClick={() => setSelectedIndex(i)}
                 >
-                  ROLL DAMAGE
-                </button>
-                {damageRollResult !== null &&
-                  (() => {
-                    const total = damageRollResult.reduce((a, b) => a + b, 0);
-                    const typeLabel = selected?.damageText
-                      ? formatDamageTypeLabel(selected.damageText)
-                      : "";
-                    return (
-                      <div className="rounded border border-white/20 bg-black/20 p-2">
-                        <p className="text-xs font-medium uppercase tracking-wider text-white/70">
-                          Damage
-                        </p>
-                        <p className="text-base tabular-nums text-white">
-                          {damageRollResult.join(" + ")} ={" "}
-                          <span className="font-bold">
-                            {total} HP
-                            {typeLabel ? ` (${typeLabel})` : ""}
-                          </span>
-                        </p>
-                      </div>
-                    );
-                  })()}
-              </div>
-            )}
+                  {optionLabel(opt)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
-          <div className="flex gap-3 pt-2">
-            <button
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm font-medium text-white">Extra dice</span>
+          <div className="flex items-center gap-2">
+            <Button
               type="button"
-              onClick={() => void handleRoll()}
-              disabled={totalDice === 0}
-              className="flex-1 rounded-md border-2 border-white bg-white py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90 disabled:opacity-50 disabled:hover:bg-white"
+              variant="modalIconStepper"
+              fullWidth={false}
+              onClick={() => setExtraDice((d) => d - 1)}
+              aria-label="Decrease extra dice"
             >
-              ROLL
-            </button>
-            <button
+              −
+            </Button>
+            <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+              {extraDice >= 0 ? `+${extraDice}` : extraDice}
+            </span>
+            <Button
               type="button"
-              onClick={onClose}
-              className="flex-1 rounded-md border-2 border-white bg-transparent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              variant="modalIconStepper"
+              fullWidth={false}
+              onClick={() => setExtraDice((d) => d + 1)}
+              aria-label="Increase extra dice"
             >
-              Close
-            </button>
+              +
+            </Button>
           </div>
         </div>
+
+        <p className="text-sm font-medium text-white">
+          Total: {totalDice} d10{totalDice !== 1 ? "s" : ""}
+        </p>
+
+        {rollResult !== null && (
+          <div className="rounded border border-white/30 bg-black/20 p-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/80">
+              Result
+            </p>
+            <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
+              {rollResult.map((value, i) => {
+                const isSuccess = value >= 8;
+                const isTen = value === 10;
+                const isOne = value === 1;
+                const colorClass = isSuccess
+                  ? "text-neblirSafe-600"
+                  : isOne
+                    ? "text-neblirDanger-400"
+                    : "";
+                const boldClass = isTen ? "font-bold" : "";
+                const spanClass = [colorClass, boldClass]
+                  .filter(Boolean)
+                  .join(" ");
+                return (
+                  <span key={i} className={spanClass || undefined}>
+                    {value}
+                    {i < rollResult.length - 1 ? ", " : ""}
+                  </span>
+                );
+              })}
+            </p>
+          </div>
+        )}
+
+        {rollResult !== null &&
+          rollResult.some((v) => v >= 8) &&
+          (attackType !== "grid" || baseDamageDiceTotal > 0) && (
+            <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
+              <p className="text-sm font-medium text-white">Deal Damage</p>
+              {damageHint && (
+                <p className="whitespace-pre-line text-xs text-white/75">
+                  {damageHint}
+                </p>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/80">Extra dice (GM)</span>
+                <Button
+                  type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
+                  onClick={() => setDamageExtraDice((d) => d - 1)}
+                  aria-label="Decrease extra damage dice"
+                >
+                  −
+                </Button>
+                <span className="min-w-[2rem] text-center text-sm font-bold text-white">
+                  {damageExtraDice >= 0
+                    ? `+${damageExtraDice}`
+                    : damageExtraDice}
+                </span>
+                <Button
+                  type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
+                  onClick={() => setDamageExtraDice((d) => d + 1)}
+                  aria-label="Increase extra damage dice"
+                >
+                  +
+                </Button>
+              </div>
+              <p className="text-md text-white">
+                {damageDice
+                  .filter((d) => d.numberOfDice > 0)
+                  .map((d) => `${d.numberOfDice}d${d.diceType}`)
+                  .join(" + ")}
+                {damageExtraDice !== 0
+                  ? ` + ${damageExtraDice} extra d${baseDamageType}`
+                  : ""}{" "}
+                = {totalDamageDice} total dice
+              </p>
+              <Button
+                type="button"
+                variant="modalBlockPrimary"
+                onClick={handleDamageRoll}
+                disabled={totalDamageDice === 0}
+              >
+                ROLL DAMAGE
+              </Button>
+              {damageRollResult !== null &&
+                (() => {
+                  const total = damageRollResult.reduce((a, b) => a + b, 0);
+                  const typeLabel = selected?.damageText
+                    ? formatDamageTypeLabel(selected.damageText)
+                    : "";
+                  return (
+                    <div className="rounded border border-white/20 bg-black/20 p-2">
+                      <p className="text-xs font-medium uppercase tracking-wider text-white/70">
+                        Damage
+                      </p>
+                      <p className="text-base tabular-nums text-white">
+                        {damageRollResult.join(" + ")} ={" "}
+                        <span className="font-bold">
+                          {total} HP
+                          {typeLabel ? ` (${typeLabel})` : ""}
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })()}
+            </div>
+          )}
       </div>
-    </div>
+    </ModalShell>
   );
 }

@@ -1,3 +1,6 @@
+"use client";
+
+import Button from "@/app/components/shared/Button";
 import { ATTRIBUTE_GROUP_LABELS } from "./constants";
 
 type Props = {
@@ -18,77 +21,92 @@ export default function LevelUpQuickCheckModal({
 }: Props) {
   if (!open) return null;
 
+  const title = open === "attributes" ? "Current attributes" : "Current skills";
+  const maxW =
+    open === "attributes" ? "max-w-lg lg:max-w-3xl" : "max-w-lg lg:max-w-xl";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="level-up-quickcheck-title"
+      onClick={onClose}
     >
-      <div className="w-full max-w-lg rounded border border-black/20 bg-modalBackground-200 p-4 shadow-lg">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-black">
-            {open === "attributes" && "Current attributes"}
-            {open === "skills" && "Current skills"}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded px-2 py-1 text-sm text-black/70 hover:bg-black/10"
+      <div
+        className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded border border-black/20 bg-modalBackground-200 shadow-lg ${maxW}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/15 px-4 py-3">
+          <h2
+            id="level-up-quickcheck-title"
+            className="text-base font-semibold text-black"
           >
-            Close
-          </button>
+            {title}
+          </h2>
+          <Button
+            type="button"
+            variant="modalCloseLight"
+            fullWidth={false}
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </Button>
         </div>
 
-        {open === "attributes" && (
-          <div className="max-h-80 overflow-y-auto bg-transparent p-2">
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(
-                Object.keys(ATTRIBUTE_GROUP_LABELS) as Array<
-                  keyof typeof ATTRIBUTE_GROUP_LABELS
-                >
-              ).map((groupKey) => {
-                const items = groupedAttributesForDisplay.get(groupKey) ?? [];
-                return (
-                  <div
-                    key={groupKey}
-                    className="rounded border border-black/20 bg-transparent p-2"
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {open === "attributes" && (
+            <div className="bg-transparent p-2">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(
+                  Object.keys(ATTRIBUTE_GROUP_LABELS) as Array<
+                    keyof typeof ATTRIBUTE_GROUP_LABELS
                   >
-                    <p className="mb-2 text-sm font-semibold text-black">
-                      {ATTRIBUTE_GROUP_LABELS[groupKey]}
-                    </p>
-                    <div className="space-y-1">
-                      {items.map((item) => (
-                        <div
-                          key={`${groupKey}-${item.label}`}
-                          className="flex items-center justify-between rounded px-2 py-1 text-sm"
-                        >
-                          <span className="text-black/80">{item.label}</span>
-                          <span className="font-semibold text-black">
-                            {item.value}
-                          </span>
-                        </div>
-                      ))}
+                ).map((groupKey) => {
+                  const items = groupedAttributesForDisplay.get(groupKey) ?? [];
+                  return (
+                    <div
+                      key={groupKey}
+                      className="rounded border border-black/20 bg-transparent p-2"
+                    >
+                      <p className="mb-2 text-sm font-semibold text-black">
+                        {ATTRIBUTE_GROUP_LABELS[groupKey]}
+                      </p>
+                      <div className="space-y-1">
+                        {items.map((item) => (
+                          <div
+                            key={`${groupKey}-${item.label}`}
+                            className="flex items-center justify-between rounded px-2 py-1 text-sm"
+                          >
+                            <span className="text-black/80">{item.label}</span>
+                            <span className="font-semibold text-black">
+                              {item.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {open === "skills" && (
-          <div className="max-h-80 space-y-1 overflow-y-auto rounded border border-black/15 bg-transparent p-2">
-            {currentSkillsForDisplay.map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between rounded px-2 py-1 text-sm"
-              >
-                <span className="text-black/80">{item.label}</span>
-                <span className="font-semibold text-black">{item.value}</span>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          )}
+
+          {open === "skills" && (
+            <div className="space-y-1 overflow-y-auto rounded border border-black/15 bg-transparent p-2">
+              {currentSkillsForDisplay.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between rounded px-2 py-1 text-sm"
+                >
+                  <span className="text-black/80">{item.label}</span>
+                  <span className="font-semibold text-black">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

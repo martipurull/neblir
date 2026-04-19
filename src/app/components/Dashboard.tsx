@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-6xl">
       <h2 className="mb-6 text-center text-2xl font-bold text-black sm:mb-8 sm:text-3xl">
         Dashboard
       </h2>
@@ -73,11 +73,9 @@ const Dashboard: React.FC = () => {
           <Link
             key={tab.label}
             href={tab.link}
-            className="text-lg font-semibold text-black sm:text-xl"
+            className="mb-6 block rounded-lg border border-black bg-transparent p-4 text-lg font-semibold text-black transition-colors duration-500 ease-in-out sm:mb-8 sm:p-6 sm:text-xl md:hover:bg-paleBlue/30"
           >
-            <section className="mb-6 rounded-lg border border-black bg-transparent p-4 sm:mb-8 sm:p-6">
-              {tab.label}
-            </section>
+            {tab.label}
           </Link>
         ))}
       </div>

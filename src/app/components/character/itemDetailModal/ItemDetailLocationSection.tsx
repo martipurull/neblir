@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/app/components/shared/Button";
 import React from "react";
 
 type ItemDetailLocationSectionProps = {
@@ -33,27 +34,29 @@ export function ItemDetailLocationSection({
             value={leaveLocationInput}
             onChange={(e) => onLeaveInputChange(e.target.value)}
             placeholder="e.g. Safe house, Car trunk"
-            className="rounded border border-white/30 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="rounded border border-white/30 bg-paleBlue/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
             aria-label="Where you left the item"
           />
-          <button
+          <Button
             type="button"
+            variant="modalSubtleWhiteBorderBlock"
+            fullWidth={false}
             onClick={onLeaveSomewhere}
             disabled={!leaveLocationInput.trim() || isSettingLocation}
-            className="rounded border border-white/30 bg-transparent px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
           >
             {isSettingLocation ? "Updating…" : "Leave somewhere"}
-          </button>
+          </Button>
         </div>
       ) : (
-        <button
+        <Button
           type="button"
+          variant="modalSubtleWhiteBorderBlock"
+          fullWidth={false}
           onClick={onTakeWithYou}
           disabled={isSettingLocation}
-          className="rounded border border-white/30 bg-transparent px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
         >
           {isSettingLocation ? "Updating…" : "Take with you"}
-        </button>
+        </Button>
       )}
       {locationError && (
         <p className="text-sm text-neblirDanger-400">{locationError}</p>
