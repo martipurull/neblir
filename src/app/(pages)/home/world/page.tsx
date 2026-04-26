@@ -1,14 +1,13 @@
-import React from "react";
+import { ReferenceEntriesPage } from "@/app/components/reference/ReferenceEntriesPage";
 
-const WorldPage: React.FC = () => {
+export default function WorldPage() {
   return (
-    <section className="rounded-lg bg-transparent p-4 sm:p-6">
-      <h1 className="text-xl font-semibold sm:text-2xl">World</h1>
-      <p className="mt-2 text-sm text-black sm:text-base">
-        World page coming soon.
-      </p>
-    </section>
+    <ReferenceEntriesPage
+      category="WORLD"
+      title="World"
+      description="Neblir is the only known continent in the world of Sikina."
+      loadingText="Loading world lore..."
+      emptyText="No world entries found."
+    />
   );
-};
-
-export default WorldPage;
+}

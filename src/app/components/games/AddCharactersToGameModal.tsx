@@ -11,6 +11,7 @@ import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
+import Image from "next/image";
 
 type AddCharactersResponse = {
   success: boolean;
@@ -247,13 +248,15 @@ export default function AddCharactersToGameModal({
                         label={<span className="sr-only">{name}</span>}
                         className="shrink-0"
                       />
-                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
+                      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
                         {avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={avatarUrl}
                             alt=""
-                            className="h-full w-full object-cover object-top"
+                            fill
+                            sizes="36px"
+                            className="object-cover object-top"
+                            unoptimized
                           />
                         ) : avatarUrl === undefined ? (
                           <ImageLoadingSkeleton variant="avatar" />

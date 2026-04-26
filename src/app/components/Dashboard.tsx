@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     { label: "Games", link: "/home/games" },
     { label: "Mechanics", link: "/home/mechanics" },
     { label: "World", link: "/home/world" },
-    { label: "Dice Roller", link: "/home/dice-roller" },
+    { label: "Maps", link: "/home/maps" },
   ];
 
   return (
