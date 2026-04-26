@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     { label: "Games", link: "/home/games" },
     { label: "Mechanics", link: "/home/mechanics" },
     { label: "World", link: "/home/world" },
-    { label: "Dice Roller", link: "/home/dice-roller" },
+    { label: "Maps", link: "/home/maps" },
   ];
 
   return (
@@ -73,7 +73,7 @@ const Dashboard: React.FC = () => {
           <Link
             key={tab.label}
             href={tab.link}
-            className="mb-6 block rounded-lg border border-black bg-transparent p-4 text-lg font-semibold text-black transition-colors duration-500 ease-in-out sm:mb-8 sm:p-6 sm:text-xl md:hover:bg-paleBlue/30"
+            className="mb-6 block rounded-lg border border-black bg-transparent p-4 text-lg font-semibold text-black transition-colors duration-200 ease-in-out sm:mb-8 sm:p-6 sm:text-xl md:hover:bg-paleBlue/30"
           >
             {tab.label}
           </Link>

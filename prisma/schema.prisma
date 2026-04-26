@@ -176,6 +176,17 @@ enum RollType {
   INITIATIVE
 }
 
+enum ReferenceCategory {
+  MECHANICS
+  WORLD
+  CAMPAIGN_LORE
+}
+
+enum ReferenceAccess {
+  PLAYER
+  GAME_MASTER
+}
+
 type CharacterCombatInformation {
   armourCurrentHP   Int
   armourMaxHP       Int
@@ -403,8 +414,51 @@ model Game {
   initiativeOrder  CharacterInitiative[]
   discordIntegration DiscordIntegration?
   rollEvents       RollEvent[]
+  referenceEntries ReferenceEntry[]
+  maps             Map[]
 
   @@index([gameMaster])
+}
+
+model ReferenceEntry {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  category    ReferenceCategory
+  slug        String
+  title       String
+  summary     String?
+  access      ReferenceAccess   @default(PLAYER)
+  tags        String[]          @default([])
+  sortOrder   Int               @default(0)
+  contentJson Json?
+  contentHtml String?
+  sourceFile  String?
+  gameId      String?           @db.ObjectId
+  game        Game?             @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([category, slug, gameId])
+  @@index([category])
+  @@index([access])
+  @@index([gameId])
+  @@index([tags])
+}
+
+model Map {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  imageKey String
+  description String?
+  gameId String? @db.ObjectId
+  game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@index([gameId])
+  @@index([description])
+  @@index([imageKey])
+  @@index([createdAt])
+  @@index([updatedAt])
 }
 
 model DiscordIntegration {

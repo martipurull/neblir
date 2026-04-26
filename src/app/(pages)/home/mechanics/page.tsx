@@ -1,14 +1,13 @@
-import React from "react";
+import { ReferenceEntriesPage } from "@/app/components/reference/ReferenceEntriesPage";
 
-const MechanicsPage: React.FC = () => {
+export default function MechanicsPage() {
   return (
-    <section className="rounded-lg bg-transparent p-4 sm:p-6">
-      <h1 className="text-xl font-semibold sm:text-2xl">Mechanics</h1>
-      <p className="mt-2 text-sm text-black sm:text-base">
-        Mechanics page coming soon.
-      </p>
-    </section>
+    <ReferenceEntriesPage
+      category="MECHANICS"
+      title="Mechanics"
+      description="Rules and gameplay references for running and playing Neblir."
+      loadingText="Loading mechanics..."
+      emptyText="No mechanics entries found."
+    />
   );
-};
-
-export default MechanicsPage;
+}

@@ -144,7 +144,9 @@ export type AppButtonVariant =
   | "lightOutlineDangerSm"
   | "lightOutlineMutedSm"
   | "lightRemoveLinkOnPale"
-  | "lightRemoveLinkOnModal";
+  | "lightRemoveLinkOnModal"
+  /** Full-width title disclosure for reference/map cards. */
+  | "lightReferenceDisclosure";
 
 const primary =
   "min-h-11 rounded-md bg-customPrimary px-4 py-2 text-customSecondary transition-colors hover:bg-customPrimaryHover active:bg-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-200 disabled:opacity-80 disabled:hover:bg-gray-500 disabled:active:bg-gray-500";
@@ -379,6 +381,9 @@ const lightRemoveLinkOnPale =
 const lightRemoveLinkOnModal =
   "shrink-0 text-sm text-white/80 underline transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50";
 
+const lightReferenceDisclosure =
+  "flex w-full items-center justify-between gap-3 rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
+
 export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primary,
   secondary,
@@ -459,4 +464,5 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   lightOutlineMutedSm,
   lightRemoveLinkOnPale,
   lightRemoveLinkOnModal,
+  lightReferenceDisclosure,
 };
