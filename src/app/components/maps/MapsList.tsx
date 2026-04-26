@@ -4,6 +4,7 @@ import type { GameMap } from "@/app/lib/types/map";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
+import Button from "../shared/Button";
 import ImageLoadingSkeleton from "../shared/ImageLoadingSkeleton";
 
 interface MapsListProps {
@@ -47,12 +48,12 @@ export function MapsList({ maps }: MapsListProps) {
         return (
           <article
             key={map.id}
-            className="rounded-md border border-black bg-paleBlue/10 p-4"
+            className={`rounded-md border border-black bg-paleBlue/10 p-4 transition-colors duration-200 ease-in-out ${hasMultipleMaps ? "md:hover:bg-paleBlue/30" : ""}`.trim()}
           >
             {hasMultipleMaps ? (
-              <button
+              <Button
                 type="button"
-                className="flex w-full items-center justify-between gap-3 text-left"
+                variant="lightReferenceDisclosure"
                 aria-expanded={isExpanded}
                 onClick={() => toggleMap(map.id)}
               >
@@ -69,7 +70,7 @@ export function MapsList({ maps }: MapsListProps) {
                 <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-black/70">
                   {isExpanded ? "Hide" : "Show"}
                 </span>
-              </button>
+              </Button>
             ) : (
               <header className="mb-3">
                 <h2 className="text-lg font-semibold text-black">{map.name}</h2>

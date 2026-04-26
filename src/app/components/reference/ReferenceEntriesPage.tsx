@@ -6,6 +6,7 @@ import type {
 } from "@/app/lib/types/reference";
 import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import React, { useState } from "react";
+import Button from "../shared/Button";
 import ErrorState from "../shared/ErrorState";
 import InfoCard from "../shared/InfoCard";
 import LoadingState from "../shared/LoadingState";
@@ -96,12 +97,12 @@ export function ReferenceEntriesPage({
             return (
               <article
                 key={entry.id}
-                className="rounded-md border border-black bg-paleBlue/10 p-4"
+                className={`rounded-md border border-black bg-paleBlue/10 p-4 transition-colors duration-200 ease-in-out ${hasMultipleEntries ? "md:hover:bg-paleBlue/30" : ""}`.trim()}
               >
                 {hasMultipleEntries ? (
-                  <button
+                  <Button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 text-left"
+                    variant="lightReferenceDisclosure"
                     aria-expanded={isExpanded}
                     onClick={() => toggleEntry(entry.id)}
                   >
@@ -118,7 +119,7 @@ export function ReferenceEntriesPage({
                     <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-black/70">
                       {isExpanded ? "Hide" : "Show"}
                     </span>
-                  </button>
+                  </Button>
                 ) : (
                   <header className="mb-3">
                     <h2 className="text-lg font-semibold text-black">
