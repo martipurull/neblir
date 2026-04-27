@@ -22,6 +22,7 @@
     "cypress:run": "cypress run",
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate",
+    "prisma:backfill:special-abilities": "tsx prisma/scripts/backfillCharacterSpecialAbilities.ts",
     "reference:import": "tsx prisma/scripts/importReferenceEntries.ts",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",
     "prepare": "husky",

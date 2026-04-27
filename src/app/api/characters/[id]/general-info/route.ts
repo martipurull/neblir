@@ -7,6 +7,7 @@ import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { resolveSpecialAbilityForRace } from "@/app/lib/specialAbility";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -70,6 +71,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...existingCharacter.generalInformation,
       ...parsedBody,
     };
+    if (parsedBody.race) {
+      newGeneralInformation.specialAbility = resolveSpecialAbilityForRace(
+        parsedBody.race,
+        undefined
+      );
+    }
 
     const updateData: Parameters<typeof updateCharacter>[1] = {
       generalInformation: newGeneralInformation,

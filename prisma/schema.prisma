@@ -119,6 +119,12 @@ enum Race {
   MANFENN
 }
 
+enum SpecialAbilityName {
+  INNATE_MANIPULATION
+  TELEPATHY_DARKVISION
+  DOUBLE_OPPOSABLE_THUMBS
+}
+
 enum Religion {
   TRITHEOLOGY
   PANTRITHEOLOGY
@@ -215,9 +221,15 @@ type CharacterGeneralInformation {
   surname    String
   profession String
   race       Race
+  specialAbility CharacterSpecialAbility?
   religion   Religion
   height     Int
   weight     Int
+}
+
+type CharacterSpecialAbility {
+  name        SpecialAbilityName
+  description String
 }
 
 type CharacterHealth {

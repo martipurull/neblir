@@ -1,5 +1,9 @@
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import type { Race, Religion } from "@prisma/client";
+import {
+  MANFENN_SPECIAL_ABILITY_CHOICES,
+  getSpecialAbilityLabel,
+} from "@/app/lib/specialAbility";
 
 /** Default values for character creation form (matches API schema). */
 export function getDefaultCharacterCreationFormValues(): CharacterCreationRequest {
@@ -12,6 +16,7 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
       religion: "ATHEIST" as Religion,
       profession: "",
       race: "HUMAN" as Race,
+      specialAbilityName: "INNATE_MANIPULATION",
       birthplace: "",
       backstory: "",
       summary: "",
@@ -88,6 +93,12 @@ export const RELIGIONS: { value: Religion; label: string }[] = [
   { value: "ATHEIST", label: "Atheist" },
   { value: "AGNOSTIC", label: "Agnostic" },
 ];
+
+export const MANFENN_SPECIAL_ABILITY_OPTIONS =
+  MANFENN_SPECIAL_ABILITY_CHOICES.map((value) => ({
+    value,
+    label: getSpecialAbilityLabel(value),
+  }));
 
 export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
 
