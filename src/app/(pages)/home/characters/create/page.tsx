@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { useRouter, useSearchParams } from "next/navigation";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import { DangerButton } from "@/app/components/shared/SemanticActionButton";
@@ -10,17 +10,38 @@ import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { getDefaultCharacterCreationFormValues } from "./schemas";
 import { CreateCharacterFormContent } from "./CreateCharacterFormContent";
-import { CREATE_CHARACTER_DRAFT_KEY } from "./characterCreateDraft";
+import {
+  CREATE_CHARACTER_DRAFT_KEY,
+  CREATE_CHARACTER_FEATURES_DRAFT_KEY,
+  CREATE_CHARACTER_STEP_DRAFT_KEY,
+} from "./characterCreateDraft";
 
 export default function CreateCharacterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const freshStart = searchParams.get("fresh") === "1";
   const form = useForm<CharacterCreationRequest>({
     defaultValues: getDefaultCharacterCreationFormValues(),
     mode: "onTouched",
   });
+  const draftValues = useWatch({ control: form.control });
+
+  React.useEffect(() => {
+    if (!freshStart) return;
+    try {
+      window.localStorage.removeItem(CREATE_CHARACTER_DRAFT_KEY);
+      window.localStorage.removeItem(CREATE_CHARACTER_FEATURES_DRAFT_KEY);
+      window.localStorage.removeItem(CREATE_CHARACTER_STEP_DRAFT_KEY);
+    } catch {
+      // ignore
+    }
+    form.reset(getDefaultCharacterCreationFormValues());
+    router.replace("/home/characters/create");
+  }, [form, freshStart, router]);
 
   // Restore/persist draft so refresh doesn't lose progress.
   React.useEffect(() => {
+    if (freshStart) return;
     try {
       const raw = window.localStorage.getItem(CREATE_CHARACTER_DRAFT_KEY);
       if (!raw) return;
@@ -32,22 +53,18 @@ export default function CreateCharacterPage() {
     } catch {
       // ignore
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [form, freshStart]);
 
   React.useEffect(() => {
-    const sub = form.watch((values) => {
-      try {
-        window.localStorage.setItem(
-          CREATE_CHARACTER_DRAFT_KEY,
-          JSON.stringify(values)
-        );
-      } catch {
-        // ignore
-      }
-    });
-    return () => sub.unsubscribe();
-  }, [form]);
+    try {
+      window.localStorage.setItem(
+        CREATE_CHARACTER_DRAFT_KEY,
+        JSON.stringify(draftValues)
+      );
+    } catch {
+      // ignore
+    }
+  }, [draftValues]);
 
   return (
     <PageSection>

@@ -48,13 +48,22 @@ export function CharacterHeaderInfo({
 
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {avatarUrl ? (
-          <Image
-            src={avatarUrl}
-            alt={`${name} avatar`}
-            width={48}
-            height={48}
-            className="h-12 w-12 object-cover object-top"
-          />
+          <a
+            href={avatarUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+            aria-label={`Open ${name} avatar image`}
+            title="Open full avatar image"
+          >
+            <Image
+              src={avatarUrl}
+              alt={`${name} avatar`}
+              width={48}
+              height={48}
+              className="h-12 w-12 object-cover object-top"
+            />
+          </a>
         ) : (
           <ImageLoadingSkeleton
             variant="avatar"
