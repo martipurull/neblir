@@ -28,7 +28,19 @@ function setZodErrors(
   for (const issue of error.issues) {
     const path = issue.path.join(".");
     if (path) setError(path as never, { message: issue.message });
+    else
+      setError("generalInformation" as never, {
+        message: issue.message,
+      });
   }
+}
+
+function summarizeZodError(error: z.ZodError): string {
+  const lines = error.issues.map((issue) => {
+    const loc = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
+    return `${loc}${issue.message}`;
+  });
+  return [...new Set(lines)].join(" ");
 }
 
 export function useCharacterUpdateController() {
@@ -47,6 +59,9 @@ export function useCharacterUpdateController() {
   );
   const [confirmedLevel, setConfirmedLevel] = useState<number | null>(null);
   const [initialLevel, setInitialLevel] = useState<number | null>(null);
+  const [nextValidationMessage, setNextValidationMessage] = useState<
+    string | null
+  >(null);
 
   const { getValues, setError, clearErrors, watch } =
     useFormContext<CharacterUpdateFormValues>();
@@ -116,11 +131,11 @@ export function useCharacterUpdateController() {
     [initialFeatures]
   );
 
-  const validateCurrentStep = useCallback((): boolean => {
+  const validateCurrentStep = useCallback((): string | null => {
     clearErrors();
     const values = getValues();
 
-    if (currentStepIndex === 0) return true;
+    if (currentStepIndex === 0) return null;
 
     if (currentStepIndex === 1) {
       const res =
@@ -129,16 +144,16 @@ export function useCharacterUpdateController() {
         );
       if (!res.success) {
         setZodErrors(setError, res.error);
-        return false;
+        return summarizeZodError(res.error);
       }
       const walletRes = characterCreationRequestSchema.shape.wallet.safeParse(
         values.wallet
       );
       if (!walletRes.success) {
         setZodErrors(setError, walletRes.error);
-        return false;
+        return summarizeZodError(walletRes.error);
       }
-      return true;
+      return null;
     }
 
     if (currentStepIndex === 2) {
@@ -148,7 +163,7 @@ export function useCharacterUpdateController() {
         );
       if (!res.success) {
         setZodErrors(setError, res.error);
-        return false;
+        return summarizeZodError(res.error);
       }
 
       const groups = Object.values(values.innateAttributes ?? {});
@@ -161,12 +176,11 @@ export function useCharacterUpdateController() {
       }, 0);
 
       if (sum > 36) {
-        setError("innateAttributes" as never, {
-          message: "Innate attributes sum cannot exceed 36.",
-        });
-        return false;
+        const msg = "Innate attributes sum cannot exceed 36.";
+        setError("innateAttributes" as never, { message: msg });
+        return msg;
       }
-      return true;
+      return null;
     }
 
     if (currentStepIndex === 3) {
@@ -176,7 +190,7 @@ export function useCharacterUpdateController() {
       );
       if (!healthRes.success) {
         setZodErrors(setError, healthRes.error);
-        return false;
+        return summarizeZodError(healthRes.error);
       }
 
       const maxRolled = 10 * level;
@@ -185,20 +199,18 @@ export function useCharacterUpdateController() {
       const rolledMental = values.health?.rolledMentalHealth ?? 10;
 
       if (rolledPhysical < minRolled || rolledPhysical > maxRolled) {
-        setError("health.rolledPhysicalHealth" as never, {
-          message: `Physical rolled health must be between ${minRolled} and ${maxRolled} for level ${level}.`,
-        });
-        return false;
+        const msg = `Physical rolled health must be between ${minRolled} and ${maxRolled} for level ${level}.`;
+        setError("health.rolledPhysicalHealth" as never, { message: msg });
+        return msg;
       }
 
       if (rolledMental < minRolled || rolledMental > maxRolled) {
-        setError("health.rolledMentalHealth" as never, {
-          message: `Mental rolled health must be between ${minRolled} and ${maxRolled} for level ${level}.`,
-        });
-        return false;
+        const msg = `Mental rolled health must be between ${minRolled} and ${maxRolled} for level ${level}.`;
+        setError("health.rolledMentalHealth" as never, { message: msg });
+        return msg;
       }
 
-      return true;
+      return null;
     }
 
     if (currentStepIndex === 4) {
@@ -207,7 +219,7 @@ export function useCharacterUpdateController() {
       );
       if (!res.success) {
         setZodErrors(setError, res.error);
-        return false;
+        return summarizeZodError(res.error);
       }
 
       const level = values.generalInformation?.level ?? 1;
@@ -220,23 +232,23 @@ export function useCharacterUpdateController() {
       ).reduce((acc, v) => acc + (v === 5 ? 6 : v), 0);
 
       if (sum > learnedSkillsMax) {
-        setError("learnedSkills.generalSkills" as never, {
-          message: `Learned skills exceed maximum (${learnedSkillsMax}).`,
-        });
-        return false;
+        const msg = `Learned skills exceed maximum (${learnedSkillsMax}).`;
+        setError("learnedSkills.generalSkills" as never, { message: msg });
+        return msg;
       }
-      return true;
+      return null;
     }
 
     if (currentStepIndex === 5) {
       if (!values.path?.pathId?.trim()) {
-        setError("path.pathId" as never, { message: "Please select a path" });
-        return false;
+        const msg = "Please select a path";
+        setError("path.pathId" as never, { message: msg });
+        return msg;
       }
-      return true;
+      return null;
     }
 
-    return true;
+    return null;
   }, [clearErrors, currentStepIndex, getValues, setError]);
 
   const validateAllSteps = useCallback((): number | null => {
@@ -357,6 +369,7 @@ export function useCharacterUpdateController() {
   const goToStep = useCallback(
     (stepIndex: number) => {
       setSubmitSuccess(false);
+      setNextValidationMessage(null);
       if (stepIndex === currentStepIndex) return;
       if (currentStepIndex === 1 && needsLevelDecreaseConfirmation()) {
         setPendingStepIndex(stepIndex);
@@ -370,7 +383,12 @@ export function useCharacterUpdateController() {
 
   const onNext = useCallback(() => {
     setSubmitSuccess(false);
-    if (!validateCurrentStep()) return;
+    const validationMessage = validateCurrentStep();
+    if (validationMessage !== null) {
+      setNextValidationMessage(validationMessage);
+      return;
+    }
+    setNextValidationMessage(null);
     if (currentStepIndex === 1 && needsLevelDecreaseConfirmation()) {
       setPendingStepIndex(Math.min(STEPS.length - 1, currentStepIndex + 1));
       setShowLevelDecreaseConfirm(true);
@@ -381,6 +399,7 @@ export function useCharacterUpdateController() {
 
   const onBack = useCallback(() => {
     setSubmitSuccess(false);
+    setNextValidationMessage(null);
     if (currentStepIndex === 1 && needsLevelDecreaseConfirmation()) {
       setPendingStepIndex(Math.max(0, currentStepIndex - 1));
       setShowLevelDecreaseConfirm(true);
@@ -394,6 +413,7 @@ export function useCharacterUpdateController() {
     async (values: CharacterUpdateFormValues) => {
       setSubmitError(null);
       setSubmitSuccess(false);
+      setNextValidationMessage(null);
       const firstInvalidStep = validateAllSteps();
       if (firstInvalidStep !== null) {
         setCurrentStepIndex(firstInvalidStep);
@@ -416,7 +436,7 @@ export function useCharacterUpdateController() {
           initialFeatures,
         });
         setSubmitSuccess(true);
-        router.push(`/home/characters/${characterId}`);
+        router.replace(`/home/characters/${characterId}`);
       } catch (e) {
         setSubmitError(
           getUserSafeErrorMessage(e, "Failed to update character")
@@ -461,6 +481,7 @@ export function useCharacterUpdateController() {
     initialFeatures,
     setInitialFeatures,
     showLevelDecreaseConfirm,
+    nextValidationMessage,
     hasBlockingLevelIssues,
     onConfirmLevelDecrease,
     onCancelLevelDecrease,

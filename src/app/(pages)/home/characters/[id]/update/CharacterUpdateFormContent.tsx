@@ -25,6 +25,7 @@ export function CharacterUpdateFormContent() {
     initialFeatures,
     setInitialFeatures,
     showLevelDecreaseConfirm,
+    nextValidationMessage,
     hasBlockingLevelIssues,
     onConfirmLevelDecrease,
     onCancelLevelDecrease,
@@ -68,6 +69,11 @@ export function CharacterUpdateFormContent() {
             {submitError}
           </p>
         )}
+        {nextValidationMessage && (
+          <p className="text-sm text-neblirDanger-600" role="alert">
+            {nextValidationMessage}
+          </p>
+        )}
         {submitSuccess && (
           <p className="text-sm text-neblirSafe-600" role="status">
             Character updated successfully.
@@ -87,40 +93,44 @@ export function CharacterUpdateFormContent() {
           </p>
         )}
 
-        <div className="flex gap-3">
-          {currentStepIndex > 0 ? (
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth={false}
-              className="flex-1"
-              onClick={onBack}
-            >
-              Back
-            </Button>
-          ) : (
-            <div className="flex-1" />
-          )}
-
-          {!isLastStep ? (
-            <Button
-              type="button"
-              variant="primary"
-              fullWidth={false}
-              className="flex-1"
-              onClick={onNext}
-            >
-              Next
-            </Button>
-          ) : (
-            <div className="flex-1">
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3">
+            {currentStepIndex > 0 ? (
               <Button
-                type="submit"
-                text={isSubmitting ? "Saving..." : "Save changes"}
-                disabled={isSubmitting || hasBlockingLevelIssues}
-              />
-            </div>
-          )}
+                type="button"
+                variant="secondary"
+                fullWidth={false}
+                className="flex-1"
+                onClick={onBack}
+              >
+                Back
+              </Button>
+            ) : (
+              <div className="flex-1" />
+            )}
+
+            {!isLastStep ? (
+              <Button
+                type="button"
+                variant="primary"
+                fullWidth={false}
+                className="flex-1"
+                onClick={onNext}
+              >
+                Next
+              </Button>
+            ) : (
+              <div className="flex-1" />
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="lightSafePrimary"
+            fullWidth
+            text={isSubmitting ? "Saving..." : "Save changes"}
+            disabled={isSubmitting || hasBlockingLevelIssues}
+          />
         </div>
       </form>
       <DangerConfirmModal

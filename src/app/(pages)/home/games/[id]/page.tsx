@@ -41,6 +41,19 @@ export default function GameDetailPage() {
   const gameImageUrl = game?.imageKey
     ? (imageUrls[game.id] ?? undefined)
     : null;
+  const playerCharacterCount = useMemo(() => {
+    if (!game?.characters) return 0;
+    return game.characters.filter(
+      (gc) => !gc.character.linkedUserIds?.includes(game.gameMaster)
+    ).length;
+  }, [game?.characters, game?.gameMaster]);
+
+  const knownNpcCount = useMemo(() => {
+    if (!game?.characters || !game.gameMaster) return 0;
+    return game.characters.filter((gc) =>
+      gc.character.linkedUserIds?.includes(game.gameMaster)
+    ).length;
+  }, [game?.characters, game?.gameMaster]);
 
   const nextSessionValue =
     game?.nextSession != null
@@ -113,7 +126,7 @@ export default function GameDetailPage() {
           <PageTitle>{game.name}</PageTitle>
         </div>
 
-        {/* Section boxes: Next session, GM (only for GM), Characters, Custom items, Lore */}
+        {/* Section boxes: Next session, GM (only for GM), Player characters, Known NPCs, Custom items, Lore */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
           <div className="flex flex-col rounded-md border border-black p-4">
             <span className="text-sm font-semibold text-black">
@@ -151,9 +164,20 @@ export default function GameDetailPage() {
             href={`/home/games/${game.id}/characters`}
             className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
           >
-            <span className="text-sm font-semibold text-black">Characters</span>
+            <span className="text-sm font-semibold text-black">
+              Player Characters
+            </span>
             <span className="mt-1 text-xs text-black/70">
-              {game.characters?.length ?? 0} linked
+              {playerCharacterCount} linked
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/characters#known-npcs`}
+            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
+          >
+            <span className="text-sm font-semibold text-black">Known NPCs</span>
+            <span className="mt-1 text-xs text-black/70">
+              {knownNpcCount} linked
             </span>
           </Link>
           <Link

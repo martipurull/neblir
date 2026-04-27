@@ -1,11 +1,9 @@
 "use client";
 
+import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
-
-const textareaClassName =
-  "min-h-36 w-full rounded-md border border-black/20 bg-transparent px-3 py-2 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover";
 
 export function BackstoryStep() {
   const { control } = useFormContext<CharacterCreationRequest>();
@@ -22,23 +20,20 @@ export function BackstoryStep() {
         <p className="mb-2 text-xs text-black/70">
           For your eyes only: what&apos;s your character story, how did they get
           to be in this adventure, what motivates them, what are they scared of?
-          You can revisit this later.
+          You can revisit this later. Use the toolbar for headings, lists, and
+          emphasis.
         </p>
         <Controller
           name="generalInformation.backstory"
           control={control}
           defaultValue=""
           render={({ field }) => (
-            <textarea
+            <GeneralInformationRichTextField
               id="generalInformation.backstory"
-              name={field.name}
-              ref={field.ref}
-              onBlur={field.onBlur}
+              value={field.value}
               onChange={field.onChange}
-              value={field.value ?? ""}
-              rows={8}
-              className={textareaClassName}
-              placeholder="Write your character backstory..."
+              onBlur={field.onBlur}
+              minHeightClass="min-h-36"
             />
           )}
         />
@@ -53,23 +48,19 @@ export function BackstoryStep() {
         </label>
         <p className="mb-2 text-xs text-black/70">
           What other players will see and know about your character from the
-          start
+          start. Rich text is stored as HTML and shown on game rosters.
         </p>
         <Controller
           name="generalInformation.summary"
           control={control}
           defaultValue=""
           render={({ field }) => (
-            <textarea
+            <GeneralInformationRichTextField
               id="generalInformation.summary"
-              name={field.name}
-              ref={field.ref}
-              onBlur={field.onBlur}
+              value={field.value}
               onChange={field.onChange}
-              value={field.value ?? ""}
-              rows={6}
-              className={textareaClassName}
-              placeholder="Write your public character description..."
+              onBlur={field.onBlur}
+              minHeightClass="min-h-28"
             />
           )}
         />

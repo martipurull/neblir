@@ -123,6 +123,8 @@ export type AppButtonVariant =
   | "secondaryOutlineXs"
   /** Full-width section header toggle (GM invites card). */
   | "lightSectionDisclosure"
+  /** Light UI — full-width Neblir safe outline (save / persist; contrasts with filled `primary` / Next). */
+  | "lightSafePrimary"
   /** Inverted CTA on light surfaces (add characters). */
   | "solidDark"
   /** Square summary expand/collapse on game characters list. */
@@ -336,6 +338,9 @@ const secondaryOutlineXs =
 const lightSectionDisclosure =
   "flex w-full items-center justify-between rounded-sm text-left transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
 
+const lightSafePrimary =
+  "min-h-11 rounded-md border-2 border-neblirSafe-400 bg-transparent px-4 py-2 text-sm font-semibold text-neblirSafe-600 transition-colors hover:border-neblirSafe-600 hover:bg-neblirSafe-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/45 disabled:cursor-not-allowed disabled:opacity-50";
+
 const solidDark =
   "inline-flex items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black";
 
@@ -449,6 +454,7 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primaryXs,
   secondaryOutlineXs,
   lightSectionDisclosure,
+  lightSafePrimary,
   solidDark,
   lightChevronExpand,
   lightCombatToggle,

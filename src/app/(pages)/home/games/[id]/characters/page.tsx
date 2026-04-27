@@ -32,6 +32,22 @@ export default function GameCharactersPage() {
   >({});
 
   const characters = useMemo(() => game?.characters ?? [], [game?.characters]);
+  const gameMasterId = game?.gameMaster ?? null;
+  const { playerCharacters, knownNpcs } = useMemo<{
+    playerCharacters: typeof characters;
+    knownNpcs: typeof characters;
+  }>(() => {
+    if (!gameMasterId) {
+      return { playerCharacters: characters, knownNpcs: [] };
+    }
+    const players = characters.filter(
+      (gc) => !gc.character.linkedUserIds?.includes(gameMasterId)
+    );
+    const npcs = characters.filter((gc) =>
+      gc.character.linkedUserIds?.includes(gameMasterId)
+    );
+    return { playerCharacters: players, knownNpcs: npcs };
+  }, [characters, gameMasterId]);
   const alreadyLinkedCharacterIds = useMemo(
     () => characters.map((gc) => gc.character.id),
     [characters]
@@ -46,6 +62,111 @@ export default function GameCharactersPage() {
     [game?.characters]
   );
   const imageUrls = useImageUrls(imageEntries);
+
+  const renderCharacterList = (
+    list: typeof characters,
+    gameId: string,
+    emptyText: string
+  ): React.ReactNode => {
+    if (list.length === 0) {
+      return <p className="py-2 text-sm text-black/60">{emptyText}</p>;
+    }
+
+    return (
+      <div className="space-y-2">
+        {list.map((gc) => {
+          const char = gc.character;
+          const gi = char.generalInformation;
+          const title = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
+          const imageUrl = char.avatarKey
+            ? (imageUrls[char.id] ?? undefined)
+            : null;
+          const initials =
+            char.name.charAt(0).toUpperCase() +
+            (char.surname?.charAt(0).toUpperCase() ??
+              char.name.charAt(1)?.toUpperCase() ??
+              "");
+
+          const summaryHtml = gi?.summary ?? "";
+          const summaryText = stripHtml(summaryHtml);
+          const expanded = expandedByCharacterId[char.id] === true;
+          const canExpand = summaryText.length > 180;
+
+          const rightAccessory = canExpand ? (
+            <Button
+              type="button"
+              variant="lightChevronExpand"
+              fullWidth={false}
+              aria-label={expanded ? "Collapse summary" : "Expand summary"}
+              aria-expanded={expanded}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setExpandedByCharacterId((prev) => ({
+                  ...prev,
+                  [char.id]: !expanded,
+                }));
+              }}
+            >
+              <span aria-hidden>{expanded ? "▾" : "▸"}</span>
+            </Button>
+          ) : null;
+
+          const summaryBlock = summaryHtml ? (
+            <div
+              className={[
+                "prose prose-sm max-w-none text-black/80",
+                expanded ? "" : "line-clamp-2",
+              ].join(" ")}
+              dangerouslySetInnerHTML={{ __html: summaryHtml }}
+            />
+          ) : (
+            <p className="text-sm text-black/60">No summary yet.</p>
+          );
+
+          const body = char.isOwnedByCurrentUser ? (
+            expanded ? (
+              <div className="space-y-2">
+                <p className="text-sm text-black/70">View character sheet</p>
+                {summaryBlock}
+                <RemoveCharacterFromGameButton
+                  className="pt-2"
+                  gameId={gameId}
+                  characterId={char.id}
+                  onRemoved={refetch}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-black/70">View character sheet</p>
+            )
+          ) : (
+            summaryBlock
+          );
+
+          return (
+            <ResourceListCard
+              key={gc.id}
+              href={
+                char.isOwnedByCurrentUser
+                  ? `/home/characters/${char.id}`
+                  : undefined
+              }
+              title={title}
+              subtitle={<>LVL {gi?.level ?? "—"}</>}
+              imageUrl={imageUrl}
+              imageAlt={`${char.name} avatar`}
+              placeholder={initials}
+              className={
+                char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
+              }
+              rightAccessory={rightAccessory}
+              body={body}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   if (loading || (!game && !error)) {
     return (
@@ -73,7 +194,7 @@ export default function GameCharactersPage() {
         <div>
           <PageTitle>Characters</PageTitle>
           <p className="mt-1 text-sm text-black/70">
-            Characters linked to{" "}
+            Player characters and known NPCs linked to{" "}
             <span className="font-semibold">{game.name}</span>
           </p>
         </div>
@@ -96,107 +217,30 @@ export default function GameCharactersPage() {
         onSuccess={() => void refetch()}
       />
 
-      <InfoCard border={false} className="mt-4">
-        {characters.length === 0 ? (
-          <p className="py-2 text-sm text-black/60">
-            No characters linked to this game yet.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {characters.map((gc) => {
-              const char = gc.character;
-              const gi = char.generalInformation;
-              const title = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
-              const imageUrl = char.avatarKey
-                ? (imageUrls[char.id] ?? undefined)
-                : null;
-              const initials =
-                char.name.charAt(0).toUpperCase() +
-                (char.surname?.charAt(0).toUpperCase() ??
-                  char.name.charAt(1)?.toUpperCase() ??
-                  "");
+      <InfoCard
+        id="player-characters"
+        border={false}
+        className="mt-4 scroll-mt-4"
+      >
+        <h2 className="text-sm font-semibold text-black">Player Characters</h2>
+        <div className="mt-2">
+          {renderCharacterList(
+            playerCharacters,
+            game.id,
+            "No player characters linked to this game yet."
+          )}
+        </div>
+      </InfoCard>
 
-              const summaryHtml = gi?.summary ?? "";
-              const summaryText = stripHtml(summaryHtml);
-              const expanded = expandedByCharacterId[char.id] === true;
-              const canExpand = summaryText.length > 180;
-
-              const rightAccessory = canExpand ? (
-                <Button
-                  type="button"
-                  variant="lightChevronExpand"
-                  fullWidth={false}
-                  aria-label={expanded ? "Collapse summary" : "Expand summary"}
-                  aria-expanded={expanded}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setExpandedByCharacterId((prev) => ({
-                      ...prev,
-                      [char.id]: !expanded,
-                    }));
-                  }}
-                >
-                  <span aria-hidden>{expanded ? "▾" : "▸"}</span>
-                </Button>
-              ) : null;
-
-              const summaryBlock = summaryHtml ? (
-                <div
-                  className={[
-                    "prose prose-sm max-w-none text-black/80",
-                    expanded ? "" : "line-clamp-2",
-                  ].join(" ")}
-                  dangerouslySetInnerHTML={{ __html: summaryHtml }}
-                />
-              ) : (
-                <p className="text-sm text-black/60">No summary yet.</p>
-              );
-
-              const body = char.isOwnedByCurrentUser ? (
-                expanded ? (
-                  <div className="space-y-2">
-                    <p className="text-sm text-black/70">
-                      View character sheet
-                    </p>
-                    {summaryBlock}
-                    <RemoveCharacterFromGameButton
-                      className="pt-2"
-                      gameId={game.id}
-                      characterId={char.id}
-                      onRemoved={refetch}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-black/70">View character sheet</p>
-                )
-              ) : (
-                summaryBlock
-              );
-
-              return (
-                <ResourceListCard
-                  key={gc.id}
-                  href={
-                    char.isOwnedByCurrentUser
-                      ? `/home/characters/${char.id}`
-                      : undefined
-                  }
-                  title={title}
-                  subtitle={<>LVL {gi?.level ?? "—"}</>}
-                  imageUrl={imageUrl}
-                  imageAlt={`${char.name} avatar`}
-                  placeholder={initials}
-                  className={
-                    char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
-                  }
-                  rightAccessory={rightAccessory}
-                  body={body}
-                />
-              );
-            })}
-          </div>
-        )}
+      <InfoCard id="known-npcs" border={false} className="mt-4 scroll-mt-4">
+        <h2 className="text-sm font-semibold text-black">Known NPCs</h2>
+        <div className="mt-2">
+          {renderCharacterList(
+            knownNpcs,
+            game.id,
+            "No known NPCs for this game yet."
+          )}
+        </div>
       </InfoCard>
     </PageSection>
   );
