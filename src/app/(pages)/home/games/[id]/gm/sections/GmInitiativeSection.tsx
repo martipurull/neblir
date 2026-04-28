@@ -13,6 +13,7 @@ type GmInitiativeSectionProps = {
   initiativeActionId: string | null;
   onClearAll: () => void;
   onRemoveEntry: (characterId: string) => void;
+  onAdjustEntry: (characterId: string, initiativeDelta: number) => void;
   onOpenRollModal: () => void;
 };
 
@@ -23,6 +24,7 @@ export function GmInitiativeSection({
   initiativeActionId,
   onClearAll,
   onRemoveEntry,
+  onAdjustEntry,
   onOpenRollModal,
 }: GmInitiativeSectionProps) {
   return (
@@ -63,16 +65,36 @@ export function GmInitiativeSection({
                   (total {entry.totalInitiative})
                 </span>
               </span>
-              <DangerButton
-                type="button"
-                disabled={initiativeActionId === entry.characterId}
-                onClick={() => onRemoveEntry(entry.characterId)}
-                className="shrink-0 whitespace-nowrap !px-2 !py-1 !text-xs min-w-[7.25rem] justify-center"
-              >
-                {initiativeActionId === entry.characterId
-                  ? "Removing…"
-                  : "Remove"}
-              </DangerButton>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button
+                  type="button"
+                  variant="secondaryOutlineXs"
+                  disabled={initiativeActionId === entry.characterId}
+                  onClick={() => onAdjustEntry(entry.characterId, -1)}
+                  className="!px-2 !py-1 !text-xs min-w-[2.25rem] justify-center"
+                >
+                  -1
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondaryOutlineXs"
+                  disabled={initiativeActionId === entry.characterId}
+                  onClick={() => onAdjustEntry(entry.characterId, +1)}
+                  className="!px-2 !py-1 !text-xs min-w-[2.25rem] justify-center"
+                >
+                  +1
+                </Button>
+                <DangerButton
+                  type="button"
+                  disabled={initiativeActionId === entry.characterId}
+                  onClick={() => onRemoveEntry(entry.characterId)}
+                  className="whitespace-nowrap !px-2 !py-1 !text-xs min-w-[7.25rem] justify-center"
+                >
+                  {initiativeActionId === entry.characterId
+                    ? "Updating…"
+                    : "Remove"}
+                </DangerButton>
+              </div>
             </li>
           ))}
         </ul>

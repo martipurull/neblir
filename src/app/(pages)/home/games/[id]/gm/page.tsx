@@ -17,7 +17,11 @@ import {
   GmPlaceholderSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
-import { clearGameInitiative, removeGameInitiativeEntry } from "@/lib/api/game";
+import {
+  adjustGameInitiativeEntry,
+  clearGameInitiative,
+  removeGameInitiativeEntry,
+} from "@/lib/api/game";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -58,6 +62,24 @@ export default function GameMasterPage() {
       setInitiativeActionId(characterId);
       try {
         const updated = await removeGameInitiativeEntry(id, characterId);
+        await mutate(updated, { revalidate: false });
+      } finally {
+        setInitiativeActionId(null);
+      }
+    },
+    [id, mutate]
+  );
+
+  const handleAdjustInitiativeEntry = useCallback(
+    async (characterId: string, initiativeDelta: number) => {
+      if (!id) return;
+      setInitiativeActionId(characterId);
+      try {
+        const updated = await adjustGameInitiativeEntry(
+          id,
+          characterId,
+          initiativeDelta
+        );
         await mutate(updated, { revalidate: false });
       } finally {
         setInitiativeActionId(null);
@@ -137,18 +159,11 @@ export default function GameMasterPage() {
           onRemoveEntry={(characterId) =>
             void handleRemoveInitiativeEntry(characterId)
           }
+          onAdjustEntry={(characterId, initiativeDelta) =>
+            void handleAdjustInitiativeEntry(characterId, initiativeDelta)
+          }
           onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
         />
-        {id && (
-          <GmDiscordSection
-            gameId={id}
-            integration={game.discordIntegration}
-            initialGuildId={discordGuildId}
-            onUpdated={async () => {
-              await mutate();
-            }}
-          />
-        )}
 
         <GmPlaceholderSection title="NPCs">
           Manage non-player characters for this game. Coming soon.
@@ -164,6 +179,17 @@ export default function GameMasterPage() {
           onInviteUsers={() => setInviteModalOpen(true)}
           pendingInvites={pendingInvites}
         />
+
+        {id && (
+          <GmDiscordSection
+            gameId={id}
+            integration={game.discordIntegration}
+            initialGuildId={discordGuildId}
+            onUpdated={async () => {
+              await mutate();
+            }}
+          />
+        )}
       </div>
 
       <InviteUsersModal

@@ -114,4 +114,249 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       });
     });
   });
+
+  describe("PATCH", () => {
+    it("returns 401 when unauthenticated", async () => {
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeUnauthedRequest({ initiativeDelta: 1 }),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(401);
+      expect(getGameWithDetailsMock).not.toHaveBeenCalled();
+      expect(updateGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when user id is missing", async () => {
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        {
+          auth: { user: {} },
+          json: vi.fn().mockResolvedValue({ initiativeDelta: 1 }),
+        } as any,
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(400);
+      expect(getGameWithDetailsMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for invalid game id param", async () => {
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "", characterId: "c-1" })
+      );
+      expect(response.status).toBe(400);
+      expect(getGameWithDetailsMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for invalid character id param", async () => {
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "" })
+      );
+      expect(response.status).toBe(400);
+      expect(getGameWithDetailsMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for invalid request body", async () => {
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 0 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(400);
+      expect(getGameWithDetailsMock).not.toHaveBeenCalled();
+      expect(updateGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when game does not exist", async () => {
+      getGameWithDetailsMock.mockResolvedValue(null);
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(404);
+      expect(updateGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when caller is not game master", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        initiativeOrder: [],
+        characters: [],
+      });
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "user-2"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(updateGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when initiative entry does not exist", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        initiativeOrder: [
+          {
+            characterId: "c-2",
+            rolledValue: 5,
+            initiativeModifier: 2,
+            submittedAt: new Date(),
+          },
+        ],
+        characters: [],
+      });
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(404);
+      expect(updateGameMock).not.toHaveBeenCalled();
+    });
+
+    it("updates entry initiative modifier when game master", async () => {
+      const submittedAt = new Date();
+      getGameWithDetailsMock
+        .mockResolvedValueOnce({
+          id: "g-1",
+          gameMaster: "gm-1",
+          initiativeOrder: [
+            {
+              characterId: "c-1",
+              rolledValue: 5,
+              initiativeModifier: 2,
+              submittedAt,
+            },
+            {
+              characterId: "c-2",
+              rolledValue: 4,
+              initiativeModifier: 1,
+              submittedAt: new Date(),
+            },
+          ],
+          characters: [],
+        })
+        .mockResolvedValueOnce({
+          id: "g-1",
+          gameMaster: "gm-1",
+          initiativeOrder: [
+            {
+              characterId: "c-1",
+              rolledValue: 5,
+              initiativeModifier: 3,
+              submittedAt,
+            },
+            {
+              characterId: "c-2",
+              rolledValue: 4,
+              initiativeModifier: 1,
+              submittedAt: new Date(),
+            },
+          ],
+          characters: [],
+        });
+      updateGameMock.mockResolvedValue(undefined);
+
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+
+      expect(response.status).toBe(200);
+      expect(updateGameMock).toHaveBeenCalledWith("g-1", {
+        initiativeOrder: [
+          {
+            characterId: "c-1",
+            rolledValue: 5,
+            initiativeModifier: 3,
+            submittedAt,
+          },
+          {
+            characterId: "c-2",
+            rolledValue: 4,
+            initiativeModifier: 1,
+            submittedAt: expect.any(Date),
+          },
+        ],
+      });
+    });
+
+    it("returns 500 when game disappears after update", async () => {
+      getGameWithDetailsMock
+        .mockResolvedValueOnce({
+          id: "g-1",
+          gameMaster: "gm-1",
+          initiativeOrder: [
+            {
+              characterId: "c-1",
+              rolledValue: 5,
+              initiativeModifier: 2,
+              submittedAt: new Date(),
+            },
+          ],
+          characters: [],
+        })
+        .mockResolvedValueOnce(null);
+      updateGameMock.mockResolvedValue(undefined);
+
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: -1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+
+      expect(response.status).toBe(500);
+    });
+
+    it("returns 500 when an unexpected error is thrown", async () => {
+      getGameWithDetailsMock.mockRejectedValue(new Error("db fail"));
+      const { PATCH } = await import(
+        "@/app/api/games/[id]/initiative/[characterId]/route"
+      );
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
+        makeParams({ id: "g-1", characterId: "c-1" })
+      );
+      expect(response.status).toBe(500);
+    });
+  });
 });

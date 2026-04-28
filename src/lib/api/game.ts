@@ -200,6 +200,44 @@ export async function removeGameInitiativeEntry(
   return parsed.data;
 }
 
+export async function adjustGameInitiativeEntry(
+  gameId: string,
+  characterId: string,
+  initiativeDelta: number
+): Promise<GameDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(characterId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initiativeDelta }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to adjust initiative entry"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Game response did not match expected shape");
+  }
+  return parsed.data;
+}
+
 export async function clearGameInitiative(gameId: string): Promise<GameDetail> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/initiative`,
