@@ -147,8 +147,8 @@ export default function GameCharactersPage() {
             <ResourceListCard
               key={gc.id}
               href={
-                char.isOwnedByCurrentUser
-                  ? `/home/characters/${char.id}`
+                char.isOwnedByCurrentUser || game?.isGameMaster
+                  ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${gameId}/characters`)}`
                   : undefined
               }
               title={title}

@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 /**
  * Returns the parent path in the app hierarchy (one level above the current path).
@@ -17,14 +17,17 @@ function getParentPath(pathname: string): string | null {
 export function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const parentPath = getParentPath(pathname ?? "");
+  const returnTo = searchParams.get("returnTo");
+  const explicitBackTarget = returnTo?.startsWith("/home") ? returnTo : null;
 
-  if (parentPath === null) {
+  if (parentPath === null && explicitBackTarget === null) {
     return <div />;
   }
 
   const handleBack = () => {
-    router.push(parentPath);
+    router.push(explicitBackTarget ?? parentPath ?? "/home");
   };
 
   return (

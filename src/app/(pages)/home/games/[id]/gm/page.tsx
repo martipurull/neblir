@@ -16,6 +16,7 @@ import {
   GmInvitesSection,
   GmItemsSection,
   GmLoreSection,
+  GmNpcsSection,
   GmPlaceholderSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
@@ -24,6 +25,7 @@ import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
   removeGameInitiativeEntry,
+  setGameCharacterVisibility,
 } from "@/lib/api/game";
 import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
@@ -185,9 +187,13 @@ export default function GameMasterPage() {
           onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
         />
 
-        <GmPlaceholderSection title="NPCs">
-          Manage non-player characters for this game. Coming soon.
-        </GmPlaceholderSection>
+        <GmNpcsSection
+          game={game}
+          onSetVisibility={async (characterId, isPublic) => {
+            await setGameCharacterVisibility(game.id, characterId, isPublic);
+            await mutate();
+          }}
+        />
 
         <GmPlaceholderSection title="Dice Roller">
           Roll dice for this game. Coming soon.

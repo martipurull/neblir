@@ -453,3 +453,34 @@ export async function giveItemToCharacter(
     );
   }
 }
+
+export async function setGameCharacterVisibility(
+  gameId: string,
+  characterId: string,
+  isPublic: boolean
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ characterId, isPublic }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update NPC visibility"
+      )
+    );
+  }
+}

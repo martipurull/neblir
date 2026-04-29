@@ -565,6 +565,7 @@ model GameCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   gameId      String @db.ObjectId
   characterId String @db.ObjectId
+  isPublic    Boolean @default(true)
 
   game      Game      @relation(fields: [gameId], references: [id])
   character Character @relation(fields: [characterId], references: [id])

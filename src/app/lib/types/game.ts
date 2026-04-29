@@ -67,6 +67,7 @@ export const gameCharacterSchema = z.object({
   id: z.string(),
   gameId: z.string(),
   characterId: z.string(),
+  isPublic: z.boolean().optional(),
 });
 
 /** GameCharacter as returned from GET /api/characters/[id] (includes game name). */

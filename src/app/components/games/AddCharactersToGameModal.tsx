@@ -21,6 +21,10 @@ type AddCharactersResponse = {
   failed: Array<{ characterId: string; reason: string }>;
 };
 
+type SelectedCharacterConfig = {
+  isPublic: boolean;
+};
+
 type AddCharactersToGameModalProps = {
   isOpen: boolean;
   gameId: string;
@@ -40,7 +44,9 @@ export default function AddCharactersToGameModal({
 }: AddCharactersToGameModalProps) {
   const { characters, loading, error, refetch } = useCharacters();
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedConfigs, setSelectedConfigs] = useState<
+    Record<string, SelectedCharacterConfig>
+  >({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] =
@@ -78,17 +84,27 @@ export default function AddCharactersToGameModal({
   }, [characters]);
 
   const toggle = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+    setSelectedConfigs((prev) => {
+      const next = { ...prev };
+      if (next[id]) delete next[id];
+      else next[id] = { isPublic: true };
       return next;
+    });
+  };
+
+  const setVisibility = (id: string, isPublic: boolean) => {
+    setSelectedConfigs((prev) => {
+      if (!prev[id]) return prev;
+      return {
+        ...prev,
+        [id]: { isPublic },
+      };
     });
   };
 
   const closeAndReset = () => {
     setQuery("");
-    setSelected(new Set());
+    setSelectedConfigs({});
     setSubmitting(false);
     setSubmitError(null);
     setSubmitResult(null);
@@ -96,8 +112,13 @@ export default function AddCharactersToGameModal({
   };
 
   const handleSubmit = async () => {
-    const ids = Array.from(selected).filter((id) => !alreadyLinked.has(id));
-    if (ids.length === 0) {
+    const rows = Object.entries(selectedConfigs)
+      .filter(([id]) => !alreadyLinked.has(id))
+      .map(([characterId, cfg]) => ({
+        characterId,
+        isPublic: cfg.isPublic,
+      }));
+    if (rows.length === 0) {
       setSubmitError(
         "Select at least one character that isn't already linked."
       );
@@ -112,7 +133,7 @@ export default function AddCharactersToGameModal({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ characterIds: ids }),
+          body: JSON.stringify({ characters: rows }),
         }
       );
       const data = await res.json();
@@ -134,8 +155,8 @@ export default function AddCharactersToGameModal({
       }
 
       // Remove processed IDs from the selection so the user can retry failures.
-      setSelected((prev) => {
-        const next = new Set(prev);
+      setSelectedConfigs((prev) => {
+        const next = { ...prev };
         for (const id of payload.linkedIds) next.delete(id);
         for (const id of payload.alreadyLinkedIds) next.delete(id);
         return next;
@@ -224,7 +245,8 @@ export default function AddCharactersToGameModal({
               {filtered.map((c) => {
                 const name = `${c.name}${c.surname ? ` ${c.surname}` : ""}`;
                 const isLinked = alreadyLinked.has(c.id);
-                const checked = selected.has(c.id);
+                const checked = !!selectedConfigs[c.id];
+                const isPublic = selectedConfigs[c.id]?.isPublic ?? true;
                 const avatarUrl = c.avatarKey
                   ? (imageUrls[c.id] ?? undefined)
                   : null;
@@ -272,6 +294,22 @@ export default function AddCharactersToGameModal({
                           Level {c.level} • {c.paths.join(", ")}
                           {isLinked ? " • Already linked" : ""}
                         </p>
+                        {checked && !isLinked ? (
+                          <div className="mt-1 inline-flex items-center gap-2 text-xs text-white/90">
+                            <Checkbox
+                              checked={isPublic}
+                              onChange={() => setVisibility(c.id, !isPublic)}
+                              disabled={submitting}
+                              tone="inverse"
+                              label={
+                                <span className="text-xs">
+                                  Known to players
+                                </span>
+                              }
+                              className="shrink-0"
+                            />
+                          </div>
+                        ) : null}
                       </div>
                     </label>
                   </li>
