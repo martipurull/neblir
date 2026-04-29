@@ -3,8 +3,6 @@
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
 import Button from "./Button";
-import DangerButton from "./DangerButton";
-import { SafeButton } from "./SemanticActionButton";
 
 interface DangerConfirmModalProps {
   isOpen: boolean;
@@ -97,22 +95,27 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         <div
           className={`flex shrink-0 flex-wrap justify-end gap-3 border-t px-5 py-4 sm:px-6 ${footerBorder}`}
         >
-          <SafeButton
+          <Button
             type="button"
+            variant="semanticSafeOutline"
+            fullWidth={false}
             onClick={onCancel}
             disabled={isSubmitting}
             className="!px-3 !py-2"
           >
             {cancelLabel}
-          </SafeButton>
-          <DangerButton
-            text={isSubmitting ? "Deleting..." : confirmLabel}
+          </Button>
+          <Button
+            variant="danger"
+            fullWidth={false}
             onClick={() => {
               void onConfirm();
             }}
-            className="disabled:cursor-not-allowed disabled:opacity-50"
+            className="!px-3 !py-2"
             disabled={isSubmitting}
-          />
+          >
+            {isSubmitting ? "Deleting..." : confirmLabel}
+          </Button>
         </div>
       </div>
     </div>

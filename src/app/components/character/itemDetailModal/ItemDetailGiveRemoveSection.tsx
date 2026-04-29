@@ -1,10 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import {
-  DangerButton,
-  WarningButton,
-} from "@/app/components/shared/SemanticActionButton";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import React from "react";
@@ -65,9 +61,14 @@ export function ItemDetailGiveRemoveSection({
     <div className="mt-6 pt-4 border-t border-white/20 space-y-3">
       {showGiveFlow &&
         (!giveOpen ? (
-          <WarningButton type="button" onClick={onGiveOpen} className="w-full">
+          <Button
+            type="button"
+            variant="semanticWarningOutline"
+            onClick={onGiveOpen}
+            className="w-full"
+          >
             Give item
-          </WarningButton>
+          </Button>
         ) : (
           <div className={innerActionPanelClass}>
             <div className="flex items-center justify-between gap-2">
@@ -136,8 +137,9 @@ export function ItemDetailGiveRemoveSection({
                   </p>
                 )}
             </div>
-            <WarningButton
+            <Button
               type="button"
+              variant="semanticWarningOutline"
               onClick={onGiveConfirm}
               disabled={
                 giveSubmitting ||
@@ -148,7 +150,7 @@ export function ItemDetailGiveRemoveSection({
               className="w-full"
             >
               {giveSubmitting ? "Giving…" : "Confirm give"}
-            </WarningButton>
+            </Button>
             {giveError && (
               <p className="text-sm text-neblirDanger-400">{giveError}</p>
             )}
@@ -176,27 +178,29 @@ export function ItemDetailGiveRemoveSection({
             Remove <span className="font-medium text-white">{itemName}</span>{" "}
             from this character? This cannot be undone.
           </p>
-          <DangerButton
+          <Button
             type="button"
+            variant="semanticDangerOutline"
             onClick={onRemoveConfirm}
             disabled={isRemoving}
             className="w-full"
           >
             {isRemoving ? "Removing…" : "Yes, remove"}
-          </DangerButton>
+          </Button>
           {removeError && (
             <p className="text-sm text-neblirDanger-400">{removeError}</p>
           )}
         </div>
       ) : (
-        <DangerButton
+        <Button
           type="button"
+          variant="semanticDangerOutline"
           onClick={onRemoveConfirmOpen}
           disabled={isRemoving}
           className="w-full"
         >
           Remove from inventory
-        </DangerButton>
+        </Button>
       )}
     </div>
   );

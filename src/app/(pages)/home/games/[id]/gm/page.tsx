@@ -1,6 +1,7 @@
 "use client";
 
 import CreateCustomItemModal from "@/app/components/games/CreateCustomItemModal";
+import CreateGameLoreEntryModal from "@/app/components/games/CreateGameLoreEntryModal";
 import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
@@ -14,14 +15,18 @@ import {
   GmDiscordSection,
   GmInvitesSection,
   GmItemsSection,
+  GmLoreSection,
   GmPlaceholderSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
+import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
   removeGameInitiativeEntry,
 } from "@/lib/api/game";
+import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
+import type { ReferenceEntry } from "@/app/lib/types/reference";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -45,6 +50,12 @@ export default function GameMasterPage() {
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [loreEntryModalOpen, setLoreEntryModalOpen] = useState(false);
+  const [loreEntryEditTarget, setLoreEntryEditTarget] =
+    useState<ReferenceEntry | null>(null);
+  const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
+    null
+  );
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
     useState(false);
@@ -106,6 +117,15 @@ export default function GameMasterPage() {
       ? `/api/games/${encodeURIComponent(id)}/invites`
       : null
   );
+  const {
+    entries: loreEntries,
+    loading: loreEntriesLoading,
+    error: loreEntriesError,
+    refetch: refetchLoreEntries,
+  } = useReferenceEntries({
+    category: "CAMPAIGN_LORE",
+    gameId: id ?? undefined,
+  });
 
   if (loading || (!game && !error)) {
     return (
@@ -173,6 +193,37 @@ export default function GameMasterPage() {
           Roll dice for this game. Coming soon.
         </GmPlaceholderSection>
 
+        <GmLoreSection
+          gameId={game.id}
+          onCreateLoreEntry={() => setLoreEntryModalOpen(true)}
+          onEditLoreEntry={(entry) => {
+            setLoreEntryEditTarget(entry);
+            setLoreEntryModalOpen(true);
+          }}
+          onDeleteLoreEntry={(entry) => {
+            if (
+              !window.confirm(
+                `Delete lore entry "${entry.title}"? This cannot be undone.`
+              )
+            ) {
+              return;
+            }
+            setDeletingLoreEntryId(entry.id);
+            void deleteReferenceEntry(entry.id)
+              .then(async () => {
+                await refetchLoreEntries();
+              })
+              .finally(() => {
+                setDeletingLoreEntryId(null);
+              });
+          }}
+          deletingEntryId={deletingLoreEntryId}
+          entries={loreEntries}
+          loading={loreEntriesLoading}
+          error={loreEntriesError}
+          onRetry={() => void refetchLoreEntries()}
+        />
+
         <GmInvitesSection
           open={invitesOpen}
           onToggle={() => setInvitesOpen((o) => !o)}
@@ -200,6 +251,22 @@ export default function GameMasterPage() {
         onSuccess={() => {
           void mutate();
           void mutatePendingInvites();
+        }}
+      />
+      <CreateGameLoreEntryModal
+        isOpen={loreEntryModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        mode={loreEntryEditTarget ? "edit" : "create"}
+        entry={loreEntryEditTarget}
+        onClose={() => {
+          setLoreEntryModalOpen(false);
+          setLoreEntryEditTarget(null);
+        }}
+        onSuccess={() => {
+          setLoreEntryEditTarget(null);
+          void mutate();
+          void refetchLoreEntries();
         }}
       />
       <CreateCustomItemModal

@@ -3,7 +3,6 @@
 import Button from "@/app/components/shared/Button";
 import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml";
 import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
-import { DangerButton as DangerOutlineButton } from "@/app/components/shared/SemanticActionButton";
 import { formatNoteTimestamp } from "@/app/lib/characterNotes";
 import type { CharacterNoteEntry } from "@/app/lib/types/character";
 import React, { useCallback, useState } from "react";
@@ -77,14 +76,16 @@ export function CharacterNoteListItem({
         </Button>
 
         <div className="shrink-0 self-start pt-1">
-          <DangerOutlineButton
+          <Button
             type="button"
+            variant="semanticDangerOutline"
+            fullWidth={false}
             aria-label={`Delete note ${index + 1}`}
             onClick={() => setConfirmOpen(true)}
             className="!flex !h-8 !w-8 !min-w-0 items-center justify-center !rounded-md !p-0"
           >
             <TrashIcon className="shrink-0" />
-          </DangerOutlineButton>
+          </Button>
         </div>
       </div>
 

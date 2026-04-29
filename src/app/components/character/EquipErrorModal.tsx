@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import React from "react";
 
 export interface EquipErrorModalProps {
@@ -55,9 +54,14 @@ export function EquipErrorModal({
           >
             {message}
           </p>
-          <SafeButton type="button" className="mt-5 w-full" onClick={onClose}>
+          <Button
+            type="button"
+            variant="semanticSafeOutline"
+            className="mt-5 w-full"
+            onClick={onClose}
+          >
             OK
-          </SafeButton>
+          </Button>
         </div>
       </div>
     </div>

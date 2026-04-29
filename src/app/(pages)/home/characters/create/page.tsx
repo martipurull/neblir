@@ -3,9 +3,9 @@
 import React from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
+import Button from "@/app/components/shared/Button";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
-import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { getDefaultCharacterCreationFormValues } from "./schemas";
@@ -69,13 +69,15 @@ export default function CreateCharacterPage() {
   return (
     <PageSection>
       <div className="mb-3 flex justify-center">
-        <DangerButton
+        <Button
           type="button"
+          variant="semanticDangerOutline"
+          fullWidth={false}
           onClick={() => router.push("/home/characters")}
           className="text-xs"
         >
           Exit to characters page
-        </DangerButton>
+        </Button>
       </div>
       <div className="lg:text-center lg:my-4">
         <PageTitle>Create Character</PageTitle>

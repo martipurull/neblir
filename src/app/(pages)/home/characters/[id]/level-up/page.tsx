@@ -7,7 +7,6 @@ import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageSubtitle from "@/app/components/shared/PageSubtitle";
 import PageTitle from "@/app/components/shared/PageTitle";
-import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import { Stepper } from "@/app/components/shared/Stepper";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useCharacter } from "@/hooks/use-character";
@@ -67,8 +66,10 @@ function CharacterLevelUpLoaded({
   return (
     <PageSection>
       <div className="mb-3 flex justify-center">
-        <DangerButton
+        <Button
           type="button"
+          variant="semanticDangerOutline"
+          fullWidth={false}
           onClick={() => {
             clearLevelUpDraft(id);
             router.push(`/home/characters/${id}`);
@@ -76,7 +77,7 @@ function CharacterLevelUpLoaded({
           className="text-xs"
         >
           Exit to character page
-        </DangerButton>
+        </Button>
       </div>
       <div className="lg:text-center lg:my-4">
         <PageTitle>Level Up Character</PageTitle>

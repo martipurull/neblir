@@ -1,7 +1,5 @@
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
-import DangerButtonFilled from "@/app/components/shared/DangerButton";
-import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import type { GameDetail } from "@/app/lib/types/game";
 import React from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
@@ -32,12 +30,16 @@ export function GmInitiativeSection({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <GmSectionTitle>Initiative</GmSectionTitle>
         {hasInitiativeEntries && (
-          <DangerButtonFilled
-            text={clearingInitiative ? "Clearing…" : "Clear initiative"}
+          <Button
+            type="button"
+            variant="danger"
+            fullWidth={false}
             disabled={clearingInitiative}
             onClick={onClearAll}
             className="!px-3 !py-1.5 !text-xs"
-          />
+          >
+            {clearingInitiative ? "Clearing…" : "Clear initiative"}
+          </Button>
         )}
       </div>
 
@@ -84,8 +86,10 @@ export function GmInitiativeSection({
                 >
                   +1
                 </Button>
-                <DangerButton
+                <Button
                   type="button"
+                  variant="semanticDangerOutline"
+                  fullWidth={false}
                   disabled={initiativeActionId === entry.characterId}
                   onClick={() => onRemoveEntry(entry.characterId)}
                   className="whitespace-nowrap !px-2 !py-1 !text-xs min-w-[7.25rem] justify-center"
@@ -93,7 +97,7 @@ export function GmInitiativeSection({
                   {initiativeActionId === entry.characterId
                     ? "Updating…"
                     : "Remove"}
-                </DangerButton>
+                </Button>
               </div>
             </li>
           ))}

@@ -16,6 +16,8 @@ import { ReferenceEntryHtml } from "./ReferenceEntryHtml";
 
 interface ReferenceEntriesPageProps {
   category: ReferenceCategory;
+  gameId?: string;
+  showAccessBadges?: boolean;
   title: string;
   description: string;
   loadingText: string;
@@ -38,6 +40,8 @@ function ReferenceEntryContent({ entry }: { entry: ReferenceEntry }) {
 
 export function ReferenceEntriesPage({
   category,
+  gameId,
+  showAccessBadges,
   title,
   description,
   loadingText,
@@ -45,10 +49,12 @@ export function ReferenceEntriesPage({
 }: ReferenceEntriesPageProps) {
   const { entries, loading, error, refetch } = useReferenceEntries({
     category,
+    gameId,
   });
   const [expandedEntryIds, setExpandedEntryIds] = useState<Set<string>>(
     () => new Set()
   );
+  const showAccessBadge = showAccessBadges ?? category === "CAMPAIGN_LORE";
 
   const hasMultipleEntries = entries.length > 1;
 
@@ -110,6 +116,19 @@ export function ReferenceEntriesPage({
                       <span className="block text-lg font-semibold text-black">
                         {entry.title}
                       </span>
+                      {showAccessBadge ? (
+                        <span
+                          className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                            entry.access === "GAME_MASTER"
+                              ? "border-black/40 bg-black/10 text-black"
+                              : "border-customPrimary/60 bg-customPrimary/10 text-black"
+                          }`}
+                        >
+                          {entry.access === "GAME_MASTER"
+                            ? "GM only"
+                            : "Player"}
+                        </span>
+                      ) : null}
                       {entry.summary ? (
                         <span className="mt-1 block text-sm text-black/70">
                           {entry.summary}
@@ -125,6 +144,17 @@ export function ReferenceEntriesPage({
                     <h2 className="text-lg font-semibold text-black">
                       {entry.title}
                     </h2>
+                    {showAccessBadge ? (
+                      <span
+                        className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          entry.access === "GAME_MASTER"
+                            ? "border-black/40 bg-black/10 text-black"
+                            : "border-customPrimary/60 bg-customPrimary/10 text-black"
+                        }`}
+                      >
+                        {entry.access === "GAME_MASTER" ? "GM only" : "Player"}
+                      </span>
+                    ) : null}
                   </header>
                 )}
 

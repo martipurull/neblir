@@ -10,6 +10,11 @@ export const ghostNavButtonClassName =
 export type AppButtonVariant =
   | "primary"
   | "secondary"
+  | "danger"
+  | "semanticDangerOutline"
+  | "semanticWarningOutline"
+  | "semanticSafeOutline"
+  | "semanticSafeFilled"
   /** Inline outline (e.g. retry, compact toolbar actions on light surfaces). */
   | "quiet"
   | "ghostNav"
@@ -155,6 +160,21 @@ const primary =
 
 const secondary =
   "min-h-11 rounded-md border-2 border-black/30 px-4 py-2 text-black transition-colors hover:border-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
+
+const danger =
+  "rounded-md border-2 border-neblirDanger-200 bg-neblirDanger-600 px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-neblirDanger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirDanger-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticDangerOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirDanger-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirDanger-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticWarningOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirWarning-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirWarning-400 transition-colors hover:bg-neblirWarning-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirWarning-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticSafeOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirSafe-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticSafeFilled =
+  "inline-flex items-center justify-center rounded border-2 border-neblirSafe-600 bg-neblirSafe-600 px-4 py-2.5 text-sm font-medium text-customSecondary transition-colors hover:bg-neblirSafe-600 hover:border-neblirSafe-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 const quiet =
   "rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
@@ -392,6 +412,11 @@ const lightReferenceDisclosure =
 export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primary,
   secondary,
+  danger,
+  semanticDangerOutline,
+  semanticWarningOutline,
+  semanticSafeOutline,
+  semanticSafeFilled,
   quiet,
   ghostNav: ghostNavButtonClassName,
   modalFooterPrimary,

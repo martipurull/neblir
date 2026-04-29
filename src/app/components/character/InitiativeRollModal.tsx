@@ -1,11 +1,8 @@
 "use client";
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import {
-  SafeButton,
-  WarningButton,
-} from "@/app/components/shared/SemanticActionButton";
 import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
@@ -203,16 +200,18 @@ export function InitiativeRollModal({
 
       <div className="mt-6 flex flex-col gap-3">
         {phase === "success" && selectedGameId ? (
-          <SafeButton
+          <Button
             type="button"
+            variant="semanticSafeOutline"
             onClick={() => onNavigateToShowOrder(selectedGameId)}
-            className="w-full !border-neblirSafe-200 !text-neblirSafe-200 hover:!bg-neblirSafe-200/20"
+            className="w-full"
           >
             Show initiative
-          </SafeButton>
+          </Button>
         ) : (
-          <WarningButton
+          <Button
             type="button"
+            variant="semanticWarningOutline"
             disabled={
               gameDetails.length === 0 ||
               !selectedGameId ||
@@ -220,10 +219,10 @@ export function InitiativeRollModal({
               submitting
             }
             onClick={() => void handleRoll()}
-            className="w-full !border-neblirWarning-200 !text-neblirWarning-200 hover:!bg-neblirWarning-200/20"
+            className="w-full"
           >
             {submitting ? "Registering…" : "Roll initiative"}
-          </WarningButton>
+          </Button>
         )}
 
         {roll != null && (
