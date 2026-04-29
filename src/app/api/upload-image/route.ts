@@ -1,4 +1,4 @@
-import { getR2Config, isDeletableImageKey } from "@/app/lib/r2";
+import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
@@ -11,13 +11,21 @@ const ALLOWED_TYPES = [
   "unique_items",
   "games",
   "characters",
+  "recaps",
 ] as const;
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const RECAP_MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+const ALLOWED_RECAP_EXTENSIONS = ["pdf"];
 
 function getExtension(filename: string): string {
   const last = filename.split(".").pop()?.toLowerCase();
   return last && ALLOWED_EXTENSIONS.includes(last) ? last : "png";
+}
+
+function getRecapExtension(filename: string): string {
+  const last = filename.split(".").pop()?.toLowerCase();
+  return last && ALLOWED_RECAP_EXTENSIONS.includes(last) ? last : "pdf";
 }
 
 /** Coerce original filename to pattern: lowercase, spaces → underscores, only [a-z0-9_]. */
@@ -41,7 +49,10 @@ function buildKey(
   type: (typeof ALLOWED_TYPES)[number],
   originalFilename: string
 ): string {
-  const ext = getExtension(originalFilename);
+  const ext =
+    type === "recaps"
+      ? getRecapExtension(originalFilename)
+      : getExtension(originalFilename);
   const base = sanitizeFilenameBasename(originalFilename);
   return `${type}-${base}-${shortId()}.${ext}`;
 }
@@ -58,7 +69,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, unique_items, games, characters",
+        "Query param 'type' must be one of: custom_items, unique_items, games, characters, recaps",
         400
       );
     }
@@ -70,7 +81,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
         route: "/api/upload-image",
         message: "R2 credentials missing",
       });
-      return errorResponse("Image upload is not configured", 500);
+      return errorResponse("File upload is not configured", 500);
     }
 
     const formData = await request.formData();
@@ -80,12 +91,29 @@ export const POST = auth(async (request: AuthNextRequest) => {
     }
 
     const blob = file as Blob & { name: string };
-    if (blob.size > MAX_SIZE_BYTES) {
-      return errorResponse("File must be 5MB or smaller", 400);
+    const isRecap = type === "recaps";
+    const maxSize = isRecap ? RECAP_MAX_SIZE_BYTES : IMAGE_MAX_SIZE_BYTES;
+    if (blob.size > maxSize) {
+      return errorResponse(
+        isRecap
+          ? "File must be 20MB or smaller"
+          : "File must be 5MB or smaller",
+        400
+      );
+    }
+
+    if (isRecap) {
+      const extension = getRecapExtension(blob.name);
+      const isPdfMime = blob.type === "application/pdf";
+      if (extension !== "pdf" || !isPdfMime) {
+        return errorResponse("Recap upload only supports PDF files", 400);
+      }
     }
 
     const key = buildKey(type as (typeof ALLOWED_TYPES)[number], blob.name);
-    const ext = getExtension(blob.name);
+    const ext = isRecap
+      ? getRecapExtension(blob.name)
+      : getExtension(blob.name);
 
     const buffer = Buffer.from(await blob.arrayBuffer());
 
@@ -94,11 +122,11 @@ export const POST = auth(async (request: AuthNextRequest) => {
         Bucket: config.bucketName,
         Key: key,
         Body: buffer,
-        ContentType: blob.type || `image/${ext}`,
+        ContentType: isRecap ? "application/pdf" : blob.type || `image/${ext}`,
       })
     );
 
-    return NextResponse.json({ imageKey: key }, { status: 201 });
+    return NextResponse.json({ fileKey: key }, { status: 201 });
   } catch (error) {
     logger.error({
       method: "POST",
@@ -116,13 +144,13 @@ export const DELETE = auth(async (request: AuthNextRequest) => {
       return errorResponse("Unauthorised", 401);
     }
 
-    const imageKey = request.nextUrl.searchParams.get("imageKey");
-    if (!imageKey) {
-      return errorResponse("Query param 'imageKey' is required", 400);
+    const fileKey = request.nextUrl.searchParams.get("fileKey");
+    if (!fileKey) {
+      return errorResponse("Query param 'fileKey' is required", 400);
     }
 
-    if (!isDeletableImageKey(imageKey)) {
-      return errorResponse("Not allowed to delete this image", 403);
+    if (!isDeletableUploadKey(fileKey)) {
+      return errorResponse("Not allowed to delete this file", 403);
     }
 
     const config = getR2Config();
@@ -132,13 +160,13 @@ export const DELETE = auth(async (request: AuthNextRequest) => {
         route: "/api/upload-image",
         message: "R2 credentials missing",
       });
-      return errorResponse("Image delete is not configured", 500);
+      return errorResponse("File delete is not configured", 500);
     }
 
     await config.s3Client.send(
       new DeleteObjectCommand({
         Bucket: config.bucketName,
-        Key: imageKey,
+        Key: fileKey,
       })
     );
 
@@ -147,9 +175,9 @@ export const DELETE = auth(async (request: AuthNextRequest) => {
     logger.error({
       method: "DELETE",
       route: "/api/upload-image",
-      message: "Error deleting image",
+      message: "Error deleting file",
       error,
     });
-    return errorResponse("Failed to delete image", 500);
+    return errorResponse("Failed to delete file", 500);
   }
 });

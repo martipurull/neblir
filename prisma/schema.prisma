@@ -428,8 +428,44 @@ model Game {
   rollEvents       RollEvent[]
   referenceEntries ReferenceEntry[]
   maps             Map[]
+  recaps           GameRecap[]
+  images           GameImage[]
 
   @@index([gameMaster])
+}
+
+model GameImage {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String   @db.ObjectId
+  title            String
+  description      String?
+  imageKey         String   @unique
+  uploadedByUserId String   @db.ObjectId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, createdAt])
+  @@index([uploadedByUserId])
+}
+
+model GameRecap {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String   @db.ObjectId
+  title            String
+  summary          String?
+  fileKey          String   @unique
+  fileName         String
+  fileSizeBytes    Int
+  uploadedByUserId String   @db.ObjectId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, createdAt])
+  @@index([uploadedByUserId])
 }
 
 model ReferenceEntry {

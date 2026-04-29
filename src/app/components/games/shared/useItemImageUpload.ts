@@ -17,7 +17,7 @@ export function useItemImageUpload(type: ItemImageUploadType) {
 
   const deleteUploadedImage = useCallback(async (key: string) => {
     try {
-      await fetch(`/api/upload-image?imageKey=${encodeURIComponent(key)}`, {
+      await fetch(`/api/upload-file?fileKey=${encodeURIComponent(key)}`, {
         method: "DELETE",
       });
     } catch {
@@ -54,7 +54,7 @@ export function useItemImageUpload(type: ItemImageUploadType) {
         const formData = new FormData();
         formData.set("file", file);
         const res = await fetch(
-          `/api/upload-image?type=${encodeURIComponent(type)}`,
+          `/api/upload-file?type=${encodeURIComponent(type)}`,
           { method: "POST", body: formData }
         );
         const data = await res.json();
@@ -64,7 +64,7 @@ export function useItemImageUpload(type: ItemImageUploadType) {
           );
           return;
         }
-        const key = (data as { imageKey?: string }).imageKey;
+        const key = (data as { fileKey?: string }).fileKey;
         if (key) {
           setImageKey(key);
           setPendingImageKey(key);

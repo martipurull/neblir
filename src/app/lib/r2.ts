@@ -27,8 +27,9 @@ export const ALLOWED_UPLOAD_PREFIXES = [
   "unique_items-",
   "games-",
   "characters-",
+  "recaps-",
 ] as const;
 
-export function isDeletableImageKey(key: string): boolean {
+export function isDeletableUploadKey(key: string): boolean {
   return ALLOWED_UPLOAD_PREFIXES.some((prefix) => key.startsWith(prefix));
 }

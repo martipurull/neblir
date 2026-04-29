@@ -3,6 +3,8 @@ export { GmInvitesSection } from "./GmInvitesSection";
 export { GmItemsSection } from "./GmItemsSection";
 export { GmDiscordSection } from "./GmDiscordSection";
 export { GmLoreSection } from "./GmLoreSection";
+export { GmRecapsSection } from "./GmRecapsSection";
+export { GmImagesSection } from "./GmImagesSection";
 export { GmNpcsSection } from "./GmNpcsSection";
 export { GmPlaceholderSection } from "./GmPlaceholderSection";
 export { GmSectionTitle, gmSectionTitleClassName } from "./GmSectionTitle";
