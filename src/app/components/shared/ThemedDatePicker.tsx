@@ -1,8 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import React, { useRef, useEffect, useLayoutEffect, useState } from "react";
-
+import { useRef, useEffect, useLayoutEffect, useState } from "react";
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
   "January",

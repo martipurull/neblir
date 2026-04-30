@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";

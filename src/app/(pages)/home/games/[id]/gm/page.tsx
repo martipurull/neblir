@@ -38,7 +38,7 @@ import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteGameImage } from "@/lib/api/gameImages";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
 
 type PendingInvite = {

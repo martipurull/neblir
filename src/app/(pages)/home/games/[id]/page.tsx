@@ -16,7 +16,7 @@ import { updateGame } from "@/lib/api/game";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function GameDetailPage() {
   const params = useParams();

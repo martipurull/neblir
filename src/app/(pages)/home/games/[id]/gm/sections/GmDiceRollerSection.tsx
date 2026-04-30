@@ -7,7 +7,7 @@ import {
   type SelectDropdownOption,
 } from "@/app/components/shared/SelectDropdown";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmDiceRollerSectionProps = {

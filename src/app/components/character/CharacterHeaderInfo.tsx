@@ -4,7 +4,7 @@ import Button from "@/app/components/shared/Button";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState } from "react";
 import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
 import { DicePairIcon } from "./DicePairIcon";
 

@@ -6,8 +6,7 @@ import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { GameDetail } from "@/app/lib/types/game";
 import { submitGameInitiative } from "@/lib/api/game";
-import React, { useCallback, useMemo, useState } from "react";
-
+import { useCallback, useMemo, useState } from "react";
 function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
 }

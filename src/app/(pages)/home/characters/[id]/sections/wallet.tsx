@@ -11,7 +11,7 @@ import Button from "@/app/components/shared/Button";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface WalletSectionContentProps {
   character: CharacterDetail;

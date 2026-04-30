@@ -2,8 +2,6 @@
 
 import Button from "@/app/components/shared/Button";
 import { Chevron } from "@/app/components/shared/Chevron";
-import React from "react";
-
 interface CarouselArrowsProps {
   onPrev: () => void;
   onNext: () => void;

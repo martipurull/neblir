@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
 import Button from "@/app/components/shared/Button";

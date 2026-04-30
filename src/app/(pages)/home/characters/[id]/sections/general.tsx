@@ -6,7 +6,6 @@ import {
   getSpecialAbilityLabel,
   resolveSpecialAbilityForRace,
 } from "@/app/lib/specialAbility";
-import React from "react";
 import { KeyValueRow } from "./section-shared";
 
 export function getGeneralSection(

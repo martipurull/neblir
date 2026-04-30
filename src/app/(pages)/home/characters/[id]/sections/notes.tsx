@@ -10,7 +10,7 @@ import type { CharacterSectionSlide } from "@/app/components/character/Character
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { updateCharacterNotes } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
 function CharacterNotesSectionContent({
   character,

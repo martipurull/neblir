@@ -5,7 +5,7 @@ import type {
   ReferenceEntry,
 } from "@/app/lib/types/reference";
 import { useReferenceEntries } from "@/hooks/use-reference-entries";
-import React, { useState } from "react";
+import { useState } from "react";
 import Button from "../shared/Button";
 import ErrorState from "../shared/ErrorState";
 import InfoCard from "../shared/InfoCard";

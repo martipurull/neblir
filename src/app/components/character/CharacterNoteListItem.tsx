@@ -5,8 +5,7 @@ import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml"
 import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
 import { formatNoteTimestamp } from "@/app/lib/characterNotes";
 import type { CharacterNoteEntry } from "@/app/lib/types/character";
-import React, { useCallback, useState } from "react";
-
+import { useCallback, useState } from "react";
 function TrashIcon({ className }: { className?: string }) {
   return (
     <svg

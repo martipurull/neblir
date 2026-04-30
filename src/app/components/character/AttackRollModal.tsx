@@ -4,8 +4,7 @@ import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 export type AttackType = "melee" | "range" | "throw" | "grid";
 
 const ATTACK_LABELS: Record<AttackType, string> = {

@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import React from "react";
 import { DetailField } from "./DetailField";
 import type { InventoryEntry, ResolvedItemNonNull } from "./types";
 import { fmtSignedBonus } from "./utils";

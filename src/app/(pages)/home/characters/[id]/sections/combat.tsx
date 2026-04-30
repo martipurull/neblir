@@ -12,7 +12,6 @@ import {
   getSpeedReductionTooltipText,
 } from "@/app/lib/carryWeightUtils";
 import Button from "@/app/components/shared/Button";
-import React from "react";
 import { KeyValueRow } from "./section-shared";
 
 interface CombatSectionOptions {

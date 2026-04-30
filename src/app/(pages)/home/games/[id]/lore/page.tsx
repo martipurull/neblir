@@ -2,7 +2,6 @@
 
 import { ReferenceEntriesPage } from "@/app/components/reference/ReferenceEntriesPage";
 import { useGame } from "@/hooks/use-game";
-import React from "react";
 import { useParams } from "next/navigation";
 
 export default function GameLorePage() {

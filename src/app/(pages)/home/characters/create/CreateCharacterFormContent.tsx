@@ -4,7 +4,6 @@ import { Stepper } from "@/app/components/shared/Stepper";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext } from "react-hook-form";
-import React from "react";
 import { BackstoryStep } from "./steps/BackstoryStep";
 import { GeneralInfoStep } from "./steps/GeneralInfoStep";
 import { AttributesStep } from "./steps/AttributesStep";

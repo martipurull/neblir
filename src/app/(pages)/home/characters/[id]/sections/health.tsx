@@ -2,7 +2,6 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import React from "react";
 import { KeyValueRow } from "./section-shared";
 
 export function getHealthSection(

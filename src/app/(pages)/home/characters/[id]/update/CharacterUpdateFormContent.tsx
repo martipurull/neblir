@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Stepper } from "@/app/components/shared/Stepper";
 import { useFormContext } from "react-hook-form";
 import { BackstoryStep } from "../../create/steps/BackstoryStep";

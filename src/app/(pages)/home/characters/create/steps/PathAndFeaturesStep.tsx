@@ -3,7 +3,7 @@
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 type PathOption = {

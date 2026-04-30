@@ -3,8 +3,7 @@
 import { PathDescriptionModal } from "@/app/components/character/PathDescriptionModal";
 import { PathCard } from "@/app/components/character/PathCard";
 import type { Path } from "@/app/lib/types/path";
-import React, { useState } from "react";
-
+import { useState } from "react";
 export interface PathsListProps {
   paths: Path[];
 }

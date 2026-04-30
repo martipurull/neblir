@@ -6,8 +6,7 @@ import { ModalShell } from "@/app/components/shared/ModalShell";
 import Button from "@/app/components/shared/Button";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import React, { useMemo } from "react";
-
+import { useMemo } from "react";
 export interface BrowseItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;

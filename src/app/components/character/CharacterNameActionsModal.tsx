@@ -2,8 +2,6 @@
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import Link from "next/link";
-import React from "react";
-
 export interface CharacterNameActionsModalProps {
   isOpen: boolean;
   onClose: () => void;

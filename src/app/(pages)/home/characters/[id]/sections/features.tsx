@@ -3,7 +3,7 @@
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import Button from "@/app/components/shared/Button";
-import React, { useState } from "react";
+import { useState } from "react";
 
 type FeatureCharacterEntry = NonNullable<CharacterDetail["features"]>[number];
 

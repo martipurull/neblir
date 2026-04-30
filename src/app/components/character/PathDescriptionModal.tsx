@@ -2,8 +2,6 @@
 
 import Button from "@/app/components/shared/Button";
 import type { Path } from "@/app/lib/types/path";
-import React from "react";
-
 export interface PathDescriptionModalProps {
   path: Path;
   onClose: () => void;

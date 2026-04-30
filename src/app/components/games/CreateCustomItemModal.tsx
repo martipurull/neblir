@@ -8,8 +8,6 @@ import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
-import React from "react";
-
 const ITEM_TYPES = [
   { value: "GENERAL_ITEM", label: "General item" },
   { value: "WEAPON", label: "Weapon" },

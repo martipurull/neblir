@@ -1,8 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import React, { useState } from "react";
-
+import { useState } from "react";
 type RemoveCharacterFromGameButtonProps = {
   gameId: string;
   characterId: string;

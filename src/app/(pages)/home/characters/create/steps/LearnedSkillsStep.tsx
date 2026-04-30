@@ -2,7 +2,7 @@
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 const GENERAL_SKILL_ENTRIES: {

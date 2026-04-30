@@ -3,7 +3,6 @@
 import Button from "@/app/components/shared/Button";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import React from "react";
 import type { InventoryEntry } from "./types";
 import { innerActionPanelClass } from "./utils";
 

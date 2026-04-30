@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { DetailField } from "./DetailField";
 import type { ResolvedItemNonNull } from "./types";
 import { EXTRA_WEAPON_COMBAT_FIELDS } from "./weaponDerived";

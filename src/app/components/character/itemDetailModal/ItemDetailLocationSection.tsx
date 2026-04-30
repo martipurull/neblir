@@ -1,8 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import React from "react";
-
 type ItemDetailLocationSectionProps = {
   carried: boolean;
   leaveLocationInput: string;

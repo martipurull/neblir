@@ -7,13 +7,7 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import Button from "@/app/components/shared/Button";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
 
 export interface AddItemToInventoryModalProps {

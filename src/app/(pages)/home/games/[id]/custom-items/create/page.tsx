@@ -6,7 +6,6 @@ import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import { useGame } from "@/hooks/use-game";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
 
 export default function CreateGameCustomItemPage() {
   const params = useParams();

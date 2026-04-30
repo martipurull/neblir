@@ -1,8 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import React from "react";
-
 type ItemDetailUsesSectionProps = {
   displayUses: number;
   maxUses: number;

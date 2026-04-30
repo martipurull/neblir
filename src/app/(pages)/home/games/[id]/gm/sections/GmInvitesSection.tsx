@@ -1,6 +1,5 @@
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
-import React from "react";
 import { gmSectionTitleClassName } from "./GmSectionTitle";
 
 type PendingInvite = {

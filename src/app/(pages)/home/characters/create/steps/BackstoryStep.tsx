@@ -1,7 +1,6 @@
 "use client";
 
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 

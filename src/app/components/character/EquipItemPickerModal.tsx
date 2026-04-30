@@ -14,8 +14,7 @@ import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
-import React, { useMemo, useState } from "react";
-
+import { useMemo, useState } from "react";
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 type ResolvedItem = NonNullable<InventoryEntry["item"]>;
 

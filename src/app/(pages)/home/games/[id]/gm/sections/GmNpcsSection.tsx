@@ -3,7 +3,7 @@ import type { GameDetail } from "@/app/lib/types/game";
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
 import Button from "@/app/components/shared/Button";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {

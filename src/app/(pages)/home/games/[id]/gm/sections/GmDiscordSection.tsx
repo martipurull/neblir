@@ -10,7 +10,7 @@ import {
   saveGameDiscordIntegration,
 } from "@/lib/api/game";
 import { useRouter } from "next/navigation";
-import React, { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type Props = {

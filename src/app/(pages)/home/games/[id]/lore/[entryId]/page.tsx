@@ -10,7 +10,6 @@ import { useGame } from "@/hooks/use-game";
 import { getReferenceEntry } from "@/lib/api/referenceEntries";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React from "react";
 import useSWR from "swr";
 
 function AccessBadge({ access }: { access: "PLAYER" | "GAME_MASTER" }) {

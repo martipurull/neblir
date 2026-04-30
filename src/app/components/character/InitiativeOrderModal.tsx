@@ -3,8 +3,7 @@
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { GameDetail } from "@/app/lib/types/game";
-import React, { useEffect, useMemo, useState } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 export interface InitiativeOrderModalProps {
   isOpen: boolean;
   onClose: () => void;

@@ -4,7 +4,6 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import LoadingState from "@/app/components/shared/LoadingState";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import Link from "next/link";
-import React from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmLoreSectionProps = {

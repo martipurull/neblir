@@ -1,7 +1,4 @@
 "use client";
-
-import React from "react";
-
 type RadioOption = {
   value: string;
   label: string;

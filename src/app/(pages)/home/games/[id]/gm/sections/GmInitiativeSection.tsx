@@ -1,7 +1,6 @@
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
-import React from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmInitiativeSectionProps = {
