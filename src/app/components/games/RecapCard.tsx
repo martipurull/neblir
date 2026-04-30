@@ -29,7 +29,7 @@ export default function RecapCard({
           <p className="mt-1 text-xs text-black/80">{recap.summary}</p>
         ) : null}
       </div>
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="solidDark"

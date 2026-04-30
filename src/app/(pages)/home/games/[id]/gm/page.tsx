@@ -12,6 +12,7 @@ import ErrorState from "@/app/components/shared/ErrorState";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
+import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
 import {
   GmInitiativeSection,
   GmDiscordSection,
@@ -32,10 +33,12 @@ import {
   clearGameInitiative,
   removeGameInitiativeEntry,
   setGameCharacterVisibility,
+  updateGame,
 } from "@/lib/api/game";
 import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteGameImage } from "@/lib/api/gameImages";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -77,9 +80,37 @@ export default function GameMasterPage() {
     null
   );
   const [clearingInitiative, setClearingInitiative] = useState(false);
+  const [nextSessionBusy, setNextSessionBusy] = useState(false);
+  const [nextSessionError, setNextSessionError] = useState<string | null>(null);
 
   const initiativeOrder = game?.initiativeOrder ?? [];
   const hasInitiativeEntries = initiativeOrder.length > 0;
+  const nextSessionValue =
+    game?.nextSession != null
+      ? new Date(game.nextSession).toISOString().slice(0, 10)
+      : "";
+
+  const handleNextSessionChange = useCallback(
+    async (dateString: string) => {
+      if (!id) return;
+      const value = dateString || null;
+      setNextSessionError(null);
+      setNextSessionBusy(true);
+      try {
+        const updated = await updateGame(id, {
+          nextSession: value ? `${value}T12:00:00.000Z` : null,
+        });
+        await mutate(updated, { revalidate: false });
+      } catch (err) {
+        setNextSessionError(
+          getUserSafeErrorMessage(err, "Failed to update date")
+        );
+      } finally {
+        setNextSessionBusy(false);
+      }
+    },
+    [id, mutate]
+  );
 
   const handleRemoveInitiativeEntry = useCallback(
     async (characterId: string) => {
@@ -189,6 +220,27 @@ export default function GameMasterPage() {
     <PageSection>
       <div className="flex flex-col gap-6">
         <PageTitle>Game master</PageTitle>
+
+        <div className="rounded-md border border-black p-4">
+          <span className="text-sm font-semibold text-black">Next Session</span>
+          <p className="mt-1 text-xs text-black/70">
+            Set or clear the game&apos;s next session date.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <ThemedDatePicker
+              value={nextSessionValue}
+              onChange={(dateString) =>
+                void handleNextSessionChange(dateString)
+              }
+              disabled={nextSessionBusy}
+              ariaLabel="Next session date"
+              placeholder="Set date"
+            />
+            {nextSessionError ? (
+              <p className="text-sm text-red-600">{nextSessionError}</p>
+            ) : null}
+          </div>
+        </div>
 
         <GmItemsSection
           onCreateCustom={() => setCustomItemModalOpen(true)}
