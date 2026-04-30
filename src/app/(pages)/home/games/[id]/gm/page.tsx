@@ -21,7 +21,7 @@ import {
   GmImagesSection,
   GmRecapsSection,
   GmNpcsSection,
-  GmPlaceholderSection,
+  GmDiceRollerSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
 import { useGameImages } from "@/hooks/use-game-images";
@@ -219,9 +219,7 @@ export default function GameMasterPage() {
           }}
         />
 
-        <GmPlaceholderSection title="Dice Roller">
-          Roll dice for this game. Coming soon.
-        </GmPlaceholderSection>
+        <GmDiceRollerSection gameId={game.id} />
 
         <GmLoreSection
           gameId={game.id}

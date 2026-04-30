@@ -72,6 +72,14 @@ function escapeForDiscordInlineCode(s: string): string {
   return s.replace(/`/g, "'");
 }
 
+function getGeneralRollTag(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object") return "GENERAL_ROLL";
+  const maybeNote = (metadata as { note?: unknown }).note;
+  if (typeof maybeNote !== "string") return "GENERAL_ROLL";
+  const trimmed = maybeNote.trim();
+  return trimmed.length > 0 ? trimmed.toUpperCase() : "GENERAL_ROLL";
+}
+
 function formatRollMessage(event: {
   rollType: string;
   diceExpression: string | null;
@@ -83,12 +91,16 @@ function formatRollMessage(event: {
 }) {
   const charName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
-    : "Unknown character";
+    : "GM";
+  const displayRollType =
+    event.rollType === "GENERAL_ROLL"
+      ? getGeneralRollTag(event.metadata)
+      : event.rollType;
   const label = escapeForDiscordInlineCode(event.diceExpression ?? "roll");
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
   return (
-    `🎲 **${event.rollerUser.name}** as **${charName}** ► **\n${event.rollType}**\n` +
+    `🎲 **${event.rollerUser.name}** as **${charName}** ► **\n${displayRollType}**\n` +
     `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
   );
 }
