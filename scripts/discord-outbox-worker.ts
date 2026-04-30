@@ -72,12 +72,37 @@ function escapeForDiscordInlineCode(s: string): string {
   return s.replace(/`/g, "'");
 }
 
+function cleanMetadataLabel(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function getGeneralRollTag(metadata: unknown): string {
   if (!metadata || typeof metadata !== "object") return "GENERAL_ROLL";
-  const maybeNote = (metadata as { note?: unknown }).note;
-  if (typeof maybeNote !== "string") return "GENERAL_ROLL";
-  const trimmed = maybeNote.trim();
-  return trimmed.length > 0 ? trimmed.toUpperCase() : "GENERAL_ROLL";
+
+  const data = metadata as {
+    label1?: unknown;
+    label2?: unknown;
+    note?: unknown;
+  };
+  const label1 = cleanMetadataLabel(data.label1);
+  const label2 = cleanMetadataLabel(data.label2);
+  if (label1 && label2) return `${label1} + ${label2}`;
+
+  const note = cleanMetadataLabel(data.note);
+  if (note) return note.toUpperCase();
+
+  return "GENERAL_ROLL";
+}
+
+function getAttackDamageTag(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object") return "ATTACK_DAMAGE";
+  const damageType = cleanMetadataLabel(
+    (metadata as { damageType?: unknown }).damageType
+  );
+  if (!damageType) return "ATTACK_DAMAGE";
+  return `ATTACK_DAMAGE (${damageType.toUpperCase()})`;
 }
 
 function formatRollMessage(event: {
@@ -92,15 +117,20 @@ function formatRollMessage(event: {
   const charName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
     : "GM";
-  const displayRollType =
-    event.rollType === "GENERAL_ROLL"
-      ? getGeneralRollTag(event.metadata)
-      : event.rollType;
+  const displayRollType = (() => {
+    if (event.rollType === "GENERAL_ROLL") {
+      return getGeneralRollTag(event.metadata);
+    }
+    if (event.rollType === "ATTACK_DAMAGE") {
+      return getAttackDamageTag(event.metadata);
+    }
+    return event.rollType;
+  })();
   const label = escapeForDiscordInlineCode(event.diceExpression ?? "roll");
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
   return (
-    `🎲 **${event.rollerUser.name}** as **${charName}** ► **\n${displayRollType}**\n` +
+    `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n` +
     `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
   );
 }

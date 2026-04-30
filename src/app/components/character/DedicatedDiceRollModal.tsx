@@ -619,7 +619,7 @@ export function DedicatedDiceRollModal({
               onClick={handleFreeRoll}
               disabled={freeDiceCount <= 0 || freeDiceType <= 1}
             >
-              Roll free
+              Roll
             </Button>
             {freeResult ? <ResultBlock values={freeResult} /> : null}
           </div>
