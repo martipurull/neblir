@@ -14,6 +14,26 @@ vi.mock("@/app/lib/prisma/game", () => ({
   updateGame: updateGameMock,
 }));
 
+/** Dynamic route param is still `characterId` but value is `TYPE:id`. */
+const combatantParam = (id: string) => `CHARACTER:${id}`;
+
+const charEntry = (
+  combatantId: string,
+  overrides: Partial<{
+    rolledValue: number;
+    initiativeModifier: number;
+    submittedAt: Date;
+    combatantName: string;
+  }> = {}
+) => ({
+  combatantType: "CHARACTER" as const,
+  combatantId,
+  combatantName: overrides.combatantName ?? "Hero",
+  rolledValue: overrides.rolledValue ?? 5,
+  initiativeModifier: overrides.initiativeModifier ?? 2,
+  submittedAt: overrides.submittedAt ?? new Date(),
+});
+
 describe("/api/games/[id]/initiative/[characterId]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +47,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         DELETE,
         makeUnauthedRequest(),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(401);
     });
@@ -36,14 +56,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       getGameWithDetailsMock.mockResolvedValue({
         id: "g-1",
         gameMaster: "gm-1",
-        initiativeOrder: [
-          {
-            characterId: "c-1",
-            rolledValue: 5,
-            initiativeModifier: 2,
-            submittedAt: new Date(),
-          },
-        ],
+        initiativeOrder: [charEntry("c-1")],
         characters: [],
       });
       const { DELETE } = await import(
@@ -52,7 +65,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "user-2"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(403);
       expect(updateGameMock).not.toHaveBeenCalled();
@@ -64,18 +77,12 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
           id: "g-1",
           gameMaster: "gm-1",
           initiativeOrder: [
-            {
-              characterId: "c-1",
-              rolledValue: 5,
-              initiativeModifier: 2,
-              submittedAt: new Date(),
-            },
-            {
-              characterId: "c-2",
+            charEntry("c-1", { rolledValue: 5, initiativeModifier: 2 }),
+            charEntry("c-2", {
               rolledValue: 3,
               initiativeModifier: 1,
-              submittedAt: new Date(),
-            },
+              combatantName: "Other",
+            }),
           ],
           characters: [],
         })
@@ -83,12 +90,11 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
           id: "g-1",
           gameMaster: "gm-1",
           initiativeOrder: [
-            {
-              characterId: "c-2",
+            charEntry("c-2", {
               rolledValue: 3,
               initiativeModifier: 1,
-              submittedAt: new Date(),
-            },
+              combatantName: "Other",
+            }),
           ],
           characters: [],
         });
@@ -99,17 +105,17 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(200);
       expect(updateGameMock).toHaveBeenCalledWith("g-1", {
         initiativeOrder: [
-          {
-            characterId: "c-2",
+          expect.objectContaining({
+            combatantType: "CHARACTER",
+            combatantId: "c-2",
             rolledValue: 3,
             initiativeModifier: 1,
-            submittedAt: expect.any(Date),
-          },
+          }),
         ],
       });
     });
@@ -123,7 +129,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeUnauthedRequest({ initiativeDelta: 1 }),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(401);
       expect(getGameWithDetailsMock).not.toHaveBeenCalled();
@@ -140,7 +146,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
           auth: { user: {} },
           json: vi.fn().mockResolvedValue({ initiativeDelta: 1 }),
         } as any,
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(400);
       expect(getGameWithDetailsMock).not.toHaveBeenCalled();
@@ -153,7 +159,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
-        makeParams({ id: "", characterId: "c-1" })
+        makeParams({ id: "", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(400);
       expect(getGameWithDetailsMock).not.toHaveBeenCalled();
@@ -179,7 +185,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 0 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(400);
       expect(getGameWithDetailsMock).not.toHaveBeenCalled();
@@ -194,7 +200,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(404);
       expect(updateGameMock).not.toHaveBeenCalled();
@@ -213,7 +219,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "user-2"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(403);
       expect(updateGameMock).not.toHaveBeenCalled();
@@ -223,14 +229,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       getGameWithDetailsMock.mockResolvedValue({
         id: "g-1",
         gameMaster: "gm-1",
-        initiativeOrder: [
-          {
-            characterId: "c-2",
-            rolledValue: 5,
-            initiativeModifier: 2,
-            submittedAt: new Date(),
-          },
-        ],
+        initiativeOrder: [charEntry("c-2")],
         characters: [],
       });
       const { PATCH } = await import(
@@ -239,7 +238,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(404);
       expect(updateGameMock).not.toHaveBeenCalled();
@@ -247,23 +246,23 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
 
     it("updates entry initiative modifier when game master", async () => {
       const submittedAt = new Date();
+      const c2Submitted = new Date();
       getGameWithDetailsMock
         .mockResolvedValueOnce({
           id: "g-1",
           gameMaster: "gm-1",
           initiativeOrder: [
-            {
-              characterId: "c-1",
+            charEntry("c-1", {
               rolledValue: 5,
               initiativeModifier: 2,
               submittedAt,
-            },
-            {
-              characterId: "c-2",
+            }),
+            charEntry("c-2", {
               rolledValue: 4,
               initiativeModifier: 1,
-              submittedAt: new Date(),
-            },
+              combatantName: "Other",
+              submittedAt: c2Submitted,
+            }),
           ],
           characters: [],
         })
@@ -271,18 +270,17 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
           id: "g-1",
           gameMaster: "gm-1",
           initiativeOrder: [
-            {
-              characterId: "c-1",
+            charEntry("c-1", {
               rolledValue: 5,
               initiativeModifier: 3,
               submittedAt,
-            },
-            {
-              characterId: "c-2",
+            }),
+            charEntry("c-2", {
               rolledValue: 4,
               initiativeModifier: 1,
-              submittedAt: new Date(),
-            },
+              combatantName: "Other",
+              submittedAt: c2Submitted,
+            }),
           ],
           characters: [],
         });
@@ -294,24 +292,25 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
 
       expect(response.status).toBe(200);
       expect(updateGameMock).toHaveBeenCalledWith("g-1", {
         initiativeOrder: [
-          {
-            characterId: "c-1",
+          expect.objectContaining({
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
             rolledValue: 5,
             initiativeModifier: 3,
             submittedAt,
-          },
-          {
-            characterId: "c-2",
+          }),
+          expect.objectContaining({
+            combatantType: "CHARACTER",
+            combatantId: "c-2",
             rolledValue: 4,
             initiativeModifier: 1,
-            submittedAt: expect.any(Date),
-          },
+          }),
         ],
       });
     });
@@ -321,14 +320,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         .mockResolvedValueOnce({
           id: "g-1",
           gameMaster: "gm-1",
-          initiativeOrder: [
-            {
-              characterId: "c-1",
-              rolledValue: 5,
-              initiativeModifier: 2,
-              submittedAt: new Date(),
-            },
-          ],
+          initiativeOrder: [charEntry("c-1")],
           characters: [],
         })
         .mockResolvedValueOnce(null);
@@ -340,7 +332,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: -1 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
 
       expect(response.status).toBe(500);
@@ -354,7 +346,7 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
-        makeParams({ id: "g-1", characterId: "c-1" })
+        makeParams({ id: "g-1", characterId: combatantParam("c-1") })
       );
       expect(response.status).toBe(500);
     });
