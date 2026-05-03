@@ -8,6 +8,7 @@ import { errorResponse } from "../shared/responses";
 
 const ALLOWED_TYPES = [
   "custom_items",
+  "custom_enemies",
   "unique_items",
   "games",
   "characters",
@@ -69,7 +70,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, unique_items, games, characters, recaps",
+        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, recaps",
         400
       );
     }

@@ -1,10 +1,24 @@
 import { z } from "zod";
 
-export const submitInitiativeBodySchema = z.object({
-  characterId: z.string().min(1),
+const submitCharacterInitiativeSchema = z.object({
+  combatantType: z.literal("CHARACTER"),
+  combatantId: z.string().min(1),
+  combatantName: z.string().trim().min(1).optional(),
   rolledValue: z.number().int(),
   initiativeModifier: z.number().int(),
 });
+
+const submitEnemyInitiativeSchema = z.object({
+  combatantType: z.literal("ENEMY"),
+  combatantId: z.string().min(1),
+  combatantName: z.string().trim().min(1),
+  rolledValue: z.number().int(),
+  initiativeModifier: z.number().int(),
+});
+
+export const submitInitiativeBodySchema = z
+  .union([submitCharacterInitiativeSchema, submitEnemyInitiativeSchema])
+  .transform((input) => input);
 
 export const adjustInitiativeBodySchema = z.object({
   initiativeDelta: z

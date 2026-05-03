@@ -23,6 +23,7 @@
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate",
     "prisma:backfill:special-abilities": "tsx prisma/scripts/backfillCharacterSpecialAbilities.ts",
+    "enemies:import": "tsx prisma/scripts/upsertEnemiesFromCsv.ts",
     "reference:import": "tsx prisma/scripts/importReferenceEntries.ts",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",
     "prepare": "husky",

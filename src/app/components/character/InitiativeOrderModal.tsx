@@ -96,17 +96,17 @@ export function InitiativeOrderModal({
             ) : (
               order.map((entry, index) => (
                 <li
-                  key={`${entry.characterId}-${index}`}
+                  key={`${entry.combatantType}:${entry.combatantId}-${index}`}
                   className="flex items-baseline justify-between gap-2 px-3 py-2.5 text-sm text-white"
                 >
                   <span className="shrink-0 font-medium tabular-nums text-white/90">
                     {index + 1}.
                   </span>
                   <span className="min-w-0 flex-1 truncate text-left">
-                    {entry.characterName ?? "Character"}{" "}
-                    {entry.characterSurname ? (
+                    {entry.displayName ?? "Combatant"}{" "}
+                    {entry?.displaySurname ? (
                       <span className="text-white/80">
-                        {entry.characterSurname}
+                        {entry.displaySurname}
                       </span>
                     ) : null}
                   </span>

@@ -18,6 +18,8 @@ export interface DefenceRollModalProps {
   onRollReaction?: () => void | Promise<void>;
   gameId?: string | null;
   characterId?: string;
+  /** When set, roll is attributed to an enemy instance instead of a character (Discord metadata). */
+  enemyInstanceRoll?: { instanceId: string; name: string };
 }
 
 function rollD10(): number {
@@ -33,6 +35,7 @@ export function DefenceRollModal({
   onRollReaction,
   gameId,
   characterId,
+  enemyInstanceRoll,
 }: DefenceRollModalProps) {
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
@@ -60,11 +63,22 @@ export function DefenceRollModal({
       results.sort((a, b) => b - a);
       setRollResult(results);
       void emitRollEvent(gameId, {
-        characterId,
+        characterId: enemyInstanceRoll ? undefined : characterId,
         rollType: "DEFENCE",
         diceExpression: `${totalDice}d10`,
         results,
-        metadata: { title, defenceDice, extraDice },
+        metadata: {
+          title,
+          defenceDice,
+          extraDice,
+          ...(enemyInstanceRoll
+            ? {
+                source: "enemyInstance",
+                enemyInstanceId: enemyInstanceRoll.instanceId,
+                enemyName: enemyInstanceRoll.name,
+              }
+            : {}),
+        },
       });
     } finally {
       setRolling(false);
@@ -76,6 +90,7 @@ export function DefenceRollModal({
     totalDice,
     gameId,
     characterId,
+    enemyInstanceRoll,
     title,
     defenceDice,
     extraDice,

@@ -166,10 +166,10 @@ export async function submitGameInitiative(
 
 export async function removeGameInitiativeEntry(
   gameId: string,
-  characterId: string
+  combatantRef: string
 ): Promise<GameDetail> {
   const response = await fetch(
-    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(characterId)}`,
+    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(combatantRef)}`,
     {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -202,11 +202,11 @@ export async function removeGameInitiativeEntry(
 
 export async function adjustGameInitiativeEntry(
   gameId: string,
-  characterId: string,
+  combatantRef: string,
   initiativeDelta: number
 ): Promise<GameDetail> {
   const response = await fetch(
-    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(characterId)}`,
+    `/api/games/${encodeURIComponent(gameId)}/initiative/${encodeURIComponent(combatantRef)}`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

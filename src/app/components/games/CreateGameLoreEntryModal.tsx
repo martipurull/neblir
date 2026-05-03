@@ -62,7 +62,7 @@ export default function CreateGameLoreEntryModal({
     editorProps: {
       attributes: {
         class:
-          "min-h-[11rem] outline-none text-sm text-white leading-relaxed focus:outline-none caret-white selection:bg-white/25 selection:text-black",
+          "min-h-[11rem] outline-none text-sm text-white leading-relaxed focus:outline-none caret-white selection:bg-paleBlue/25 selection:text-black",
       },
     },
   });

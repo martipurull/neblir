@@ -122,15 +122,44 @@ export const gameDetailCustomItemSchema = z.object({
   imageKey: z.string().nullable().optional(),
 });
 
+export const gameDetailCustomEnemySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  initiativeModifier: z.number(),
+  numberOfReactions: z.number().optional(),
+  imageKey: z.string().nullable().optional(),
+  health: z.number().optional(),
+  speed: z.number().optional(),
+});
+
+export const gameDetailEnemyInstanceSchema = z.object({
+  id: z.string(),
+  sourceCustomEnemyId: z.string().nullable().optional(),
+  sourceOfficialEnemyId: z.string().nullable().optional(),
+  name: z.string(),
+  imageKey: z.string().nullable().optional(),
+  maxHealth: z.number(),
+  currentHealth: z.number(),
+  speed: z.number(),
+  initiativeModifier: z.number(),
+  reactionsPerRound: z.number(),
+  reactionsRemaining: z.number(),
+  status: z.enum(["ACTIVE", "DEFEATED", "DEAD"]),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
 /** Initiative line as returned from GET/PATCH/POST/DELETE game detail responses (sorted). */
 export const gameDetailInitiativeEntrySchema = z.object({
-  characterId: z.string(),
+  combatantType: z.enum(["CHARACTER", "ENEMY"]),
+  combatantId: z.string(),
+  combatantName: z.string(),
   rolledValue: z.number(),
   initiativeModifier: z.number(),
   submittedAt: z.coerce.date(),
   totalInitiative: z.number(),
-  characterName: z.string().nullable().optional(),
-  characterSurname: z.string().nullable().optional(),
+  displayName: z.string().nullable().optional(),
+  displaySurname: z.string().nullable().optional(),
 });
 
 /** Full game detail as returned by GET /api/games/[id]. */
@@ -146,6 +175,8 @@ export const gameDetailSchema = z.object({
   users: z.array(gameListUserSchema),
   characters: z.array(gameDetailCharacterSchema).optional(),
   customItems: z.array(gameDetailCustomItemSchema).optional(),
+  customEnemies: z.array(gameDetailCustomEnemySchema).optional(),
+  enemyInstances: z.array(gameDetailEnemyInstanceSchema).optional(),
   initiativeOrder: z.array(gameDetailInitiativeEntrySchema).optional(),
   discordIntegration: discordIntegrationSchema.nullable().optional(),
 });

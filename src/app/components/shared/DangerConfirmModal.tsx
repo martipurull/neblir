@@ -14,6 +14,8 @@ interface DangerConfirmModalProps {
   errorMessage?: string | null;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
+  /** Shown on the confirm button while `isSubmitting` (defaults to “Deleting…”). */
+  confirmSubmittingLabel?: string;
   /** Overrides default `max-w-md` on the panel (e.g. `max-w-xs` for a compact dialog). */
   panelClassName?: string;
   /** `modalBackground` matches character note modals (purple panel, pale blue text). */
@@ -30,6 +32,7 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
   errorMessage = null,
   onCancel,
   onConfirm,
+  confirmSubmittingLabel,
   panelClassName,
   variant = "default",
 }) => {
@@ -97,7 +100,7 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         >
           <Button
             type="button"
-            variant="semanticSafeOutline"
+            variant={isModalBg ? "modalPaleOutline" : "secondary"}
             fullWidth={false}
             onClick={onCancel}
             disabled={isSubmitting}
@@ -114,7 +117,9 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
             className="!px-3 !py-2"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Deleting..." : confirmLabel}
+            {isSubmitting
+              ? (confirmSubmittingLabel ?? "Deleting...")
+              : confirmLabel}
           </Button>
         </div>
       </div>

@@ -15,6 +15,7 @@ export type ItemBrowseDamage = {
     | "BLUDGEONING"
     | "ELECTRICITY"
     | "NERVE"
+    | "GRID"
     | "POISON"
     | "OTHER"
   >;

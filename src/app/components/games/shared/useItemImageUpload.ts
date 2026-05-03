@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 
 export type ItemImageUploadType =
   | "custom_items"
+  | "custom_enemies"
   | "unique_items"
   | "games"
   | "characters";

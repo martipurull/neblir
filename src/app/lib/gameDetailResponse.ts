@@ -1,4 +1,4 @@
-import { sortCharacterInitiativeEntries } from "@/app/lib/initiativeOrder";
+import { sortInitiativeEntries } from "@/app/lib/initiativeOrder";
 import type { getGameWithDetails } from "@/app/lib/prisma/game";
 
 type GameWithDetails = NonNullable<
@@ -16,21 +16,36 @@ function shapeInitiativeOrderForResponse(
   game: GameWithDetails,
   visibleCharacters: VisibleCharacterRow[]
 ) {
-  const sorted = sortCharacterInitiativeEntries(game.initiativeOrder ?? []);
+  const sorted = sortInitiativeEntries(game.initiativeOrder ?? []);
   const characterById = new Map(
     visibleCharacters.map((gc) => [gc.character.id, gc.character])
   );
+  const enemyInstanceById = new Map(
+    (game.enemyInstances ?? []).map((enemy) => [enemy.id, enemy])
+  );
   return sorted.map((entry) => {
-    const ch = characterById.get(entry.characterId);
+    const ch =
+      entry.combatantType === "CHARACTER"
+        ? characterById.get(entry.combatantId)
+        : undefined;
     const gi = ch?.generalInformation;
+    const enemyInstance = enemyInstanceById.get(entry.combatantId);
+    const displayName =
+      entry.combatantType === "CHARACTER"
+        ? (gi?.name ?? null)
+        : (entry.combatantName ?? enemyInstance?.name ?? "Enemy");
+    const displaySurname =
+      entry.combatantType === "CHARACTER" ? (gi?.surname ?? null) : null;
     return {
-      characterId: entry.characterId,
+      combatantType: entry.combatantType,
+      combatantId: entry.combatantId,
+      combatantName: entry.combatantName,
       rolledValue: entry.rolledValue,
       initiativeModifier: entry.initiativeModifier,
       submittedAt: entry.submittedAt,
       totalInitiative: entry.rolledValue + entry.initiativeModifier,
-      characterName: gi?.name ?? null,
-      characterSurname: gi?.surname ?? null,
+      displayName,
+      displaySurname,
     };
   });
 }
@@ -47,7 +62,7 @@ export function shapeGameForResponse(
       const isOwnedByCurrentUser = gc.character.users.some(
         (u) => u.userId === userId
       );
-      return isOwnedByCurrentUser || (gc.isPublic ?? true);
+      return isOwnedByCurrentUser ?? gc.isPublic ?? true;
     })
     .map((gc) => {
       const gi = gc.character.generalInformation;

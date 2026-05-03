@@ -27,6 +27,8 @@ export interface AttackRollModalProps {
   onWeaponUsed?: (itemCharacterId: string) => void | Promise<void>;
   gameId?: string | null;
   characterId?: string;
+  /** When set, roll is attributed to an enemy instance instead of a character (Discord metadata). */
+  enemyInstanceRoll?: { instanceId: string; name: string };
 }
 
 function rollD10(): number {
@@ -66,6 +68,7 @@ export function AttackRollModal({
   onWeaponUsed,
   gameId,
   characterId,
+  enemyInstanceRoll,
 }: AttackRollModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [extraDice, setExtraDice] = useState(0);
@@ -106,7 +109,7 @@ export function AttackRollModal({
     results.sort((a, b) => b - a);
     setRollResult(results);
     void emitRollEvent(gameId, {
-      characterId,
+      characterId: enemyInstanceRoll ? undefined : characterId,
       rollType: "ATTACK",
       diceExpression: `${count}d10`,
       results,
@@ -115,6 +118,13 @@ export function AttackRollModal({
         weaponName: selected?.weaponName ?? null,
         modifier: selectedMod,
         extraDice,
+        ...(enemyInstanceRoll
+          ? {
+              source: "enemyInstance",
+              enemyInstanceId: enemyInstanceRoll.instanceId,
+              enemyName: enemyInstanceRoll.name,
+            }
+          : {}),
       },
     });
   }, [
@@ -124,6 +134,7 @@ export function AttackRollModal({
     onWeaponUsed,
     gameId,
     characterId,
+    enemyInstanceRoll,
     attackType,
   ]);
 
@@ -159,7 +170,7 @@ export function AttackRollModal({
 
     setDamageRollResult(results);
     void emitRollEvent(gameId, {
-      characterId,
+      characterId: enemyInstanceRoll ? undefined : characterId,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${totalDamageDice}d${baseDamageType}`,
       results,
@@ -168,6 +179,13 @@ export function AttackRollModal({
         attackType,
         weaponName: selected?.weaponName ?? null,
         extraDamageDice: damageExtraDice,
+        ...(enemyInstanceRoll
+          ? {
+              source: "enemyInstance",
+              enemyInstanceId: enemyInstanceRoll.instanceId,
+              enemyName: enemyInstanceRoll.name,
+            }
+          : {}),
       },
     });
   }, [
@@ -176,6 +194,7 @@ export function AttackRollModal({
     damageExtraDice,
     gameId,
     characterId,
+    enemyInstanceRoll,
     attackType,
     selected?.weaponName,
     totalDamageDice,
@@ -221,7 +240,7 @@ export function AttackRollModal({
         {modifierHint && (
           <p className="text-xs text-white/75">{modifierHint}</p>
         )}
-        {attackType !== "grid" && (
+        {attackType !== "grid" && options.length > 1 && (
           <div>
             <p className="mb-2 text-sm font-medium text-white">Select weapon</p>
             <div className="flex flex-col gap-2">

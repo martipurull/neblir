@@ -1,5 +1,6 @@
 export { GmInitiativeSection } from "./GmInitiativeSection";
 export { GmInvitesSection } from "./GmInvitesSection";
+export { GmCustomEnemiesSection } from "./GmCustomEnemiesSection";
 export { GmItemsSection } from "./GmItemsSection";
 export { GmDiscordSection } from "./GmDiscordSection";
 export { GmLoreSection } from "./GmLoreSection";

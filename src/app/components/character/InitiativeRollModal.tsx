@@ -54,7 +54,9 @@ export function InitiativeRollModal({
 
   const hasSubmittedInGame = useCallback(
     (game: GameDetail) =>
-      (game.initiativeOrder ?? []).some((e) => e.characterId === character.id),
+      (game.initiativeOrder ?? []).some(
+        (e) => e.combatantType === "CHARACTER" && e.combatantId === character.id
+      ),
     [character.id]
   );
 
@@ -125,7 +127,8 @@ export function InitiativeRollModal({
     setSubmitting(true);
     try {
       await submitGameInitiative(selectedGameId, {
-        characterId: character.id,
+        combatantType: "CHARACTER",
+        combatantId: character.id,
         rolledValue: d,
         initiativeModifier: mod,
       });

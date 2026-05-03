@@ -2,6 +2,9 @@ import InfoCard from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
 import Button from "@/app/components/shared/Button";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { useImageUrls } from "@/hooks/use-image-urls";
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
@@ -27,6 +30,12 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
 
   const publicNpcs = npcRows.filter((gc) => gc.isPublic ?? true);
   const privateNpcs = npcRows.filter((gc) => !(gc.isPublic ?? true));
+  const npcImageUrls = useImageUrls(
+    npcRows.map((gc) => ({
+      id: gc.character.id,
+      imageKey: gc.character.avatarKey ?? null,
+    }))
+  );
 
   const renderNpcList = (
     rows: typeof npcRows,
@@ -54,12 +63,36 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
                 href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${game.id}/gm`)}`}
                 className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:basis-2/3"
               >
-                <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
-                  {name}
-                </p>
-                <p className="text-sm text-black/65">
-                  Level {char.generalInformation?.level ?? "—"}
-                </p>
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+                    {npcImageUrls[char.id] ? (
+                      <Image
+                        src={npcImageUrls[char.id] as string}
+                        alt={`${name} avatar`}
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 object-cover object-top"
+                      />
+                    ) : npcImageUrls[char.id] === undefined ? (
+                      <ImageLoadingSkeleton
+                        variant="avatar"
+                        className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
+                        {name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
+                      {name}
+                    </p>
+                    <p className="text-sm text-black/65">
+                      Level {char.generalInformation?.level ?? "—"}
+                    </p>
+                  </div>
+                </div>
               </Link>
               <div className="w-full sm:basis-1/3">
                 <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">

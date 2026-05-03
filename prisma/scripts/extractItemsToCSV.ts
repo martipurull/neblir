@@ -259,6 +259,12 @@ function parseDamage(text: string): {
   )
     result.damageType = "ICE";
   else if (upper.includes("NERVE")) result.damageType = "NERVE";
+  else if (
+    /\bGRID\b/.test(upper) &&
+    !/GRID\s+ATTACK/i.test(upper) &&
+    !/GRID\s+DEFEN[CS]E/i.test(upper)
+  )
+    result.damageType = "GRID";
   else if (upper.includes("POISON")) result.damageType = "POISON";
 
   // Parse radius (e.g., "15m", "20 metres", "15m cone")

@@ -383,7 +383,7 @@ const lightDisclosureChevron =
   "shrink-0 rounded p-1 text-xs text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
 
 const lightTemplateInfoIcon =
-  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-black/30 bg-white/90 text-xs font-bold text-black/80 shadow-sm transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
+  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-black/30 bg-paleBlue/90 text-xs font-bold text-black/80 shadow-sm transition-colors hover:bg-paleBlue focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
 
 const lightHeaderIconAffordance =
   "flex shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2";

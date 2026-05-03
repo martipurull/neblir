@@ -58,6 +58,7 @@ export const weaponDamageTypeSchema = z.enum([
   "BLUDGEONING",
   "ELECTRICITY",
   "NERVE",
+  "GRID",
   "POISON",
   "OTHER",
 ]);

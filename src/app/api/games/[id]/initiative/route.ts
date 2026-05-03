@@ -7,6 +7,7 @@ import {
   characterIsInGame,
   userOwnsCharacter,
 } from "@/app/lib/prisma/gameCharacter";
+import { getEnemyInstance } from "@/app/lib/prisma/enemyInstance";
 import { shapeGameForResponse } from "@/app/lib/gameDetailResponse";
 import { submitInitiativeBodySchema } from "@/app/lib/types/initiative";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -50,31 +51,67 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const { characterId, rolledValue, initiativeModifier } = parsed.data;
+    const {
+      combatantType,
+      combatantId,
+      combatantName,
+      rolledValue,
+      initiativeModifier,
+    } = parsed.data;
 
     const game = await getGameWithDetails(gameId);
     if (!game) {
       return errorResponse("Game not found", 404);
     }
 
-    const inThisGame = await characterIsInGame(gameId, characterId);
-    if (!inThisGame) {
-      return errorResponse("Character is not in this game", 403);
-    }
-
     const isGameMaster = game.gameMaster === userId;
-    const owns = await userOwnsCharacter(characterId, userId);
-    if (!isGameMaster && !owns) {
-      return errorResponse(
-        "You can only submit initiative for your own character",
-        403
-      );
+    let resolvedCombatantName: string | undefined = combatantName;
+    if (combatantType === "CHARACTER") {
+      const inThisGame = await characterIsInGame(gameId, combatantId);
+      if (!inThisGame) {
+        return errorResponse("Character is not in this game", 403);
+      }
+      const owns = await userOwnsCharacter(combatantId, userId);
+      if (!isGameMaster && !owns) {
+        return errorResponse(
+          "You can only submit initiative for your own character",
+          403
+        );
+      }
+      const character = game.characters.find(
+        (gc) => gc.character.id === combatantId
+      )?.character;
+      const name = character?.generalInformation?.name ?? "";
+      const surname = character?.generalInformation?.surname ?? "";
+      resolvedCombatantName = `${name}${surname ? ` ${surname}` : ""}`.trim();
+    } else {
+      if (!isGameMaster) {
+        return errorResponse(
+          "Only the game master can submit initiative for enemies",
+          403
+        );
+      }
+      const enemyInstance = await getEnemyInstance(combatantId);
+      const validEnemyInstance =
+        enemyInstance?.gameId === gameId ? enemyInstance : null;
+      if (!validEnemyInstance) {
+        return errorResponse("Enemy instance not found", 404);
+      }
+      resolvedCombatantName = validEnemyInstance.name;
+    }
+    if (!resolvedCombatantName) {
+      return errorResponse("Combatant name could not be resolved", 400);
     }
 
     const existing = game.initiativeOrder ?? [];
-    if (existing.some((e) => e.characterId === characterId)) {
+    if (
+      existing.some(
+        (e) =>
+          e.combatantType === combatantType && e.combatantId === combatantId
+      )
+    ) {
       return errorResponse(
-        "Initiative has already been submitted for this character in this game",
+        "Initiative has already been submitted for this combatant in this game",
         409
       );
     }
@@ -84,7 +121,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       initiativeOrder: [
         ...existing,
         {
-          characterId,
+          combatantType,
+          combatantId,
+          combatantName: resolvedCombatantName,
           rolledValue,
           initiativeModifier,
           submittedAt,

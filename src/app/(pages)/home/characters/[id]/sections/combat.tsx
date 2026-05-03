@@ -59,7 +59,9 @@ export function getCombatSection(
     options.initiative;
   const hasOpenInitiativeSlot = gameDetails.some(
     (g) =>
-      !(g.initiativeOrder ?? []).some((e) => e.characterId === character.id)
+      !(g.initiativeOrder ?? []).some(
+        (e) => e.combatantType === "CHARACTER" && e.combatantId === character.id
+      )
   );
   const canRollInitiative =
     !gamesLoading && gameLinkCount > 0 && hasOpenInitiativeSlot;
