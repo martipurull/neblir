@@ -10,9 +10,16 @@ import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUp
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import {
+  getSelectedSpecialAbilityDescription,
+  getSpecialAbilityOptionsForRace,
+  SIZE_DEFAULTS_BY_RACE,
+  HEIGHT_HELP_BY_RACE,
+  WEIGHT_HELP_BY_RACE,
+} from "@/app/lib/characterGeneralInfo";
 
 const CURRENCY_LABELS: Record<(typeof CURRENCY_NAMES)[number], string> = {
   CONF: "CONF",
@@ -44,6 +51,16 @@ export function GeneralInfoStep() {
   const currencyImageUrls = useImageUrls(currencyImageEntries);
 
   const formAvatarKey = watch("generalInformation.avatarKey") ?? "";
+  const selectedRace = watch("generalInformation.race");
+  const selectedSpecialAbilityName = watch(
+    "generalInformation.specialAbilityName"
+  );
+  const specialAbilityOptions = useMemo(
+    () => getSpecialAbilityOptionsForRace(selectedRace),
+    [selectedRace]
+  );
+  const selectedSpecialAbilityDescription =
+    getSelectedSpecialAbilityDescription(selectedSpecialAbilityName);
 
   // When an upload completes, sync the resulting imageKey into the form.
   // We intentionally do NOT overwrite the form with an empty upload state (prevents
@@ -53,6 +70,33 @@ export function GeneralInfoStep() {
       setValue("generalInformation.avatarKey", imageUpload.imageKey);
     }
   }, [imageUpload.imageKey, setValue]);
+
+  useEffect(() => {
+    const sizeDefaults = SIZE_DEFAULTS_BY_RACE[selectedRace];
+    setValue("generalInformation.height", sizeDefaults.height);
+    setValue("generalInformation.weight", sizeDefaults.weight);
+
+    if (selectedRace === "HUMAN") {
+      setValue("generalInformation.specialAbilityName", "INNATE_MANIPULATION");
+    } else if (selectedRace === "KINIAN") {
+      setValue("generalInformation.specialAbilityName", "TELEPATHY_DARKVISION");
+    } else if (selectedRace === "FENNE") {
+      setValue(
+        "generalInformation.specialAbilityName",
+        "DOUBLE_OPPOSABLE_THUMBS"
+      );
+    } else if (selectedRace === "MANFENN") {
+      if (
+        selectedSpecialAbilityName !== "INNATE_MANIPULATION" &&
+        selectedSpecialAbilityName !== "DOUBLE_OPPOSABLE_THUMBS"
+      ) {
+        setValue(
+          "generalInformation.specialAbilityName",
+          "INNATE_MANIPULATION"
+        );
+      }
+    }
+  }, [selectedRace, selectedSpecialAbilityName, setValue]);
 
   return (
     <div className="grid grid-cols-1 gap-x-4 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
@@ -107,6 +151,16 @@ export function GeneralInfoStep() {
         placeholder="Last name"
       />
       <NumberInput name="generalInformation.age" label="Age" min={1} />
+      <TextInput
+        name="generalInformation.profession"
+        label="Profession"
+        placeholder="e.g. Engineer"
+      />
+      <TextInput
+        name="generalInformation.birthplace"
+        label="Birthplace"
+        placeholder="e.g. New Haven"
+      />
       <Controller
         name="generalInformation.religion"
         control={control}
@@ -123,42 +177,120 @@ export function GeneralInfoStep() {
           </div>
         )}
       />
-      <TextInput
-        name="generalInformation.profession"
-        label="Profession"
-        placeholder="e.g. Engineer"
-      />
-      <Controller
-        name="generalInformation.race"
-        control={control}
-        render={({ field }) => (
-          <div className="mb-6">
-            <SelectDropdown
-              id="generalInformation.race"
-              label="Race"
-              placeholder="Select race"
-              value={field.value}
-              options={raceOptions}
-              onChange={field.onChange}
-            />
-          </div>
-        )}
-      />
-      <TextInput
-        name="generalInformation.birthplace"
-        label="Birthplace"
-        placeholder="e.g. New Haven"
-      />
-      <NumberInput
-        name="generalInformation.height"
-        label="Height (cm)"
-        min={1}
-      />
-      <NumberInput
-        name="generalInformation.weight"
-        label="Weight (kg)"
-        min={1}
-      />
+      <div className="sm:col-span-2 lg:col-span-2 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+        <Controller
+          name="generalInformation.race"
+          control={control}
+          render={({ field }) => (
+            <div className="mb-6">
+              <SelectDropdown
+                id="generalInformation.race"
+                label="Race"
+                placeholder="Select race"
+                value={field.value}
+                options={raceOptions}
+                onChange={field.onChange}
+              />
+            </div>
+          )}
+        />
+        <Controller
+          name="generalInformation.specialAbilityName"
+          control={control}
+          render={({ field }) => (
+            <div className="mb-6">
+              <label
+                htmlFor="generalInformation.specialAbilityName"
+                className="block font-bold text-black"
+              >
+                Special Ability
+              </label>
+              <SelectDropdown
+                id="generalInformation.specialAbilityName"
+                label="Special Ability"
+                showLabel={false}
+                placeholder="Select special ability"
+                value={field.value ?? ""}
+                options={specialAbilityOptions}
+                onChange={field.onChange}
+              />
+              <p className="mt-2 ml-1 text-xs text-black/70">
+                {selectedSpecialAbilityDescription}
+              </p>
+            </div>
+          )}
+        />
+      </div>
+      <div className="sm:col-span-2 lg:col-span-2 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+        <Controller
+          name="generalInformation.height"
+          control={control}
+          render={({ field }) => (
+            <div className="mb-6">
+              <label
+                htmlFor="generalInformation.height"
+                className="block font-bold text-black"
+              >
+                Height (cm)
+              </label>
+              <input
+                {...field}
+                id="generalInformation.height"
+                type="number"
+                min={1}
+                inputMode="numeric"
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    field.onChange(raw);
+                    return;
+                  }
+                  const parsed = parseInt(raw, 10);
+                  field.onChange(Number.isNaN(parsed) ? raw : parsed);
+                }}
+                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+              />
+              <p className="mt-2 ml-1 text-xs text-black/70">
+                {HEIGHT_HELP_BY_RACE[selectedRace]}
+              </p>
+            </div>
+          )}
+        />
+        <Controller
+          name="generalInformation.weight"
+          control={control}
+          render={({ field }) => (
+            <div className="mb-6">
+              <label
+                htmlFor="generalInformation.weight"
+                className="block font-bold text-black"
+              >
+                Weight (kg)
+              </label>
+              <input
+                {...field}
+                id="generalInformation.weight"
+                type="number"
+                min={1}
+                inputMode="numeric"
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    field.onChange(raw);
+                    return;
+                  }
+                  const parsed = parseInt(raw, 10);
+                  field.onChange(Number.isNaN(parsed) ? raw : parsed);
+                }}
+                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+              />
+              <p className="mt-2 ml-1 text-xs text-black/70">
+                {WEIGHT_HELP_BY_RACE[selectedRace]}
+              </p>
+            </div>
+          )}
+        />
+      </div>
       <div className="mb-6 sm:col-span-2 lg:col-span-3">
         <p className="mb-2 block font-bold text-black">Money (wallet)</p>
         <p className="mb-2 text-xs text-black/70">

@@ -3,8 +3,7 @@
 import type { JSONContent } from "@tiptap/core";
 import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
-import React, { useMemo } from "react";
-
+import { useMemo } from "react";
 function isTiptapDoc(value: unknown): value is JSONContent {
   return (
     Boolean(value) &&

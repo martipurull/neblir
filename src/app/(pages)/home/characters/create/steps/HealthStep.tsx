@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
 import Button from "@/app/components/shared/Button";
-import { SafeButtonFilled } from "@/app/components/shared/SemanticActionButton";
 
 function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
@@ -176,7 +175,10 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             <strong>{innatePhysicalHealth}</strong>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <SafeButtonFilled
+            <Button
+              type="button"
+              variant="semanticSafeFilled"
+              fullWidth={false}
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
@@ -188,7 +190,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
               className="px-3 py-1 text-sm"
             >
               Roll physical HP
-            </SafeButtonFilled>
+            </Button>
             <p className="w-full text-xs text-black/50">
               Rolls <strong>{extraDice}</strong>d10 + 10 (level {level})
             </p>
@@ -242,7 +244,10 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             <strong>{innateMentalHealth}</strong>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <SafeButtonFilled
+            <Button
+              type="button"
+              variant="semanticSafeFilled"
+              fullWidth={false}
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
@@ -254,7 +259,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
               className="px-3 py-1 text-sm"
             >
               Roll mental HP
-            </SafeButtonFilled>
+            </Button>
             <p className="w-full text-xs text-black/50">
               Rolls <strong>{extraDice}</strong>d10 + 10 (level {level})
             </p>

@@ -7,14 +7,11 @@ import {
   type WalletAdjustMode,
 } from "@/app/components/character/WalletAdjustModal";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import {
-  DangerButton,
-  SafeButton,
-} from "@/app/components/shared/SemanticActionButton";
+import Button from "@/app/components/shared/Button";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface WalletSectionContentProps {
   character: CharacterDetail;
@@ -90,8 +87,10 @@ function WalletSectionContent({
                 {entry.currencyName}
               </span>
               <div className="ml-auto flex shrink-0 gap-1.5">
-                <SafeButton
+                <Button
                   type="button"
+                  variant="semanticSafeOutline"
+                  fullWidth={false}
                   onClick={() =>
                     setModalState({
                       isOpen: true,
@@ -103,9 +102,11 @@ function WalletSectionContent({
                   className="!px-2 !py-0.5 !text-xs"
                 >
                   ADD
-                </SafeButton>
-                <DangerButton
+                </Button>
+                <Button
                   type="button"
+                  variant="semanticDangerOutline"
+                  fullWidth={false}
                   onClick={() =>
                     setModalState({
                       isOpen: true,
@@ -117,7 +118,7 @@ function WalletSectionContent({
                   className="!px-2 !py-0.5 !text-xs"
                 >
                   SUBTRACT
-                </DangerButton>
+                </Button>
               </div>
             </li>
           );

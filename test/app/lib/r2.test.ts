@@ -1,4 +1,4 @@
-import { getR2Config, isDeletableImageKey } from "@/app/lib/r2";
+import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const s3ClientCtorMock = vi.fn();
@@ -18,33 +18,33 @@ describe("r2 helper", () => {
     process.env = { ...envBackup };
   });
 
-  describe("isDeletableImageKey", () => {
+  describe("isDeletableUploadKey", () => {
     it("returns true for keys starting with custom_items-", () => {
-      expect(isDeletableImageKey("custom_items-special_gun-abc.png")).toBe(
+      expect(isDeletableUploadKey("custom_items-special_gun-abc.png")).toBe(
         true
       );
-      expect(isDeletableImageKey("custom_items-.png")).toBe(true);
+      expect(isDeletableUploadKey("custom_items-.png")).toBe(true);
     });
 
     it("returns true for keys starting with unique_items-", () => {
-      expect(isDeletableImageKey("unique_items-variant-xyz.webp")).toBe(true);
-      expect(isDeletableImageKey("unique_items-foo.jpeg")).toBe(true);
+      expect(isDeletableUploadKey("unique_items-variant-xyz.webp")).toBe(true);
+      expect(isDeletableUploadKey("unique_items-foo.jpeg")).toBe(true);
     });
 
     it("returns false for other key prefixes", () => {
-      expect(isDeletableImageKey("items-siike_gun.png")).toBe(false);
-      expect(isDeletableImageKey("custom-items-old.png")).toBe(false);
-      expect(isDeletableImageKey("unique-items-old.png")).toBe(false);
+      expect(isDeletableUploadKey("items-siike_gun.png")).toBe(false);
+      expect(isDeletableUploadKey("custom-items-old.png")).toBe(false);
+      expect(isDeletableUploadKey("unique-items-old.png")).toBe(false);
     });
 
     it("returns true for keys starting with games- and characters-", () => {
-      expect(isDeletableImageKey("characters-alexandra.png")).toBe(true);
-      expect(isDeletableImageKey("games-cover.png")).toBe(true);
+      expect(isDeletableUploadKey("characters-alexandra.png")).toBe(true);
+      expect(isDeletableUploadKey("games-cover.png")).toBe(true);
     });
 
     it("returns false for empty or unrelated keys", () => {
-      expect(isDeletableImageKey("")).toBe(false);
-      expect(isDeletableImageKey("random/key.png")).toBe(false);
+      expect(isDeletableUploadKey("")).toBe(false);
+      expect(isDeletableUploadKey("random/key.png")).toBe(false);
     });
   });
 

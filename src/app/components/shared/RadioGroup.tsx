@@ -1,7 +1,4 @@
 "use client";
-
-import React from "react";
-
 type RadioOption = {
   value: string;
   label: string;
@@ -71,9 +68,7 @@ export function RadioGroup({
                 checked={checked}
                 disabled={disabled}
                 onChange={() => onChange(option.value)}
-                className={`${variant === "chip" ? "sr-only" : "h-4 w-4"} ${
-                  tone === "inverse" ? "accent-white" : "accent-customPrimary"
-                }`}
+                className={`${variant === "chip" ? "sr-only" : "h-4 w-4"} accent-customPrimary`}
               />
               {option.label}
             </label>

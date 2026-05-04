@@ -16,7 +16,6 @@ import {
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
-import React from "react";
 
 function formatLabel(key: string) {
   return key

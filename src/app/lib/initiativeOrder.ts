@@ -1,9 +1,9 @@
-import type { CharacterInitiative } from "@prisma/client";
+import type { InitiativeEntry } from "@prisma/client";
 
 /** Higher total first; tie → higher modifier; tie → earlier submission first. */
-export function sortCharacterInitiativeEntries(
-  entries: CharacterInitiative[]
-): CharacterInitiative[] {
+export function sortInitiativeEntries(
+  entries: InitiativeEntry[]
+): InitiativeEntry[] {
   return [...entries].sort((a, b) => {
     const totalA = a.rolledValue + a.initiativeModifier;
     const totalB = b.rolledValue + b.initiativeModifier;

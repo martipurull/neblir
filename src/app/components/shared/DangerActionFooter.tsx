@@ -2,7 +2,7 @@
 
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState } from "react";
-import DangerButton from "./DangerButton";
+import Button from "./Button";
 import DangerConfirmModal from "./DangerConfirmModal";
 import FootnoteText from "./FootnoteText";
 
@@ -70,11 +70,14 @@ const DangerActionFooter: React.FC<DangerActionFooterProps> = ({
         className={`mt-auto flex items-center justify-between border-t border-black pt-6 ${className}`.trim()}
       >
         <FootnoteText className="pr-8">{note}</FootnoteText>
-        <DangerButton
-          text={actionLabel}
+        <Button
+          variant="danger"
+          fullWidth={false}
           onClick={openModal}
           disabled={!onConfirm}
-        />
+        >
+          {actionLabel}
+        </Button>
       </div>
       <DangerConfirmModal
         isOpen={isModalOpen}

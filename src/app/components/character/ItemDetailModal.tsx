@@ -16,7 +16,7 @@ import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import Image from "next/image";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
 import { ItemDetailGiveRemoveSection } from "./itemDetailModal/ItemDetailGiveRemoveSection";

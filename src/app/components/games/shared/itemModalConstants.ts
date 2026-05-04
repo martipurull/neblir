@@ -15,6 +15,7 @@ export const DAMAGE_TYPES = [
   "BLUDGEONING",
   "ELECTRICITY",
   "NERVE",
+  "GRID",
   "POISON",
   "OTHER",
 ] as const;

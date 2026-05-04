@@ -28,12 +28,21 @@ describe("/api/games/[id]/initiative", () => {
     vi.clearAllMocks();
   });
 
+  const gameCharacterC1 = {
+    character: {
+      id: "c-1",
+      generalInformation: { name: "Hero", surname: "" },
+      combatInformation: {},
+      users: [{ userId: "user-1" }],
+    },
+  };
+
   const baseGame = {
     id: "g-1",
     gameMaster: "gm-1",
     name: "Game",
     users: [],
-    characters: [],
+    characters: [gameCharacterC1],
     customItems: [],
     initiativeOrder: [],
   };
@@ -55,7 +64,12 @@ describe("/api/games/[id]/initiative", () => {
       const response = await invokeRoute(
         POST,
         makeAuthedRequest(
-          { characterId: "c-1", rolledValue: 15, initiativeModifier: 2 },
+          {
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
+            rolledValue: 15,
+            initiativeModifier: 2,
+          },
           "user-1"
         ),
         makeParams({ id: "g-1" })
@@ -69,7 +83,9 @@ describe("/api/games/[id]/initiative", () => {
         ...baseGame,
         initiativeOrder: [
           {
-            characterId: "c-1",
+            combatantType: "CHARACTER" as const,
+            combatantId: "c-1",
+            combatantName: "Hero",
             rolledValue: 10,
             initiativeModifier: 2,
             submittedAt: new Date(),
@@ -82,7 +98,12 @@ describe("/api/games/[id]/initiative", () => {
       const response = await invokeRoute(
         POST,
         makeAuthedRequest(
-          { characterId: "c-1", rolledValue: 15, initiativeModifier: 2 },
+          {
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
+            rolledValue: 15,
+            initiativeModifier: 2,
+          },
           "user-1"
         ),
         makeParams({ id: "g-1" })
@@ -99,7 +120,9 @@ describe("/api/games/[id]/initiative", () => {
           ...baseGame,
           initiativeOrder: [
             {
-              characterId: "c-1",
+              combatantType: "CHARACTER" as const,
+              combatantId: "c-1",
+              combatantName: "Hero",
               rolledValue: 15,
               initiativeModifier: 2,
               submittedAt: new Date("2025-01-01T12:00:00Z"),
@@ -113,7 +136,12 @@ describe("/api/games/[id]/initiative", () => {
       const response = await invokeRoute(
         POST,
         makeAuthedRequest(
-          { characterId: "c-1", rolledValue: 15, initiativeModifier: 2 },
+          {
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
+            rolledValue: 15,
+            initiativeModifier: 2,
+          },
           "user-1"
         ),
         makeParams({ id: "g-1" })
@@ -122,7 +150,8 @@ describe("/api/games/[id]/initiative", () => {
       expect(updateGameMock).toHaveBeenCalledWith("g-1", {
         initiativeOrder: expect.arrayContaining([
           expect.objectContaining({
-            characterId: "c-1",
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
             rolledValue: 15,
             initiativeModifier: 2,
           }),
@@ -154,7 +183,9 @@ describe("/api/games/[id]/initiative", () => {
           gameMaster: "gm-1",
           initiativeOrder: [
             {
-              characterId: "c-1",
+              combatantType: "CHARACTER" as const,
+              combatantId: "c-1",
+              combatantName: "Hero",
               rolledValue: 10,
               initiativeModifier: 0,
               submittedAt: new Date(),

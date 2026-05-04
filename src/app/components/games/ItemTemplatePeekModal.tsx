@@ -25,7 +25,7 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
         className="flex max-h-[min(70vh,28rem)] w-full max-w-sm flex-col overflow-hidden rounded-t-2xl border-2 border-white border-b-0 bg-modalBackground-200 shadow-xl sm:rounded-2xl sm:border-b-2"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-white/30 sm:hidden" />
+        <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-paleBlue/30 sm:hidden" />
         <div className="flex shrink-0 items-start justify-between gap-2 border-b border-white/20 px-4 pb-3 pt-2 sm:pt-3">
           <h2
             id="template-peek-title"

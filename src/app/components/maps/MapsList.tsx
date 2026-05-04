@@ -3,7 +3,7 @@
 import type { GameMap } from "@/app/lib/types/map";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Button from "../shared/Button";
 import ImageLoadingSkeleton from "../shared/ImageLoadingSkeleton";
 

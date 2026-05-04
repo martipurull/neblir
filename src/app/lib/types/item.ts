@@ -58,9 +58,12 @@ export const weaponDamageTypeSchema = z.enum([
   "BLUDGEONING",
   "ELECTRICITY",
   "NERVE",
+  "GRID",
   "POISON",
   "OTHER",
 ]);
+
+export type WeaponDamageType = z.infer<typeof weaponDamageTypeSchema>;
 
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
 export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;

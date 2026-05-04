@@ -5,8 +5,6 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { UniqueItemModalOverridesSection } from "@/app/components/games/UniqueItemModalOverridesSection";
 import { UniqueItemModalSourceSection } from "@/app/components/games/UniqueItemModalSourceSection";
 import { useCreateUniqueItemModal } from "@/app/components/games/useCreateUniqueItemModal";
-import React from "react";
-
 type CreateUniqueItemModalProps = {
   isOpen: boolean;
   /**

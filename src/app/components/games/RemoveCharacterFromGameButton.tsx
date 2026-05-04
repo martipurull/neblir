@@ -1,8 +1,7 @@
 "use client";
 
-import DangerButton from "@/app/components/shared/DangerButton";
-import React, { useState } from "react";
-
+import Button from "@/app/components/shared/Button";
+import { useState } from "react";
 type RemoveCharacterFromGameButtonProps = {
   gameId: string;
   characterId: string;
@@ -60,11 +59,14 @@ export default function RemoveCharacterFromGameButton({
       {error ? (
         <p className="mb-2 text-sm text-neblirDanger-600">{error}</p>
       ) : null}
-      <DangerButton
-        text={isRemoving ? "Removing..." : "Remove from game"}
+      <Button
+        variant="danger"
+        fullWidth={false}
         disabled={isRemoving}
         onClick={handleRemove}
-      />
+      >
+        {isRemoving ? "Removing..." : "Remove from game"}
+      </Button>
     </div>
   );
 }

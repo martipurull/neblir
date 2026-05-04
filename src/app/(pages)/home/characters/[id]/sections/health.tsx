@@ -2,7 +2,6 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import React from "react";
 import { KeyValueRow } from "./section-shared";
 
 export function getHealthSection(
@@ -44,7 +43,7 @@ export function getHealthSection(
             />
           ))}
         </ul>
-        {health.deathSaves && (
+        {health.currentPhysicalHealth === 0 && health.deathSaves && (
           <div className="border-t border-black pt-4">
             <span className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">
               <span className="h-3 w-px bg-black" aria-hidden />

@@ -72,6 +72,39 @@ function escapeForDiscordInlineCode(s: string): string {
   return s.replace(/`/g, "'");
 }
 
+function cleanMetadataLabel(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getGeneralRollTag(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object") return "GENERAL_ROLL";
+
+  const data = metadata as {
+    label1?: unknown;
+    label2?: unknown;
+    note?: unknown;
+  };
+  const label1 = cleanMetadataLabel(data.label1);
+  const label2 = cleanMetadataLabel(data.label2);
+  if (label1 && label2) return `${label1} + ${label2}`;
+
+  const note = cleanMetadataLabel(data.note);
+  if (note) return note.toUpperCase();
+
+  return "GENERAL_ROLL";
+}
+
+function getAttackDamageTag(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object") return "ATTACK_DAMAGE";
+  const damageType = cleanMetadataLabel(
+    (metadata as { damageType?: unknown }).damageType
+  );
+  if (!damageType) return "ATTACK_DAMAGE";
+  return `ATTACK_DAMAGE (${damageType.toUpperCase()})`;
+}
+
 function formatRollMessage(event: {
   rollType: string;
   diceExpression: string | null;
@@ -83,12 +116,21 @@ function formatRollMessage(event: {
 }) {
   const charName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
-    : "Unknown character";
+    : "GM";
+  const displayRollType = (() => {
+    if (event.rollType === "GENERAL_ROLL") {
+      return getGeneralRollTag(event.metadata);
+    }
+    if (event.rollType === "ATTACK_DAMAGE") {
+      return getAttackDamageTag(event.metadata);
+    }
+    return event.rollType;
+  })();
   const label = escapeForDiscordInlineCode(event.diceExpression ?? "roll");
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
   return (
-    `🎲 **${event.rollerUser.name}** as **${charName}** ► **\n${event.rollType}**\n` +
+    `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n` +
     `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
   );
 }

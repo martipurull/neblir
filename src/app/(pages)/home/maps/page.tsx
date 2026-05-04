@@ -7,7 +7,6 @@ import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import { useMaps } from "@/hooks/use-maps";
-import React from "react";
 
 export default function MapsPage() {
   const { maps, loading, error, refetch } = useMaps();

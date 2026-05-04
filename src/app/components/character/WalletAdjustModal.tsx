@@ -2,8 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import React, { useState, useEffect } from "react";
-
+import { useState, useEffect } from "react";
 export type WalletAdjustMode = "add" | "subtract";
 
 export interface WalletAdjustModalProps {

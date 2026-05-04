@@ -11,9 +11,15 @@ export function toCharacterUpdateFormValues(
       ? character.paths.slice().sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0]
       : null;
 
+  const {
+    specialAbility: _persistedSpecialAbility,
+    ...generalWithoutStoredAbility
+  } = character.generalInformation;
+
   return {
     generalInformation: {
-      ...character.generalInformation,
+      ...generalWithoutStoredAbility,
+      specialAbilityName: _persistedSpecialAbility?.name,
       backstory: character.generalInformation.backstory ?? "",
       summary: character.generalInformation.summary ?? "",
       avatarKey: character.generalInformation.avatarKey ?? "",

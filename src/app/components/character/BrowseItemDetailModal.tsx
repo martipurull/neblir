@@ -3,11 +3,10 @@
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { SafeButton } from "@/app/components/shared/SemanticActionButton";
+import Button from "@/app/components/shared/Button";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import React, { useMemo } from "react";
-
+import { useMemo } from "react";
 export interface BrowseItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,8 +55,9 @@ export function BrowseItemDetailModal({
       maxHeightClass="max-h-[90vh]"
       footer={
         onAddToInventory ? (
-          <SafeButton
+          <Button
             type="button"
+            variant="semanticSafeOutline"
             onClick={() => {
               void onAddToInventory(item);
             }}
@@ -65,7 +65,7 @@ export function BrowseItemDetailModal({
             className="w-full"
           >
             {isAdding ? "Adding…" : "Add to inventory"}
-          </SafeButton>
+          </Button>
         ) : undefined
       }
     >

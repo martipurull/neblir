@@ -162,6 +162,11 @@ describe("computeCharacterRequestData", () => {
         reactionsPerRound: 1,
         maxCarryWeight: 23,
       });
+      expect(result.generalInformation.specialAbility).toEqual({
+        name: "INNATE_MANIPULATION",
+        description:
+          "Can naturally influence social interactions and negotiations: additional 1d10 to any roll involving the Manipulation skill.",
+      });
     });
 
     it("sets reactionsPerRound to 2 for level 3", () => {
@@ -178,6 +183,21 @@ describe("computeCharacterRequestData", () => {
       });
       const result = computeCharacterRequestData(input);
       expect(result.combatInformation.reactionsPerRound).toBe(3);
+    });
+
+    it("uses selected special ability for Manfenn", () => {
+      const input = makeCharacterCreationRequest({
+        generalInformation: {
+          race: "MANFENN",
+          specialAbilityName: "DOUBLE_OPPOSABLE_THUMBS",
+        },
+      });
+      const result = computeCharacterRequestData(input);
+      expect(result.generalInformation.specialAbility).toEqual({
+        name: "DOUBLE_OPPOSABLE_THUMBS",
+        description:
+          "Has advanced manual dexterity thanks to double opposable thumbs: additional 2d10 to Manual-based rolls to manipulate objects.",
+      });
     });
 
     it("strips path from output", () => {

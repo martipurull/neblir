@@ -1,7 +1,6 @@
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { SafeButton } from "@/app/components/shared/SemanticActionButton";
 import type { DiscordIntegration } from "@/app/lib/types/discord";
 import {
   disconnectGameDiscordIntegration,
@@ -11,7 +10,7 @@ import {
   saveGameDiscordIntegration,
 } from "@/lib/api/game";
 import { useRouter } from "next/navigation";
-import React, { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type Props = {
@@ -192,8 +191,10 @@ export function GmDiscordSection({
             disabled={loadingChannels || channelOptions.length === 0}
             onChange={setChannelId}
           />
-          <SafeButton
+          <Button
             type="button"
+            variant="semanticSafeOutline"
+            fullWidth={false}
             disabled={!channelId || saving}
             onClick={() => {
               setSaving(true);
@@ -219,10 +220,10 @@ export function GmDiscordSection({
                 )
                 .finally(() => setSaving(false));
             }}
-            className="!px-3 !py-1.5 !text-xs !border-neblirSafe-200 !text-neblirSafe-600 hover:!bg-neblirSafe-200/20"
+            className="!px-3 !py-1.5 !text-xs"
           >
             {saving ? "Saving..." : "Save channel"}
-          </SafeButton>
+          </Button>
         </div>
       ) : null}
 

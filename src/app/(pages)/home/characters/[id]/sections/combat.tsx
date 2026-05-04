@@ -11,11 +11,7 @@ import {
   getEquippedSpeedAlteringItems,
   getSpeedReductionTooltipText,
 } from "@/app/lib/carryWeightUtils";
-import {
-  SafeButton,
-  WarningButton,
-} from "@/app/components/shared/SemanticActionButton";
-import React from "react";
+import Button from "@/app/components/shared/Button";
 import { KeyValueRow } from "./section-shared";
 
 interface CombatSectionOptions {
@@ -63,7 +59,9 @@ export function getCombatSection(
     options.initiative;
   const hasOpenInitiativeSlot = gameDetails.some(
     (g) =>
-      !(g.initiativeOrder ?? []).some((e) => e.characterId === character.id)
+      !(g.initiativeOrder ?? []).some(
+        (e) => e.combatantType === "CHARACTER" && e.combatantId === character.id
+      )
   );
   const canRollInitiative =
     !gamesLoading && gameLinkCount > 0 && hasOpenInitiativeSlot;
@@ -151,14 +149,16 @@ export function getCombatSection(
             : undefined
         }
       >
-        <WarningButton
+        <Button
           type="button"
+          variant="semanticWarningOutline"
+          fullWidth={false}
           disabled={options.usedReactions === 0}
           onClick={options.onClearReactions}
           className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
         >
           Clear Reactions
-        </WarningButton>
+        </Button>
       </span>
     ),
     children: (
@@ -169,24 +169,28 @@ export function getCombatSection(
             Initiative
           </span>
           <div className="flex min-w-0 flex-wrap justify-end gap-2">
-            <WarningButton
+            <Button
               type="button"
+              variant="semanticWarningOutline"
+              fullWidth={false}
               disabled={!canRollInitiative}
               title={rollTitle}
               onClick={onOpenRoll}
               className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
             >
               Roll Initiative ({modLabel})
-            </WarningButton>
-            <SafeButton
+            </Button>
+            <Button
               type="button"
+              variant="semanticSafeOutline"
+              fullWidth={false}
               disabled={!canShowInitiativeOrder}
               title={orderTitle}
               onClick={onOpenOrder}
               className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
             >
               Show Initiative Order
-            </SafeButton>
+            </Button>
           </div>
         </li>
         <KeyValueRow

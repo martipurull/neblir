@@ -1,10 +1,6 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import {
-  DangerButton,
-  SafeButton,
-} from "@/app/components/shared/SemanticActionButton";
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";
@@ -18,8 +14,7 @@ import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
-import React, { useMemo, useState } from "react";
-
+import { useMemo, useState } from "react";
 type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 type ResolvedItem = NonNullable<InventoryEntry["item"]>;
 
@@ -213,8 +208,10 @@ export function EquipItemPickerModal({
                       <p className="text-sm font-medium text-white">{name}</p>
                       {entry.item && <ItemCombatStats item={entry.item} />}
                     </div>
-                    <DangerButton
+                    <Button
                       type="button"
+                      variant="semanticDangerOutline"
+                      fullWidth={false}
                       onClick={() => {
                         void handleUnequip(entry, apiSlot);
                       }}
@@ -222,7 +219,7 @@ export function EquipItemPickerModal({
                       className="shrink-0 !px-2 !py-1 !text-xs"
                     >
                       {isSubmitting ? "Unequipping…" : "Unequip"}
-                    </DangerButton>
+                    </Button>
                   </li>
                 );
               })}
@@ -241,8 +238,10 @@ export function EquipItemPickerModal({
                       <p className="text-sm font-medium text-white">{name}</p>
                       {entry.item && <ItemCombatStats item={entry.item} />}
                     </div>
-                    <SafeButton
+                    <Button
                       type="button"
+                      variant="semanticSafeOutline"
+                      fullWidth={false}
                       onClick={() => {
                         void handleEquip(entry);
                       }}
@@ -250,7 +249,7 @@ export function EquipItemPickerModal({
                       className="shrink-0 !px-2 !py-1 !text-xs"
                     >
                       {isSubmitting ? "Equipping…" : "Equip"}
-                    </SafeButton>
+                    </Button>
                   </li>
                 );
               })}

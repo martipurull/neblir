@@ -3,13 +3,12 @@
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
-import React from "react";
-
 const ITEM_TYPES = [
   { value: "GENERAL_ITEM", label: "General item" },
   { value: "WEAPON", label: "Weapon" },
@@ -65,20 +64,16 @@ export default function CreateCustomItemModal({
               disabled={f.submitting}
             />
           </div>
-          <div>
-            <ModalFieldLabel id="custom-item-weight" label="Weight" required />
-            <input
-              id="custom-item-weight"
-              type="number"
-              min={0}
-              step={0.1}
-              value={f.weight}
-              onChange={(e) => f.setWeight(e.target.value)}
-              className={modalInputClass}
-              placeholder="0"
-              disabled={f.submitting}
-            />
-          </div>
+          <ModalNumberField
+            id="custom-item-weight"
+            label="Weight"
+            value={f.weight}
+            onChange={f.setWeight}
+            disabled={f.submitting}
+            min={0}
+            step={0.1}
+            placeholder="0"
+          />
           <div>
             <SelectDropdown
               id="custom-item-type"
@@ -146,19 +141,16 @@ export default function CreateCustomItemModal({
               disabled={f.submitting}
             />
           </div>
-          <div>
-            <ModalFieldLabel id="custom-item-conf-cost" label="Conf cost" />
-            <input
-              id="custom-item-conf-cost"
-              type="number"
-              min={0}
-              value={f.confCost}
-              onChange={(e) => f.setConfCost(e.target.value)}
-              className={modalInputClass}
-              placeholder="0"
-              disabled={f.submitting}
-            />
-          </div>
+          <ModalNumberField
+            id="custom-item-conf-cost"
+            label="Conf cost"
+            value={f.confCost}
+            onChange={f.setConfCost}
+            disabled={f.submitting}
+            required={false}
+            min={0}
+            placeholder="0"
+          />
         </div>
       </section>
 

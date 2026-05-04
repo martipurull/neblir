@@ -35,6 +35,7 @@ enum ItemWeaponDamageType {
   BLUDGEONING
   ELECTRICITY
   NERVE
+  GRID
   POISON
   OTHER
 }
@@ -119,6 +120,12 @@ enum Race {
   MANFENN
 }
 
+enum SpecialAbilityName {
+  INNATE_MANIPULATION
+  TELEPATHY_DARKVISION
+  DOUBLE_OPPOSABLE_THUMBS
+}
+
 enum Religion {
   TRITHEOLOGY
   PANTRITHEOLOGY
@@ -164,6 +171,12 @@ enum DiscordOutboxStatus {
   SENT
   RETRY
   DEAD_LETTER
+}
+
+enum EnemyInstanceStatus {
+  ACTIVE
+  DEFEATED
+  DEAD
 }
 
 enum RollType {
@@ -215,9 +228,15 @@ type CharacterGeneralInformation {
   surname    String
   profession String
   race       Race
+  specialAbility CharacterSpecialAbility?
   religion   Religion
   height     Int
   weight     Int
+}
+
+type CharacterSpecialAbility {
+  name        SpecialAbilityName
+  description String
 }
 
 type CharacterHealth {
@@ -390,9 +409,16 @@ model ItemCharacter {
   @@unique([characterId, sourceType, itemId])
 }
 
+enum InitiativeCombatantType {
+  CHARACTER
+  ENEMY
+}
+
 /** Snapshot per roll; sort for display: total desc, modifier desc, submittedAt asc. */
-type CharacterInitiative {
-  characterId        String   @db.ObjectId
+type InitiativeEntry {
+  combatantType      InitiativeCombatantType @default(CHARACTER)
+  combatantId        String   @db.ObjectId
+  combatantName      String
   rolledValue        Int
   initiativeModifier Int
   submittedAt        DateTime
@@ -409,15 +435,53 @@ model Game {
   users            GameUser[]
   characters       GameCharacter[]
   customItems      CustomItem[]
+  customEnemies    CustomEnemy[]
+  enemyInstances   EnemyInstance[]
   uniqueItems      UniqueItem[]
   invites          GameInvite[]
-  initiativeOrder  CharacterInitiative[]
+  initiativeOrder  InitiativeEntry[]
   discordIntegration DiscordIntegration?
   rollEvents       RollEvent[]
   referenceEntries ReferenceEntry[]
   maps             Map[]
+  recaps           GameRecap[]
+  images           GameImage[]
 
   @@index([gameMaster])
+}
+
+model GameImage {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String   @db.ObjectId
+  title            String
+  description      String?
+  imageKey         String   @unique
+  uploadedByUserId String   @db.ObjectId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, createdAt])
+  @@index([uploadedByUserId])
+}
+
+model GameRecap {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String   @db.ObjectId
+  title            String
+  summary          String?
+  fileKey          String   @unique
+  fileName         String
+  fileSizeBytes    Int
+  uploadedByUserId String   @db.ObjectId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, createdAt])
+  @@index([uploadedByUserId])
 }
 
 model ReferenceEntry {
@@ -553,6 +617,7 @@ model GameCharacter {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   gameId      String @db.ObjectId
   characterId String @db.ObjectId
+  isPublic    Boolean @default(true)
 
   game      Game      @relation(fields: [gameId], references: [id])
   character Character @relation(fields: [characterId], references: [id])
@@ -752,4 +817,117 @@ model User {
   gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
   discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")
   rollEvents          RollEvent[] @relation("RollEventUser")
+}
+
+type EnemyAction {
+  name String
+  description String?
+  numberOfDiceToHit Int?
+  numberOfDamageDice Int?
+  damageDiceType Int?
+  damageType ItemWeaponDamageType?
+  notes String?
+  }
+model Enemy {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  imageKey String?
+  health Int
+  speed Int
+  initiativeModifier Int
+  numberOfReactions Int
+  defenceMelee Int @default(0)
+  defenceRange Int @default(0)
+  defenceGrid Int @default(0)
+  attackMelee Int @default(0)
+  attackRange Int @default(0)
+  attackThrow Int @default(0)
+  attackGrid Int @default(0)
+  immunities ItemWeaponDamageType[]
+  resistances ItemWeaponDamageType[]
+  vulnerabilities ItemWeaponDamageType[]
+  actions EnemyAction[]
+  additionalActions EnemyAction[]
+  notes String?
+  enemyInstances EnemyInstance[]
+
+  @@unique([name])
+  @@index([imageKey])
+}
+
+model CustomEnemy {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  gameId String @db.ObjectId
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  enemyInstances EnemyInstance[]
+  name String
+  description String?
+  imageKey String?
+  health Int
+  speed Int
+  initiativeModifier Int
+  numberOfReactions Int
+  defenceMelee Int @default(0)
+  defenceRange Int @default(0)
+  defenceGrid Int @default(0)
+  attackMelee Int @default(0)
+  attackRange Int @default(0)
+  attackThrow Int @default(0)
+  attackGrid Int @default(0)
+  immunities ItemWeaponDamageType[]
+  resistances ItemWeaponDamageType[]
+  vulnerabilities ItemWeaponDamageType[]
+  actions EnemyAction[]
+  additionalActions EnemyAction[]
+  notes String?
+
+  @@index([gameId])
+  @@index([name])
+  @@index([imageKey])
+}
+
+model EnemyInstance {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  gameId String @db.ObjectId
+  sourceCustomEnemyId String? @db.ObjectId
+  sourceOfficialEnemyId String? @db.ObjectId
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  sourceCustomEnemy CustomEnemy? @relation(fields: [sourceCustomEnemyId], references: [id], onDelete: Cascade)
+  sourceOfficialEnemy Enemy? @relation(fields: [sourceOfficialEnemyId], references: [id], onDelete: Cascade)
+
+  name String
+  imageKey String?
+  description String?
+  notes String?
+
+  maxHealth Int
+  currentHealth Int
+  speed Int
+  initiativeModifier Int
+  reactionsPerRound Int
+  reactionsRemaining Int
+  status EnemyInstanceStatus @default(ACTIVE)
+
+  defenceMelee Int @default(0)
+  defenceRange Int @default(0)
+  defenceGrid Int @default(0)
+  attackMelee Int @default(0)
+  attackRange Int @default(0)
+  attackThrow Int @default(0)
+  attackGrid Int @default(0)
+  immunities ItemWeaponDamageType[]
+  resistances ItemWeaponDamageType[]
+  vulnerabilities ItemWeaponDamageType[]
+  actions EnemyAction[]
+  additionalActions EnemyAction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gameId])
+  @@index([sourceCustomEnemyId])
+  @@index([sourceOfficialEnemyId])
+  @@index([status])
 }

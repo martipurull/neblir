@@ -7,14 +7,7 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import Button from "@/app/components/shared/Button";
-import { SafeButton } from "@/app/components/shared/SemanticActionButton";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
 
 export interface AddItemToInventoryModalProps {
@@ -307,8 +300,10 @@ export function AddItemToInventoryModal({
                       </p>
                     </Button>
                     <div className="shrink-0">
-                      <SafeButton
+                      <Button
                         type="button"
+                        variant="semanticSafeOutline"
+                        fullWidth={false}
                         onClick={() => {
                           void handleAdd(row);
                         }}
@@ -316,7 +311,7 @@ export function AddItemToInventoryModal({
                         className="!px-2 !py-1 !text-xs"
                       >
                         {isAdding ? "Adding…" : "Add"}
-                      </SafeButton>
+                      </Button>
                     </div>
                   </li>
                 );

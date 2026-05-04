@@ -37,3 +37,14 @@ export function makeAuthedRequestWithUrl(
     json: vi.fn().mockResolvedValue(body),
   } as any;
 }
+
+/** POST handlers that read `request.formData()` (e.g. CSV import). */
+export function makeAuthedFormDataRequest(
+  formData: FormData,
+  userId = "user-1"
+) {
+  return {
+    auth: { user: { id: userId } },
+    formData: vi.fn().mockResolvedValue(formData),
+  } as any;
+}

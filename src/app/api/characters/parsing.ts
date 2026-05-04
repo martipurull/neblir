@@ -3,9 +3,14 @@ import {
   getArmourAttributePenalty,
 } from "@/app/lib/carryWeightUtils";
 import { capInnateAttributeDiceWithEquipment } from "@/app/lib/equippedStatBonuses";
+import {
+  resolveSpecialAbilityForRace,
+  type SpecialAbilityName,
+} from "@/app/lib/specialAbility";
 import { ValidationError } from "../shared/errors";
 import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
 import type { CharacterCreationRequest } from "./schemas";
+import type { Race } from "@prisma/client";
 
 function calculateReactionsPerRound(level: number): number {
   if (level === 3) {
@@ -111,11 +116,16 @@ export function computeCharacterRequestData(
     path: _path,
     wallet: rawWallet,
     initialFeatures: _initialFeatures,
+    generalInformation,
     ...requestWithoutPathAndWallet
   } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
     path?: { pathId: string; rank: number };
     wallet?: Array<{ currencyName: string; quantity: number }>;
     initialFeatures?: Array<{ featureId: string; grade: number }>;
+    generalInformation: {
+      race: Race;
+      specialAbilityName?: SpecialAbilityName;
+    };
   };
 
   const learnedSkills = requestWithoutPathAndWallet.learnedSkills;
@@ -154,6 +164,17 @@ export function computeCharacterRequestData(
 
   return {
     ...requestWithoutPathAndWallet,
+    generalInformation: {
+      ...(() => {
+        const { specialAbilityName: _specialAbilityName, ...rest } =
+          generalInformation;
+        return rest;
+      })(),
+      specialAbility: resolveSpecialAbilityForRace(
+        generalInformation.race,
+        generalInformation.specialAbilityName
+      ),
+    },
     learnedSkills: learnedSkillsForPrisma,
     wallet,
     notes: [],

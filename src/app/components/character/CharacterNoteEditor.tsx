@@ -6,8 +6,7 @@ import {
 } from "@/app/lib/tiptap/characterNote";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import React, { useEffect, useLayoutEffect, useRef } from "react";
-
+import { useEffect, useLayoutEffect, useRef } from "react";
 export interface CharacterNoteEditorProps {
   initialDoc: JSONContent;
   /**

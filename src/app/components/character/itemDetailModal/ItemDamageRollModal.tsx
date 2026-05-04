@@ -2,9 +2,8 @@
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import Button from "@/app/components/shared/Button";
-import { DangerButton } from "@/app/components/shared/SemanticActionButton";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { WeaponDamageSlice } from "./weaponDerived";
 import { rollDice } from "./utils";
 
@@ -106,14 +105,15 @@ export function ItemDamageRollModal({
         <p className="text-white">
           Total: {totalDamageDice}d{baseDamageType}
         </p>
-        <DangerButton
+        <Button
           type="button"
+          variant="semanticDangerOutline"
           onClick={handleRoll}
           disabled={totalDamageDice <= 0 || baseDamageType <= 0}
           className="w-full"
         >
           Roll damage
-        </DangerButton>
+        </Button>
         {rollResult && (
           <div className="rounded border border-white/20 bg-black/20 p-2">
             <p className="text-xs font-medium uppercase tracking-wider text-white/70">

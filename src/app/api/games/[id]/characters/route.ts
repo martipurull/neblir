@@ -7,15 +7,11 @@ import { errorResponse } from "../../../shared/responses";
 import { userIsInGame } from "@/app/lib/prisma/game";
 import { prisma } from "@/app/lib/prisma/client";
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
-
-const addCharactersSchema = z.object({
-  characterIds: z.array(z.string()).min(1),
-});
-
-const removeCharacterSchema = z.object({
-  characterId: z.string().min(1),
-});
+import {
+  gameCharactersAddSchema,
+  gameCharacterRemoveSchema,
+  gameCharacterVisibilityUpdateSchema,
+} from "@/app/lib/types/game";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -60,9 +56,24 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("You are not part of this game", 403);
     }
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: { gameMaster: true },
+    });
+    if (!game) {
+      logger.warn({
+        method: "POST",
+        route: "/api/games/[id]/characters",
+        message: "Game not found",
+        gameId,
+        userId,
+      });
+      return errorResponse("Game not found", 404);
+    }
+    const isGameMaster = game.gameMaster === userId;
 
     const requestBody = await request.json();
-    const parsed = addCharactersSchema.safeParse(requestBody);
+    const parsed = gameCharactersAddSchema.safeParse(requestBody);
     if (!parsed.success) {
       logger.warn({
         method: "POST",
@@ -79,7 +90,25 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const characterIds = Array.from(new Set(parsed.data.characterIds));
+    const requestedCharacters =
+      parsed.data.characters && parsed.data.characters.length > 0
+        ? parsed.data.characters
+        : (parsed.data.characterIds ?? []).map((characterId) => ({
+            characterId,
+            isPublic: true,
+          }));
+    const dedupedByCharacterId = new Map<
+      string,
+      { characterId: string; isPublic: boolean }
+    >();
+    for (const row of requestedCharacters) {
+      dedupedByCharacterId.set(row.characterId, {
+        characterId: row.characterId,
+        isPublic: row.isPublic ?? true,
+      });
+    }
+    const characterRows = Array.from(dedupedByCharacterId.values());
+    const characterIds = characterRows.map((c) => c.characterId);
 
     const owned = await prisma.characterUser.findMany({
       where: { userId, characterId: { in: characterIds } },
@@ -105,9 +134,16 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     const alreadyLinkedIds: string[] = [];
     const failed: Array<{ characterId: string; reason: string }> = [];
 
-    for (const characterId of characterIds) {
+    for (const row of characterRows) {
+      const characterId = row.characterId;
       try {
-        await prisma.gameCharacter.create({ data: { gameId, characterId } });
+        await prisma.gameCharacter.create({
+          data: {
+            gameId,
+            characterId,
+            isPublic: isGameMaster ? row.isPublic : true,
+          },
+        });
         linkedIds.push(characterId);
       } catch (e) {
         if (
@@ -202,7 +238,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    const parsed = removeCharacterSchema.safeParse(requestBody);
+    const parsed = gameCharacterRemoveSchema.safeParse(requestBody);
     if (!parsed.success) {
       logger.warn({
         method: "DELETE",
@@ -258,6 +294,75 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     });
     return errorResponse(
       "Error unlinking character from game",
+      500,
+      serializeError(error)
+    );
+  }
+});
+
+export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user) {
+      return errorResponse("Unauthorised", 401);
+    }
+
+    const userId = request.auth.user.id;
+    if (!userId) {
+      return errorResponse("User ID not found", 400);
+    }
+
+    const { id: gameId } = (await params) as { id: string };
+    if (!gameId || typeof gameId !== "string") {
+      return errorResponse("Invalid game ID", 400);
+    }
+
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: { gameMaster: true },
+    });
+    if (!game) {
+      return errorResponse("Game not found", 404);
+    }
+    if (game.gameMaster !== userId) {
+      return errorResponse(
+        "Only the game master can update NPC visibility",
+        403
+      );
+    }
+
+    const requestBody = await request.json();
+    const parsed = gameCharacterVisibilityUpdateSchema.safeParse(requestBody);
+    if (!parsed.success) {
+      return errorResponse(
+        "Invalid request body",
+        400,
+        parsed.error.issues.map((i) => i.message).join(". ")
+      );
+    }
+
+    const { characterId, isPublic } = parsed.data;
+    const updated = await prisma.gameCharacter.updateMany({
+      where: { gameId, characterId },
+      data: { isPublic },
+    });
+    if (updated.count === 0) {
+      return errorResponse("Character is not linked to this game", 404);
+    }
+
+    return NextResponse.json({
+      success: true,
+      characterId,
+      isPublic,
+    });
+  } catch (error) {
+    logger.error({
+      method: "PATCH",
+      route: "/api/games/[id]/characters",
+      message: "Error updating character visibility",
+      error,
+    });
+    return errorResponse(
+      "Error updating character visibility",
       500,
       serializeError(error)
     );

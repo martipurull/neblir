@@ -6,11 +6,20 @@ import {
   innateAttributesSchema,
 } from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
+import { specialAbilityNameSchemaValues } from "@/app/lib/specialAbility";
 import { z } from "zod";
+
+export const characterCreationGeneralInformationSchema =
+  generalInformationSchema
+    .omit({ specialAbility: true })
+    .extend({
+      specialAbilityName: z.enum(specialAbilityNameSchemaValues).optional(),
+    })
+    .strict();
 
 export const characterCreationRequestSchema = z
   .object({
-    generalInformation: generalInformationSchema.strict(),
+    generalInformation: characterCreationGeneralInformationSchema,
     health: healthSchema
       .omit({
         innatePhysicalHealth: true,

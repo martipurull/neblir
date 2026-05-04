@@ -13,7 +13,7 @@ import {
 import { createGame } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import type { UseFormSetError } from "react-hook-form";
 import type { z } from "zod";
@@ -99,7 +99,7 @@ function CreateGameFormContent() {
       <TextInput
         name="game.name"
         label="Game name"
-        placeholder="e.g. Starfall Campaign"
+        placeholder="e.g. The Lost Expedition"
       />
       <div className="mb-6">
         <label htmlFor="game.premise" className="block font-bold text-black">

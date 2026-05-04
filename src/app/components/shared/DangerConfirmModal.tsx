@@ -3,8 +3,6 @@
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
 import Button from "./Button";
-import DangerButton from "./DangerButton";
-import { SafeButton } from "./SemanticActionButton";
 
 interface DangerConfirmModalProps {
   isOpen: boolean;
@@ -16,6 +14,8 @@ interface DangerConfirmModalProps {
   errorMessage?: string | null;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
+  /** Shown on the confirm button while `isSubmitting` (defaults to “Deleting…”). */
+  confirmSubmittingLabel?: string;
   /** Overrides default `max-w-md` on the panel (e.g. `max-w-xs` for a compact dialog). */
   panelClassName?: string;
   /** `modalBackground` matches character note modals (purple panel, pale blue text). */
@@ -32,6 +32,7 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
   errorMessage = null,
   onCancel,
   onConfirm,
+  confirmSubmittingLabel,
   panelClassName,
   variant = "default",
 }) => {
@@ -97,22 +98,29 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         <div
           className={`flex shrink-0 flex-wrap justify-end gap-3 border-t px-5 py-4 sm:px-6 ${footerBorder}`}
         >
-          <SafeButton
+          <Button
             type="button"
+            variant={isModalBg ? "modalPaleOutline" : "secondary"}
+            fullWidth={false}
             onClick={onCancel}
             disabled={isSubmitting}
             className="!px-3 !py-2"
           >
             {cancelLabel}
-          </SafeButton>
-          <DangerButton
-            text={isSubmitting ? "Deleting..." : confirmLabel}
+          </Button>
+          <Button
+            variant="danger"
+            fullWidth={false}
             onClick={() => {
               void onConfirm();
             }}
-            className="disabled:cursor-not-allowed disabled:opacity-50"
+            className="!px-3 !py-2"
             disabled={isSubmitting}
-          />
+          >
+            {isSubmitting
+              ? (confirmSubmittingLabel ?? "Deleting...")
+              : confirmLabel}
+          </Button>
         </div>
       </div>
     </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { characterNoteStoredToHtml } from "@/app/lib/tiptap/characterNote";
-import React, { useMemo } from "react";
-
+import { useMemo } from "react";
 export function CharacterNoteHtml({ content }: { content: string }) {
   const html = useMemo(() => characterNoteStoredToHtml(content), [content]);
   if (!html) {

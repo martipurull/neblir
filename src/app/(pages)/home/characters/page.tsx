@@ -34,7 +34,7 @@ const CharactersPage: React.FC = () => {
           </PageSubtitle>
         </div>
         <Link
-          href="/home/characters/create"
+          href="/home/characters/create?fresh=1"
           className="inline-flex shrink-0 items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
         >
           Create Character

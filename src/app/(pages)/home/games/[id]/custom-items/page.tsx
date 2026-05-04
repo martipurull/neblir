@@ -16,7 +16,7 @@ import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 function formatItemType(t: string): string {
   if (t === "GENERAL_ITEM") return "General item";

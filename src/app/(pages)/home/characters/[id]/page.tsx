@@ -20,7 +20,7 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
 import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useParams } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   getGeneralSection,
   getHealthSection,

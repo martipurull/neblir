@@ -1,7 +1,6 @@
 "use client";
 
-import { DangerButton } from "@/app/components/shared/SemanticActionButton";
-import React from "react";
+import Button from "@/app/components/shared/Button";
 import { DetailField } from "./DetailField";
 import type { InventoryEntry, ResolvedItemNonNull } from "./types";
 import { fmtSignedBonus } from "./utils";
@@ -94,13 +93,15 @@ export function ItemDetailSummaryGrid({
                     {weaponDamage.numberOfDice}d{weaponDamage.diceType}{" "}
                     {weaponDamage.damageType?.join(", ")}
                   </span>
-                  <DangerButton
+                  <Button
                     type="button"
+                    variant="semanticDangerOutline"
+                    fullWidth={false}
                     onClick={onOpenDamageRoll}
                     className="mt-2 text-xs p-0"
                   >
                     Roll damage
-                  </DangerButton>
+                  </Button>
                 </DetailField>
               )}
             </>

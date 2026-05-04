@@ -2,8 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import React, { useState } from "react";
-
+import { useState } from "react";
 export type StatEditType = "physical" | "mental" | "armour";
 
 export interface StatEditModalProps {

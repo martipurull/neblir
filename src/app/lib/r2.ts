@@ -24,11 +24,13 @@ export function getR2Config() {
 
 export const ALLOWED_UPLOAD_PREFIXES = [
   "custom_items-",
+  "custom_enemies-",
   "unique_items-",
   "games-",
   "characters-",
+  "recaps-",
 ] as const;
 
-export function isDeletableImageKey(key: string): boolean {
+export function isDeletableUploadKey(key: string): boolean {
   return ALLOWED_UPLOAD_PREFIXES.some((prefix) => key.startsWith(prefix));
 }

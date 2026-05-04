@@ -54,11 +54,11 @@ function makeUploadRequest(options: {
 }
 
 function makeDeleteRequest(options: {
-  imageKey?: string;
+  fileKey?: string;
   authenticated?: boolean;
   userId?: string;
 }) {
-  const { imageKey, authenticated = true, userId = "user-1" } = options;
+  const { fileKey, authenticated = true, userId = "user-1" } = options;
   const base = authenticated
     ? makeAuthedRequest(undefined, userId)
     : makeUnauthedRequest();
@@ -67,7 +67,7 @@ function makeDeleteRequest(options: {
     ...base,
     nextUrl: {
       searchParams: new URLSearchParams(
-        imageKey != null ? `imageKey=${encodeURIComponent(imageKey)}` : ""
+        fileKey != null ? `fileKey=${encodeURIComponent(fileKey)}` : ""
       ),
     },
   } as any;
@@ -168,7 +168,7 @@ describe("/api/upload-image POST", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("returns 201 with imageKey and uploads with correct key pattern for custom_items", async () => {
+  it("returns 201 with fileKey and uploads with correct key pattern for custom_items", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -180,20 +180,20 @@ describe("/api/upload-image POST", () => {
     const response = await invokeRoute(POST, request);
     expect(response.status).toBe(201);
     const data = await response.json();
-    expect(data).toHaveProperty("imageKey");
-    expect(data.imageKey).toMatch(/^custom_items-/);
-    expect(data.imageKey).toMatch(/\.png$/);
-    expect(data.imageKey).toMatch(/my_item.*\.png$/);
+    expect(data).toHaveProperty("fileKey");
+    expect(data.fileKey).toMatch(/^custom_items-/);
+    expect(data.fileKey).toMatch(/\.png$/);
+    expect(data.fileKey).toMatch(/my_item.*\.png$/);
 
     expect(s3SendMock).toHaveBeenCalledTimes(1);
     expect(putObjectCommandCtorMock).toHaveBeenCalledTimes(1);
     const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
     expect(putArgs.Bucket).toBe("bucket");
-    expect(putArgs.Key).toBe(data.imageKey);
+    expect(putArgs.Key).toBe(data.fileKey);
     expect(putArgs.ContentType).toMatch(/image\/png/);
   });
 
-  it("returns 201 with imageKey for unique_items type", async () => {
+  it("returns 201 with fileKey for unique_items type", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -205,11 +205,49 @@ describe("/api/upload-image POST", () => {
     const response = await invokeRoute(POST, request);
     expect(response.status).toBe(201);
     const data = await response.json();
-    expect(data.imageKey).toMatch(/^unique_items-/);
-    expect(data.imageKey).toMatch(/\.jpeg$/);
+    expect(data.fileKey).toMatch(/^unique_items-/);
+    expect(data.fileKey).toMatch(/\.jpeg$/);
 
     const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
-    expect(putArgs.Key).toBe(data.imageKey);
+    expect(putArgs.Key).toBe(data.fileKey);
+  });
+
+  it("uploads recap PDF files with recaps- key and pdf content type", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["%PDF-1.4"], "Session 3.pdf", {
+      type: "application/pdf",
+    });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "recaps" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^recaps-/);
+    expect(data.fileKey).toMatch(/\.pdf$/);
+
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Key).toBe(data.fileKey);
+    expect(putArgs.ContentType).toBe("application/pdf");
+  });
+
+  it("rejects non-pdf files for recaps", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "not-pdf.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "recaps" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/PDF/i);
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 });
 
@@ -225,7 +263,7 @@ describe("/api/upload-image DELETE", () => {
   it("returns 401 when unauthenticated", async () => {
     const { DELETE } = await import("@/app/api/upload-image/route");
     const request = makeDeleteRequest({
-      imageKey: "custom_items-some_key-abc.png",
+      fileKey: "custom_items-some_key-abc.png",
       authenticated: false,
     });
     const response = await invokeRoute(DELETE, request);
@@ -233,7 +271,7 @@ describe("/api/upload-image DELETE", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("returns 400 when imageKey is missing", async () => {
+  it("returns 400 when fileKey is missing", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -244,11 +282,11 @@ describe("/api/upload-image DELETE", () => {
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.message).toMatch(/imageKey/i);
+    expect(data.message).toMatch(/fileKey/i);
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("returns 204 when imageKey is characters- prefixed", async () => {
+  it("returns 204 when fileKey is characters- prefixed", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -256,7 +294,7 @@ describe("/api/upload-image DELETE", () => {
 
     const { DELETE } = await import("@/app/api/upload-image/route");
     const request = makeDeleteRequest({
-      imageKey: "characters-alexandra.png",
+      fileKey: "characters-alexandra.png",
     });
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(204);
@@ -268,7 +306,7 @@ describe("/api/upload-image DELETE", () => {
     expect(deleteArgs.Key).toBe("characters-alexandra.png");
   });
 
-  it("returns 204 when imageKey is games- prefixed", async () => {
+  it("returns 204 when fileKey is games- prefixed", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -276,7 +314,7 @@ describe("/api/upload-image DELETE", () => {
 
     const { DELETE } = await import("@/app/api/upload-image/route");
     const request = makeDeleteRequest({
-      imageKey: "games-cover.png",
+      fileKey: "games-cover.png",
     });
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(204);
@@ -294,7 +332,7 @@ describe("/api/upload-image DELETE", () => {
 
     const { DELETE } = await import("@/app/api/upload-image/route");
     const request = makeDeleteRequest({
-      imageKey: "custom_items-foo-abc.png",
+      fileKey: "custom_items-foo-abc.png",
     });
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(500);
@@ -309,7 +347,7 @@ describe("/api/upload-image DELETE", () => {
 
     const key = "custom_items-special_gun-xyz123.png";
     const { DELETE } = await import("@/app/api/upload-image/route");
-    const request = makeDeleteRequest({ imageKey: key });
+    const request = makeDeleteRequest({ fileKey: key });
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(204);
     expect(await response.text()).toBe("");
@@ -329,7 +367,23 @@ describe("/api/upload-image DELETE", () => {
 
     const key = "unique_items-variant-abc.webp";
     const { DELETE } = await import("@/app/api/upload-image/route");
-    const request = makeDeleteRequest({ imageKey: key });
+    const request = makeDeleteRequest({ fileKey: key });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(204);
+
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 204 and calls DeleteObject for recaps- key", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const key = "recaps-session_9-abc123.pdf";
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({ fileKey: key });
     const response = await invokeRoute(DELETE, request);
     expect(response.status).toBe(204);
 

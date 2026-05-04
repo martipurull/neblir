@@ -10,6 +10,11 @@ export const ghostNavButtonClassName =
 export type AppButtonVariant =
   | "primary"
   | "secondary"
+  | "danger"
+  | "semanticDangerOutline"
+  | "semanticWarningOutline"
+  | "semanticSafeOutline"
+  | "semanticSafeFilled"
   /** Inline outline (e.g. retry, compact toolbar actions on light surfaces). */
   | "quiet"
   | "ghostNav"
@@ -123,6 +128,8 @@ export type AppButtonVariant =
   | "secondaryOutlineXs"
   /** Full-width section header toggle (GM invites card). */
   | "lightSectionDisclosure"
+  /** Light UI — full-width Neblir safe outline (save / persist; contrasts with filled `primary` / Next). */
+  | "lightSafePrimary"
   /** Inverted CTA on light surfaces (add characters). */
   | "solidDark"
   /** Square summary expand/collapse on game characters list. */
@@ -153,6 +160,21 @@ const primary =
 
 const secondary =
   "min-h-11 rounded-md border-2 border-black/30 px-4 py-2 text-black transition-colors hover:border-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
+
+const danger =
+  "rounded-md border-2 border-neblirDanger-200 bg-neblirDanger-600 px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-neblirDanger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirDanger-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticDangerOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirDanger-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirDanger-400 transition-colors hover:bg-neblirDanger-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirDanger-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticWarningOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirWarning-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirWarning-400 transition-colors hover:bg-neblirWarning-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirWarning-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticSafeOutline =
+  "inline-flex items-center justify-center rounded border-2 border-neblirSafe-200 bg-transparent px-4 py-2.5 text-sm font-medium text-neblirSafe-400 transition-colors hover:bg-neblirSafe-200/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const semanticSafeFilled =
+  "inline-flex items-center justify-center rounded border-2 border-neblirSafe-600 bg-neblirSafe-600 px-4 py-2.5 text-sm font-medium text-customSecondary transition-colors hover:bg-neblirSafe-600 hover:border-neblirSafe-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 const quiet =
   "rounded-md border border-black bg-transparent px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
@@ -336,6 +358,9 @@ const secondaryOutlineXs =
 const lightSectionDisclosure =
   "flex w-full items-center justify-between rounded-sm text-left transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
 
+const lightSafePrimary =
+  "min-h-11 rounded-md border-2 border-neblirSafe-400 bg-transparent px-4 py-2 text-sm font-semibold text-neblirSafe-600 transition-colors hover:border-neblirSafe-600 hover:bg-neblirSafe-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirSafe-400/45 disabled:cursor-not-allowed disabled:opacity-50";
+
 const solidDark =
   "inline-flex items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black";
 
@@ -358,7 +383,7 @@ const lightDisclosureChevron =
   "shrink-0 rounded p-1 text-xs text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
 
 const lightTemplateInfoIcon =
-  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-black/30 bg-white/90 text-xs font-bold text-black/80 shadow-sm transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
+  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-black/30 bg-paleBlue/90 text-xs font-bold text-black/80 shadow-sm transition-colors hover:bg-paleBlue focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
 
 const lightHeaderIconAffordance =
   "flex shrink-0 cursor-pointer items-center justify-center rounded-md text-black transition-opacity hover:opacity-70 active:opacity-55 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2";
@@ -387,6 +412,11 @@ const lightReferenceDisclosure =
 export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primary,
   secondary,
+  danger,
+  semanticDangerOutline,
+  semanticWarningOutline,
+  semanticSafeOutline,
+  semanticSafeFilled,
   quiet,
   ghostNav: ghostNavButtonClassName,
   modalFooterPrimary,
@@ -449,6 +479,7 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primaryXs,
   secondaryOutlineXs,
   lightSectionDisclosure,
+  lightSafePrimary,
   solidDark,
   lightChevronExpand,
   lightCombatToggle,

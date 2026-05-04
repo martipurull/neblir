@@ -884,6 +884,7 @@ Here's a suggested workflow for comprehensive testing:
 - `BLUDGEONING`
 - `ELECTRICITY`
 - `NERVE`
+- `GRID`
 - `POISON`
 - `OTHER`
 

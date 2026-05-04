@@ -27,7 +27,7 @@
  * - maxUses: optional; positive integer. Omit or leave empty for unlimited/no value.
  * - attackRoll: semicolon- or comma-separated (e.g. "RANGE;MELEE").
  * - type must be GENERAL_ITEM or WEAPON; weapons require damage fields.
- * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, POISON, OTHER.
+ * - damageType: semicolon- or comma-separated list (e.g. "FIRE;BLUDGEONING"). Values: BULLET, BLADE, SIIKE, ACID, FIRE, ICE, BLUDGEONING, ELECTRICITY, NERVE, GRID, POISON, OTHER.
  * - areaType: optional; RADIUS or CONE. primaryRadius/secondaryRadius/coneLength apply when area is used.
  * - modifiesAttribute: optional; level-up path (e.g. strength.bruteForce) or Prisma enum key (e.g. STRENGTH_BRUTE_FORCE).
  * - attributeMod, skillMod: optional integers (negatives allowed).
@@ -214,6 +214,7 @@ const VALID_DAMAGE_TYPES = [
   "BLUDGEONING",
   "ELECTRICITY",
   "NERVE",
+  "GRID",
   "POISON",
   "OTHER",
 ] as const;

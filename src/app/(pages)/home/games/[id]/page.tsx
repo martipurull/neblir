@@ -5,23 +5,17 @@ import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import LoadingState from "@/app/components/shared/LoadingState";
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
-import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { updateGame } from "@/lib/api/game";
-import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export default function GameDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
-  const { game, loading, error, refetch, mutate } = useGame(id);
-
-  const [nextSessionBusy, setNextSessionBusy] = useState(false);
-  const [nextSessionError, setNextSessionError] = useState<string | null>(null);
+  const { game, loading, error, refetch } = useGame(id);
 
   const imageEntries = useMemo(
     () =>
@@ -41,30 +35,19 @@ export default function GameDetailPage() {
   const gameImageUrl = game?.imageKey
     ? (imageUrls[game.id] ?? undefined)
     : null;
+  const playerCharacterCount = useMemo(() => {
+    if (!game?.characters) return 0;
+    return game.characters.filter(
+      (gc) => !gc.character.linkedUserIds?.includes(game.gameMaster)
+    ).length;
+  }, [game]);
 
-  const nextSessionValue =
-    game?.nextSession != null
-      ? new Date(game.nextSession).toISOString().slice(0, 10)
-      : "";
-
-  const handleNextSessionChange = async (dateString: string) => {
-    if (!game?.isGameMaster || !id) return;
-    const value = dateString || null;
-    setNextSessionError(null);
-    setNextSessionBusy(true);
-    try {
-      const updated = await updateGame(id, {
-        nextSession: value ? `${value}T12:00:00.000Z` : null,
-      });
-      await mutate(updated, false);
-    } catch (err) {
-      setNextSessionError(
-        getUserSafeErrorMessage(err, "Failed to update date")
-      );
-    } finally {
-      setNextSessionBusy(false);
-    }
-  };
+  const knownNpcCount = useMemo(() => {
+    if (!game?.characters || !game.gameMaster) return 0;
+    return game.characters.filter((gc) =>
+      gc.character.linkedUserIds?.includes(game.gameMaster)
+    ).length;
+  }, [game]);
 
   if (loading || (!game && !error)) {
     return (
@@ -87,6 +70,15 @@ export default function GameDetailPage() {
   }
 
   const isGameMaster = game.isGameMaster === true;
+  const nextSessionDate =
+    game.nextSession != null ? new Date(game.nextSession) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isPastNextSession = nextSessionDate != null && nextSessionDate < today;
+  const nextSessionLabel =
+    nextSessionDate == null || (!isGameMaster && isPastNextSession)
+      ? "No date set"
+      : nextSessionDate.toLocaleDateString();
 
   return (
     <PageSection>
@@ -113,66 +105,86 @@ export default function GameDetailPage() {
           <PageTitle>{game.name}</PageTitle>
         </div>
 
-        {/* Section boxes: Next session, GM (only for GM), Characters, Custom items, Lore */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          <div className="flex flex-col rounded-md border border-black p-4">
+        {/* Menu tiles */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-md border border-black p-4">
             <span className="text-sm font-semibold text-black">
               Next Session
             </span>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <ThemedDatePicker
-                value={nextSessionValue}
-                onChange={(dateString) =>
-                  void handleNextSessionChange(dateString)
-                }
-                disabled={!isGameMaster || nextSessionBusy}
-                ariaLabel="Next session date"
-                placeholder="Set date"
-              />
-              {nextSessionError && (
-                <p className="text-sm text-red-600">{nextSessionError}</p>
-              )}
-            </div>
+            <span className="mt-1 block text-xs text-black/70">
+              {nextSessionLabel}
+            </span>
           </div>
           {isGameMaster && (
             <Link
               href={`/home/games/${game.id}/gm`}
-              className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
+              className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
             >
               <span className="text-sm font-semibold text-black">
                 Game Master
               </span>
-              <span className="mt-1 text-xs text-black/70">
+              <span className="mt-1 block text-xs text-black/70">
                 Invites, items, give items
               </span>
             </Link>
           )}
           <Link
             href={`/home/games/${game.id}/characters`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >
-            <span className="text-sm font-semibold text-black">Characters</span>
-            <span className="mt-1 text-xs text-black/70">
-              {game.characters?.length ?? 0} linked
+            <span className="text-sm font-semibold text-black">
+              Player Characters
+            </span>
+            <span className="mt-1 block text-xs text-black/70">
+              {playerCharacterCount} linked
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/characters#known-npcs`}
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
+          >
+            <span className="text-sm font-semibold text-black">Known NPCs</span>
+            <span className="mt-1 block text-xs text-black/70">
+              {knownNpcCount} linked
             </span>
           </Link>
           <Link
             href={`/home/games/${game.id}/custom-items`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">
               Custom Items
             </span>
-            <span className="mt-1 text-xs text-black/70">
+            <span className="mt-1 block text-xs text-black/70">
               {game.customItems?.length ?? 0} items
             </span>
           </Link>
           <Link
             href={`/home/games/${game.id}/lore`}
-            className="flex flex-col rounded-md border border-black p-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30"
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">Lore</span>
-            <span className="mt-1 text-xs text-black/70">World & story</span>
+            <span className="mt-1 block text-xs text-black/70">
+              World & story
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/images`}
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
+          >
+            <span className="text-sm font-semibold text-black">Images</span>
+            <span className="mt-1 block text-xs text-black/70">
+              Visual materials
+            </span>
+          </Link>
+          <Link
+            href={`/home/games/${game.id}/recaps`}
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
+          >
+            <span className="text-sm font-semibold text-black">Recaps</span>
+            <span className="mt-1 block text-xs text-black/70">
+              Browse and download session summaries
+            </span>
           </Link>
         </div>
       </div>

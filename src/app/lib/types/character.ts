@@ -16,6 +16,7 @@ import {
 } from "./item";
 import { gameCharacterWithGameSchema } from "./game";
 import { Race, Religion, Status } from "@prisma/client";
+import { specialAbilityNameSchemaValues } from "../specialAbility";
 
 /** Schema for a resolved item (Item, CustomItem, or merged UniqueItem) - used in inventory response */
 const resolvedItemSchema = z
@@ -106,6 +107,12 @@ export const generalInformationSchema = z.object({
   religion: z.nativeEnum(Religion),
   profession: z.string(),
   race: z.nativeEnum(Race),
+  specialAbility: z
+    .object({
+      name: z.enum(specialAbilityNameSchemaValues),
+      description: z.string(),
+    })
+    .optional(),
   birthplace: z.string(),
   /** TipTap rich text stored as HTML string */
   backstory: z.string().optional().nullable(),

@@ -14,6 +14,8 @@ const serializeErrorMock = vi.fn((e: unknown) =>
 const characterUserFindManyMock = vi.fn();
 const gameCharacterCreateMock = vi.fn();
 const gameCharacterDeleteManyMock = vi.fn();
+const gameCharacterUpdateManyMock = vi.fn();
+const gameFindUniqueMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   userIsInGame: userIsInGameMock,
@@ -22,9 +24,11 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/client", () => ({
   prisma: {
     characterUser: { findMany: characterUserFindManyMock },
+    game: { findUnique: gameFindUniqueMock },
     gameCharacter: {
       create: gameCharacterCreateMock,
       deleteMany: gameCharacterDeleteManyMock,
+      updateMany: gameCharacterUpdateManyMock,
     },
   },
 }));
@@ -63,8 +67,25 @@ describe("POST /api/games/[id]/characters", () => {
     expect(gameCharacterCreateMock).not.toHaveBeenCalled();
   });
 
+  it("returns 404 when game is not found", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue(null);
+    const { POST } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ characterIds: ["c-1"] }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(404);
+    expect(characterUserFindManyMock).not.toHaveBeenCalled();
+    expect(gameCharacterCreateMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 on invalid body", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/games/[id]/characters/route");
 
     const response = await invokeRoute(
@@ -96,6 +117,7 @@ describe("POST /api/games/[id]/characters", () => {
 
   it("links all owned characters successfully", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     characterUserFindManyMock.mockResolvedValue([
       { characterId: "c-1" },
       { characterId: "c-2" },
@@ -122,6 +144,7 @@ describe("POST /api/games/[id]/characters", () => {
 
   it("deduplicates input ids before processing", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     characterUserFindManyMock.mockResolvedValue([{ characterId: "c-1" }]);
     gameCharacterCreateMock.mockResolvedValue(undefined);
 
@@ -141,6 +164,7 @@ describe("POST /api/games/[id]/characters", () => {
 
   it("reports already-linked characters (P2002) without failing the batch", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     characterUserFindManyMock.mockResolvedValue([
       { characterId: "c-1" },
       { characterId: "c-2" },
@@ -174,6 +198,7 @@ describe("POST /api/games/[id]/characters", () => {
 
   it("returns partial failure details when a create throws non-P2002", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     characterUserFindManyMock.mockResolvedValue([
       { characterId: "c-1" },
       { characterId: "c-2" },
@@ -201,6 +226,52 @@ describe("POST /api/games/[id]/characters", () => {
     ]);
     expect(body.success).toBe(false);
     expect(serializeErrorMock).toHaveBeenCalled();
+  });
+
+  it("supports new characters payload and preserves isPublic for GM", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    characterUserFindManyMock.mockResolvedValue([{ characterId: "c-1" }]);
+    gameCharacterCreateMock.mockResolvedValue(undefined);
+
+    const { POST } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { characters: [{ characterId: "c-1", isPublic: false }] },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(200);
+    expect(gameCharacterCreateMock).toHaveBeenCalledWith({
+      data: { gameId: "g-1", characterId: "c-1", isPublic: false },
+    });
+  });
+
+  it("forces non-GM requests to public visibility", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    characterUserFindManyMock.mockResolvedValue([{ characterId: "c-1" }]);
+    gameCharacterCreateMock.mockResolvedValue(undefined);
+
+    const { POST } = await import("@/app/api/games/[id]/characters/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { characters: [{ characterId: "c-1", isPublic: false }] },
+        "user-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(200);
+    expect(gameCharacterCreateMock).toHaveBeenCalledWith({
+      data: { gameId: "g-1", characterId: "c-1", isPublic: true },
+    });
   });
 });
 
@@ -303,5 +374,85 @@ describe("DELETE /api/games/[id]/characters", () => {
     expect(body.removed).toBe(true);
     expect(body.removedCount).toBe(1);
     expect(body.characterId).toBe("c-1");
+  });
+});
+
+describe("PATCH /api/games/[id]/characters", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeUnauthedRequest({ characterId: "c-1", isPublic: false }),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 400 on invalid body", async () => {
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ characterId: "" }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(gameCharacterUpdateManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when game is not found", async () => {
+    gameFindUniqueMock.mockResolvedValue(null);
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ characterId: "c-1", isPublic: false }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(404);
+    expect(gameCharacterUpdateManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when requester is not GM", async () => {
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ characterId: "c-1", isPublic: false }, "user-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(gameCharacterUpdateManyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when character is not linked to game", async () => {
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    gameCharacterUpdateManyMock.mockResolvedValue({ count: 0 });
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ characterId: "c-1", isPublic: false }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(404);
+  });
+
+  it("updates visibility for linked character", async () => {
+    gameFindUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    gameCharacterUpdateManyMock.mockResolvedValue({ count: 1 });
+    const { PATCH } = await import("@/app/api/games/[id]/characters/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ characterId: "c-1", isPublic: false }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(gameCharacterUpdateManyMock).toHaveBeenCalledWith({
+      where: { gameId: "g-1", characterId: "c-1" },
+      data: { isPublic: false },
+    });
   });
 });
