@@ -5,12 +5,17 @@ import { ModalShell } from "@/app/components/shared/ModalShell";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import {
+  modalInputClass,
+  modalSelectClass,
+} from "@/app/components/games/shared/modalStyles";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import { updateEnemyInstance } from "@/lib/api/enemyInstances";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useState } from "react";
+
+type EnemyInstanceStatus = "ACTIVE" | "DEFEATED" | "DEAD";
 
 export type EditEnemyInstanceModalProps = {
   isOpen: boolean;
@@ -33,6 +38,7 @@ export function EditEnemyInstanceModal({
   const [speed, setSpeed] = useState(0);
   const [initiativeModifier, setInitiativeModifier] = useState(0);
   const [reactionsPerRound, setReactionsPerRound] = useState(0);
+  const [status, setStatus] = useState<EnemyInstanceStatus>("ACTIVE");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [richTextSyncKey, setRichTextSyncKey] = useState(0);
@@ -49,6 +55,7 @@ export function EditEnemyInstanceModal({
     setSpeed(enemy.speed);
     setInitiativeModifier(enemy.initiativeModifier);
     setReactionsPerRound(enemy.reactionsPerRound);
+    setStatus(enemy.status);
     setDescription(enemy.description ?? "");
     setNotes(enemy.notes ?? "");
     setError(null);
@@ -67,6 +74,7 @@ export function EditEnemyInstanceModal({
     enemy.speed,
     enemy.initiativeModifier,
     enemy.reactionsPerRound,
+    enemy.status,
     enemy.description,
     enemy.notes,
     enemy.imageKey,
@@ -94,6 +102,10 @@ export function EditEnemyInstanceModal({
       setError("Current HP cannot exceed max HP.");
       return;
     }
+    if (currentHealth === 0 && status === "ACTIVE") {
+      setError("When current HP is 0, set status to Defeated or Dead.");
+      return;
+    }
     setBusy(true);
     try {
       const patch: Parameters<typeof updateEnemyInstance>[2] = {
@@ -103,6 +115,7 @@ export function EditEnemyInstanceModal({
         speed,
         initiativeModifier,
         reactionsPerRound,
+        status,
         description: description.trim() ? description : null,
         notes: notes.trim() ? notes : "",
       };
@@ -157,9 +170,9 @@ export function EditEnemyInstanceModal({
       <div className="space-y-4 text-sm text-white">
         <p className="text-xs text-white/75">
           Adjust this instance (name, portrait, HP pool, speed, initiative
-          modifier on the sheet, reactions, rich text fields). Initiative{" "}
-          <strong>order</strong> for this game is edited on the instance page or
-          GM initiative list, not here.
+          modifier on the sheet, reactions, status, rich text fields).
+          Initiative <strong>order</strong> for this game is edited on the
+          instance page or GM initiative list, not here.
         </p>
 
         <div>
@@ -276,6 +289,28 @@ export function EditEnemyInstanceModal({
             disabled={busy}
           />
         </label>
+
+        <div>
+          <ModalFieldLabel
+            id="edit-enemy-instance-status"
+            label="Status"
+            required
+          />
+          <select
+            id="edit-enemy-instance-status"
+            className={modalSelectClass}
+            value={status}
+            onChange={(e) => setStatus(e.target.value as EnemyInstanceStatus)}
+            disabled={busy}
+          >
+            <option value="ACTIVE">Active</option>
+            <option value="DEFEATED">Defeated</option>
+            <option value="DEAD">Dead</option>
+          </select>
+          <p className="mt-1 text-xs text-white/55">
+            At 0 HP, choose Defeated or Dead (not Active).
+          </p>
+        </div>
 
         <GameModalRichTextField
           id="edit-enemy-instance-description"

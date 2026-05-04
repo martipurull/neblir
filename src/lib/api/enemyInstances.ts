@@ -1,59 +1,15 @@
+import type {
+  EnemyInstanceDetailResponse,
+  EnemyInstancePatch,
+  SpawnEnemyInstancesBody,
+} from "@/app/lib/types/enemyInstance";
+export type {
+  EnemyInstanceDetailResponse,
+  EnemyInstancePatch,
+  SpawnEnemyInstancesBody,
+} from "@/app/lib/types/enemyInstance";
+
 type ApiErrorPayload = { message?: string; details?: string };
-
-type EnemyInstancePatch = {
-  name?: string;
-  description?: string | null;
-  notes?: string;
-  imageKey?: string | null;
-  currentHealth?: number;
-  maxHealth?: number;
-  speed?: number;
-  initiativeModifier?: number;
-  reactionsPerRound?: number;
-  reactionsRemaining?: number;
-  status?: "ACTIVE" | "DEFEATED" | "DEAD";
-};
-
-export type EnemyInstanceDetailResponse = {
-  id: string;
-  gameId: string;
-  name: string;
-  imageKey?: string | null;
-  currentHealth: number;
-  maxHealth: number;
-  reactionsRemaining: number;
-  reactionsPerRound: number;
-  status: "ACTIVE" | "DEFEATED" | "DEAD";
-  speed: number;
-  initiativeModifier: number;
-  description?: string | null;
-  notes?: string | null;
-  defenceMelee: number;
-  defenceRange: number;
-  defenceGrid: number;
-  attackMelee: number;
-  attackRange: number;
-  attackThrow: number;
-  attackGrid: number;
-  actions: Array<{
-    name: string;
-    description?: string;
-    numberOfDiceToHit?: number;
-    numberOfDamageDice?: number;
-    damageDiceType?: number;
-    damageType?: string;
-    notes?: string;
-  }>;
-  additionalActions: Array<{
-    name: string;
-    description?: string;
-    numberOfDiceToHit?: number;
-    numberOfDamageDice?: number;
-    damageDiceType?: number;
-    damageType?: string;
-    notes?: string;
-  }>;
-};
 
 function getMessage(
   payload: ApiErrorPayload | undefined,
@@ -62,20 +18,6 @@ function getMessage(
 ) {
   return payload?.message ?? `${fallback} (${status})`;
 }
-
-export type SpawnEnemyInstancesBody =
-  | {
-      sourceCustomEnemyId: string;
-      count?: number;
-      nameOverride?: string;
-      sourceOfficialEnemyId?: undefined;
-    }
-  | {
-      sourceOfficialEnemyId: string;
-      count?: number;
-      nameOverride?: string;
-      sourceCustomEnemyId?: undefined;
-    };
 
 export async function spawnEnemyInstances(
   gameId: string,

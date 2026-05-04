@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { spawnEnemyInstances } from "@/lib/api/enemyInstances";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useEffect, useState } from "react";
@@ -29,14 +30,14 @@ export function SpawnEnemyInstancesModal({
   onClose,
   onSuccess,
 }: SpawnEnemyInstancesModalProps) {
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState("1");
   const [nameOverride, setNameOverride] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !source) return;
-    setCount(1);
+    setCount("1");
     setNameOverride("");
     setError(null);
   }, [isOpen, source]);
@@ -86,19 +87,16 @@ export function SpawnEnemyInstancesModal({
         on its manage page.
       </p>
       <div className="mt-4 space-y-3 text-sm text-white">
-        <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-            Count
-          </span>
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={count}
-            onChange={(e) => setCount(Number(e.target.value))}
-            className="mt-1 w-full rounded border border-white/25 bg-black/30 px-2 py-1.5 text-white"
-          />
-        </label>
+        <ModalNumberField
+          id="spawn-enemy-count"
+          label="Count"
+          value={count}
+          onChange={setCount}
+          min={1}
+          max={50}
+          disabled={busy}
+          required={false}
+        />
         <label className="block">
           <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
             Name prefix (optional)

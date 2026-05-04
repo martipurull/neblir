@@ -9,8 +9,6 @@ import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 
-const route = "/api/games/[id]/recaps/[recapId]";
-
 export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
   try {
     if (!request.auth?.user?.id) {
@@ -49,7 +47,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     const details = serializeError(error);
     logger.error({
       method: "DELETE",
-      route,
+      route: "/api/games/[id]/recaps/[recapId]",
       message: "Error deleting recap",
       error,
       details,

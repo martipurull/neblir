@@ -9,8 +9,6 @@ import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 
-const route = "/api/games/[id]/images/[imageId]";
-
 export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
   try {
     if (!request.auth?.user?.id) return errorResponse("Unauthorised", 401);
@@ -42,7 +40,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     const details = serializeError(error);
     logger.error({
       method: "DELETE",
-      route,
+      route: "/api/games/[id]/images/[imageId]",
       message: "Error deleting image",
       error,
       details,

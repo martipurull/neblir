@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/app/components/shared/Button";
@@ -26,7 +26,7 @@ export default function CreateCharacterPage() {
   });
   const draftValues = useWatch({ control: form.control });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!freshStart) return;
     try {
       window.localStorage.removeItem(CREATE_CHARACTER_DRAFT_KEY);
@@ -40,7 +40,7 @@ export default function CreateCharacterPage() {
   }, [form, freshStart, router]);
 
   // Restore/persist draft so refresh doesn't lose progress.
-  React.useEffect(() => {
+  useEffect(() => {
     if (freshStart) return;
     try {
       const raw = window.localStorage.getItem(CREATE_CHARACTER_DRAFT_KEY);
@@ -55,7 +55,7 @@ export default function CreateCharacterPage() {
     }
   }, [form, freshStart]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       window.localStorage.setItem(
         CREATE_CHARACTER_DRAFT_KEY,

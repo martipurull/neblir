@@ -5,27 +5,13 @@ import {
 } from "@/app/lib/prisma/enemyInstance";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
+import { enemyInstancePatchBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-
-const patchBodySchema = z.object({
-  name: z.string().trim().min(1).optional(),
-  description: z.string().nullable().optional(),
-  notes: z.string().optional(),
-  imageKey: z.string().min(1).nullable().optional(),
-  currentHealth: z.number().int().nonnegative().optional(),
-  maxHealth: z.number().int().min(1).optional(),
-  speed: z.number().int().min(0).optional(),
-  initiativeModifier: z.number().int().optional(),
-  reactionsPerRound: z.number().int().min(0).optional(),
-  reactionsRemaining: z.number().int().nonnegative().optional(),
-  status: z.enum(["ACTIVE", "DEFEATED", "DEAD"]).optional(),
-});
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -81,7 +67,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (existing?.gameId !== gameId) {
       return errorResponse("Enemy instance not found", 404);
     }
-    const parsed = patchBodySchema.safeParse(await request.json());
+    const parsed = enemyInstancePatchBodySchema.safeParse(await request.json());
     if (!parsed.success) {
       return errorResponse(
         "Invalid request body",

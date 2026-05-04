@@ -2,11 +2,9 @@
 
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
-import {
-  SelectDropdown,
-  type SelectDropdownOption,
-} from "@/app/components/shared/SelectDropdown";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
+import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
 import { useCallback, useState } from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 
@@ -14,110 +12,49 @@ type GmDiceRollerSectionProps = {
   gameId: string;
 };
 
-const COMMON_DICE_OPTIONS: SelectDropdownOption[] = [
-  { value: "d4", label: "d4" },
-  { value: "d6", label: "d6" },
-  { value: "d8", label: "d8" },
-  { value: "d10", label: "d10" },
-  { value: "d20", label: "d20" },
-  { value: "d100", label: "d100" },
-  { value: "custom", label: "Any sides (custom)" },
-];
-
-function rollDie(sides: number): number {
-  return Math.floor(Math.random() * sides) + 1;
-}
-
-function getSidesFromDieOption(value: string): number | null {
-  if (!value.startsWith("d")) return null;
-  const parsed = Number.parseInt(value.slice(1), 10);
-  if (!Number.isInteger(parsed) || parsed < 2) return null;
-  return parsed;
-}
-
 export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
-  const [diceCount, setDiceCount] = useState(1);
-  const [diceType, setDiceType] = useState(10);
-  const [diceTypeMode, setDiceTypeMode] = useState<"quick" | "advanced">(
-    "quick"
-  );
-  const [advancedDiceOption, setAdvancedDiceOption] = useState<string>("d10");
-  const [customSides, setCustomSides] = useState(10);
-  const [note, setNote] = useState("");
-  const [rollResult, setRollResult] = useState<number[] | null>(null);
   const [rolling, setRolling] = useState(false);
-
-  const canRoll =
-    Number.isInteger(diceCount) &&
-    Number.isInteger(diceType) &&
-    diceCount > 0 &&
-    diceType > 1;
-
-  const setDiceTypeAndClearResult = (nextSides: number) => {
-    setDiceType(nextSides);
-    setRollResult(null);
-  };
-
-  const decreaseDiceCount = () => {
-    setDiceCount((current) => Math.max(1, current - 1));
-    setRollResult(null);
-  };
-  const increaseDiceCount = () => {
-    setDiceCount((current) => current + 1);
-    setRollResult(null);
-  };
-
-  const handleAdvancedDiceOptionChange = (value: string) => {
-    setAdvancedDiceOption(value);
-    if (value === "custom") {
-      const clamped = Math.max(2, customSides);
-      setCustomSides(clamped);
-      setDiceTypeAndClearResult(clamped);
-      return;
-    }
-    const sides = getSidesFromDieOption(value);
-    if (!sides) return;
-    setDiceTypeAndClearResult(sides);
-  };
-
-  const handleEnableAdvancedDice = () => {
-    setDiceTypeMode("advanced");
-    const asCommonOption = `d${diceType}`;
-    const isCommon = COMMON_DICE_OPTIONS.some(
-      (o) => o.value === asCommonOption
-    );
-    if (isCommon) {
-      setAdvancedDiceOption(asCommonOption);
-      return;
-    }
-    setAdvancedDiceOption("custom");
-    setCustomSides(Math.max(2, diceType));
-  };
-
-  const handleReturnToQuickDice = () => {
-    setDiceTypeMode("quick");
-    if (diceType === 6 || diceType === 10) return;
-    setDiceTypeAndClearResult(10);
-  };
+  const {
+    COMMON_DICE_OPTIONS,
+    diceCount,
+    diceType,
+    diceTypeMode,
+    advancedDiceOption,
+    customSides,
+    note,
+    setNote,
+    rollResult,
+    canRoll,
+    setDiceTypeAndClearResult,
+    decreaseDiceCount,
+    increaseDiceCount,
+    applyDiceCountFromInput,
+    handleAdvancedDiceOptionChange,
+    handleEnableAdvancedDice,
+    handleReturnToQuickDice,
+    adjustCustomSidesBy,
+    applyCustomSidesFromInput,
+    tryExecuteRoll,
+  } = useGeneralDiceRollerState();
 
   const handleRoll = useCallback(() => {
-    if (!canRoll) return;
     setRolling(true);
-    const results = Array.from({ length: diceCount }, () => rollDie(diceType));
-    results.sort((a, b) => b - a);
-    setRollResult(results);
-    const total = results.reduce((sum, value) => sum + value, 0);
+    const roll = tryExecuteRoll();
+    if (!roll) {
+      setRolling(false);
+      return;
+    }
     const cleanNote = note.trim();
     void emitRollEvent(gameId, {
       rollType: "GENERAL_ROLL",
-      diceExpression: `${diceCount}d${diceType}`,
-      results,
-      total,
+      diceExpression: roll.diceExpression,
+      results: roll.results,
+      total: roll.total,
       metadata: cleanNote.length > 0 ? { note: cleanNote } : undefined,
     }).finally(() => {
       setRolling(false);
     });
-  }, [canRoll, diceCount, diceType, gameId, note]);
+  }, [tryExecuteRoll, gameId, note]);
 
   return (
     <InfoCard border>
@@ -142,10 +79,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
               step={1}
               value={diceCount}
               onChange={(event) => {
-                setDiceCount(
-                  Math.max(0, Math.trunc(Number(event.target.value) || 0))
-                );
-                setRollResult(null);
+                applyDiceCountFromInput(event.target.value);
               }}
               className="min-h-11 w-20 rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-center text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
             />
@@ -198,7 +132,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
                 showLabel={false}
                 placeholder="Choose dice type"
                 value={advancedDiceOption}
-                options={COMMON_DICE_OPTIONS}
+                options={[...COMMON_DICE_OPTIONS]}
                 onChange={handleAdvancedDiceOptionChange}
                 pinValueFirst="d10"
               />
@@ -209,11 +143,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
                     type="button"
                     variant="modalIconStepper"
                     fullWidth={false}
-                    onClick={() => {
-                      const next = Math.max(2, customSides - 1);
-                      setCustomSides(next);
-                      setDiceTypeAndClearResult(next);
-                    }}
+                    onClick={() => adjustCustomSidesBy(-1)}
                     aria-label="Decrease custom dice sides"
                   >
                     -
@@ -224,12 +154,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
                     step={1}
                     value={customSides}
                     onChange={(event) => {
-                      const next = Math.max(
-                        0,
-                        Math.trunc(Number(event.target.value) || 0)
-                      );
-                      setCustomSides(next);
-                      setDiceTypeAndClearResult(next);
+                      applyCustomSidesFromInput(event.target.value);
                     }}
                     className="min-h-11 w-24 rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-center text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
                   />
@@ -237,11 +162,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
                     type="button"
                     variant="modalIconStepper"
                     fullWidth={false}
-                    onClick={() => {
-                      const next = customSides + 1;
-                      setCustomSides(next);
-                      setDiceTypeAndClearResult(next);
-                    }}
+                    onClick={() => adjustCustomSidesBy(1)}
                     aria-label="Increase custom dice sides"
                   >
                     +

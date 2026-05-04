@@ -42,6 +42,8 @@ export type SelectDropdownProps = {
     option: SelectDropdownOption,
     closeMenu: () => void
   ) => ReactNode;
+  /** Max height of the options list (scrolls inside). Taller values help in modals with long option sets. */
+  menuMaxHeightClass?: string;
 };
 
 export function SelectDropdown({
@@ -55,6 +57,7 @@ export function SelectDropdown({
   onChange,
   pinValueFirst,
   renderOptionSuffix,
+  menuMaxHeightClass = "max-h-44",
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
@@ -250,7 +253,7 @@ export function SelectDropdown({
             id={`${id}-listbox`}
             role="listbox"
             aria-labelledby={`${id}-label`}
-            className="max-h-44 overflow-y-auto py-1"
+            className={`${menuMaxHeightClass} overflow-y-auto py-1`}
           >
             {filteredOptions.length === 0 ? (
               <li

@@ -7,32 +7,12 @@ import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
 import { getEnemy } from "@/app/lib/prisma/enemy";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
+import { enemyInstanceSpawnBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import logger from "@/logger";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-
-const createBodySchema = z
-  .object({
-    sourceCustomEnemyId: z.string().min(1).optional(),
-    sourceOfficialEnemyId: z.string().min(1).optional(),
-    count: z.number().int().min(1).max(50).optional(),
-    nameOverride: z.string().trim().min(1).optional(),
-  })
-  .superRefine((data, ctx) => {
-    const hasCustom = Boolean(data.sourceCustomEnemyId?.trim());
-    const hasOfficial = Boolean(data.sourceOfficialEnemyId?.trim());
-    if (hasCustom === hasOfficial) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Specify exactly one of sourceCustomEnemyId or sourceOfficialEnemyId",
-        path: hasCustom ? ["sourceOfficialEnemyId"] : ["sourceCustomEnemyId"],
-      });
-    }
-  });
 
 function instanceDisplayNames(count: number, baseName: string): string[] {
   if (count <= 1) return [baseName];
@@ -78,7 +58,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (game.gameMaster !== request.auth.user.id) {
       return errorResponse("Only the game master can spawn enemies.", 403);
     }
-    const parsed = createBodySchema.safeParse(await request.json());
+    const parsed = enemyInstanceSpawnBodySchema.safeParse(await request.json());
     if (!parsed.success) {
       return errorResponse(
         "Invalid request body",

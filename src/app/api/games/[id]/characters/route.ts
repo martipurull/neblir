@@ -7,40 +7,11 @@ import { errorResponse } from "../../../shared/responses";
 import { userIsInGame } from "@/app/lib/prisma/game";
 import { prisma } from "@/app/lib/prisma/client";
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
-
-const addCharactersSchema = z
-  .object({
-    characterIds: z.array(z.string()).optional(),
-    characters: z
-      .array(
-        z.object({
-          characterId: z.string().min(1),
-          isPublic: z.boolean().optional(),
-        })
-      )
-      .optional(),
-  })
-  .superRefine((val, ctx) => {
-    if (
-      (!val.characterIds || val.characterIds.length === 0) &&
-      (!val.characters || val.characters.length === 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Provide at least one character to link.",
-      });
-    }
-  });
-
-const removeCharacterSchema = z.object({
-  characterId: z.string().min(1),
-});
-
-const updateCharacterVisibilitySchema = z.object({
-  characterId: z.string().min(1),
-  isPublic: z.boolean(),
-});
+import {
+  gameCharactersAddSchema,
+  gameCharacterRemoveSchema,
+  gameCharacterVisibilityUpdateSchema,
+} from "@/app/lib/types/game";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -102,7 +73,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     const isGameMaster = game.gameMaster === userId;
 
     const requestBody = await request.json();
-    const parsed = addCharactersSchema.safeParse(requestBody);
+    const parsed = gameCharactersAddSchema.safeParse(requestBody);
     if (!parsed.success) {
       logger.warn({
         method: "POST",
@@ -267,7 +238,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    const parsed = removeCharacterSchema.safeParse(requestBody);
+    const parsed = gameCharacterRemoveSchema.safeParse(requestBody);
     if (!parsed.success) {
       logger.warn({
         method: "DELETE",
@@ -360,7 +331,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const requestBody = await request.json();
-    const parsed = updateCharacterVisibilitySchema.safeParse(requestBody);
+    const parsed = gameCharacterVisibilityUpdateSchema.safeParse(requestBody);
     if (!parsed.success) {
       return errorResponse(
         "Invalid request body",

@@ -10,7 +10,6 @@ const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const getCustomEnemiesByGameMock = vi.fn();
 const createCustomEnemyMock = vi.fn();
-const omitMock = vi.fn();
 const safeParseMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
@@ -24,15 +23,14 @@ vi.mock("@/app/lib/prisma/customEnemy", () => ({
 }));
 
 vi.mock("@/app/lib/types/enemy", () => ({
-  customEnemyCreateSchema: {
-    omit: omitMock,
+  customEnemyCreateBodySchema: {
+    safeParse: safeParseMock,
   },
 }));
 
 describe("/api/games/[id]/custom-enemies route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    omitMock.mockReturnValue({ safeParse: safeParseMock });
   });
 
   describe("GET", () => {

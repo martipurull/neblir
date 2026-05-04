@@ -70,6 +70,42 @@ export const gameCharacterSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 
+/** POST /api/games/[id]/characters — link existing characters to the game. */
+export const gameCharactersAddSchema = z
+  .object({
+    characterIds: z.array(z.string()).optional(),
+    characters: z
+      .array(
+        z.object({
+          characterId: z.string().min(1),
+          isPublic: z.boolean().optional(),
+        })
+      )
+      .optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (
+      (!val.characterIds || val.characterIds.length === 0) &&
+      (!val.characters || val.characters.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide at least one character to link.",
+      });
+    }
+  });
+
+/** DELETE /api/games/[id]/characters — unlink a character. */
+export const gameCharacterRemoveSchema = z.object({
+  characterId: z.string().min(1),
+});
+
+/** PATCH /api/games/[id]/characters — update visibility for a linked character. */
+export const gameCharacterVisibilityUpdateSchema = z.object({
+  characterId: z.string().min(1),
+  isPublic: z.boolean(),
+});
+
 /** GameCharacter as returned from GET /api/characters/[id] (includes game name). */
 export const gameCharacterWithGameSchema = gameCharacterSchema.extend({
   game: z.object({

@@ -3,17 +3,13 @@ import {
   getCustomEnemiesByGame,
 } from "@/app/lib/prisma/customEnemy";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
-import { customEnemyCreateSchema } from "@/app/lib/types/enemy";
+import { customEnemyCreateBodySchema } from "@/app/lib/types/enemy";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-
-const customEnemyCreateBodySchema = customEnemyCreateSchema.omit({
-  gameId: true,
-});
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {

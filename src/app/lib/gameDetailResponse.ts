@@ -62,8 +62,7 @@ export function shapeGameForResponse(
       const isOwnedByCurrentUser = gc.character.users.some(
         (u) => u.userId === userId
       );
-      // `??` is wrong here: `false ?? x` stays `false`, so non-owned public NPCs were hidden.
-      // Legacy rows without `isPublic` are treated as visible; explicit `false` hides from non-owners.
+
       if (isOwnedByCurrentUser) return true;
       return gc.isPublic !== false;
     })

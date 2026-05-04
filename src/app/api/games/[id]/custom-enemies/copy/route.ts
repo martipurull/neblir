@@ -3,18 +3,13 @@ import {
   getCustomEnemy,
 } from "@/app/lib/prisma/customEnemy";
 import { getGame } from "@/app/lib/prisma/game";
-import { z } from "zod";
 import type { AuthNextRequest } from "@/app/lib/types/api";
+import { customEnemyCopyBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-
-const copyBodySchema = z.object({
-  sourceGameId: z.string().min(1),
-  sourceCustomEnemyId: z.string().min(1),
-});
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -38,7 +33,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const body = await request.json();
-    const parsed = copyBodySchema.safeParse(body);
+    const parsed = customEnemyCopyBodySchema.safeParse(body);
     if (!parsed.success) {
       return errorResponse(
         "Invalid request body",

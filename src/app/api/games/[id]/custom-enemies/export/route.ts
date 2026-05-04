@@ -8,12 +8,9 @@ import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
+import { sanitizeAttachmentFilenamePart } from "../../../../shared/filename";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-
-function sanitizeFilenamePart(name: string): string {
-  return name.replace(/[^\w.\-]+/g, "_").slice(0, 80) || "game";
-}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -63,7 +60,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const body = lines.join("\r\n") + "\r\n";
-    const filename = `custom-enemies-${sanitizeFilenamePart(game.name)}.csv`;
+    const filename = `custom-enemies-${sanitizeAttachmentFilenamePart(game.name, "game")}.csv`;
 
     return new NextResponse(body, {
       status: 200,
