@@ -7,7 +7,7 @@
  *   equipSlotTypes: ["HAND"]
  *   equipSlotCost: 1
  *
- * Usage: node scripts/patch-equippable-items.mjs
+ * Usage: npx tsx scripts/patch-equippable-items.ts
  * Requires: MONGODB_URI in env
  */
 
@@ -19,7 +19,7 @@ const ITEM_COLLECTION = "Item";
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
   if (dryRun) {
-    console.log("Dry run – no changes will be made.\n");
+    console.log("Dry run - no changes will be made.\n");
   }
 
   const mongoUri = process.env.MONGODB_URI;
@@ -60,7 +60,7 @@ async function main() {
 
   let updated = 0;
   for (const doc of equippableMissing) {
-    const update = { $set: {} };
+    const update: { $set: Record<string, unknown> } = { $set: {} };
     if (
       !doc.equipSlotTypes ||
       !Array.isArray(doc.equipSlotTypes) ||
@@ -76,7 +76,9 @@ async function main() {
         await collection.updateOne({ _id: doc._id }, update);
       }
       updated++;
-      console.log(`  ${dryRun ? "Would patch" : "Patched"}: ${doc.name} (${doc._id})`);
+      console.log(
+        `  ${dryRun ? "Would patch" : "Patched"}: ${doc.name} (${doc._id})`
+      );
     }
   }
 
@@ -84,7 +86,7 @@ async function main() {
   await client.close();
 }
 
-main().catch((err) => {
+main().catch((err: unknown) => {
   console.error(err);
   process.exit(1);
 });
