@@ -113,7 +113,9 @@ export function EnemyInstanceModals({
         onClose={() => setEditOpen(false)}
         gameId={gameId}
         enemy={enemy}
-        onSaved={loadSilent}
+        onSaved={async () => {
+          await Promise.resolve(loadSilent());
+        }}
       />
 
       <EnemyInstanceZeroHpModal

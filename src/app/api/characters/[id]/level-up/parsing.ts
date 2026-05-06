@@ -17,15 +17,22 @@ import {
  * Character shape used by level-up parsing. Only the fields actually read are required,
  * so we can pass either a full Character or the getCharacter() result (which has
  * inventory/paths/features as Prisma relation shapes instead of schema types).
+ *
+ * Prisma composite `specialAbility` is `T | null`; Zod's domain type uses optional (undefined).
  */
+type GeneralInformationForLevelUp = Omit<
+  Character["generalInformation"],
+  "specialAbility"
+> & {
+  specialAbility?: Character["generalInformation"]["specialAbility"] | null;
+};
+
 export type CharacterForLevelUp = Pick<
   Character,
-  | "generalInformation"
-  | "health"
-  | "combatInformation"
-  | "innateAttributes"
-  | "learnedSkills"
->;
+  "health" | "combatInformation" | "innateAttributes" | "learnedSkills"
+> & {
+  generalInformation: GeneralInformationForLevelUp;
+};
 
 // Check if any of the features, incremental or new, have a minPathGrade above the character's current path rank
 export async function areFeaturesValidForLevelUp(
@@ -335,10 +342,12 @@ export function parseCharacterBodyToCompute(
     innateAttributes = applied.innateAttributes;
   }
 
+  const gi = existingCharacter.generalInformation;
   const updateBody = {
     generalInformation: {
-      ...existingCharacter.generalInformation,
-      level: existingCharacter.generalInformation.level + 1,
+      ...gi,
+      ...(gi.specialAbility === null ? { specialAbility: undefined } : {}),
+      level: gi.level + 1,
     },
     health: {
       ...existingCharacter.health,

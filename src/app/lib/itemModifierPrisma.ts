@@ -32,6 +32,14 @@ export function mapParsedItemToPrismaCreate(
   const { modifiesAttribute, modifiesSkill, ...rest } = data;
   return {
     ...rest,
+    // Required Prisma scalars / nested composites: spreading `Omit<ParsedItem union, …>`
+    // widens required keys (and weapon `damage`) to optional.
+    accessType: data.accessType,
+    confCost: data.confCost,
+    description: data.description,
+    name: data.name,
+    type: data.type,
+    weight: data.weight,
     modifiesAttribute:
       modifiesAttribute == null
         ? undefined
@@ -40,7 +48,7 @@ export function mapParsedItemToPrismaCreate(
       modifiesSkill == null
         ? undefined
         : GENERAL_SKILL_API_TO_PRISMA[modifiesSkill],
-  };
+  } as Prisma.ItemCreateInput;
 }
 
 export function mapItemUpdateParsedToPrisma(
@@ -160,7 +168,7 @@ export function mapCustomItemUpdateZodToPrisma(
       attributeMod,
       skillMod,
     }),
-  };
+  } as Prisma.CustomItemUpdateInput;
 }
 
 export function mapUniqueItemUpdateZodToPrisma(
@@ -181,7 +189,7 @@ export function mapUniqueItemUpdateZodToPrisma(
     attributeMod: attributeModOverride,
     skillMod: skillModOverride,
   });
-  const out: Prisma.UniqueItemUpdateInput = {
+  return {
     ...rest,
     ...(mod.modifiesAttribute !== undefined && {
       modifiesAttributeOverride: mod.modifiesAttribute,
@@ -195,9 +203,8 @@ export function mapUniqueItemUpdateZodToPrisma(
     ...(mod.skillMod !== undefined && {
       skillModOverride: mod.skillMod,
     }),
-  };
-  if (maxUsesOverride !== undefined || maxUses !== undefined) {
-    out.maxUsesOverride = maxUsesOverride ?? maxUses ?? null;
-  }
-  return out;
+    ...(maxUsesOverride !== undefined || maxUses !== undefined
+      ? { maxUsesOverride: maxUsesOverride ?? maxUses ?? null }
+      : {}),
+  } as Prisma.UniqueItemUpdateInput;
 }
