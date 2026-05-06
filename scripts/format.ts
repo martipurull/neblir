@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 
 const glob = "**/*.{ts,tsx,js,jsx,json,css,md}";
 const out = execSync(`npx prettier --write --cache "${glob}"`, {
@@ -17,6 +17,6 @@ if (changedPaths.length === 0) {
 } else {
   console.log(`Formatted ${changedPaths.length} file(s)`);
   console.log("Files formatted:");
-  changedPaths.forEach((path) => console.log(`  ${path}`));
+  changedPaths.forEach((p) => console.log(`  ${p}`));
   console.log("");
 }

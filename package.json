@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "node scripts/format.mjs",
+    "format": "tsx scripts/format.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "test": "vitest",
     "test:watch": "vitest --watch",
