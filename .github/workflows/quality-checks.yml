@@ -6,6 +6,12 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      # Placeholders only for compile + prisma generate — no runtime DB/access from CI.
+      MONGODB_URI: mongodb://127.0.0.1:27017/ci-build
+      AUTH_SECRET: ci-build-placeholder-secret-min-length-32
+      AUTH_GOOGLE_ID: ci-build-placeholder
+      AUTH_GOOGLE_SECRET: ci-build-placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,5 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run typecheck
       - run: npm run format:check
       - run: npm run test:file
+      - run: npm run build

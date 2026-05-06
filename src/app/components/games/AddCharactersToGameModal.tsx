@@ -157,8 +157,8 @@ export default function AddCharactersToGameModal({
       // Remove processed IDs from the selection so the user can retry failures.
       setSelectedConfigs((prev) => {
         const next = { ...prev };
-        for (const id of payload.linkedIds) next.delete(id);
-        for (const id of payload.alreadyLinkedIds) next.delete(id);
+        for (const id of payload.linkedIds) delete next[id];
+        for (const id of payload.alreadyLinkedIds) delete next[id];
         return next;
       });
 
