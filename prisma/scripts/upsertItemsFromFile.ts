@@ -1,5 +1,5 @@
 /**
- * Upsert global Item documents from a CSV (same column conventions as uploadItemsFromCSV).
+ * Upsert global Item documents from CSV or JSON.
  *
  * - **Full row**: `type` is GENERAL_ITEM or WEAPON; all columns match the upload script.
  *   Optional `id` / `_id` column: update by that id, or insert with that id if missing.
@@ -8,7 +8,7 @@
  *   only `modifiesAttribute`, `attributeMod`, `modifiesSkill`, `skillMod` are applied
  *   when those columns are non-empty (others unchanged).
  *
- * Usage: npx tsx prisma/scripts/upsertGlobalItemsFromCsv.ts <path-to-items.csv>
+ * Usage: npx tsx prisma/scripts/upsertItemsFromFile.ts <path-to-items.csv|json>
  *
  * Env: MONGODB_URI (required).
  */
@@ -55,11 +55,57 @@ const patchRowSchema = z
     message: "Patch row needs id or name",
   });
 
+type FullItemRow = z.infer<typeof itemRowWithOptionalIdSchema>;
+
+function deepNullsToUndefined(value: unknown): unknown {
+  if (value === null) return undefined;
+  if (Array.isArray(value))
+    return value.map((item) => deepNullsToUndefined(item));
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      const normalized = deepNullsToUndefined(v);
+      if (normalized !== undefined) out[key] = normalized;
+    }
+    return out;
+  }
+  return value;
+}
+
+function parseJsonRows(raw: string): FullItemRow[] {
+  const parsed = JSON.parse(raw) as unknown;
+  const entries = Array.isArray(parsed)
+    ? parsed
+    : parsed &&
+        typeof parsed === "object" &&
+        Array.isArray((parsed as { items?: unknown[] }).items)
+      ? (parsed as { items: unknown[] }).items
+      : null;
+  if (!entries) {
+    throw new Error('JSON root must be an array or object with "items" array.');
+  }
+  const out: FullItemRow[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const full = itemRowWithOptionalIdSchema.safeParse(
+      deepNullsToUndefined(entries[i])
+    );
+    if (!full.success) {
+      throw new Error(
+        `JSON item ${i + 1}: ${full.error.issues.map((x) => x.message).join("; ")}`
+      );
+    }
+    out.push(full.data);
+  }
+  return out;
+}
+
 async function main() {
-  const csvPath = process.argv[2];
+  const args = process.argv.slice(2).filter((v) => v !== "--");
+  const dryRun = args.includes("--dry-run");
+  const csvPath = args.find((v) => !v.startsWith("--"));
   if (!csvPath) {
     console.error(
-      "Usage: npx tsx prisma/scripts/upsertGlobalItemsFromCsv.ts <path-to-items.csv>"
+      "Usage: npx tsx prisma/scripts/upsertItemsFromFile.ts <path-to-items.csv|json> [--dry-run]"
     );
     process.exit(1);
   }
@@ -70,6 +116,54 @@ async function main() {
     process.exit(1);
   }
 
+  let fullUpserts = 0;
+  let patches = 0;
+  const ext = path.extname(resolvedPath).toLowerCase();
+  if (ext === ".json") {
+    const fullRows = parseJsonRows(fs.readFileSync(resolvedPath, "utf8"));
+    if (dryRun) {
+      console.log(`[dry-run] JSON items parsed: ${fullRows.length}.`);
+      return;
+    }
+    for (const fullItem of fullRows) {
+      const { id: idFromRow, ...itemPayload } = fullItem;
+      const createData = mapParsedItemToPrismaCreate(itemPayload);
+      if (idFromRow?.trim()) {
+        const existing = await prisma.item.findUnique({
+          where: { id: idFromRow.trim() },
+        });
+        if (existing) {
+          await prisma.item.update({
+            where: { id: idFromRow.trim() },
+            data: { ...createData },
+          });
+        } else {
+          await prisma.item.create({
+            data: { ...createData, id: idFromRow.trim() },
+          });
+        }
+      } else {
+        const nameKey = normalizeItemNameKey(itemPayload.name);
+        const existing = await prisma.item.findFirst({
+          where: { name: itemPayload.name.trim() },
+        });
+        if (existing && normalizeItemNameKey(existing.name) === nameKey) {
+          await prisma.item.update({
+            where: { id: existing.id },
+            data: { ...createData },
+          });
+        } else {
+          await prisma.item.create({ data: createData });
+        }
+      }
+      fullUpserts++;
+    }
+    console.log(
+      `Done. JSON full upserts: ${fullUpserts}, modifier patches: 0, items: ${fullRows.length}.`
+    );
+    return;
+  }
+
   const raw = fs.readFileSync(resolvedPath).toString();
   const rows: Record<string, string>[] = parse(raw, {
     columns: true,
@@ -77,14 +171,14 @@ async function main() {
     trim: true,
     relax_column_count: true,
   });
-
   if (rows.length === 0) {
     console.log("CSV has no data rows. Nothing to do.");
     return;
   }
-
-  let fullUpserts = 0;
-  let patches = 0;
+  if (dryRun) {
+    console.log(`[dry-run] CSV rows parsed: ${rows.length}.`);
+    return;
+  }
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];

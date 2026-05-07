@@ -38,6 +38,14 @@ const intCell = z.preprocess((v) => {
 
 function parsePipeDamageTypes(raw: unknown): ItemWeaponDamageType[] {
   if (raw === null || raw === undefined) return [];
+  if (Array.isArray(raw)) {
+    const out: ItemWeaponDamageType[] = [];
+    for (const value of raw) {
+      const parsed = weaponDamageTypeSchema.safeParse(value);
+      if (parsed.success) out.push(parsed.data);
+    }
+    return out;
+  }
   const s = String(raw).trim();
   if (!s) return [];
   const parts = s
@@ -54,20 +62,24 @@ function parsePipeDamageTypes(raw: unknown): ItemWeaponDamageType[] {
 
 function enemyActionsCsvCell(field: "actions" | "additionalActions") {
   return z
-    .union([z.string(), z.undefined(), z.null()])
+    .union([z.string(), z.array(z.unknown()), z.undefined(), z.null()])
     .transform((raw, ctx): z.infer<typeof enemyActionSchema>[] => {
       if (raw == null) return [];
-      const s = String(raw).trim();
-      if (!s) return [];
       let parsed: unknown;
-      try {
-        parsed = JSON.parse(s) as unknown;
-      } catch {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${field}: invalid JSON`,
-        });
-        return z.NEVER;
+      if (Array.isArray(raw)) {
+        parsed = raw;
+      } else {
+        const s = String(raw).trim();
+        if (!s) return [];
+        try {
+          parsed = JSON.parse(s) as unknown;
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${field}: invalid JSON`,
+          });
+          return z.NEVER;
+        }
       }
       if (!Array.isArray(parsed)) {
         ctx.addIssue({
@@ -127,6 +139,32 @@ export const customEnemyCsvRowSchema = z.object({
 });
 
 export type CustomEnemyCsvRow = z.infer<typeof customEnemyCsvRowSchema>;
+export type CustomEnemyTransferRow = CustomEnemyCsvRow;
+
+function normalizeMongoExtendedJson(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeMongoExtendedJson(item));
+  }
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (keys.length === 1) {
+      if (typeof obj.$numberInt === "string")
+        return Number.parseInt(obj.$numberInt, 10);
+      if (typeof obj.$numberLong === "string")
+        return Number.parseInt(obj.$numberLong, 10);
+      if (typeof obj.$numberDouble === "string")
+        return Number.parseFloat(obj.$numberDouble);
+      if (typeof obj.$oid === "string") return obj.$oid;
+    }
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      out[k] = normalizeMongoExtendedJson(v);
+    }
+    return out;
+  }
+  return value;
+}
 
 function csvEscape(value: string): string {
   if (/[",\r\n]/.test(value)) {
@@ -246,4 +284,122 @@ export function parseCustomEnemyCsv(csvText: string): {
   });
 
   return { rows, rowErrors };
+}
+
+export function parseCustomEnemyJson(jsonText: string): {
+  rows: CustomEnemyTransferRow[];
+  rowErrors: Array<{ line: number; message: string }>;
+} {
+  const trimmed = jsonText.replace(/^\uFEFF/, "").trim();
+  if (!trimmed) {
+    return { rows: [], rowErrors: [{ line: 0, message: "JSON is empty." }] };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed) as unknown;
+  } catch (e) {
+    return {
+      rows: [],
+      rowErrors: [
+        {
+          line: 0,
+          message: e instanceof Error ? e.message : "Failed to parse JSON.",
+        },
+      ],
+    };
+  }
+
+  let items: unknown[] = [];
+  if (Array.isArray(parsed)) {
+    items = parsed;
+  } else if (
+    parsed &&
+    typeof parsed === "object" &&
+    Array.isArray((parsed as { enemies?: unknown[] }).enemies)
+  ) {
+    items = (parsed as { enemies: unknown[] }).enemies;
+  } else {
+    return {
+      rows: [],
+      rowErrors: [
+        {
+          line: 0,
+          message:
+            'JSON root must be an array or an object with "enemies" array.',
+        },
+      ],
+    };
+  }
+
+  const rows: CustomEnemyTransferRow[] = [];
+  const rowErrors: Array<{ line: number; message: string }> = [];
+
+  items.forEach((item, index) => {
+    const parsedRow = customEnemyCsvRowSchema.safeParse(
+      normalizeMongoExtendedJson(item)
+    );
+    if (!parsedRow.success) {
+      rowErrors.push({
+        line: index + 1,
+        message: parsedRow.error.issues.map((i) => i.message).join("; "),
+      });
+      return;
+    }
+    rows.push(parsedRow.data);
+  });
+
+  return { rows, rowErrors };
+}
+
+export function serializeCustomEnemyRowsToJson(
+  rows: Array<{
+    name: string;
+    description?: string | null;
+    imageKey?: string | null;
+    health: number;
+    speed: number;
+    initiativeModifier: number;
+    numberOfReactions: number;
+    defenceMelee: number;
+    defenceRange: number;
+    defenceGrid: number;
+    attackMelee: number;
+    attackRange: number;
+    attackThrow: number;
+    attackGrid: number;
+    immunities: ItemWeaponDamageType[];
+    resistances: ItemWeaponDamageType[];
+    vulnerabilities: ItemWeaponDamageType[];
+    notes?: string | null;
+    actions?: z.input<typeof enemyActionSchema>[];
+    additionalActions?: z.input<typeof enemyActionSchema>[];
+  }>
+): string {
+  return JSON.stringify(
+    rows.map((row) => ({
+      name: row.name,
+      description: row.description ?? "",
+      imageKey: row.imageKey ?? "",
+      health: row.health,
+      speed: row.speed,
+      initiativeModifier: row.initiativeModifier,
+      numberOfReactions: row.numberOfReactions,
+      defenceMelee: row.defenceMelee,
+      defenceRange: row.defenceRange,
+      defenceGrid: row.defenceGrid,
+      attackMelee: row.attackMelee,
+      attackRange: row.attackRange,
+      attackThrow: row.attackThrow,
+      attackGrid: row.attackGrid,
+      immunities: row.immunities,
+      resistances: row.resistances,
+      vulnerabilities: row.vulnerabilities,
+      notes: row.notes ?? "",
+      actions: row.actions ?? [],
+      additionalActions: row.additionalActions ?? [],
+    })),
+    null,
+    2
+  );
 }

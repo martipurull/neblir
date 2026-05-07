@@ -143,6 +143,47 @@ This document describes how to set up all the required environment variables for
 
 ---
 
+### Official Data Seed (Optional but recommended)
+
+These variables are used by `npm run seed:official-data`. The command imports canonical game content into the database pointed by `MONGODB_URI`.
+
+#### `OFFICIAL_DATA_ITEMS_FILE`
+
+- **Description**: CSV or JSON file path for global items import (`upsertItemsFromFile.ts`)
+- **Example**: `~/Documents/Neblir/Game/data/Item_Upload.csv` or `~/Documents/Neblir/Game/data/items.json`
+
+#### `OFFICIAL_DATA_ENEMIES_FILE`
+
+- **Description**: CSV or JSON file path for official enemies import (`upsertEnemiesFromFile.ts`)
+- **Example**: `~/Documents/Neblir/Game/data/Enemy_Upload.csv` or `~/Documents/Neblir/Game/data/enemies.json`
+
+#### `OFFICIAL_DATA_FEATURES_FILE`
+
+- **Description**: CSV or JSON file path for features import (`upsertPathsAndFeaturesFromFile.ts`)
+- **Example**: `~/Documents/Neblir/Game/data/Feature_Upload.csv` or `~/Documents/Neblir/Game/data/features.json`
+
+#### `OFFICIAL_DATA_PATHS_FILE`
+
+- **Description**: CSV or JSON file path for paths import (`upsertPathsAndFeaturesFromFile.ts`)
+- **Example**: `~/Documents/Neblir/Game/data/Path_Upload.csv` or `~/Documents/Neblir/Game/data/paths.json`
+
+#### `OFFICIAL_DATA_MAPS_FILE` (optional)
+
+- **Description**: CSV or JSON file path for maps import (`upsertMapsFromFile.ts`)
+- **Example**: `~/Documents/Neblir/Game/data/Map_Upload.csv` or `~/Documents/Neblir/Game/data/maps.json`
+
+Legacy `*_CSV` env names are still accepted by the orchestrator for backward compatibility.
+
+#### `OFFICIAL_DATA_REFERENCE_MECHANICS_DIR` (optional)
+
+- **Description**: Directory or HTML file for `MECHANICS` reference import
+
+#### `OFFICIAL_DATA_REFERENCE_WORLD_DIR` (optional)
+
+- **Description**: Directory or HTML file for `WORLD` reference import
+
+---
+
 ## Setup Instructions
 
 1. Copy `.env.example` to `.env`:

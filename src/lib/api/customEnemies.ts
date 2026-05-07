@@ -1,6 +1,7 @@
 type ApiErrorPayload = { message?: string; details?: string };
+export type CustomEnemyTransferFormat = "csv" | "json";
 
-function triggerCsvDownload(blob: Blob, filename: string) {
+function triggerFileDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -15,8 +16,15 @@ function triggerCsvDownload(blob: Blob, filename: string) {
 export async function downloadGameCustomEnemiesCsv(
   gameId: string
 ): Promise<void> {
+  return downloadGameCustomEnemies(gameId, "csv");
+}
+
+export async function downloadGameCustomEnemies(
+  gameId: string,
+  format: CustomEnemyTransferFormat
+): Promise<void> {
   const response = await fetch(
-    `/api/games/${encodeURIComponent(gameId)}/custom-enemies/export`,
+    `/api/games/${encodeURIComponent(gameId)}/custom-enemies/export?format=${format}`,
     { method: "GET" }
   );
   if (!response.ok) {
@@ -31,16 +39,24 @@ export async function downloadGameCustomEnemiesCsv(
   const blob = await response.blob();
   const cd = response.headers.get("Content-Disposition");
   const match = cd?.match(/filename="([^"]+)"/);
-  const filename = match?.[1] ?? `custom-enemies-${gameId}.csv`;
-  triggerCsvDownload(blob, filename);
+  const filename = match?.[1] ?? `custom-enemies-${gameId}.${format}`;
+  triggerFileDownload(blob, filename);
 }
 
 export async function downloadCustomEnemyCsv(
   gameId: string,
   customEnemyId: string
 ): Promise<void> {
+  return downloadCustomEnemy(gameId, customEnemyId, "csv");
+}
+
+export async function downloadCustomEnemy(
+  gameId: string,
+  customEnemyId: string,
+  format: CustomEnemyTransferFormat
+): Promise<void> {
   const response = await fetch(
-    `/api/games/${encodeURIComponent(gameId)}/custom-enemies/${encodeURIComponent(customEnemyId)}/export`,
+    `/api/games/${encodeURIComponent(gameId)}/custom-enemies/${encodeURIComponent(customEnemyId)}/export?format=${format}`,
     { method: "GET" }
   );
   if (!response.ok) {
@@ -55,8 +71,8 @@ export async function downloadCustomEnemyCsv(
   const blob = await response.blob();
   const cd = response.headers.get("Content-Disposition");
   const match = cd?.match(/filename="([^"]+)"/);
-  const filename = match?.[1] ?? `custom-enemy-${customEnemyId}.csv`;
-  triggerCsvDownload(blob, filename);
+  const filename = match?.[1] ?? `custom-enemy-${customEnemyId}.${format}`;
+  triggerFileDownload(blob, filename);
 }
 
 export type ImportCustomEnemiesResult = {
@@ -65,7 +81,7 @@ export type ImportCustomEnemiesResult = {
   rowErrors: Array<{ line: number; message: string }>;
 };
 
-export async function importCustomEnemiesCsv(
+export async function importCustomEnemiesFile(
   gameId: string,
   file: File
 ): Promise<ImportCustomEnemiesResult> {
@@ -85,6 +101,13 @@ export async function importCustomEnemiesCsv(
     throw new Error(json.message ?? `Import failed (${response.status})`);
   }
   return json;
+}
+
+export async function importCustomEnemiesCsv(
+  gameId: string,
+  file: File
+): Promise<ImportCustomEnemiesResult> {
+  return importCustomEnemiesFile(gameId, file);
 }
 
 export async function copyCustomEnemyToGame(

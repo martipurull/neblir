@@ -2,6 +2,7 @@ import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import {
   customEnemyCsvHeaderLine,
+  serializeCustomEnemyRowsToJson,
   serializeCustomEnemyRowToCsvLine,
 } from "@/app/lib/enemyCsv";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -38,42 +39,58 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Custom enemy not found", 404);
     }
 
-    const body =
-      customEnemyCsvHeaderLine() +
-      "\r\n" +
-      serializeCustomEnemyRowToCsvLine({
-        name: enemy.name,
-        description: enemy.description,
-        imageKey: enemy.imageKey,
-        health: enemy.health,
-        speed: enemy.speed,
-        initiativeModifier: enemy.initiativeModifier,
-        numberOfReactions: enemy.numberOfReactions,
-        defenceMelee: enemy.defenceMelee,
-        defenceRange: enemy.defenceRange,
-        defenceGrid: enemy.defenceGrid,
-        attackMelee: enemy.attackMelee,
-        attackRange: enemy.attackRange,
-        attackThrow: enemy.attackThrow,
-        attackGrid: enemy.attackGrid,
-        immunities: enemy.immunities,
-        resistances: enemy.resistances,
-        vulnerabilities: enemy.vulnerabilities,
-        notes: enemy.notes,
-        actions: enemy.actions ?? [],
-        additionalActions: enemy.additionalActions ?? [],
-      }) +
-      "\r\n";
+    const format =
+      new URL(request.url).searchParams.get("format")?.toLowerCase() === "json"
+        ? "json"
+        : "csv";
+    const row = {
+      name: enemy.name,
+      description: enemy.description,
+      imageKey: enemy.imageKey,
+      health: enemy.health,
+      speed: enemy.speed,
+      initiativeModifier: enemy.initiativeModifier,
+      numberOfReactions: enemy.numberOfReactions,
+      defenceMelee: enemy.defenceMelee,
+      defenceRange: enemy.defenceRange,
+      defenceGrid: enemy.defenceGrid,
+      attackMelee: enemy.attackMelee,
+      attackRange: enemy.attackRange,
+      attackThrow: enemy.attackThrow,
+      attackGrid: enemy.attackGrid,
+      immunities: enemy.immunities,
+      resistances: enemy.resistances,
+      vulnerabilities: enemy.vulnerabilities,
+      notes: enemy.notes,
+      actions: enemy.actions ?? [],
+      additionalActions: enemy.additionalActions ?? [],
+    };
+
+    if (format === "json") {
+      const filename = `custom-enemy-${sanitizeAttachmentFilenamePart(enemy.name, "enemy")}.json`;
+      return new NextResponse(serializeCustomEnemyRowsToJson([row]), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      });
+    }
 
     const filename = `custom-enemy-${sanitizeAttachmentFilenamePart(enemy.name, "enemy")}.csv`;
-
-    return new NextResponse(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-      },
-    });
+    return new NextResponse(
+      customEnemyCsvHeaderLine() +
+        "\r\n" +
+        serializeCustomEnemyRowToCsvLine(row) +
+        "\r\n",
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      }
+    );
   } catch (error) {
     logger.error({
       method: "GET",

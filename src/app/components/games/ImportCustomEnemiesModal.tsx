@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { importCustomEnemiesCsv } from "@/lib/api/customEnemies";
+import { importCustomEnemiesFile } from "@/lib/api/customEnemies";
 import { useCallback, useState } from "react";
 
 type ImportCustomEnemiesModalProps = {
@@ -34,14 +34,14 @@ export function ImportCustomEnemiesModal({
 
   const handleSubmit = useCallback(async () => {
     if (!file) {
-      setError("Choose a CSV file first.");
+      setError("Choose a CSV or JSON file first.");
       return;
     }
     setError(null);
     setResultText(null);
     setBusy(true);
     try {
-      const res = await importCustomEnemiesCsv(gameId, file);
+      const res = await importCustomEnemiesFile(gameId, file);
       const errLines =
         res.rowErrors?.length > 0
           ? `\n\nIssues:\n${res.rowErrors
@@ -71,20 +71,20 @@ export function ImportCustomEnemiesModal({
       maxWidthClass="max-w-md"
     >
       <p className="text-sm text-white/85">
-        CSV must include a header row with the same columns as an export from
-        this app (name, stats, pipe-separated damage types, etc.).
+        Upload CSV or JSON exported from this app. CSV requires the exported
+        header row (name, stats, pipe-separated damage types, etc.).
       </p>
       <div className="mt-4">
         <label
           className="block text-xs font-medium text-white/80"
           htmlFor="enemy-csv-file"
         >
-          CSV file
+          CSV or JSON file
         </label>
         <input
           id="enemy-csv-file"
           type="file"
-          accept=".csv,text/csv"
+          accept=".csv,.json,text/csv,application/json"
           className="mt-1 block w-full text-sm text-white file:mr-2 file:rounded file:border-0 file:bg-paleBlue/10 file:px-3 file:py-1.5 file:text-sm file:text-white"
           disabled={busy}
           onChange={(ev) => {

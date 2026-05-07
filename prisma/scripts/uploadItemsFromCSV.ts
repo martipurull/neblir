@@ -34,7 +34,7 @@
  * - modifiesSkill: optional; general skill key (e.g. aim, GRID) or Prisma enum key (e.g. AIM).
  *
  * Shared CSV helpers (`csvRowToItem`, `normalizeItemNameKey`, etc.) are exported for
- * `upsertGlobalItemsFromCsv.ts`.
+ * `upsertItemsFromFile.ts`.
  *
  * Extra guards (upload-only, stricter than bare Zod):
  * - Names must be unique vs the DB and within this CSV after removing all whitespace (e.g. "Iron  Sword" clashes with "IronSword").
@@ -45,6 +45,7 @@
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "node:url";
 import type { ObjectId } from "mongodb";
 import { MongoClient } from "mongodb";
 import { parse } from "csv-parse/sync";
@@ -398,7 +399,7 @@ export function csvRowDeclaresFullItem(row: Record<string, string>): boolean {
 }
 
 /**
- * Modifier-only CSV row (no `type` required). Used by upsertGlobalItemsFromCsv.
+ * Modifier-only CSV row (no `type` required). Used by upsertItemsFromFile.
  * Column names match the main items CSV (flexible header matching via getColumn).
  */
 export function csvRowToItemModifierPatch(row: Record<string, string>): {
@@ -621,7 +622,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

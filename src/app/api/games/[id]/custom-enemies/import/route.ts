@@ -1,6 +1,6 @@
 import { createCustomEnemy } from "@/app/lib/prisma/customEnemy";
 import { getGame } from "@/app/lib/prisma/game";
-import { parseCustomEnemyCsv } from "@/app/lib/enemyCsv";
+import { parseCustomEnemyCsv, parseCustomEnemyJson } from "@/app/lib/enemyCsv";
 import { customEnemyCreateSchema } from "@/app/lib/types/enemy";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -30,11 +30,20 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     const form = await request.formData();
     const file = form.get("file");
     if (!file || typeof file === "string") {
-      return errorResponse('Missing file field "file" (CSV upload).', 400);
+      return errorResponse(
+        'Missing file field "file" (CSV or JSON upload).',
+        400
+      );
     }
 
-    const csvText = await (file as Blob).text();
-    const { rows, rowErrors } = parseCustomEnemyCsv(csvText);
+    const uploadFile = file as File;
+    const text = await uploadFile.text();
+    const ext = uploadFile.name.split(".").pop()?.toLowerCase();
+    const parsed =
+      ext === "json" || uploadFile.type.includes("json")
+        ? parseCustomEnemyJson(text)
+        : parseCustomEnemyCsv(text);
+    const { rows, rowErrors } = parsed;
     if (rows.length === 0 && rowErrors.length > 0) {
       return NextResponse.json(
         { created: 0, skipped: 0, rowErrors },
