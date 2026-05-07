@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   invokeRoute,
   makeAuthedRequest,
+  makeAuthedRequestWithUrl,
   makeParams,
   makeUnauthedRequest,
 } from "../../../../../helpers";
@@ -109,7 +110,10 @@ describe("GET /api/games/[id]/custom-enemies/[customEnemyId]/export", () => {
     );
     const response = await invokeRoute(
       GET,
-      makeAuthedRequest(undefined, "gm-1"),
+      makeAuthedRequestWithUrl(
+        "http://localhost/api/games/g-1/custom-enemies/ce-1/export?format=csv",
+        "gm-1"
+      ),
       makeParams({ id: "g-1", customEnemyId: "ce-1" })
     );
     expect(response.status).toBe(404);
@@ -139,7 +143,10 @@ describe("GET /api/games/[id]/custom-enemies/[customEnemyId]/export", () => {
     );
     const response = await invokeRoute(
       GET,
-      makeAuthedRequest(undefined, "gm-1"),
+      makeAuthedRequestWithUrl(
+        "http://localhost/api/games/g-1/custom-enemies/ce-1/export?format=csv",
+        "gm-1"
+      ),
       makeParams({ id: "g-1", customEnemyId: "ce-1" })
     );
     expect(response.status).toBe(200);
