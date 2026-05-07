@@ -52,7 +52,11 @@ const serwist = new Serwist({
       {
         url: "/offline",
         matcher({ request }) {
-          return request.destination === "document";
+          if (request.destination !== "document") return false;
+          const requestUrl = new URL(request.url);
+          // Avoid masking API/auth navigations (e.g. OAuth redirects) as "offline".
+          if (requestUrl.pathname.startsWith("/api/")) return false;
+          return true;
         },
       },
     ],
