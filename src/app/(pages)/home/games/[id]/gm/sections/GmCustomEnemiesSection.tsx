@@ -6,8 +6,8 @@ import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import type { GameDetail } from "@/app/lib/types/game";
 import {
   deleteCustomEnemy,
-  downloadCustomEnemyCsv,
-  downloadGameCustomEnemiesCsv,
+  downloadCustomEnemy,
+  downloadGameCustomEnemies,
 } from "@/lib/api/customEnemies";
 import {
   SpawnEnemyInstancesModal,
@@ -155,7 +155,7 @@ export function GmCustomEnemiesSection({
           disabled={busyAll || enemies.length === 0}
           onClick={() => {
             setBusyAll(true);
-            void downloadGameCustomEnemiesCsv(game.id)
+            void downloadGameCustomEnemies(game.id, "csv")
               .catch((e) =>
                 window.alert(e instanceof Error ? e.message : String(e))
               )
@@ -168,9 +168,25 @@ export function GmCustomEnemiesSection({
           type="button"
           variant="secondaryOutlineXs"
           fullWidth={false}
+          disabled={busyAll || enemies.length === 0}
+          onClick={() => {
+            setBusyAll(true);
+            void downloadGameCustomEnemies(game.id, "json")
+              .catch((e) =>
+                window.alert(e instanceof Error ? e.message : String(e))
+              )
+              .finally(() => setBusyAll(false));
+          }}
+        >
+          {busyAll ? "Downloading…" : "Download all (JSON)"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondaryOutlineXs"
+          fullWidth={false}
           onClick={onOpenImport}
         >
-          Upload from CSV
+          Upload from CSV/JSON
         </Button>
         <Button
           type="button"
@@ -187,7 +203,7 @@ export function GmCustomEnemiesSection({
         {enemies.length === 0 ? (
           <p className="mt-1 text-sm text-black/70">
             No enemies in this game yet. Browse official enemies, create one, or
-            import from CSV.
+            import from CSV/JSON.
           </p>
         ) : (
           <ul className="mt-2 divide-y divide-black/15 border-b border-black/15 text-sm text-black">
@@ -244,15 +260,33 @@ export function GmCustomEnemiesSection({
                     fullWidth={false}
                     disabled={busyId === e.id}
                     onClick={() =>
-                      void downloadCustomEnemyCsv(game.id, e.id).catch((err) =>
-                        window.alert(
-                          err instanceof Error ? err.message : String(err)
-                        )
+                      void downloadCustomEnemy(game.id, e.id, "csv").catch(
+                        (err) =>
+                          window.alert(
+                            err instanceof Error ? err.message : String(err)
+                          )
                       )
                     }
                     className="!px-2 !py-1 !text-xs"
                   >
                     CSV
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondaryOutlineXs"
+                    fullWidth={false}
+                    disabled={busyId === e.id}
+                    onClick={() =>
+                      void downloadCustomEnemy(game.id, e.id, "json").catch(
+                        (err) =>
+                          window.alert(
+                            err instanceof Error ? err.message : String(err)
+                          )
+                      )
+                    }
+                    className="!px-2 !py-1 !text-xs"
+                  >
+                    JSON
                   </Button>
                   <Button
                     type="button"

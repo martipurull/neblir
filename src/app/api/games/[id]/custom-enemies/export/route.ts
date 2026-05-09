@@ -2,6 +2,7 @@ import { getCustomEnemiesByGame } from "@/app/lib/prisma/customEnemy";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import {
   customEnemyCsvHeaderLine,
+  serializeCustomEnemyRowsToJson,
   serializeCustomEnemyRowToCsvLine,
 } from "@/app/lib/enemyCsv";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -31,38 +32,50 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const enemies = await getCustomEnemiesByGame(gameId);
-    const lines = [customEnemyCsvHeaderLine()];
-    for (const e of enemies) {
-      lines.push(
-        serializeCustomEnemyRowToCsvLine({
-          name: e.name,
-          description: e.description,
-          imageKey: e.imageKey,
-          health: e.health,
-          speed: e.speed,
-          initiativeModifier: e.initiativeModifier,
-          numberOfReactions: e.numberOfReactions,
-          defenceMelee: e.defenceMelee,
-          defenceRange: e.defenceRange,
-          defenceGrid: e.defenceGrid,
-          attackMelee: e.attackMelee,
-          attackRange: e.attackRange,
-          attackThrow: e.attackThrow,
-          attackGrid: e.attackGrid,
-          immunities: e.immunities,
-          resistances: e.resistances,
-          vulnerabilities: e.vulnerabilities,
-          notes: e.notes,
-          actions: e.actions ?? [],
-          additionalActions: e.additionalActions ?? [],
-        })
-      );
+    const format =
+      new URL(request.url).searchParams.get("format")?.toLowerCase() === "json"
+        ? "json"
+        : "csv";
+    const rows = enemies.map((e) => ({
+      name: e.name,
+      description: e.description,
+      imageKey: e.imageKey,
+      health: e.health,
+      speed: e.speed,
+      initiativeModifier: e.initiativeModifier,
+      numberOfReactions: e.numberOfReactions,
+      defenceMelee: e.defenceMelee,
+      defenceRange: e.defenceRange,
+      defenceGrid: e.defenceGrid,
+      attackMelee: e.attackMelee,
+      attackRange: e.attackRange,
+      attackThrow: e.attackThrow,
+      attackGrid: e.attackGrid,
+      immunities: e.immunities,
+      resistances: e.resistances,
+      vulnerabilities: e.vulnerabilities,
+      notes: e.notes,
+      actions: e.actions ?? [],
+      additionalActions: e.additionalActions ?? [],
+    }));
+
+    if (format === "json") {
+      const filename = `custom-enemies-${sanitizeAttachmentFilenamePart(game.name, "game")}.json`;
+      return new NextResponse(serializeCustomEnemyRowsToJson(rows), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+        },
+      });
     }
 
-    const body = lines.join("\r\n") + "\r\n";
+    const lines = [customEnemyCsvHeaderLine()];
+    for (const row of rows) {
+      lines.push(serializeCustomEnemyRowToCsvLine(row));
+    }
     const filename = `custom-enemies-${sanitizeAttachmentFilenamePart(game.name, "game")}.csv`;
-
-    return new NextResponse(body, {
+    return new NextResponse(lines.join("\r\n") + "\r\n", {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

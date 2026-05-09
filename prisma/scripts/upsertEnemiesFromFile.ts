@@ -1,9 +1,9 @@
 /**
- * Upsert official Enemy rows from a CSV file (same columns as custom-enemy export).
+ * Upsert official Enemy rows from CSV or JSON.
  *
  * Usage:
- *   npx tsx prisma/scripts/upsertEnemiesFromCsv.ts <path-to-enemies.csv>
- *   npx tsx prisma/scripts/upsertEnemiesFromCsv.ts ./enemies.csv --dry-run
+ *   npx tsx prisma/scripts/upsertEnemiesFromFile.ts <path-to-enemies.csv|json>
+ *   npx tsx prisma/scripts/upsertEnemiesFromFile.ts ./enemies.json --dry-run
  *
  * Columns (header row, case-insensitive): same as custom-enemy CSV export — see
  * CUSTOM_ENEMY_CSV_COLUMNS in src/app/lib/enemyCsv.ts. Notably `actions` and `additionalActions`
@@ -16,7 +16,7 @@ import "dotenv/config";
 import fs from "node:fs";
 import path from "node:path";
 import { prisma } from "@/app/lib/prisma/client";
-import { parseCustomEnemyCsv } from "@/app/lib/enemyCsv";
+import { parseCustomEnemyCsv, parseCustomEnemyJson } from "@/app/lib/enemyCsv";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
 
 async function main() {
@@ -25,7 +25,7 @@ async function main() {
 
   if (!csvPath) {
     console.error(
-      "Usage: npx tsx prisma/scripts/upsertEnemiesFromCsv.ts <path-to-enemies.csv> [--dry-run]"
+      "Usage: npx tsx prisma/scripts/upsertEnemiesFromFile.ts <path-to-enemies.csv|json> [--dry-run]"
     );
     process.exit(1);
   }
@@ -37,7 +37,9 @@ async function main() {
   }
 
   const raw = fs.readFileSync(resolvedPath, "utf8");
-  const { rows, rowErrors } = parseCustomEnemyCsv(raw);
+  const ext = path.extname(resolvedPath).toLowerCase();
+  const { rows, rowErrors } =
+    ext === ".json" ? parseCustomEnemyJson(raw) : parseCustomEnemyCsv(raw);
   if (rowErrors.length > 0 && rows.length === 0) {
     throw new Error(
       `CSV parse failed:\n${rowErrors.map((e) => `  line ${e.line}: ${e.message}`).join("\n")}`
