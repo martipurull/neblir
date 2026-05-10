@@ -1,0 +1,132 @@
+[
+  {
+    "name": "Plynth's Hexops",
+    "description": "<p>A shadow that moves at unreal speed. Lithe as a Fenne but tall as a Kinian. Created by the sociopathic mind of the brilliant Dr Orega Plynth.</p>",
+    "imageKey": "custom_enemies-plynth_s_hexops-9h5q0lwc.png",
+    "health": {
+      "$numberLong": "60"
+    },
+    "speed": {
+      "$numberLong": "20"
+    },
+    "initiativeModifier": {
+      "$numberLong": "8"
+    },
+    "numberOfReactions": {
+      "$numberLong": "4"
+    },
+    "defenceMelee": {
+      "$numberLong": "8"
+    },
+    "defenceRange": {
+      "$numberLong": "8"
+    },
+    "defenceGrid": {
+      "$numberLong": "0"
+    },
+    "attackMelee": {
+      "$numberLong": "0"
+    },
+    "attackRange": {
+      "$numberLong": "0"
+    },
+    "attackThrow": {
+      "$numberLong": "0"
+    },
+    "attackGrid": {
+      "$numberLong": "0"
+    },
+    "immunities": ["NERVE"],
+    "resistances": ["SIIKE"],
+    "vulnerabilities": ["BULLET", "BLADE", "FIRE"],
+    "notes": "<p><strong><em>GRID-less:</em></strong> The Hexops has no GRID and thus is immune to GRID attacks.</p><p><strong><em>Siike Imbued:</em></strong> Siike attacks only deal half damage.</p><p><strong><em>Fragile Tissues:</em></strong> Bullets, blade and fire deal double damage on the Hexops.</p>",
+    "actions": [
+      {
+        "name": "Fast Retractable Claws",
+        "description": "<p>Four per turn BUT each must be directly after movement (its speed allows it not to incur Reaction Attacks as it leaves the target’s area), 10d10 to hit, 1d6 damage per hit. If attacking statically, only two attacks per turn and 5d10 to hit.</p>",
+        "numberOfDiceToHit": {
+          "$numberLong": "10"
+        },
+        "numberOfDamageDice": {
+          "$numberLong": "1"
+        },
+        "damageDiceType": {
+          "$numberLong": "6"
+        },
+        "damageType": "BLADE"
+      },
+      {
+        "name": "Siike Hug",
+        "description": "<p>Once per turn, contested check (Athletics plus Brute Force) against 4d10: if the target fails the check, they must make a Resistance (External) and take 6d6 Siike damage on a failure or half as much on a success. The Hexops must use half its Speed to do this action.</p>",
+        "numberOfDiceToHit": {
+          "$numberLong": "4"
+        },
+        "numberOfDamageDice": {
+          "$numberLong": "6"
+        },
+        "damageDiceType": {
+          "$numberLong": "6"
+        },
+        "damageType": "SIIKE"
+      },
+      {
+        "name": "Uncanny Jump",
+        "description": "<p>Once per turn, the Hexops can use one of its 4 Defence Reactions to jump 3m in the air or 6m forward instead.</p>"
+      }
+    ],
+    "additionalActions": [
+      {
+        "name": "Six-Eyed",
+        "description": "<p>The Hexops gets 3 Perception checks at any point in the Initiative Order. Its unnatural perception is 6d10 for visual checks, 3d10 for acoustic checks.</p>"
+      },
+      {
+        "name": "Regenerating Tissues",
+        "description": "<p>The Hexops regains 1d6 at the beginning of its turn if not reduced to 0 HP. This feature takes no effect if it has been hit by a Necrocatalyst-imbued weapon.</p>"
+      }
+    ]
+  },
+  {
+    "name": "Modified Catbot",
+    "description": "<p>Rubbish-collecting catbots modified for strength and offensive prowess. Clearly illegal, clearly dangerous, clearly out of control, clearly Underworld.</p>",
+    "imageKey": "custom_enemies-modified_catbot-nbn0sswh.png",
+    "health": {
+      "$numberLong": "16"
+    },
+    "speed": {
+      "$numberLong": "20"
+    },
+    "initiativeModifier": {
+      "$numberLong": "5"
+    },
+    "numberOfReactions": {
+      "$numberLong": "3"
+    },
+    "defenceMelee": {
+      "$numberLong": "6"
+    },
+    "defenceRange": {
+      "$numberLong": "6"
+    },
+    "defenceGrid": {
+      "$numberLong": "0"
+    },
+    "attackMelee": {
+      "$numberLong": "0"
+    },
+    "attackRange": {
+      "$numberLong": "0"
+    },
+    "attackThrow": {
+      "$numberLong": "0"
+    },
+    "attackGrid": {
+      "$numberLong": "0"
+    },
+    "immunities": [],
+    "resistances": ["BULLET", "BLADE", "FIRE"],
+    "vulnerabilities": ["ELECTRICITY", "NERVE"],
+    "notes": "<p>These modified bots had their GRID ripped wide open, which makes them especially vulnerable to such attacks.</p>",
+    "actions": [],
+    "additionalActions": []
+  }
+]

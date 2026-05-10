@@ -1,0 +1,47 @@
+[
+  {
+    "name": "CON_ARTIST",
+    "description": "You know people, which is why you’re so wary of them. You have the gift of social survival: the last minute ad lib that gets you out of a real mess, or the natural charm that pulls wool over anybody’s eyes. You may have used your talents for fraud or other crimes—or perhaps you haven’t but know you could. Or you may be an actual performer with a story to tell.",
+    "baseFeature": "Choose an area of expertise (imitating voices or accents, playing music or singing, faking interest in an unfamiliar field, romantic seduction, etc.). You can add 2d10 to any skill check (at the GM’s discretion) if you can role-play this talent in the scene."
+  },
+  {
+    "name": "SCIENTIST_DOCTOR",
+    "description": "Perhaps you have an academic background, or you learned about your field via video tutorials. In any case, you know your way around atoms and tissues. Either a trained professional or a capable aficionado, you make sense of the world around you through the unopinionated lens of science, with a focus on fixing things.",
+    "baseFeature": "As you get used to practising medicine in the heat of battle, you become faster and learn to trust your instincts. Add 1d10 to any heal Action you take during combat."
+  },
+  {
+    "name": "SLEUTH",
+    "description": "It may be your job, the profession you chose, or it may be a vocation, but you have developed a sixth sense for following leads and, inevitably, for getting into trouble. There’s so much people don’t want others to know, and when those people are powerful, it really all needs finding out. And that’s what you do: you find stuff out about anything and anyone.",
+    "baseFeature": "You see what others don’t. You may make a Deduction-based check whenever new information about an ongoing investigation comes your way (Deduction+Memory), or whenever you visit a new space (Deduction+Investigation) that may be linked to an ongoing case. The GM will provide clues if any are present and relevant."
+  },
+  {
+    "name": "SURVIVALIST",
+    "description": "Whether in the urban expanse of Neblir or in one of the huge parks and district-sized constructions such as the Great Garden or the Nasran Mountains, you are a survivor. You don’t need the rules of society because you follow the rules of survival. You see dangers of the environment, you read people.",
+    "baseFeature": "When reduced to 0 Physical HP, you can choose to take a Serious Injury and 10 Mental HP to remain at 1 Physical HP instead."
+  },
+  {
+    "name": "ANTIHERO",
+    "description": "You shouldn’t be the protagonist of this story, and yet here you are. You’ve seen things, good and bad, but mostly bad, let’s be honest. You know how to handle yourself in brawls and brothels, among other bastards, and perhaps this will come in handy in whatever comes next. After all, you get shit done.",
+    "baseFeature": "You can make two unarmed Attacks (punching, kicking, head-butting) with one Action."
+  },
+  {
+    "name": "SOLDIER",
+    "description": "You’re a professional fighter. You’ve been instructed in the art of violence. You can be brutal, but you understand brutality is best expressed under control. Your control. You have a code, perhaps loyalty to a district, the Confederation, or a local gang, and you will do whatever it takes to uphold it.",
+    "baseFeature": "Choose a weapon type (or an unarmed strike if you’re a martial artist). You can make two Attacks with this favourite weapon using only one Action."
+  },
+  {
+    "name": "NERD_HERO",
+    "description": "Either academically trained or forged by experience, you have a knack for technology, especially anything related to the GRID. You push it to its limits and often find rewards. Is there anything that can’t be accomplished by tech? You can’t believe those who would have their wrist chips removed—barbarians.",
+    "baseFeature": "You can roll Investigation + GRID to detect the presence of other GRID users in a 50m2 area."
+  },
+  {
+    "name": "TECHNO_CRAFTER",
+    "description": "You are capable of assembling devices that perform tasks that others cannot even fathom. A bot that fans you on a hot day? Sure, you built one when you were 15. And that wire over there? You bet you could turn it into a remotely controlled lockpick if you attached it to that drone part you salvaged from someone else’s bin.",
+    "baseFeature": "You don’t have to roll to determine if two bits of tech can be combined. Moreover, you add a number of d10s equal to your level to any Manual + Mechanics roll you make to craft an item."
+  },
+  {
+    "name": "URBAN_ROVER",
+    "description": "You’re a navigator and a wanderer. You know your way around every neighbourhood, the good ones and the bad ones. You know how to stay safe in new terrains. You know how to discover shortcuts unknown to the locals, and you’re more familiar with the streets that saw you grow up than with those who raised you. And vehicles? They are an extension of who you are.",
+    "baseFeature": "You always know where the north is. In addition, you can double your Sense attribute when making any checks that have to do with your sense of direction. Finally, choose a light vehicle (a bike, hoverboard, scooter, etc. with capacity for one person)."
+  }
+]

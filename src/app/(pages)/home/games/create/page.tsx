@@ -110,7 +110,7 @@ function CreateGameFormContent() {
           {...register("game.premise")}
           placeholder="Brief description or premise of the game"
           rows={4}
-          className="mt-1 min-h-24 w-full rounded-md px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+          className="mt-1 min-h-24 w-full rounded-md px-3 py-2 bg-paleBlue focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
         />
       </div>
       <ImageUploadDropzone

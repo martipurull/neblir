@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Neblir",
+    "imageKey": "maps-neblir.png",
+    "description": "Map of Neblir"
+  },
+  {
+    "name": "Dryth",
+    "imageKey": "maps-dryth.png",
+    "description": "Map of Dryth"
+  },
+  {
+    "name": "Pendence",
+    "imageKey": "maps-pendence.png",
+    "description": "Map of Pendence"
+  },
+  {
+    "name": "Shanside",
+    "imageKey": "maps-shanside.png",
+    "description": "Map of Shanside"
+  },
+  {
+    "name": "Northern Federation",
+    "imageKey": "maps-northern_federation.png",
+    "description": "Map of the Northern Federation"
+  }
+]
