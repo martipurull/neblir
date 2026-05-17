@@ -36,10 +36,10 @@
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
-    "@swc/helpers": "0.5.15",
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/s3-request-presigner": "^3.937.0",
     "@prisma/client": "^6.19.0",
+    "@swc/helpers": "0.5.15",
     "@tiptap/html": "^3.20.4",
     "@tiptap/pm": "^3.20.4",
     "@tiptap/react": "^3.20.4",
@@ -70,6 +70,7 @@
     "esbuild": "^0.25.12",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.1",
+    "eslint-plugin-react-hooks": "7.0.1",
     "eslint-plugin-unused-imports": "^4.4.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
@@ -98,6 +99,8 @@
     "@typescript-eslint/visitor-keys": {
       "eslint-visitor-keys": "4.2.1"
     },
-    "effect": "^3.20.0"
+    "effect": "^3.20.0",
+    "@swc/helpers": "0.5.15",
+    "eslint-plugin-react-hooks": "7.0.1"
   }
 }

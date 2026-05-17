@@ -41,9 +41,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
 
   describe("DELETE", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         DELETE,
         makeUnauthedRequest(),
@@ -59,9 +58,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         initiativeOrder: [charEntry("c-1")],
         characters: [],
       });
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "user-2"),
@@ -99,9 +97,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
           characters: [],
         });
       updateGameMock.mockResolvedValue(undefined);
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -123,9 +120,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
 
   describe("PATCH", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeUnauthedRequest({ initiativeDelta: 1 }),
@@ -137,9 +133,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
     });
 
     it("returns 400 when user id is missing", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         {
@@ -153,9 +148,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
     });
 
     it("returns 400 for invalid game id param", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
@@ -166,9 +160,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
     });
 
     it("returns 400 for invalid character id param", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
@@ -179,9 +172,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
     });
 
     it("returns 400 for invalid request body", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 0 }, "gm-1"),
@@ -194,9 +186,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
 
     it("returns 404 when game does not exist", async () => {
       getGameWithDetailsMock.mockResolvedValue(null);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
@@ -213,9 +204,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         initiativeOrder: [],
         characters: [],
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "user-2"),
@@ -232,9 +222,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         initiativeOrder: [charEntry("c-2")],
         characters: [],
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
@@ -286,9 +275,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         });
       updateGameMock.mockResolvedValue(undefined);
 
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),
@@ -326,9 +314,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
         .mockResolvedValueOnce(null);
       updateGameMock.mockResolvedValue(undefined);
 
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: -1 }, "gm-1"),
@@ -340,9 +327,8 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
 
     it("returns 500 when an unexpected error is thrown", async () => {
       getGameWithDetailsMock.mockRejectedValue(new Error("db fail"));
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/initiative/[characterId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ initiativeDelta: 1 }, "gm-1"),

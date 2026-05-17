@@ -52,9 +52,8 @@ export function AddItemToInventoryModal({
     setError(null);
     try {
       const { getItems } = await import("@/lib/api/items");
-      const { fetchGameCustomItemsForBrowse } = await import(
-        "@/lib/api/customItems"
-      );
+      const { fetchGameCustomItemsForBrowse } =
+        await import("@/lib/api/customItems");
       const { getGameById } = await import("@/lib/api/game");
 
       const gameIds = [

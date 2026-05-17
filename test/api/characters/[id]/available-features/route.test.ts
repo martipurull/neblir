@@ -24,9 +24,8 @@ describe("/api/characters/[id]/available-features GET", () => {
   it("returns 404 when character does not exist", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getCharacterMock.mockResolvedValue(null);
-    const { GET } = await import(
-      "@/app/api/characters/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/characters/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -38,9 +37,8 @@ describe("/api/characters/[id]/available-features GET", () => {
   it("returns 200 with empty array when character has no paths", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getCharacterMock.mockResolvedValue({ paths: [], features: [] });
-    const { GET } = await import(
-      "@/app/api/characters/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/characters/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -60,9 +58,8 @@ describe("/api/characters/[id]/available-features GET", () => {
       { id: "feat-1", maxGrade: 3 },
       { id: "feat-2", maxGrade: 1 },
     ]);
-    const { GET } = await import(
-      "@/app/api/characters/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/characters/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),

@@ -49,9 +49,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeUnauthedRequest(),
@@ -61,9 +60,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
   });
 
   it("returns 400 when game id is empty", async () => {
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -74,9 +72,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
 
   it("returns 404 when game not found", async () => {
     getGameMock.mockResolvedValue(null);
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -88,9 +85,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
   it("returns 403 when user has no access", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1", name: "A" });
     userIsInGameMock.mockResolvedValue(false);
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(undefined, "outsider"),
@@ -109,9 +105,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
     getCustomEnemiesByGameMock.mockResolvedValue([
       { id: "ce-1", gameId: "g-1", ...sampleEnemyRow },
     ]);
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequestWithUrl(
@@ -138,9 +133,8 @@ describe("GET /api/games/[id]/custom-enemies/export", () => {
     });
     userIsInGameMock.mockResolvedValue(true);
     getCustomEnemiesByGameMock.mockRejectedValue(new Error("db"));
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-enemies/export/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-enemies/export/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(undefined, "player-1"),

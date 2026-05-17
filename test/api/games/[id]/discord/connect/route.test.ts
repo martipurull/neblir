@@ -30,9 +30,8 @@ describe("/api/games/[id]/discord/connect", () => {
 
   describe("GET", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/connect/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/connect/route");
       const response = await invokeRoute(
         GET,
         makeUnauthedRequest(),
@@ -46,9 +45,8 @@ describe("/api/games/[id]/discord/connect", () => {
         id: "g-1",
         gameMaster: "gm-1",
       });
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/connect/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/connect/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "other-user"),
@@ -59,9 +57,8 @@ describe("/api/games/[id]/discord/connect", () => {
 
     it("returns 404 when game not found", async () => {
       getGameMock.mockResolvedValue(null);
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/connect/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/connect/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),
@@ -73,9 +70,8 @@ describe("/api/games/[id]/discord/connect", () => {
     it("returns 500 when Discord env vars missing", async () => {
       delete process.env.DISCORD_CLIENT_ID;
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/connect/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/connect/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),
@@ -86,9 +82,8 @@ describe("/api/games/[id]/discord/connect", () => {
 
     it("returns 200 with oauth authorize url for GM", async () => {
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/connect/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/connect/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),

@@ -126,9 +126,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
 
   describe("POST", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeUnauthedRequest({}),
@@ -138,9 +137,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
     });
 
     it("returns 400 when game id is empty", async () => {
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest({ name: "X" }, "gm-1"),
@@ -151,9 +149,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
 
     it("returns 404 when game not found", async () => {
       getGameMock.mockResolvedValue(null);
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest({ name: "X" }, "gm-1"),
@@ -164,9 +161,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
 
     it("returns 403 when caller is not the game master", async () => {
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest({ name: "X" }, "player-1"),
@@ -182,9 +178,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
         error: { issues: [{ message: "invalid field" }] },
         data: undefined,
       });
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest({ bad: true }, "gm-1"),
@@ -205,9 +200,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
       };
       safeParseMock.mockReturnValue({ data: parsed, error: undefined });
       createCustomEnemyMock.mockResolvedValue({ id: "ce-1", ...parsed });
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest(parsed, "gm-1"),
@@ -233,9 +227,8 @@ describe("/api/games/[id]/custom-enemies route handlers", () => {
         error: undefined,
       });
       createCustomEnemyMock.mockRejectedValue(new Error("write failed"));
-      const { POST } = await import(
-        "@/app/api/games/[id]/custom-enemies/route"
-      );
+      const { POST } =
+        await import("@/app/api/games/[id]/custom-enemies/route");
       const response = await invokeRoute(
         POST,
         makeAuthedRequest({ name: "Bandit" }, "gm-1"),

@@ -28,9 +28,8 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       data: undefined,
       error: { issues: [{ message: "invalid combat payload" }] },
     });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/combat-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
@@ -43,9 +42,8 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({ data: {}, error: undefined });
     getCharacterMock.mockResolvedValue({ combatInformation: null });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/combat-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
@@ -73,9 +71,8 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       learnedSkills: { generalSkills: { acrobatics: 1, melee: 1, GRID: 1 } },
     });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/combat-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
