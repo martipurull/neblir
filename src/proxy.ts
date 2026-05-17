@@ -1,8 +1,7 @@
-export { auth as proxy } from "@/auth";
+export { auth as proxy } from "@/auth.proxy";
 
 /**
  * Limit proxy to app routes — skip static assets, API handlers, and Serwist.
- * Without this, auth runs on every _next/static request and enlarges the traced bundle.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher
  */
 export const config = {
