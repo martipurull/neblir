@@ -1,298 +1,6 @@
 [
   {
-    "name": "Field Surgeon",
-    "description": "You have learned to operate anywhere. Given the tools are sterilised enough, you can perform basic surgery outside the operating room. Additionally, you can add as many d10s as your Grade in this feature to the Manual + Medicine roll to perform the surgery.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Legendary Dodger",
-    "description": "In combat, you get an additional Defence Reaction. That means you have three Defence Reactions (two for being a level 4 character) and one general Reaction (to react to something else or indeed Defend). At Grade 2, once per round, you may also halve the damage of a successful Attack you have Reacted to. At Grade 3, you get 2 additional Defence Reactions (so you have 4 Defence Reactions plus your general Reaction). At Grade 4, you can halve the damage of an Attack you have Reacted to TWICE per round. At Grade 5 you can always Defend against an Attack you can see coming. At Grade 6, even when you can't see an Attack coming, you can make a free (no Reaction needed) Perception check; on a success, you can Defend against it.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST", "SLEUTH", "SOLDIER"]
-  },
-  {
-    "name": "Intimidating Presence",
-    "description": "You can add a number of d10s equal to the Grade you have in this feature.",
-    "minPathRank": 2,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO"]
-  },
-  {
-    "name": "Defensive Tank",
-    "description": "When hit by an Attack against which you have defended, you can spend your main Reaction to half the damage taken (this can be done after the total damage has been declared).",
-    "minPathRank": 4,
-    "maxGrade": 1,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO", "SOLDIER"]
-  },
-  {
-    "name": "Fast Shooter",
-    "description": "As you become more adept at fighting fast, when making a Range Attack, you can subtract 4d10 dice to make an additional attack (each with the 4-die penalty). If using your favourite weapon, you could subtract 4d10 from each Range Attack and make a total of 4 with one Action (each with a 4d10 penalty). At Grade 2, you can subtract 6d10 to make 2 additional Range Attacks per Attack (the total would be 3 or 6 with your favourite weapon, each with a 6d10 penalty). At Grade 3, you can still do 2 additional Range Attacks per Attack subtracting only 4d10.",
-    "minPathRank": 2,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["SOLDIER"]
-  },
-  {
-    "name": "Perceptive Fighter",
-    "description": "During combat, your senses sharpen; when making a combat-related Perception check (you can use a Reaction or Action), you add 2d10 for each Grade you have in this feature. If using your Action, you can add an additional 2d10.",
-    "minPathRank": 2,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["SOLDIER"]
-  },
-  {
-    "name": "Artistic Prowess",
-    "description": "Choose an art discipline that makes sense for your character. You can add a number of d10s equal to your Grade in this feature to Manual/Persuasion + Performance rolls to produce art in this discipline.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["CON_ARTIST"]
-  },
-  {
-    "name": "Master Manipulator",
-    "description": "Whether you mean it or not, you can take a few minutes to rally your allies. Is it a pep talk? Is it a speech? You tell them. Make a Persuasion + Manipulation check. Each PC or NPC in your party gains a number of d10s equal to your Successes in the roll AND Grades you have in this feature. They can use any of these dice for any roll, including Attack and Defence rolls, within the next Phase. You can only use this feature once per day and must role-play the talk.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["CON_ARTIST"]
-  },
-  {
-    "name": "Disrupting Element",
-    "description": "In combat, you can use your Action to distract an enemy. Roll Deception + a number of d10s equal to your Grade in this feature against the target’s Insight. If successful, the target loses a number of Reactions equal to your Successes until the start of your next turn.",
-    "minPathRank": 3,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["CON_ARTIST", "SLEUTH"]
-  },
-  {
-    "name": "Danger Awareness",
-    "description": "When under threat, you have developed a sixth sense. You can make any Perception-based rolls to spot danger with an additional 1d10 per Grade in this feature.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [
-      "You enter an abandoned depot. Everything is dark, the Beam barely visible through the dirty windows. You sharpen eyes and ears. The GM asks for a Perception + Survival roll. You can use your Danger Awareness feature to add to the roll."
-    ],
-    "applicablePaths": ["SLEUTH", "SURVIVALIST"]
-  },
-  {
-    "name": "Lip Reader",
-    "description": "You can read lips at 15m + 2m per Grade you have in this feature. At Grade 1, you get the gist of a conversation. At Grade 2, you get specific details as long as you're familiar with the language and accent. At Grade 3, you follow the conversation without issue.",
-    "minPathRank": 3,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["SLEUTH", "SURVIVALIST"]
-  },
-  {
-    "name": "Aim Assistant",
-    "description": "Every time you hit a target with a GRID Attack, you can spend one Reaction to lend a number of d10s equal to your Attack Successes minus the target’s Defence Successes to an ally who uses a GRID Attack as their next Action and who willingly allows you to connect to their GRID. At Grade 2, you can double the dice you give to your ally.",
-    "minPathRank": 3,
-    "maxGrade": 2,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "Underworld Expert",
-    "description": "Illicit bars and seedy locales, petty thieves and stolen goods smugglers. The underworld doesn't need signs to let you know that's where you are. When in the bowels of society, you can add Streetwise and a number d10s equal to your grade in this feature to any rolls involving social interaction with low life types.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [
-      "You're being chased by a gang and find yourselves at a crossroads. A corner boy checks you out. You ask where to hide. The GM asks you to roll Persuasion + Manipulation/Negotiation. You can add a number of dice equal to your Streetwise stat AND your grade in this feature to that roll."
-    ],
-    "applicablePaths": ["URBAN_ROVER", "SURVIVALIST", "ANTIHERO"]
-  },
-  {
-    "name": "Vehicle Repairer",
-    "description": "You're a mechanic, you know how to fix broken vehicles, whether they drive on the land or fly in the sky. Add a number of d10s equal to your Grade in this feature to any Manual + Mechanic roll you do to repair a vehicle.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
-  },
-  {
-    "name": "Science First",
-    "description": "When rolling to find a breakthrough in your area of expertise, you may add 2d10 per Grade you have in this feature.",
-    "minPathRank": 3,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Health Crafter",
-    "description": "You can synthesise an ingestible cure using a substance called Vitocatalyst. Add a number of d10s equal to your Grade in this feature to your Deduction + Science roll. You make a number of health vials equal to your Successes. At Grade 1, each vial heals 1d4. At Grade 2, one vial heals 1d6 Physical HP. It's 1d6 extra per Grade above 2, so 2d6 at Grade 3 and 3d6 at Grade 4.",
-    "minPathRank": 4,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Killing Chemist",
-    "description": "You know how to synthesise poison. Roll Investigation + Research to find the appropriate recipe. You need at least one Success to proceed; otherwise, you can try again tomorrow. If Successful, mark how many Successes you got. Next, make a Deduction + Science + a number of d10s equal to your Grade in this feature. Add up all the Successes and distribute them thus: a Success can either give the poison 1d6 extra Physical damage, add 1 to the difficulty of the target's Resistance (Internal) roll, or add 1 to the difficulty of the Perception-based roll to detect the poison. Without adding anything, the poison will deal 1d6 Physical damage, and it will require 1 Success on a Resistance (Internal) check to reduce the damage by 1d6, and it will require 1 Success on a Perception check for the target to detect the poison. NOTE: Work with the GM for different effects, such as sleep or nausea inducing, paralysing, anaesthetic. etc.",
-    "minPathRank": 4,
-    "maxGrade": 6,
-    "examples": [
-      "You set to work on finding your ideal poison. You roll 6d10 on your Investigation + Research and get 3 Successes",
-      "you note them down. You have this feature at Grade 3, so you roll 10d10 on your Deduction + Science roll and get 4 Successes. You have 7 Successes to allocate, and you decide the poison will deal 4d6 damage and have a difficulty of 3 Successes on the ingestor's Resistance (Internal) roll. You don't care if they notice they were poisoned or not, so you leave the difficulty of the Perception roll at 1 Success."
-    ],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Mass Healer",
-    "description": "You can now heal two characters simultaneously if they are lying next to each other. This uses your Action as well as any Additional Healing Action, and you cannot move this turn.",
-    "minPathRank": 5,
-    "maxGrade": 1,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Incisive Investigator",
-    "description": "You're not an investigator, but you know when something looks out of place. Add a number of d10s on any Perception-based Investigation roll to analyse a room or space where criminal or otherwise nefarious activity may have taken place.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST"]
-  },
-  {
-    "name": "Last-Ditch Effort",
-    "description": "If below 10 Physical HP, you can forgo your Action, ALL Reactions and any remaining Movement to make a brutal Melee Attack that could well be your last. Add a number of d10s equal to your Character Level to the Attack. On a hit, add a number of d6s equal to your Character Level to any damage dealt. At Grade 2, you can choose to go down to 0 Physical HP (and thus unconscious and dying) to double the damage dealt (you can do this after rolling the damage). At Grade 3, you can choose to die to triple the damage dealt. IMPORTANT: If you go simultaneously below 10 Physical HP AND below 10 Mental HP, you MUST use this feature at the beginning of your next turn.",
-    "minPathRank": 5,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": [
-      "SURVIVALIST",
-      "ANTIHERO",
-      "SLEUTH",
-      "ANTIHERO",
-      "SOLDIER"
-    ]
-  },
-  {
-    "name": "Helping Hand",
-    "description": "When helping an ally on a check involving Athletics or Brute Force, you give them 2d10 per Grade you have in this feature on their check as you not only pull your weight but part of theirs (it must be physically possible to help them). In combat, you can use a Reaction to help an ally with such a roll instead of your Action.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
-  },
-  {
-    "name": "Martial Artist (Attack)",
-    "description": "You can make two unarmed Attacks with your Action. In addition, you can spend Reactions during your turn to make more Attacks, leaving you slightly more vulnerable. Unarmed Attacks deal 1d3 at Grade 1, 1d4 at Grade 2, and 1d6 at Grade 3. At Grade 4, any Attacks (including those of your main Action) that hit with two 10s among the successes deal full damage (6HP). At Grade 5, an Attack that succeeds with at least one 10 among the successes deals full damage (6HP). At Grade 6, any Martial Arts hit deals full damage (6HP).",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SOLDIER", "SURVIVALIST", "SLEUTH", "ANTIHERO"]
-  },
-  {
-    "name": "Savage Sniper",
-    "description": "In combat, once per round, you can forfeit 1 Reaction and add 2d10 per Grade you have in this feature to any Range Attack you make this turn (you can forfeit a maximum of Reactions equal to your grade in this feature). Additionally, on a hit you can add 1d6 per Grade you have on this feature to the damage roll.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SOLDIER"]
-  },
-  {
-    "name": "Vicious Attacker",
-    "description": "Once per round, you can forfeit ALL Reactions to add 2d10 per Grade you have in this feature to one Melee Attack. This is an additional Attack. You can still use your Action to Attack or do something else. However, without Reactions, you cannot Defend this round. Also, you cannot use this feature if you've already used any of your Reactions this round. At Grade 3, you get 2 Additional Attacks, still forfeiting all Reactions. At Grade 5, you get 3 Additional Attacks, still forefeiting all Reactions.",
-    "minPathRank": 4,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["SOLDIER", "ANTIHERO"]
-  },
-  {
-    "name": "Legendary Soldier",
-    "description": "Once per Round, you can make an additional basic Attack (Melee or Range) without any other Feature at the end of an enemy’s turn at any point in the Initiative order against that enemy. At Grade 2, you can use this feature twice per round, still at the end of an enemy's turn and at any point in the Initiative Order against that enemy.",
-    "minPathRank": 6,
-    "maxGrade": 2,
-    "examples": [],
-    "applicablePaths": ["SOLDIER"]
-  },
-  {
-    "name": "Master Imitator",
-    "description": "You have learned to imitate the voice and mannerisms of those you have listened to and seen: 2d10 per Grade you have in this feature to any Deception roll involving impersonation or imitation.",
-    "minPathRank": 4,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["CON_ARTIST"]
-  },
-  {
-    "name": "Perspicacious Sniffer",
-    "description": "You know where to look and how to tell a promising lead from superfluous detail. Add a number of d10s equal to your Grade in this feature to any Investigation- or Deduction-based roll pertaining to an ongoing investigation.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SLEUTH"]
-  },
-  {
-    "name": "Distracting Fighter",
-    "description": "In the heat of battle, you can use your main Reaction to distract an enemy, causing them to lose a Reaction. Alternatively, you can use your main Reaction to alert an ally of imminent danger, giving them an extra Reaction. At Grade 2, you can transfer any Defence Reaction to an ally you can see by warning them of imminent danger. At Grade 3, you can use any of your Defence Reactions to subtract a Defence Reaction from an enemy. At Grade 4, you can use your main Reaction and a Defence Reaction to simultaneously subtract a Reaction from an enemy you can see and to give an additional Defence Reaction to an ally you can see.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SLEUTH"]
-  },
-  {
-    "name": "Professional Researcher",
-    "description": "You are a master of research when it comes to cases you're interested in. You can add a number of d10s equal to your Grade in this feature when making an Investigation + Research roll.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SLEUTH", "SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Mass Retirer",
-    "description": "When rolling a GRID Attack on a non-organic entity, you can target a number of entities within a 20m radius from you equal to the number of Successes on your Attack roll. They all must defend (if they can) against your Attack. At Grade 2, the radius is 50m. At Grade 3, you can target 2 non-organic entities per Success. At Grade 4, you can add 1d6 to your damage (it applies to all hit non-organic entities).",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "GRID Burglar",
-    "description": "You can use your GRID Attack to brute-force open GRID-locked doors. Additionally, for each Grade above 1 in this feature, you can add 1d10 to your unlocking Attack.",
-    "minPathRank": 4,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "GRID Masker",
-    "description": "When making a Deduction + GRID/Software check to erase any trace of your activity in someone else's system, you can add 2d10 per Grade you have in this feature.",
-    "minPathRank": 4,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "Savvy Seafarer",
-    "description": "You can add your Driving skill to rolls involving ships and sea voyages. You can also add a number of d10s equal to your Grade in this skill. However, you cannot use other Driving skills such as Reckless Driver, which are for land and air vehicles.",
-    "minPathRank": 3,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER"]
-  },
-  {
-    "name": "Local Expert",
-    "description": "Choose a location that makes sense for your backstory (or the campaign story if taking this feature later in the campaign): it cannot be larger than a district zone. You're an expert in it. At Grade 1, you know where to find stuff and people. At Grade 2, you know the relationship between places and people. At Grade 3, your knowledge is matched by the fact that most people here know you and like you or hate you accordingly. At Grade 4, you can get cheap stuff and small favours for free. At Grade 5, bigger asks are possible. At Grade 6, you're a local hero, and some of these people owe you. IMPORTANT: you must liaise with the GM before increasing Grades in this feature, as these relationships must make narrative sense (i.e. have you done enough in game or has enough time gone by for you to have done enough out of game?).",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER"]
-  },
-  {
-    "name": "Fast Legs",
-    "description": "You're fast, especially when under immediate danger. Whether on feet or on your favourite individual ride (if your Path is Urban Rover), you can use your Movement or part of your Movement as part of your Defence Reaction. This means you can move when you defend, forcing any second attacks an enemy may make as part of the same Action to automatically fail. Additionally, you gain 1m of Speed per Grade you have in this feature, as you become faster through your trials and tribulations.",
-    "minPathRank": 4,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER", "SURVIVALIST"]
-  },
-  {
+    "id": "692a2e886f6040cf47954fa4",
     "name": "Intuitive Doc",
     "description": "When making a Deduction + Medicine check to determine the causes and potential cures for a wound or affliction, you can add a number of d10s equal to the feature's grade to your roll.",
     "minPathRank": 2,
@@ -301,246 +9,7 @@
     "applicablePaths": ["SCIENTIST_DOCTOR"]
   },
   {
-    "name": "Deducing Dodger",
-    "description": "You have learned to anticipate your enemies’ movements in the battlefield if you can see them. Add a number of d10s equal to this feature's Grade to ANY Defence Roll.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Deducing Attacker",
-    "description": "In combat, you can make a free (no Action or Reaction needed) Deduction roll and add any successes to your next Attack roll. For each Grade above 1, you get one additional d10 towards your Attack roll per success on your free Deduction roll. You can't use this feature in combination with another feature that allows you to make a free roll.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR", "SLEUTH"]
-  },
-  {
-    "name": "Lethal Doc",
-    "description": "In combat, you can make a free (no Action or Reaction needed) Deduction roll and if you succeed and hit the target with an Attack, you can add one damage die to any damage dealt per Grade you have in this feature. You can't use this feature in combination with another feature that allows you to make a free roll.",
-    "minPathRank": 5,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SCIENTIST_DOCTOR"]
-  },
-  {
-    "name": "Professional Tracker",
-    "description": "When rolling to track or recognise someone, you can add 2d10 to your roll per Grade you have in this feature.",
-    "minPathRank": 2,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST", "SLEUTH"]
-  },
-  {
-    "name": "Professional Stealther",
-    "description": "In combat, if the environment allows it, you can use your Action AND remaining Movement to add a number of d10s equal to this feature's Grade to make a contested Stealth + Survival VS the enemy's Perception + Sruvival roll to try and hide from the action. On a success, you gain full cover, causing enemies to have to use their Actions to make Investigation checks to find you. At Grade 2, you can use all your Reactions and Movement to hide instead of your Action. A Grade 3, you only need to use one Reaction and Movement. At Grade 4, you only need to use your Movement to hide.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST", "SLEUTH"]
-  },
-  {
-    "name": "Perceptive Survivor",
-    "description": "You can add a number of d10s equal to this feature's Grade to any Perception + Survival check.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST"]
-  },
-  {
-    "name": "Resilient Survivor",
-    "description": "You can add your Resilience attribute and Grade in this feature as Physical HP whenever you are healed. When recovering Mental HP, you can also add your Mentality attribute and Grade in this feature as Mental HP.",
-    "minPathRank": 3,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST"]
-  },
-  {
-    "name": "Fall Guy",
-    "description": "When falling, you can make a make an Agility/Athletics + Acrobatics and add a number of d10s equal your Grade in this feature to reduce the damage by a number of d6s equal to your Successes in this roll.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SURVIVALIST", "SOLDIER", "ANTIHERO", "SLEUTH"]
-  },
-  {
-    "name": "Hard-Hitter",
-    "description": "During combat, when you make a Melee attack, you can subtract 4d10 from your Melee Attack roll to bypass any armour the enemy may be wearing. At Grade 2, you only subtract 2d10. At Grade 3, you don't subtract any d10s: you can choose to bypass armour.",
-    "minPathRank": 2,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO"]
-  },
-  {
-    "name": "Enemy Shield",
-    "description": "You can use your Action to make a contested Athletics + Brute Force + your Grade in this feature check (the enemy must use a Reaction to Defend). If you succeed, you cannot use Reactions to defend, but any hits subtract Physical HP from your grappled enemy instead of you. The enemy can use their next Action to try and break free, but they don't have any Reactions or Movement while grappled by you.",
-    "minPathRank": 3,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
-  },
-  {
-    "name": "Brutal Blow",
-    "description": "Make a free (no Action or Reaction required) Brute Force check. If successful and on a hit in a subsequent Melee Attack, you deal an additional 1d6 damage regardless of the weapon (if any) used. This means unarmed Attacks, which would usually deal 1d3, deal 1d6 for you if successful on the free Brute Force check. At Grade 2, your Melee Attacks with a weapon deal 1d6 extra per Brute Force Success on the check. At Grade 3, your Melee Attacks with a weapon deal 2d6 damage per Success on the free Brute Force check. At Grade 4, it's 2d6 damage per Success on the free Brute Force check for unarmed Melee Attacks too.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO", "SOLDIER"]
-  },
-  {
-    "name": "Instant Retort",
-    "description": "When someone performs a Melee Attack against you and you use a Reaction to defend against it, you can try and hit them with an Unarmed Attack as part of your Defence Reaction. On one Success, you hit them: roll your Unarmed Attack damage. At Grade 2, you can hit them with a Weapon too (no Weapon bonus to hit) and deal the Weapon's damage on a hit. At Grade 3, you also add the Weapon bonus to hit. At Grade 4, you can use Instant Retort when an enemy that Melee Attacks an ally within your Melee range (i.e. an ally standing next to you) that you can see.",
-    "minPathRank": 4,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
-  },
-  {
-    "name": "Fast Evader",
-    "description": "Combat slows down around you. You can add a number of d10s equal to your Grade in this feature to ANY Defence Roll (Range).",
-    "minPathRank": 2,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SOLDIER"]
-  },
-  {
-    "name": "Martial Artist (Defence)",
-    "description": "You can spend your Action to assume a defensive position against Melee Attacks. Your Defence (Melee) roll gains 2d10 per Grade you have in this feature.",
-    "minPathRank": 2,
-    "maxGrade": 5,
-    "examples": [],
-    "applicablePaths": ["SOLDIER", "SURVIVALIST", "SLEUTH", "ANTIHERO"]
-  },
-  {
-    "name": "Agile Defender",
-    "description": "By using two Reactions to Defend instead of one, you can add 4d10 per Grade you have in this feature to your Defence roll.",
-    "minPathRank": 4,
-    "maxGrade": 2,
-    "examples": [],
-    "applicablePaths": ["SOLDIER", "SURVIVALIST"]
-  },
-  {
-    "name": "Explosive Expert",
-    "description": "You know your way around explosives: you can add a number of d10s equal to your Grade in this feature when manipulating an explosive.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SOLDIER", "TECHNO_CRAFTER"]
-  },
-  {
-    "name": "Bargain Hunter",
-    "description": "When trying to negotiate a service or a price, you know exactly how to ask (or intimidate). Add a number of d10s equal to your Grade in this feature to any such roll.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["CON_ARTIST", "SURVIVALIST"]
-  },
-  {
-    "name": "History Buff",
-    "description": "Whenever you need to make a History or General Knowledge check in relation to an ongoing case, you can add a number of d10s equal to your Grade in this feature to the roll",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SLEUTH"]
-  },
-  {
-    "name": "Team Stealth",
-    "description": "Out of combat, you make a Stealth-based roll for as many allies as the Grade you have in this feature. This means they can choose not to roll for Stealth and take your roll instead (they must declare what they want to do before you roll). Additionally, you can add a number of d10s equal to your Grade in this feature MINUS the number of allies you're rolling for. However, you cannot use this feature alongisde another Stealth-based feature (for instance, Subtle Sidler).",
-    "minPathRank": 3,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SLEUTH"]
-  },
-  {
-    "name": "Inquisitive Interrogator",
-    "description": "When making a roll to extract information from someone (Persuasion/Deception + Manipulation), if the roll fails, you can try again, asking from a different angle, trying a different tactic (role-play appropriatelly). Additionally, you can add a number of d10s equal to your Grade in this feature to any such roll.",
-    "minPathRank": 4,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["SLEUTH", "ANTIHERO"]
-  },
-  {
-    "name": "Software Forger",
-    "description": "You know how to forge GRID credentials. Maybe you've learned this from a tutorial somewhere, or your hacker friend showed you how to do it, or perhaps you are the one who hacks. In any case, you can add a number of d10s equal to your Grade in this feature to any Deduction/Deception + Software roll to forge software credentials.",
-    "minPathRank": 3,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["SLEUTH", "NERD_HERO"]
-  },
-  {
-    "name": "Did You Know?",
-    "description": "You’re not sure where you heard it or why you know it, but you’ve got a wealth of nerd lore at your disposal: add 1d10 per Grade in this feature to any roll involving the following learned skills: General Knowledge, Science, Software and History.",
-    "minPathRank": 2,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "Software Warrior",
-    "description": "You have learned to modify your GRID to Attack others. This is proper hacker stuff, people pay lots of money—and go to prison—for stuff like this. You can now make GRID Attacks (50m radius) even without a GRID Mod: you deal 1d6 Mental damage on a hit. At Grade 2, you can choose if the damage you deal is Physical or Mental. At Grade 3, your radius expands to 100m. At Grade 4, you deal 2d6 Physical or Mental damage on a hit.",
-    "minPathRank": 2,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "GRID Sec",
-    "description": "You can make a GRID Defence roll to add an extra layer of protection to a GRID lock. Add 4d10s to the roll. Any Successes you get on the roll will be added to the Successes needed by anyone wanting to GRID unlock the door or device you have protected.",
-    "minPathRank": 4,
-    "maxGrade": 1,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "Mind Guru",
-    "description": "You know the keys to press: you can attempt to alleviate stress and trauma by a quick GRID manipulation. You can restore Mental HP to yourself and others who give you access to their GRID, but it's a difficult and dangerous process. Make a Mentality + GRID check. If trying to heal someone else, they must make a Mentality check. Add up all the Successes and Failures in the roll or rolls. Each Success adds 1d6 Mental HP, but each Critical Failure (a 1 on the d10) subtracts 1d6 Mental HP. You may add 1d10 to the Mentality + GRID roll for each Grade you have in this feature.",
-    "minPathRank": 6,
-    "maxGrade": 3,
-    "examples": [],
-    "applicablePaths": ["NERD_HERO"]
-  },
-  {
-    "name": "Reckless Driver",
-    "description": "You can drive at a vehicle's top speed without having to roll. When you do have to roll to push the limits of the vehicle or due to unfavourable circumstances, you can add a number of d10s equal to your Grade in this feature to any Driving check with any vehicle.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER"]
-  },
-  {
-    "name": "Vehicle Protector",
-    "description": "You've learned how to use the best materials in a functional way to protect your ride. For each protection layer you add to the vehicle (chassis, glass, etc.) you must spend 1000⋐. A protection layer is a number of HP you add to the vehicle. Roll Manual + Mechanics + your Grade in this feature. Add a number of d10s worth of HP equal to the number of successes you got on the roll. Optionally, you can spend an additional 500⋐ for an additional 1d10 worth of HP you'd like to add to your vehicle as part of the upgrade, up to a maximum of Grades you have in this feature. NOTE: The number of Successes in this roll will determine how organic or ridiculous the upgrade looks on the vehicle (at the GM's discretion).",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
-  },
-  {
-    "name": "Vehicle Upgrader",
-    "description": "You've become quite the expert as far as vehicle upgrades are concerned. You can spend 5000⋐ worth of materials to add an extra seat (inside or as a side-car/attachment), a hidden compartment (smuggling, anybody?) or increase the vehicles Speed or Manoeuvrability by 1 point. Roll Manual + Mechanics + your Grade in this feature. The difficulty for the upgrade is 5 Success MINUS your Grade in this feature. If you succeed, your upgrade takes place for the cost above. The number of Successes above the threshold determine how good and stable the upgrade is. If you fail the roll, the upgrade doesn't happen, it breaks, and you still lose the money. You can try again the following day.",
-    "minPathRank": 3,
-    "maxGrade": 4,
-    "examples": [],
-    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
-  },
-  {
-    "name": "Bomb Maker",
-    "description": "Given you have access to the right materials (500⋐ per 1d6 of damage) and can spend enough time (1 hour for a small explosive, 2 hours for a medium one, and 3 hours for a large bomb), you can make an explosive that deals 5d6 damage per size plus a number of d6s per Grade you have in this feature. Roll Manual + Mechanics + your Grade in this feature. You need 4 Successes for a perfect job. No Successes, nothing happens, you lose the money and resources. 1 Success means the explosive is unstable at the GM's discretion (you know it is unstable, though). With 2 Success, you can add the explosive as Potentially Faulty (when you set it off, roll 1d100; on a 25 or lower, it doesn't explode; 26-50, it deals half damage; 51+ subtract a number of d6s as Failures you got from the damage the bomb will deal). On 3 Successes, you subtract 1d6 per number of Failures on the crafting roll from the damage the bomb will deal.",
-    "minPathRank": 2,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["TECHNO_CRAFTER"]
-  },
-  {
-    "name": "Weapon Maker",
-    "description": "Given access to the right materials (⋐1000 per improvement), you can improve on an existing weapon. However, this work is always dangerous, and the weapon will become increasingly unstable. The more Grades you have in this feature, the stabler the modified weapon will be. Improvements can include: change of damage type, adding a damage type (it's one improvement to change from bullet to Siike, but two improvements for both types to be available in the same weapon), adding range, adding 1d10 to the Attack modifier, etc. Be creative and work with the GM on ideas for your weapons. For each improvement, you must add a drawback: either increase the weapon's instability or work with the GM on a different drawback. For instance, a modified rifle that can now shoot Siike and fire may be heavier and a character needs to subtract 1d10 per number under 3 on their Athletics attribute. Otherwise, the base instability is 6 MINUS any Successes in your roll to craft the modification (Manual + Mechanics + your Grade in this feature). After using a weapon modified by this feature, you must roll 1d100 and roll above the instability mark x10. So for an instability rate of 5, you would need to roll 50+. If you roll below the instability mark, the weapon misfires according to your roll (at the GM's discretion): it may simply not shoot this turn (40-49), stop working going forward (30-39), backfire dealing 1d6 and causing the character to drop the weapon (20-29), backfire for any damage it would've dealt on the enemy, so roll normal damage on yourself and drop the weapon (10-19), break completely (1-9).",
-    "minPathRank": 4,
-    "maxGrade": 6,
-    "examples": [],
-    "applicablePaths": ["TECHNO_CRAFTER"]
-  },
-  {
+    "id": "692a2e886f6040cf47954fa5",
     "name": "Additional Healing Action",
     "description": "During combat, you can now roll Medicine checks to heal others as an additional action IF your main action doesn’t involve attacking or healing. At Grade 2, this feature allows you to perform the Additional Healing Action in addition to your main Action to heal or attack IF you spend ALL Reactions to do so (if you have already used a Reaction, you cannot benefit from this). At Grade 3, this feature allows you to perform the Additional Healing Action in addition your main Action to heal or attack without spending any Reactions.",
     "minPathRank": 2,
@@ -553,6 +22,91 @@
     "applicablePaths": ["SCIENTIST_DOCTOR"]
   },
   {
+    "id": "692a2e886f6040cf47954fa6",
+    "name": "Field Surgeon",
+    "description": "You have learned to operate anywhere. Given the tools are sterilised enough, you can perform basic surgery outside the operating room. Additionally, you can add as many d10s as your Grade in this feature to the Manual + Medicine roll to perform the surgery.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fa7",
+    "name": "Science First",
+    "description": "When rolling to find a breakthrough in your area of expertise, you may add 2d10 per Grade you have in this feature.",
+    "minPathRank": 3,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fa8",
+    "name": "Deducing Dodger",
+    "description": "You have learned to anticipate your enemies’ movements in the battlefield if you can see them. Add a number of d10s equal to this feature's Grade to ANY Defence Roll.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fa9",
+    "name": "Deducing Attacker",
+    "description": "In combat, you can make a free (no Action or Reaction needed) Deduction roll and add any successes to your next Attack roll. For each Grade above 1, you get one additional d10 towards your Attack roll per success on your free Deduction roll. You can't use this feature in combination with another feature that allows you to make a free roll.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR", "SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954faa",
+    "name": "Health Crafter",
+    "description": "You can synthesise an ingestible cure using a substance called Vitocatalyst. Add a number of d10s equal to your Grade in this feature to your Deduction + Science roll. You make a number of health vials equal to your Successes. At Grade 1, each vial heals 1d4. At Grade 2, one vial heals 1d6 Physical HP. It's 1d6 extra per Grade above 2, so 2d6 at Grade 3 and 3d6 at Grade 4.",
+    "minPathRank": 4,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fab",
+    "name": "Killing Chemist",
+    "description": "You know how to synthesise poison. Roll Investigation + Research to find the appropriate recipe. You need at least one Success to proceed; otherwise, you can try again tomorrow. If Successful, mark how many Successes you got. Next, make a Deduction + Science + a number of d10s equal to your Grade in this feature. Add up all the Successes and distribute them thus: a Success can either give the poison 1d6 extra Physical damage, add 1 to the difficulty of the target's Resistance (Internal) roll, or add 1 to the difficulty of the Perception-based roll to detect the poison. Without adding anything, the poison will deal 1d6 Physical damage, and it will require 1 Success on a Resistance (Internal) check to reduce the damage by 1d6, and it will require 1 Success on a Perception check for the target to detect the poison. NOTE: Work with the GM for different effects, such as sleep or nausea inducing, paralysing, anaesthetic. etc.",
+    "minPathRank": 4,
+    "maxGrade": 6,
+    "examples": [
+      "You set to work on finding your ideal poison. You roll 6d10 on your Investigation + Research and get 3 Successes",
+      "you note them down. You have this feature at Grade 3, so you roll 10d10 on your Deduction + Science roll and get 4 Successes. You have 7 Successes to allocate, and you decide the poison will deal 4d6 damage and have a difficulty of 3 Successes on the ingestor's Resistance (Internal) roll. You don't care if they notice they were poisoned or not, so you leave the difficulty of the Perception roll at 1 Success."
+    ],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fac",
+    "name": "Mass Healer",
+    "description": "You can now heal two characters simultaneously if they are lying next to each other. This uses your Action as well as any Additional Healing Action, and you cannot move this turn.",
+    "minPathRank": 5,
+    "maxGrade": 1,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fad",
+    "name": "Lethal Doc",
+    "description": "In combat, you can make a free (no Action or Reaction needed) Deduction roll and if you succeed and hit the target with an Attack, you can add one damage die to any damage dealt per Grade you have in this feature. You can't use this feature in combination with another feature that allows you to make a free roll.",
+    "minPathRank": 5,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fae",
+    "name": "Professional Tracker",
+    "description": "When rolling to track or recognise someone, you can add 2d10 to your roll per Grade you have in this feature.",
+    "minPathRank": 2,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST", "SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954faf",
     "name": "Professional Evader",
     "description": "When rolling to cover your tracks and those of your allies, you can add 2d10 to your Stealth + Deduction roll per Grade you have in this feature.",
     "minPathRank": 2,
@@ -561,6 +115,25 @@
     "applicablePaths": ["SURVIVALIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fb0",
+    "name": "Professional Stealther",
+    "description": "In combat, if the environment allows it, you can use your Action AND remaining Movement to add a number of d10s equal to this feature's Grade to make a contested Stealth + Survival VS the enemy's Perception + Sruvival roll to try and hide from the action. On a success, you gain full cover, causing enemies to have to use their Actions to make Investigation checks to find you. At Grade 2, you can use all your Reactions and Movement to hide instead of your Action. A Grade 3, you only need to use one Reaction and Movement. At Grade 4, you only need to use your Movement to hide.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST", "SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb1",
+    "name": "Incisive Investigator",
+    "description": "You're not an investigator, but you know when something looks out of place. Add a number of d10s on any Perception-based Investigation roll to analyse a room or space where criminal or otherwise nefarious activity may have taken place.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb2",
     "name": "Shadow Attacker",
     "description": "In combat, if making an Attack roll from a hiding position, you can bypass armour (if physically possible, meaning no armour mod can be applied to the target's Defence roll), and your Attack requires 2 Reactions to defend against. Additionally, for each Grade above 1, you can add 1d6 to your damage on a hit. For instance, at Grade 4, you would add 3d6 to any damage dealt on a successful Attack.",
     "minPathRank": 3,
@@ -569,6 +142,16 @@
     "applicablePaths": ["SURVIVALIST", "SLEUTH"]
   },
   {
+    "id": "692a2e886f6040cf47954fb3",
+    "name": "Legendary Dodger",
+    "description": "In combat, you get an additional Defence Reaction. That means you have three Defence Reactions (two for being a level 4 character) and one general Reaction (to react to something else or indeed Defend). At Grade 2, once per round, you may also halve the damage of a successful Attack you have Reacted to. At Grade 3, you get 2 additional Defence Reactions (so you have 4 Defence Reactions plus your general Reaction). At Grade 4, you can halve the damage of an Attack you have Reacted to TWICE per round. At Grade 5 you can always Defend against an Attack you can see coming. At Grade 6, even when you can't see an Attack coming, you can make a free (no Reaction needed) Perception check; on a success, you can Defend against it.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST", "SLEUTH", "SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb4",
     "name": "Drug Resistance",
     "description": "Either through favourable genetic predisposition or years of use/abuse, you have developed an uncanny tolerance to poison and drugs. You can add 2d10 per Grade you have in this feature to any Resistance (Internal) roll.",
     "minPathRank": 2,
@@ -585,6 +168,16 @@
     ]
   },
   {
+    "id": "692a2e886f6040cf47954fb5",
+    "name": "Perceptive Survivor",
+    "description": "You can add a number of d10s equal to this feature's Grade to any Perception + Survival check.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb6",
     "name": "Athletic Survivor",
     "description": "You can add a number of d10s equal to your Grade in this feature to any check involving Athletics, Agility or Acrobatics.",
     "minPathRank": 4,
@@ -593,6 +186,49 @@
     "applicablePaths": ["SURVIVALIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fb7",
+    "name": "Resilient Survivor",
+    "description": "You can add your Resilience attribute and Grade in this feature as Physical HP whenever you are healed. When recovering Mental HP, you can also add your Mentality attribute and Grade in this feature as Mental HP.",
+    "minPathRank": 3,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb8",
+    "name": "Fall Guy",
+    "description": "When falling, you can make a make an Agility/Athletics + Acrobatics and add a number of d10s equal your Grade in this feature to reduce the damage by a number of d6s equal to your Successes in this roll.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SURVIVALIST", "SOLDIER", "ANTIHERO", "SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fb9",
+    "name": "Last-Ditch Effort",
+    "description": "If below 10 Physical HP, you can forgo your Action, ALL Reactions and any remaining Movement to make a brutal Melee Attack that could well be your last. Add a number of d10s equal to your Character Level to the Attack. On a hit, add a number of d6s equal to your Character Level to any damage dealt. At Grade 2, you can choose to go down to 0 Physical HP (and thus unconscious and dying) to double the damage dealt (you can do this after rolling the damage). At Grade 3, you can choose to die to triple the damage dealt. IMPORTANT: If you go simultaneously below 10 Physical HP AND below 10 Mental HP, you MUST use this feature at the beginning of your next turn.",
+    "minPathRank": 5,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": [
+      "SURVIVALIST",
+      "ANTIHERO",
+      "SLEUTH",
+      "ANTIHERO",
+      "SOLDIER"
+    ]
+  },
+  {
+    "id": "692a2e886f6040cf47954fba",
+    "name": "Hard-Hitter",
+    "description": "During combat, when you make a Melee attack, you can subtract 4d10 from your Melee Attack roll to bypass any armour the enemy may be wearing. At Grade 2, you only subtract 2d10. At Grade 3, you don't subtract any d10s: you can choose to bypass armour.",
+    "minPathRank": 2,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fbb",
     "name": "Bear-Hugger",
     "description": "You may add a number of d10s per Grade you have in this feature to any Grapple Action (Brute-Force + Athletics vs. Brute-Force + Athletics OR Agility + Acrobatics).",
     "minPathRank": 2,
@@ -601,6 +237,25 @@
     "applicablePaths": ["ANTIHERO"]
   },
   {
+    "id": "692a2e886f6040cf47954fbc",
+    "name": "Intimidating Presence",
+    "description": "You can add a number of d10s equal to the Grade you have in this feature.",
+    "minPathRank": 2,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fbd",
+    "name": "Helping Hand",
+    "description": "When helping an ally on a check involving Athletics or Brute Force, you give them 2d10 per Grade you have in this feature on their check as you not only pull your weight but part of theirs (it must be physically possible to help them). In combat, you can use a Reaction to help an ally with such a roll instead of your Action.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fbe",
     "name": "Ally Shield",
     "description": "As a Reaction when an ally is within your Melee range, you can throw yourself at them to protect them from an incoming Attack. You don't get to Defend. The Attack hits automatically, but you take any damage they would have taken. You MUST declare your intention to use this feature BEFORE the Attack is resolved and the damage is rolled. At Grade 2, you can use this feature after the Attack is resolved (so after you know whether it would hit or not). At Grade 3, you can use this feature in combination with other defensive features (such as Defensive Tank) to reduce the damage. At Grade 4, you can use this feature AFTER the damage is rolled.",
     "minPathRank": 3,
@@ -609,6 +264,25 @@
     "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fbf",
+    "name": "Enemy Shield",
+    "description": "You can use your Action to make a contested Athletics + Brute Force + your Grade in this feature check (the enemy must use a Reaction to Defend). If you succeed, you cannot use Reactions to defend, but any hits subtract Physical HP from your grappled enemy instead of you. The enemy can use their next Action to try and break free, but they don't have any Reactions or Movement while grappled by you.",
+    "minPathRank": 3,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc0",
+    "name": "Brutal Blow",
+    "description": "Make a free (no Action or Reaction required) Brute Force check. If successful and on a hit in a subsequent Melee Attack, you deal an additional 1d6 damage regardless of the weapon (if any) used. This means unarmed Attacks, which would usually deal 1d3, deal 1d6 for you if successful on the free Brute Force check. At Grade 2, your Melee Attacks with a weapon deal 1d6 extra per Brute Force Success on the check. At Grade 3, your Melee Attacks with a weapon deal 2d6 damage per Success on the free Brute Force check. At Grade 4, it's 2d6 damage per Success on the free Brute Force check for unarmed Melee Attacks too.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO", "SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc1",
     "name": "Offensive Tank",
     "description": "When using your Action to sprint, you can use your main Reaction to make a Melee Attack if you run for at least 5 metres towards an enemy. Alternatively, you can try to push (contested Athletics + Brute Force) the enemy 3 metres from you. Add a number of d10s equal to your Grade in this feature to the Melee Attack or push.",
     "minPathRank": 3,
@@ -617,6 +291,70 @@
     "applicablePaths": ["ANTIHERO", "SOLDIER"]
   },
   {
+    "id": "692a2e886f6040cf47954fc2",
+    "name": "Defensive Tank",
+    "description": "When hit by an Attack against which you have defended, you can spend your main Reaction to half the damage taken (this can be done after the total damage has been declared).",
+    "minPathRank": 4,
+    "maxGrade": 1,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO", "SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc3",
+    "name": "Instant Retort",
+    "description": "When someone performs a Melee Attack against you and you use a Reaction to defend against it, you can try and hit them with an Unarmed Attack as part of your Defence Reaction. On one Success, you hit them: roll your Unarmed Attack damage. At Grade 2, you can hit them with a Weapon too (no Weapon bonus to hit) and deal the Weapon's damage on a hit. At Grade 3, you also add the Weapon bonus to hit. At Grade 4, you can use Instant Retort when an enemy that Melee Attacks an ally within your Melee range (i.e. an ally standing next to you) that you can see.",
+    "minPathRank": 4,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["ANTIHERO", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc4",
+    "name": "Fast Shooter",
+    "description": "As you become more adept at fighting fast, when making a Range Attack, you can subtract 4d10 dice to make an additional attack (each with the 4-die penalty). If using your favourite weapon, you could subtract 4d10 from each Range Attack and make a total of 4 with one Action (each with a 4d10 penalty). At Grade 2, you can subtract 6d10 to make 2 additional Range Attacks per Attack (the total would be 3 or 6 with your favourite weapon, each with a 6d10 penalty). At Grade 3, you can still do 2 additional Range Attacks per Attack subtracting only 4d10.",
+    "minPathRank": 2,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc5",
+    "name": "Perceptive Fighter",
+    "description": "During combat, your senses sharpen; when making a combat-related Perception check (you can use a Reaction or Action), you add 2d10 for each Grade you have in this feature. If using your Action, you can add an additional 2d10.",
+    "minPathRank": 2,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc6",
+    "name": "Fast Evader",
+    "description": "Combat slows down around you. You can add a number of d10s equal to your Grade in this feature to ANY Defence Roll (Range).",
+    "minPathRank": 2,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc7",
+    "name": "Martial Artist (Attack)",
+    "description": "You can make two unarmed Attacks with your Action. In addition, you can spend Reactions during your turn to make more Attacks, leaving you slightly more vulnerable. Unarmed Attacks deal 1d3 at Grade 1, 1d4 at Grade 2, and 1d6 at Grade 3. At Grade 4, any Attacks (including those of your main Action) that hit with two 10s among the successes deal full damage (6HP). At Grade 5, an Attack that succeeds with at least one 10 among the successes deals full damage (6HP). At Grade 6, any Martial Arts hit deals full damage (6HP).",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SOLDIER", "SURVIVALIST", "SLEUTH", "ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc8",
+    "name": "Martial Artist (Defence)",
+    "description": "You can spend your Action to assume a defensive position against Melee Attacks. Your Defence (Melee) roll gains 2d10 per Grade you have in this feature.",
+    "minPathRank": 2,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["SOLDIER", "SURVIVALIST", "SLEUTH", "ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fc9",
     "name": "Sharp Shooter",
     "description": "When performing a Range Attack, you have learned to time your shot. You forfeit your Main Reaction but can place yourself anywhere in the Initiative Order for this turn. You also bypass armour. Additionally, you can half the dice on your Range Attack Roll to double the damage dealt if you hit.",
     "minPathRank": 3,
@@ -625,6 +363,16 @@
     "applicablePaths": ["SOLDIER"]
   },
   {
+    "id": "692a2e886f6040cf47954fca",
+    "name": "Savage Sniper",
+    "description": "In combat, once per round, you can forfeit 1 Reaction and add 2d10 per Grade you have in this feature to any Range Attack you make this turn (you can forfeit a maximum of Reactions equal to your grade in this feature). Additionally, on a hit you can add 1d6 per Grade you have on this feature to the damage roll.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fcb",
     "name": "Tactical Genius",
     "description": "In combat, you can use your Action to analyse the battlefield and gain important information on how to plan your combat. The GM will provide you with reasonable information on your enemies that you could have observed by taking time while everyone else is trying to kill each other.",
     "minPathRank": 4,
@@ -633,6 +381,43 @@
     "applicablePaths": ["SOLDIER"]
   },
   {
+    "id": "692a2e886f6040cf47954fcc",
+    "name": "Agile Defender",
+    "description": "By using two Reactions to Defend instead of one, you can add 4d10 per Grade you have in this feature to your Defence roll.",
+    "minPathRank": 4,
+    "maxGrade": 2,
+    "examples": [],
+    "applicablePaths": ["SOLDIER", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fcd",
+    "name": "Vicious Attacker",
+    "description": "Once per round, you can forfeit ALL Reactions to add 2d10 per Grade you have in this feature to one Melee Attack. This is an additional Attack. You can still use your Action to Attack or do something else. However, without Reactions, you cannot Defend this round. Also, you cannot use this feature if you've already used any of your Reactions this round. At Grade 3, you get 2 Additional Attacks, still forfeiting all Reactions. At Grade 5, you get 3 Additional Attacks, still forefeiting all Reactions.",
+    "minPathRank": 4,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["SOLDIER", "ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fce",
+    "name": "Legendary Soldier",
+    "description": "Once per Round, you can make an additional basic Attack (Melee or Range) without any other Feature at the end of an enemy’s turn at any point in the Initiative order against that enemy. At Grade 2, you can use this feature twice per round, still at the end of an enemy's turn and at any point in the Initiative Order against that enemy.",
+    "minPathRank": 6,
+    "maxGrade": 2,
+    "examples": [],
+    "applicablePaths": ["SOLDIER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fcf",
+    "name": "Explosive Expert",
+    "description": "You know your way around explosives: you can add a number of d10s equal to your Grade in this feature when manipulating an explosive.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SOLDIER", "TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd0",
     "name": "Fast-talker",
     "description": "When rolling for Deception or Persuasion using speech, you may add a number of d10s equal to your Grade in this feature to your roll.",
     "minPathRank": 2,
@@ -641,6 +426,25 @@
     "applicablePaths": ["CON_ARTIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fd1",
+    "name": "Artistic Prowess",
+    "description": "Choose an art discipline that makes sense for your character. You can add a number of d10s equal to your Grade in this feature to Manual/Persuasion + Performance rolls to produce art in this discipline.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["CON_ARTIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd2",
+    "name": "Master Manipulator",
+    "description": "Whether you mean it or not, you can take a few minutes to rally your allies. Is it a pep talk? Is it a speech? You tell them. Make a Persuasion + Manipulation check. Each PC or NPC in your party gains a number of d10s equal to your Successes in the roll AND Grades you have in this feature. They can use any of these dice for any roll, including Attack and Defence rolls, within the next Phase. You can only use this feature once per day and must role-play the talk.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["CON_ARTIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd3",
     "name": "Insightful Survivor",
     "description": "When you can see the person whose intentions you’re trying to read, you may add a number of d10s equal to your Grade in this feature to your Insight-based roll. Additionally, in combat, you learn one strength and one weakness about an enemy whose turn you’ve witnessed.",
     "minPathRank": 2,
@@ -649,6 +453,7 @@
     "applicablePaths": ["CON_ARTIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fd4",
     "name": "Weakness Spotter",
     "description": "In combat, you can use your Action to discover the best spot to hit. Add a number of d10s equal to your grade in this feature to your NEXT Attack (in the immediate turn after this one). If you hit, you can add 1d6 additional damage. At Grade 2, you can use your main Reaction instead. At Grade 3, you can add 2d6 to the damage roll. At Grade 4, it's 3d6.",
     "minPathRank": 3,
@@ -657,6 +462,16 @@
     "applicablePaths": ["CON_ARTIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fd5",
+    "name": "Disrupting Element",
+    "description": "In combat, you can use your Action to distract an enemy. Roll Deception + a number of d10s equal to your Grade in this feature against the target’s Insight. If successful, the target loses a number of Reactions equal to your Successes until the start of your next turn.",
+    "minPathRank": 3,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["CON_ARTIST", "SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd6",
     "name": "Pick Pocket",
     "description": "Most valuable stuff lives in the GRID these days, but there's still plenty of stuff worth stealing that people carry with them.You know how to rid them of it. Add a number of d10s equal to your Grade in this feature to any Stealth/Deception + Manual/Streetwise roll you make to steal a physical item from someone.",
     "minPathRank": 2,
@@ -665,6 +480,43 @@
     "applicablePaths": ["CON_ARTIST", "SLEUTH", "SURVIVALIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fd7",
+    "name": "Master Imitator",
+    "description": "You have learned to imitate the voice and mannerisms of those you have listened to and seen: 2d10 per Grade you have in this feature to any Deception roll involving impersonation or imitation.",
+    "minPathRank": 4,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["CON_ARTIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd8",
+    "name": "Bargain Hunter",
+    "description": "When trying to negotiate a service or a price, you know exactly how to ask (or intimidate). Add a number of d10s equal to your Grade in this feature to any such roll.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["CON_ARTIST", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fd9",
+    "name": "Perspicacious Sniffer",
+    "description": "You know where to look and how to tell a promising lead from superfluous detail. Add a number of d10s equal to your Grade in this feature to any Investigation- or Deduction-based roll pertaining to an ongoing investigation.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fda",
+    "name": "History Buff",
+    "description": "Whenever you need to make a History or General Knowledge check in relation to an ongoing case, you can add a number of d10s equal to your Grade in this feature to the roll",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fdb",
     "name": "Subtle Sidler",
     "description": "Out of combat, you can add a number of d10s equal to your Grade in this feature to any Stealth-based rolls.",
     "minPathRank": 2,
@@ -673,6 +525,90 @@
     "applicablePaths": ["SLEUTH", "SURVIVALIST", "CON_ARTIST"]
   },
   {
+    "id": "692a2e886f6040cf47954fdc",
+    "name": "Danger Awareness",
+    "description": "When under threat, you have developed a sixth sense. You can make any Perception-based rolls to spot danger with an additional 1d10 per Grade in this feature.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [
+      "You enter an abandoned depot. Everything is dark, the Beam barely visible through the dirty windows. You sharpen eyes and ears. The GM asks for a Perception + Survival roll. You can use your Danger Awareness feature to add to the roll."
+    ],
+    "applicablePaths": ["SLEUTH", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fdd",
+    "name": "Distracting Fighter",
+    "description": "In the heat of battle, you can use your main Reaction to distract an enemy, causing them to lose a Reaction. Alternatively, you can use your main Reaction to alert an ally of imminent danger, giving them an extra Reaction. At Grade 2, you can transfer any Defence Reaction to an ally you can see by warning them of imminent danger. At Grade 3, you can use any of your Defence Reactions to subtract a Defence Reaction from an enemy. At Grade 4, you can use your main Reaction and a Defence Reaction to simultaneously subtract a Reaction from an enemy you can see and to give an additional Defence Reaction to an ally you can see.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fde",
+    "name": "Team Stealth",
+    "description": "Out of combat, you make a Stealth-based roll for as many allies as the Grade you have in this feature. This means they can choose not to roll for Stealth and take your roll instead (they must declare what they want to do before you roll). Additionally, you can add a number of d10s equal to your Grade in this feature MINUS the number of allies you're rolling for. However, you cannot use this feature alongisde another Stealth-based feature (for instance, Subtle Sidler).",
+    "minPathRank": 3,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SLEUTH"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fdf",
+    "name": "Inquisitive Interrogator",
+    "description": "When making a roll to extract information from someone (Persuasion/Deception + Manipulation), if the roll fails, you can try again, asking from a different angle, trying a different tactic (role-play appropriatelly). Additionally, you can add a number of d10s equal to your Grade in this feature to any such roll.",
+    "minPathRank": 4,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["SLEUTH", "ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe0",
+    "name": "Professional Researcher",
+    "description": "You are a master of research when it comes to cases you're interested in. You can add a number of d10s equal to your Grade in this feature when making an Investigation + Research roll.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SLEUTH", "SCIENTIST_DOCTOR"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe1",
+    "name": "Lip Reader",
+    "description": "You can read lips at 15m + 2m per Grade you have in this feature. At Grade 1, you get the gist of a conversation. At Grade 2, you get specific details as long as you're familiar with the language and accent. At Grade 3, you follow the conversation without issue.",
+    "minPathRank": 3,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["SLEUTH", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe2",
+    "name": "Software Forger",
+    "description": "You know how to forge GRID credentials. Maybe you've learned this from a tutorial somewhere, or your hacker friend showed you how to do it, or perhaps you are the one who hacks. In any case, you can add a number of d10s equal to your Grade in this feature to any Deduction/Deception + Software roll to forge software credentials.",
+    "minPathRank": 3,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["SLEUTH", "NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe3",
+    "name": "Did You Know?",
+    "description": "You’re not sure where you heard it or why you know it, but you’ve got a wealth of nerd lore at your disposal: add 1d10 per Grade in this feature to any roll involving the following learned skills: General Knowledge, Science, Software and History.",
+    "minPathRank": 2,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe4",
+    "name": "Software Warrior",
+    "description": "You have learned to modify your GRID to Attack others. This is proper hacker stuff, people pay lots of money—and go to prison—for stuff like this. You can now make GRID Attacks (50m radius) even without a GRID Mod: you deal 1d6 Mental damage on a hit. At Grade 2, you can choose if the damage you deal is Physical or Mental. At Grade 3, your radius expands to 100m. At Grade 4, you deal 2d6 Physical or Mental damage on a hit.",
+    "minPathRank": 2,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe5",
     "name": "Safety Nerd",
     "description": "Either you were bullied at school or too clever to even let them do it to you. The world is a dangerous and violent place, and you know how to stay out of it: add a number of d10s equal your Grade in this feature to any Hide or Defence roll while in combat.",
     "minPathRank": 2,
@@ -681,6 +617,52 @@
     "applicablePaths": ["NERD_HERO"]
   },
   {
+    "id": "692a2e886f6040cf47954fe6",
+    "name": "Mass Retirer",
+    "description": "When rolling a GRID Attack on a non-organic entity, you can target a number of entities within a 20m radius from you equal to the number of Successes on your Attack roll. They all must defend (if they can) against your Attack. At Grade 2, the radius is 50m. At Grade 3, you can target 2 non-organic entities per Success. At Grade 4, you can add 1d6 to your damage (it applies to all hit non-organic entities).",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe7",
+    "name": "Aim Assistant",
+    "description": "Every time you hit a target with a GRID Attack, you can spend one Reaction to lend a number of d10s equal to your Attack Successes minus the target’s Defence Successes to an ally who uses a GRID Attack as their next Action and who willingly allows you to connect to their GRID. At Grade 2, you can double the dice you give to your ally.",
+    "minPathRank": 3,
+    "maxGrade": 2,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe8",
+    "name": "GRID Burglar",
+    "description": "You can use your GRID Attack to brute-force open GRID-locked doors. Additionally, for each Grade above 1 in this feature, you can add 1d10 to your unlocking Attack.",
+    "minPathRank": 4,
+    "maxGrade": 5,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fe9",
+    "name": "GRID Sec",
+    "description": "You can make a GRID Defence roll to add an extra layer of protection to a GRID lock. Add 4d10s to the roll. Any Successes you get on the roll will be added to the Successes needed by anyone wanting to GRID unlock the door or device you have protected.",
+    "minPathRank": 4,
+    "maxGrade": 1,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954fea",
+    "name": "GRID Masker",
+    "description": "When making a Deduction + GRID/Software check to erase any trace of your activity in someone else's system, you can add 2d10 per Grade you have in this feature.",
+    "minPathRank": 4,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954feb",
     "name": "Silent GRIDer",
     "description": "After performing a GRID Attack, you can erase your GRID trace by using a Reaction to do a GRID + Mentality check. On a success, the hit target doesn't know where the hit came from.",
     "minPathRank": 4,
@@ -689,6 +671,7 @@
     "applicablePaths": ["NERD_HERO"]
   },
   {
+    "id": "692a2e886f6040cf47954fec",
     "name": "GRID Reader",
     "description": "You can try and intercept conversations via GRID: roll a GRID Attack against a target you have unlocked (via another Attack). Add a 2d10 per Grade you have in this feature. If you \"hit\" you can intercept the conversation for as many minutes as Attack MINUS Defence Successes you got, unless they notice and drop the connection.",
     "minPathRank": 4,
@@ -697,6 +680,7 @@
     "applicablePaths": ["NERD_HERO", "SLEUTH"]
   },
   {
+    "id": "692a2e886f6040cf47954fed",
     "name": "Perception Splicer",
     "description": "When performing a GRID Attack, instead of damage, you can choose to make the target perceive something that's not there, or that is distorted.On a hit, the target perceives the intended distortion and must make a Deduction + Sense check VS your GRID Mod. On a failure, they believe the fake sensation to be real.",
     "minPathRank": 5,
@@ -705,6 +689,7 @@
     "applicablePaths": ["NERD_HERO"]
   },
   {
+    "id": "692a2e886f6040cf47954fee",
     "name": "Memory Splicer",
     "description": "When performing a GRID Attack, instead of damage, you can choose to make the target remember something that did not happen, or that happened in a different way. On a hit, the memory is planted in the target's mind, and they must make a Deduction + Sense check VS your GRID Mod. On a failure, they believe the memory is real.",
     "minPathRank": 5,
@@ -713,11 +698,122 @@
     "applicablePaths": ["NERD_HERO"]
   },
   {
+    "id": "692a2e886f6040cf47954fef",
+    "name": "Mind Guru",
+    "description": "You know the keys to press: you can attempt to alleviate stress and trauma by a quick GRID manipulation. You can restore Mental HP to yourself and others who give you access to their GRID, but it's a difficult and dangerous process. Make a Mentality + GRID check. If trying to heal someone else, they must make a Mentality check. Add up all the Successes and Failures in the roll or rolls. Each Success adds 1d6 Mental HP, but each Critical Failure (a 1 on the d10) subtracts 1d6 Mental HP. You may add 1d10 to the Mentality + GRID roll for each Grade you have in this feature.",
+    "minPathRank": 6,
+    "maxGrade": 3,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff0",
+    "name": "Reckless Driver",
+    "description": "You can drive at a vehicle's top speed without having to roll. When you do have to roll to push the limits of the vehicle or due to unfavourable circumstances, you can add a number of d10s equal to your Grade in this feature to any Driving check with any vehicle.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff1",
+    "name": "Savvy Seafarer",
+    "description": "You can add your Driving skill to rolls involving ships and sea voyages. You can also add a number of d10s equal to your Grade in this skill. However, you cannot use other Driving skills such as Reckless Driver, which are for land and air vehicles.",
+    "minPathRank": 3,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff2",
+    "name": "Local Expert",
+    "description": "Choose a location that makes sense for your backstory (or the campaign story if taking this feature later in the campaign): it cannot be larger than a district zone. You're an expert in it. At Grade 1, you know where to find stuff and people. At Grade 2, you know the relationship between places and people. At Grade 3, your knowledge is matched by the fact that most people here know you and like you or hate you accordingly. At Grade 4, you can get cheap stuff and small favours for free. At Grade 5, bigger asks are possible. At Grade 6, you're a local hero, and some of these people owe you. IMPORTANT: you must liaise with the GM before increasing Grades in this feature, as these relationships must make narrative sense (i.e. have you done enough in game or has enough time gone by for you to have done enough out of game?).",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff3",
+    "name": "Underworld Expert",
+    "description": "Illicit bars and seedy locales, petty thieves and stolen goods smugglers. The underworld doesn't need signs to let you know that's where you are. When in the bowels of society, you can add Streetwise and a number d10s equal to your grade in this feature to any rolls involving social interaction with low life types.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [
+      "You're being chased by a gang and find yourselves at a crossroads. A corner boy checks you out. You ask where to hide. The GM asks you to roll Persuasion + Manipulation/Negotiation. You can add a number of dice equal to your Streetwise stat AND your grade in this feature to that roll."
+    ],
+    "applicablePaths": ["URBAN_ROVER", "SURVIVALIST", "ANTIHERO"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff4",
+    "name": "Vehicle Repairer",
+    "description": "You're a mechanic, you know how to fix broken vehicles, whether they drive on the land or fly in the sky. Add a number of d10s equal to your Grade in this feature to any Manual + Mechanic roll you do to repair a vehicle.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff5",
+    "name": "Vehicle Protector",
+    "description": "You've learned how to use the best materials in a functional way to protect your ride. For each protection layer you add to the vehicle (chassis, glass, etc.) you must spend 1000⋐. A protection layer is a number of HP you add to the vehicle. Roll Manual + Mechanics + your Grade in this feature. Add a number of d10s worth of HP equal to the number of successes you got on the roll. Optionally, you can spend an additional 500⋐ for an additional 1d10 worth of HP you'd like to add to your vehicle as part of the upgrade, up to a maximum of Grades you have in this feature. NOTE: The number of Successes in this roll will determine how organic or ridiculous the upgrade looks on the vehicle (at the GM's discretion).",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff6",
+    "name": "Vehicle Upgrader",
+    "description": "You've become quite the expert as far as vehicle upgrades are concerned. You can spend 5000⋐ worth of materials to add an extra seat (inside or as a side-car/attachment), a hidden compartment (smuggling, anybody?) or increase the vehicles Speed or Manoeuvrability by 1 point. Roll Manual + Mechanics + your Grade in this feature. The difficulty for the upgrade is 5 Success MINUS your Grade in this feature. If you succeed, your upgrade takes place for the cost above. The number of Successes above the threshold determine how good and stable the upgrade is. If you fail the roll, the upgrade doesn't happen, it breaks, and you still lose the money. You can try again the following day.",
+    "minPathRank": 3,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER", "TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff7",
+    "name": "Fast Legs",
+    "description": "You're fast, especially when under immediate danger. Whether on feet or on your favourite individual ride (if your Path is Urban Rover), you can use your Movement or part of your Movement as part of your Defence Reaction. This means you can move when you defend, forcing any second attacks an enemy may make as part of the same Action to automatically fail. Additionally, you gain 1m of Speed per Grade you have in this feature, as you become faster through your trials and tribulations.",
+    "minPathRank": 4,
+    "maxGrade": 4,
+    "examples": [],
+    "applicablePaths": ["URBAN_ROVER", "SURVIVALIST"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff8",
+    "name": "Bomb Maker",
+    "description": "Given you have access to the right materials (500⋐ per 1d6 of damage) and can spend enough time (1 hour for a small explosive, 2 hours for a medium one, and 3 hours for a large bomb), you can make an explosive that deals 5d6 damage per size plus a number of d6s per Grade you have in this feature. Roll Manual + Mechanics + your Grade in this feature. You need 4 Successes for a perfect job. No Successes, nothing happens, you lose the money and resources. 1 Success means the explosive is unstable at the GM's discretion (you know it is unstable, though). With 2 Success, you can add the explosive as Potentially Faulty (when you set it off, roll 1d100; on a 25 or lower, it doesn't explode; 26-50, it deals half damage; 51+ subtract a number of d6s as Failures you got from the damage the bomb will deal). On 3 Successes, you subtract 1d6 per number of Failures on the crafting roll from the damage the bomb will deal.",
+    "minPathRank": 2,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ff9",
     "name": "Drone Maker",
     "description": "Given access to the right materials (5000⋐ per drone) and time (1 Phase per size of bot), you can build your own bot. The size and complexity of your creation will depend on your Grade in this feature and the materials and funds available. Work with your GM to add additional functionality to your bot. For reference, it will have 1d10 (1s don't count, roll again) HP per Grade you have in this feature. Adding significant features such as weapons or the ability to fly take at least another Phase of work and another roll. Add d10s equal to your Grade in this feature to any Manual/Deduction + Mechanics checks you have to make to build your creation. The GM sets the difficulty (necessary Successes and consequences of failure) based on what you're trying to make. Be creative!",
     "minPathRank": 3,
     "maxGrade": 6,
     "examples": [],
     "applicablePaths": ["TECHNO_CRAFTER"]
+  },
+  {
+    "id": "692a2e886f6040cf47954ffa",
+    "name": "Weapon Maker",
+    "description": "Given access to the right materials (⋐1000 per improvement), you can improve on an existing weapon. However, this work is always dangerous, and the weapon will become increasingly unstable. The more Grades you have in this feature, the stabler the modified weapon will be. Improvements can include: change of damage type, adding a damage type (it's one improvement to change from bullet to Siike, but two improvements for both types to be available in the same weapon), adding range, adding 1d10 to the Attack modifier, etc. Be creative and work with the GM on ideas for your weapons. For each improvement, you must add a drawback: either increase the weapon's instability or work with the GM on a different drawback. For instance, a modified rifle that can now shoot Siike and fire may be heavier and a character needs to subtract 1d10 per number under 3 on their Athletics attribute. Otherwise, the base instability is 6 MINUS any Successes in your roll to craft the modification (Manual + Mechanics + your Grade in this feature). After using a weapon modified by this feature, you must roll 1d100 and roll above the instability mark x10. So for an instability rate of 5, you would need to roll 50+. If you roll below the instability mark, the weapon misfires according to your roll (at the GM's discretion): it may simply not shoot this turn (40-49), stop working going forward (30-39), backfire dealing 1d6 and causing the character to drop the weapon (20-29), backfire for any damage it would've dealt on the enemy, so roll normal damage on yourself and drop the weapon (10-19), break completely (1-9).",
+    "minPathRank": 4,
+    "maxGrade": 6,
+    "examples": [],
+    "applicablePaths": ["TECHNO_CRAFTER"]
+  },
+  {
+    "id": "6a08b5d375d78e88f37340c8",
+    "name": "GRID Savagery",
+    "description": "<p>You’ve learned to take the GRID to literally insane limits. By pushing the boundaries of your consciousness, you can create ripples in your own conscience to strike an enemy. After a successful GRID Attack, you can add a number of d6s up to your GRID score to the damage roll, but you must take half of it as Mental damage. At Grade 2, you can turn the d6s into d10s, BUT at a high price: you must take ALL the damage as mental damage instead of half.</p>",
+    "minPathRank": 6,
+    "maxGrade": 2,
+    "examples": [],
+    "applicablePaths": ["NERD_HERO"]
   }
 ]

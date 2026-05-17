@@ -1,0 +1,3030 @@
+[
+  {
+    "id": "69ee334679451a85bd2466cb",
+    "category": "MECHANICS",
+    "slug": "neblircharactercreation",
+    "title": "Character Creation",
+    "summary": "<p>Build a character with a strong identity and story-driven motivations.<br>Distribute points across six core attributes (mental and physical), starting from a base of 1.<br>Choose a race for bonus attributes and a unique special ability.<br>Allocate skill points to learned abilities, with higher levels costing more.<br>Optionally define up to three specialisations for bonus dice in key areas.<br>Resolve actions by rolling dice based on combined attribute + skill scores.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Backstory"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Characters have a name, a birthplace, a religion (or lack thereof), a profession and an age."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "They need a backstory. Why are they good story material? What baggage do they have? What are their ambitions, their goals? Why should they be the protagonists of this impending adventure?"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once you have a more or less clear idea of who they are and why you think you’ll have fun playing them, it’s time to give them attributes and skills. Fill in your character sheet as you read on."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Attributes"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Attributes are innate abilities, divided into two main areas: psychological and physical. Within these two main areas, we have three sub categories: psychological attributes are grouped as Intelligence, Wisdom and Personality; their physical counterparts are Strength, Dexterity and Constitution."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "So we have:"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "INT: Logic, Memory, Deduction"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "WIS: Direction, Perception, Insight/Intuition"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "PER: Persuasion, Deception, Mentality"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "STR: Athletics, Resilience, Brute Force"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "DEX: Manual, Stealth, Agility"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "CON: Resistance (ingest), Resistance (weather), Stamina"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "All traits start at 1 and have a maximum of 5."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Racial Traits and Special Abilities"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Your race gives you 4 additional points, but it determines which. Your race also gives you a special, unique ability. See below."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Kinian"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Perception attribute (dark vision, connection to Siike)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Brute Force attribute (physical prowess)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Special Ability: telepathy at short range with other Kinians they have an emotional connection with (100 metres, max of several kilometres at GM’s discretion with very close friends/family)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Fenne"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Investigation attribute (multipupil eyes)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Manual attribute (two opposable thumbs)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Special Ability: two opposable thumbs, 2d10 to any Manual-based rolls to manipulate objects."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Human"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Insight attribute"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Resilience attribute"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Special Ability: additional die to any roll involving the Manipulation skill."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Manfenn"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Resilience attribute (Human heritage)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Automatic +1 to Manual attribute (Fenne heritage)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Special Ability: 2d10 to Manual-based rolls to manipulate objects OR additional die to any roll involving the Manipulation skill."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Allocating attribute points"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Remember, all your attributes start at 1. Once you’ve chosen your race, two attributes will start at 2, as determined above. You still have 14 attributes to allocate as you wish—just think what your character is like!"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Learned Skills"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once done with the attributes, it’s time to think about learned skills, the things your character has learned through hard work and experience."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "All skills start at 0 and have a maximum of 5. You have 13 + your level + any unused special skills points to allocate, but you must use 2 points if you want to increase a skill from 4 to 5."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Here’s the list:"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Mechanics"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Software"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "General Knowledge"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "History"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Driving"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Weapons (range)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Weapons (melee)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Weapons (GRID)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Research"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Medicine"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Politics"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Science"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Survival"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Streetwise"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Performance"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Manipulation"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Special Skills"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "On top of all of the above, a player can come up with up to three specialised skills. These skills represent the area of most expertise and is up to the player and GM to determine. It can be deciding if the character is a lawyer and knows commercial law, or perhaps they are a doctor, or a musician, or a soldier or a police officer, etc."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Whenever a roll involves this skill, the player can add 2 additional dice to the roll."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Alternatively, at character creation, the player may decide to trade one of these special skills for one more general skill point (see above)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Physical Health Points"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Sum of Constitution attributes + 1d10 per character level above 1 (you may add 10 HP for level 1, no need to roll)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Mental Health Points"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Sum of Personality attributes + 1d10 per character level above 1 (you may add 10 HP for level 1, no need to roll)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Game Mechanics"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "How do all of these concepts come into play? We don’t want the mechanics to get in the way of storytelling but the opposite: they should help us tell better stories. You shouldn’t roll any dice to grab a glass of wine and sip, or to read the news or talk to a bouncer. However, you’ll have to roll to see how you manage trying to outdrink a guy at the bar, or to connect the news to something you know and are investigating, or to persuade the bouncer to let you into the exclusive club where you believe your target is."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Most rolls will include a combination of an attribute and a skill. For example, in the case of sweet-talking the bouncer, you’d probably be told to roll persuasion plus manipulation. If you were lying about your age, it might be deception plus manipulation. In any case, the number of points in each attribute and skill correspond to the number of dice you get to roll. The more points, the more dice, the better the odds of succeeding in what you want to do."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": "../../Downloads/NeblirCharacterCreation.html",
+    "gameId": null,
+    "createdAt": "2026-04-26T15:46:14.056Z",
+    "updatedAt": "2026-05-17T13:58:47.620Z"
+  },
+  {
+    "id": "69ee3402b0260ba532d7e2e8",
+    "category": "MECHANICS",
+    "slug": "neblircombatmechanics",
+    "title": "Combat",
+    "summary": "<p>Combat runs in turn-based rounds (~6 seconds) ordered by an initiative roll (Agility + Mentality + 1d10).<br>Each turn, characters can move, take one action, and optionally use a reaction.<br>Actions include attacking, sprinting, or interacting; reactions are used for defence, quick assists, or opportunity attacks.<br>Attack rolls (attribute + skill + modifiers) must beat defence rolls to deal damage based on the weapon.<br>Defence uses a reaction and combines agility, skills, armour, and cover to block or reduce damage.<br>Positioning, cover, armour, and special systems like GRID hacking add tactical depth to encounters.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "When entering combat, the game enters initiative order. Think of it as real time slowing down for the players to direct their characters, whose actions take mere seconds in game time. The order in which characters act can be critical and is determined by an initiative roll as described below."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once player characters and GM-controlled characters (allies and enemies) have rolled their initiative, an order is established from highest initiative acting first to lowest initiative going last. Each round accounts for about 6 seconds of game time, and each player has a turn to act as they wish. Turns consist of movement + action + reaction."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Initiative Roll"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Initiative Modifier* (to account for physical and mental reaction) + 1d10"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "*Under Combat section, it equates Agility + Mentality"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Movement"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Characters have a Speed* of 10 metres per round + Agility + Athletics. They can use their Action to double their speed as they sprint. See Chasing below for further instructions on how to run from something or someone."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "*Next to Initiative Modifier in the character sheet."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Action"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "When in combat, a character may use their Action to attack (see Attack Rolls below), double their movement or any non-combat specific action they may think of (pulling someone from under rubble, climbing onto a barrel, healing someone, hiding, etc.)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Reaction"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "When in combat, a character may use their reaction to defend (see Defence Rolls below), help someone (quick help, such as throwing themselves to block a shot, tossing an object in their direction, etc.), or Attack with a Melee Attack an enemy who leaves their Melee range unless Cover (see below) is gained by the enemy as part of that Movement."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once a character uses their Reaction to defend against an attack or do anything else, any subsequent attacks on them for the existing round will be done without applying Defence Rolls."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Thus, if more than one enemy is in sight, a character may choose to keep their Reaction to defend against what they perceive as the biggest threat."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "As Characters progress and experience Combat and stressful situations, they gain more Reactions. This may also depend on their Class."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Equipping"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "While in Initiative, it takes one Reaction to equip an item (such as a weapon) unless a Feature states otherwise."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Larger weapons, such as a rifle, take 2 Reactions to equip. Huge weapons, such as a bazooka, can take more than 2 Reactions to equip, at the GM’s discretion."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Additional Actions"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Some creatures (monsters, bosses) may get Additional Actions, which they can use at the end of a player’s turn anywhere in the Initiative order. These are usually for GM use only. The stats for the creature should establish how many of these it gets."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Attack Rolls"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A character may use an action to do an Attack Roll."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Attribute (Brute Force, Manual or Mentality) + Weapons (melee, range, GRID, if using any) + Special Skill (if relevant) + Weapon modifier (if any)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To hit, the resulting number of Attack Roll successes must be higher than the number of Defence Roll successes (see below)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "An attacker may try to avoid hitting armour (if possible) by incurring a penalty (-2 dice on top of the armour modifier) on the Attack Roll."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If the attacker hits, the target takes damage equal to the weapon’s Damage stat (1d6, 2d6, 3d6, etc.)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If using an improvised weapon, the damage is equal to 1d3 (1d6 halved)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If not using a weapon, the attacker rolls 1d6 and deals 1 damage unless rolling a 6, in which case the attacker deals 3 points of damage."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Critical Hits"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For every two 10s in a successful Attack Roll, the attacker deals an extra damage die according to the weapon. A 10 in a Defence Roll (even if unsuccessful) cancels a 10 in the Attack Roll."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Defence Rolls"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A character may use a Reaction to do a Defence Roll when attacked."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Agility (or Mentality if GRID attack) + Acrobatics or (Weapons GRID if GRID attack) + Armour (if any worn or installed) + Cover (if any has been sought)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To avoid being hit, the number of Defence Roll successes must be equal or higher than the number of Attack Roll successes (see above)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Armour absorbs damage unless the attacker aims at a non-armoured part of the body – incurring a penalty – until its HP are depleted (see Armour below)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Critical Defence"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For every two 10s in a successful Defence Roll, the defender gets an extra Reaction. A 10 in an Attack Roll (even if unsuccessful) cancels a 10 in the Defence Roll."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Armour"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Armour has a Modifier and Hit Points. The Modifier is applied to Defence Rolls. The Armour Hit Points absorb any damage dealt unless the attacker tries to bypass armour (incurring a -2 penalty to its Attack Roll on top of the Armour Modifier)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once armour has no remaining Hit Points, its modifier no longer applies to Defence Rolls, and the character loses Health Points with any damage. The armour may be repaired (at a cost or with roll if relevant) or replaced."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Cover"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A character can use their Movement, Action and Reaction to seek cover. The environment determines the sort of cover available and how to obtain it: Movement will be enough to run behind a wall, but it will take an Action to climb down a hole in the ground or up a low ceiling, while a Reaction will likely be enough to close a door."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "One-quarter cover adds 1 die to any Defence Rolls for the character taking cover. Half cover adds 2 dice. Three-quarter cover adds 3 dice. Total cover means the character cannot currently be attacked."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "GRID Attack"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "By hacking into an opponent’s GRID, a character can cause brain damage. Attacks are only possible at 100 metres distance (unless software modifications increase distance)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Non-chipped (who is these days, though?) beings are immune to GRID attacks."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For GRID attacks, you need a legal GRID attack patch or a modified chip (highly illegal and expensive)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Before a character can launch a GRID Attack, they need to connect with the target’s GRID. It takes one Action to break into the target’s GRID."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Roll: Mentality + Weapons (GRID) + Special Skill (if relevant, highly unlikely) + GRID mod (offensive GRID software)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Again, the first GRID attack is to break into someone’s system – only Critical Hits will allow Damage to be dealt on the first hit."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Once broken into a target’s GRID, an Action can be used to do a GRID Attack while the target is in range. The same roll applies: Mentality + Weapons (GRID) + Special Skill (if relevant, highly unlikely) + GRID mod (offensive GRID software)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "On a hit, the attacker deals GRID Damage (see above)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "GRID Defence"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Closing one’s GRID to attacks is possible but difficult."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To defend, a character must realise they’ve been hacked: roll Perception + Weapons (GRID) + Special Skill (if relevant; highly unlikely) + GRID Protection (if relevant; highly unlikely)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If the defender rolls more or as many successes as the attacker, they realise they’ve been broken into and can use their Reaction to defend."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If the character does not realise they’ve been hacked, they cannot defend against the first GRID attack. If the defender is hit, they’re automatically aware and can defend against further attacks."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To defend, roll: Mentality + Weapons (GRID) + Special Skill (if relevant; highly unlikely) + GRID Protection (if relevant, highly unlikely)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Weapons"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Special weapons have their own stats and description. These are simple guidelines for general weapons."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For melee weapons (knives, clubs, improvised hand weapons), roll: Brute Force + Weapons (melee) + Weapon modifier (if any) + Special Skill (if relevant). Damage will be 1d6 for generic melee weapons, 1d3 (1d6 halved) for improvised weapons and 1 or 3 for a non-weapon hit (3 only if the 1d6 rolled is a 6)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For range weapons, roll: Manual + Weapons (range) + Weapon modifier (if any) + Special Skill (if relevant)"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Common Knife: +1 to hit, 1d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Specialised Knife: +2 to hit, 1d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Common gun: +2 to hit, 2d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Siike gun: +3 to hit 2d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Common rifle: +3 to hit at long distance only, 3d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Siike rifle: +4 to hit at long distance and +1 for melee attacks, 3d6 damage."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Chasing"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a character chases another, a series of contested checks take place. Firstly, we determine the distance between chaser and quarry. With both characters trying to outrun each other, it’s a contest of speeds. Each character can gain double the difference of speed on the other every three seconds (one for movement, the other using their Action to double their movement)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For example,  if there are 40 metres between them, and the quarry has a speed of 12m and the chaser has a speed of 14m, every three seconds, the chaser would gain 4 metres on the quarry. Conversely, if the quarry were faster than the chaser, they would get away 4 metres per round."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "In addition, each round, each character can use their Reaction to sprint (roll Athletics + Agility): any number of successes are metres added to their movement speed."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "After 5 rounds, characters can no longer sprint and must make a Stamina + Resilience check to see if they can continue to use their Action to double their Speed. Unless a success is rolled, they can only run for their Speed."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": "../../Downloads/NeblirCombatMechanics.html",
+    "gameId": null,
+    "createdAt": "2026-04-26T15:49:22.824Z",
+    "updatedAt": "2026-05-17T13:59:30.829Z"
+  },
+  {
+    "id": "69ee348461cd0d0a8ee0d3ec",
+    "category": "MECHANICS",
+    "slug": "neblirdamageexhaustiondeath",
+    "title": "Damage, Exhaustion & Death",
+    "summary": "<p>Damage reduces physical or mental health, with big hits causing Serious Injuries or Trauma that affect performance and roleplay.<br>Severe damage or multiple injuries can force unconsciousness, while extreme damage can cause instant death.<br>Defensive checks (like for falls) can reduce incoming damage, and conditions like drowning or pressure add ongoing harm.<br>At 0 HP, characters fall unconscious and must make Death (or Madness) rolls to survive or regain control.<br>Exhaustion builds from lack of rest or harsh conditions, heavily penalising attributes, skills, and eventually causing damage.<br>Recovery depends on treatment, rest, or intervention—otherwise characters risk death, breakdown, or permanent loss of control.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Damage"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Physical Damage"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "On a hit, the attacker rolls Damage based on the weapon Damage stat."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A Critical Hit adds Damage dice (see Critical Hits above)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a hit’s Damage is half or more of the target’s maximum Health Points, the target suffers a Serious Injury (at the GM’s discretion)."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a character sustains three Serious Injuries OR their Health Points are reduced to 1, they must make a Stamina + Resilience save or fall unconscious."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A fourth Serious Injury OR Health Points being reduced to zero makes them fall unconscious automatically. If a fourth Serious Injury also reduces their Health Points to 0, the character dies."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 4
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Falling"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For falls over 3m, a character sustains 1d6 Physical Damage per 3m. Thus, someone falling from 21m, would take 7d6 Physical Damage."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 5
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Agility + Acrobatics checks"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A character that falls should make an Agility + Acrobatics check. Every success removes 1d6 from the fall damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Moreover, the presence of one success rounds the fall damage down. No successes mean the damage is rounded up. For instance, if a character falls from 20m, and gets 2 successes on an Agility + Acrobatics check, the damage rolled would be 6d6 (20 / 3 rounded down) MINUS 2d6, so 4d6. One success would make it 5d6. No successes would make the damage 7d6, as it is rounded up and no successes can be subtracted from the fall damage."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Psychological Damage"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Psychological damage is not necessarily a consequence of combat, although combat often leaves mental scars."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The GM will assess the brutality of a scene or action and determine if the player takes psychological damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "In addition, players are encouraged to suggest something being traumatic for them to enhance storytelling."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A fourth Serious Trauma or Mental Health Points being reduced to 0 would render a character incapable of making their own decisions – the player would surrender control of them to the GM."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "GRID Damage"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "When dealing GRID Damage, the attacker can choose to inflict Physical or Mental pain on the target. Roll as many d6 as stated by the GRID software used for the attack."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Serious Injuries"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A Serious Injury affects how a character behaves physically: their speed may be reduced (halved or depleted and thus cause them to need personal or mechanical assistance to move, etc.), their sight may be impaired or gone altogether, their Attack Rolls may incur penalties (if they lose mobility of an arm, for instance), etc."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Serious Injuries are at the GM’s discretion and must make sense in the context of the game played."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Additionally, sustaining a Serious Injury may offer an opportunity for character development. A player may discuss with the GM and agree to move Attribute points accordingly: for instance, say a player becomes perpetually lame; their speed could be halved, but the player and the GM may agree that moving two points from Agility to Perception and Resilience makes sense as the character has become more observant, cautious and overall stronger at resisting pain."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Serious Trauma"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Serious Trauma affects how a character behaves. The trauma should be a discussion between the player and the GM, and it is for the player to role-play how they affect the character’s behaviour."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Additionally, sustaining a Serious Trauma injury may offer an opportunity for character development. A player may discuss with the GM and agree to move Attribute points accordingly: for instance, survivor's guilt may lead a player and GM to agree to move a point from Mentality to Insight as they’ve become less stable but more observant of people’s emotions."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A character may take up to three Serious Trauma injuries. A fourth Serious Trauma injury would render a character incapable of making their own decisions – the player would surrender control of them to the GM."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          }
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Damage Penalties"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Physical Health Penalties"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "One serious injury OR 50% of Physical Health Points gone imposes a one-die penalty to any physical rolls."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Two serious injuries OR 75% of Physical Health Points gone impose a two-die penalty on physical rolls and a one-die penalty on psychological rolls."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a character sustains three serious injuries OR their health points are reduced to 1, they must make a constitution save or fall unconscious."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A fourth serious injury OR health points being reduced to zero makes them fall unconscious."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Mental Health Penalties"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "One serious trauma or 50% or Mental Health Points gone imposes a one-die penalty to any psychological rolls."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Two serious traumas or 75% of Mental Health Points gone imposes a two-die penalty to any psychological rolls."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A third serious trauma or Mental Health Points reduced to 0 would render a character incapable of making their own decisions – the player would lose control of them and surrender them to the GM."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          }
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "#h.d8sdr83zxnh3",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": "c10",
+                    "title": null
+                  }
+                }
+              ],
+              "text": "Exhaustion"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Characters need sleep. In Neblir, most people need one phase of sleep (10 Neblirian hours). This usually happens at Third Phase. Adventuring often pushes characters to keep going without rest. However, such strains have consequences:"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Points of exhaustion"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "1 Exhaustion Point: 2d10 penalty on Physical Attributes"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "2 Exhaustion Points: 2d10 penalty on Physical Attributes AND Mental Attributes."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "3 Exhaustion Points: 3d10 penalty on ALL Attributes."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "4 Exhaustion Points: 4d10 penalty on ALL Attributes AND Speed reduced by half."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "5 Exhaustion Points: 4d10 penalty on ALL Attributes AND Speed reduced by half AND 2d10 penalty on ALL Skills."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "6 Exhaustion Points: 4d10 penalty on ALL Attributes AND NO Speed (character is lying down or sitting up AND 2d10 penalty on ALL Skills."
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If a character doesn’t get proper rest (one phase, typically, at GM’s discretion), the next day imposes one point of exhaustion. Every consecutive day without rest imposes another point. Any Attribute roll will still allow for 1d10 to be rolled."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Additionally, external conditions can add to this exhaustion: difficult terrain, sustained climbing or running, etc. An hour of such strenuous activity will count as a Phase (3 Phases make a day). Thus, a character becomes exhausted after a 3-hour run or spending 3 hours in a desert or in frigid conditions."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "At 6 Exhaustion Points, a character must take 1d6 Physical and 1d6 Mental damage for every Phase in this condition. If they reach 0 Physical HP, they must make Death Saves (see below). If they reach 0 Mental HP, they break down and GM assumes control of the character."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          }
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Falling Unconscious"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Characters reduced to 0 Physical HP fall unconscious, have no Movement and cannot take Actions or Reactions."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "They are also injured and might die if untreated. To determine their fate, they must now make Death Saves (see below)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          }
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Drowning"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Oxygen"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Naturally, a humanoid can hold their breath underwater for 1 minute + 10 seconds per Resilience + Stamina total score. After that time, they must make a Resilience + Stamina roll to add 10 seconds per Success. Repeat the roll at the end of that."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "On a failure, take 1d6 physical damage + 1d4 psychological damage."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Repeat the roll every 10 seconds."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Drowning characters automatically fail Death Saves (see below)."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Atmospheric Pressure"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Without a suit, Humans must make a Resistance (External) + Resilience when under 4 (~30 metres) atmospheres or take 1d6 physical damage for every minute spent at the current atmosphere level. Every new atmosphere demands a new roll and the damage increases by 1d4 per atmosphere."
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Death Rolls"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If injured and untreated, an unconscious character is dying and must make a Death Roll every turn: roll Resilience OR Stamina MINUS any Serious Injuries they may have sustained (minimum 1 die). Any result of an 8 or above counts as a Success."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "After three successful saves, they’re stable for a minute before repeating the process."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "After three failed saves, they are dead."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A successful Manual + Medicine check stabilises them for a minute and avoids having to roll Death Saves. The check can be repeated instead of Death Saves every minute. If the check fails, a Death Save must be rolled."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a character has any Medicine points, a successful check means stabilisation without needing to repeat the Death Saves every minute."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Finding an ambulance or a hospital saves them."
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Madness Rolls"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If a character is brought down to 0 Mental HP, they must make a Madness Roll every turn: roll Mentality MINUS any Serious Trauma (minimum 1 die). Any result of 8 and above is a Success."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "After three successful rolls, they are catatonic for 1 Phase unless treated."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "After three failed rolls, they are permanently unresponsive and must be treated at a psychiatric institution."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Professional Intervention"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A successful Deduction + Medicine roll gives a character an idea of what to administer to stabilise them: a sedative like CalmX, a stimulant like some illegal Zen, etc. If such a substance is administered before the character fails three rolls, they may regain Mental HP (depending on substance used) and thus be back in control of their faculty."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 3
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Friendly Intervention"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Alternatively, a Persuasion OR Deception OR Mentality roll has the following effects:"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "No Successes: the catatonic character fails a Madness Roll."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "1 Success: nothing happens."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "2 Successes: the catatonic character may re-roll a failed Madness Roll."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "3 Successes: the catatonic character gains one successful Madness Roll."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          }
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Instant Death"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If the damage sustained by the character not only reduces them to 0 HP but also doubles their Max Health Score, they die instantly without the possibility of doing Death Saves."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For instance, if a character’s Max Health is 20HP and an explosion deals 45 damage to them, they die instantly even if their Current Health was at its max (20HP). If the character’s Current Health were 10HP and they suffered 25HP of damage, they would be unconscious (they’d be at -15HP, which doesn’t double their Max Health Score, 20HP). However, if they were at 2HP and suffered the same 25HP of damage, they would die instantly, as the damage would take them to -23HP, which is more than double their Max Health Score of 20HP."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": "../../Downloads/NeblirDamageExhaustionDeath.html",
+    "gameId": null,
+    "createdAt": "2026-04-26T15:51:32.971Z",
+    "updatedAt": "2026-05-17T14:00:10.716Z"
+  },
+  {
+    "id": "6a09cfd494d32ed8d8ddb504",
+    "category": "MECHANICS",
+    "slug": "desperate-measures",
+    "title": "Desperate Measures",
+    "summary": "<p>When below half HP, characters can take a Desperate Measure by pre-failing 1–3 Death Rolls for powerful short-term boosts.<br>1 failure grants either +2 successes to a roll or doubled speed without triggering opportunity attacks.<br>2 failures grant an extra Action or two additional Reactions that turn.<br>3 failures guarantee success on one Action or two Reactions for a full round.<br>The trade-off is severe: these failures count if the character later hits 0 HP, risking instant death at 3.<br>Desperate Measures reset once the character recovers above half their HP.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "When a character falls below half their HP, they may choose to use a Desperate Measure, exerting themselves beyond their capacity in a last-ditch effort to save the day. Thus, Desperate Measures are costly: the currency is failed Death Rolls in advance."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "At the beginning of their turn, a character may choose to preemptively fail a number of Death Rolls in advance (should they be reduced to 0 HP) from 1 to 3, gaining the following benefits:"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "1 Failure: the character can add 2 Successes to a roll before the end of their turn. Alternatively, they can double their Speed for their turn, avoiding Opportunity Attacks as they do so."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "2 Failures: the character may add 2 Reactions OR 1 Action to their turn."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "3 Failures: the character may choose to succeed in 1 Action or 2 Reactions until the beginning of their next turn (1 round)."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Naturally, using 3 Failures means the character would suffer instant death if reduced to 0 HP. Desperate measures reset once the character who has used them has healed above half their HP."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": null,
+    "gameId": null,
+    "createdAt": "2026-05-17T14:25:24.939Z",
+    "updatedAt": "2026-05-17T14:25:24.939Z"
+  },
+  {
+    "id": "69ee33a4d2e718f30333854a",
+    "category": "MECHANICS",
+    "slug": "neblirdicemechanics",
+    "title": "Dice",
+    "summary": "<p>Actions use d10 dice pools, where each die scoring 8+ counts as a success (difficulty may raise this).<br>More dice come from attributes, skills, and modifiers; more successes mean better outcomes.<br>10s can trigger critical successes (extra benefits), while 1s can cause critical failures on failed rolls.<br>Players can assist others to add or subtract dice based on their own roll outcome (max +3 dice total).<br>Near-impossible actions use a single “chance roll,” where failure results in critical consequences.<br>Complex or long tasks accumulate successes over multiple rolls, with failures potentially setting progress back.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "We use 10-sided dice or d10s. A success normally involves rolling an 8 or higher. However, depending on the attempted task, it might be necessary to roll a 9 or even a 10, or to roll more than one success."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A 10 is considered a critical success unless the target was a 10 (in which case, two 10s would be necessary for the roll to be critical), and only if no 1s cancel it. If you roll three dice and you get a 10, a 3 and a 1, you still succeed, just not critically. Otherwise, rolling all successes (one 8 and two 9s on a three-dice roll, for instance) would be considered a critical success too. A critical success means the task is completed exceedingly well, perhaps with an additional, unexpected benefit."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If the result is a failure and one of the dice is a 1, it’s a critical failure."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Assisting"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A player can assist another with a task, but there are conditions:"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The assisting player must establish a reasonable way in which their character is helping"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "They must get at least a 8 on a roll determined by the nature of the task"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If successful, the assisted character gains an extra die to the roll"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If critically successful, the assisted character adds two dice"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If failed, the assisted character loses a die"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If critically failed, the assisted character loses two dice"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Multiple players can try to assist, but each must get at least an 8 and only a maximum of 3 dice can be added to the assisted player’s roll."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Chance rolls"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "If an attempted check/action is deemed almost impossible for the character (hacking into a protected system with no relevant skill), the player may still attempt a chance roll:"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "1 d10, but unless a success is achieved, any failure will be considered a critical failure"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The difficulty is determined by the nature of the attempted task and the risk of its going wrong: if hacking into a system is a 9 or even a 10 (because it’s a mega corporation’s system), unless a 9 or 10 is rolled, the failure will be critical (example: the alarms go off, security on the way, a snapshot taken of the character, etc.). In contrast, if the chance roll is taken on a more mundane task, such as fishing with no idea of fishing and penalties that reduce the roll to a chance roll, the difficulty would be an 8, and the consequences of a critical failure would be falling into the water, for example."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Variable Difficulty"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The GM will set the difficulty of a task, but certain factors will always increase or decrease it:"
+            }
+          ]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Having plenty of time to do something will decrease difficulty"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Being in a rush will increase difficulty"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The environment will increase or decrease the difficulty of an outdoors task"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The difficulty may vary in terms of what number is required for a success (the base is an 8) and in how many successes are needed."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Prolonged Actions / Projects"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Longer actions or complex projects, such as building a device or writing a scientific paper, may require a series of checks. The successes accumulate against a number of necessary successes determined by the GM."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "For example, repairing a flying capsule could take days or weeks: each day that the character has enough time (say an hour) to commit to the repair effort, they can make a Manual + Mechanics check and add any obtained successes to the tally. The GM has decided that 20 accumulated successes are necessary. If the player rolls two successes, they make a note of this. The next time they can make a check, they will add to those too. If the roll fails (no successes rolled), one success is subtracted from the accumulated list, or two if the failure is critical."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": "../../Downloads/NeblirDiceMechanics.html",
+    "gameId": null,
+    "createdAt": "2026-04-26T15:47:48.217Z",
+    "updatedAt": "2026-05-17T14:00:38.742Z"
+  },
+  {
+    "id": "69ecfd7b142910a8fbdc992d",
+    "category": "WORLD",
+    "slug": "introductiontoneblir",
+    "title": "Introduction to Neblir",
+    "summary": "<p>A colossal Beam beyond an impenetrable Wall is the mysterious source of life, fought over in an ancient war now lost to time.<br>South of the Wall, a vast urban Confederation spans the continent, while the harsh Buffer and remote Outer regions host outcasts and exiles.<br>Society is shaped by diverse districts, advanced technology, and the ever-present GRID—an implanted system linking minds to a digital world.<br>Four races inhabit Neblir—Kinians, Fenne, Humans, and the distrusted Manfenn—each with distinct traits and histories.<br>Tensions linger between wealth and poverty, core districts and fringes, control and freedom.<br>Religion, politics, and the mystery of the Beam continue to influence a complex, layered civilisation.</p>",
+    "access": "PLAYER",
+    "tags": [],
+    "sortOrder": 0,
+    "contentJson": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Beam, The Wall and The Old War"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A beam of purple, blue and pink shoots into the dark sky. Its diameter is larger than that of Greater London. Its height is impossible to determine, higher than the planet’s atmosphere. The Beam is the Source, the origin and meaning of life as far as Neblirians know. Many fought and died for the land it commands. It now rests beyond the Wall, a brutal barrier thousands of kilometres long from east to west and hundreds of kilometres high. The Supremacy won the Old War and erected the Wall, but that was millenia ago. Nobody knows much else about the Supremacy. Indeed, the sea is protected by a floating Wall that shoots down any vessel that may approach from northern waters."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "On this side of the Wall, civilisation recovered and thrived. Settlements became cities, cities became countries, and countries fused into districts of one gargantuan urban sprawl the size of the continent. Only the immediate area north of the Wall and the hardly inhabitable expanse of snow and ice at the very north of the continent aren’t part of the Confederation."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Buffer"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The Buffer is the space between the Wall and the first districts of the Confederation. It is a bright and hot swath of land left to the constant bombing of the Supremacy – a reminder not to get too close. Then, one day, the bombing stopped. Over the past two hundred years, people have been moving there – the poor, the destitute, the persecuted, the dreamers… an amalgamation of undesirables that have grown into their own society, a wealth of ancient runes beneath their feet."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Outer Confederation"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To the north of the north, the Outer Confederation is a sparsely inhabited space, originally home to a handful of scientific outposts. Over the past century, these outposts grew into a semblance of small towns. Some go there exiled from their districts, especially the brutal police state known as the Northern Federation."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Confederation: Districts and Languages"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The Confederation (legally, the Second Confederation, as the First Confederation collapsed in the One Hundred Years War two centuries ago) extends to every other corner of the continent. Its districts have their own histories, cultures and languages, although Linfra (or Common) is spoken or at least understood mostly everywhere. The two oldest districts, Pendence and Deresyst hark back to the years immediately after the Old War ended. They founded the First Confederation and, some would argue, doomed it to fail when they refused to relinquish their firm grip on its direction. They are still rich, affluent districts and enjoy the best weather, but they have lost their edge in favour of more modern and innovative districts such as Shanside, Nasra or the feared Northern Federation."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Races"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Three races inhabit Neblir: the Kinians, the Fenne and the Humans. There is a fourth race, the unlikely offspring of Humans and Fenne: the Manfenn, who are generally distrusted by most because of their eerie looks and strange personalities, having a reputation for having made some of the most terrible leaders Pre-Wall Neblir ever knew."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The Kinians are generally taller than Humans (2m to 2.5m would be the norm), with copper, dark skin, harder than a Human’s, almost plated. They have a special connection to Siike and are considered to be the Original People of the Beam. They can communicate telepathically at shorter distances, but some manage to extend their ability to hundreds of kilometres with those emotionally closest to them. However, they cannot survive too far from the Beam, which has meant they have been mostly excluded from northward expansion. The oldest, most powerful families in the southern districts tend to be Kinian. They account for about 35% of the population."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The Fenne are generally shorter than Humans (1.2m to 1.5m), with six fingers on each hand, including two opposable thumbs. They are dexterous and cunning and have a history of living in close-knit communities, although this has diluted for centuries now. Some Fenne still believe they are the guardians of order, the bridge between the proud Kinians and the chaotic Humans. The worst discrimination of Manfenn is at the hands of such Fenne. Fenne have made the most celebrated craftsmen in Neblir’s history, and some of its most innovative creators and entrepreneurs. They currently account for about 20% of the population."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Humans are the most numerous (about 40% of the population) as they adapt to most climates. They are also notorious for their ambition and ruthlessness, although it would be unfair to limit such common traits to one race."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "This leaves the Manfenn with a meagre 5%. They are strange folk, ferociously independent unlike the Fenne, either not ambitious or scared to be, always distrusted, always under suspicion. They say some parents take their Manfenn children to the Outer Confederation to escape prejudice."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The Setting"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The urban sprawl in Neblir is such that it isn’t unusual for districts (especially the original ones and those nearest) to have grown up and down, with entire neighbourhoods created underground and others levels above, with hardly any communication between them. One can open a door and enter a different reality, get lost and struggle to find a way back to a “normal” street."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "There are fast maglev trains that speed like bullets through tubes that curve around buildings. Those with money can afford their own capsule vehicles, round droplets enough for one person to fit in and fly from place to place. Some capsules are bigger and can fit families, but these are extraordinarily expensive and rare. The streets are bright with all sorts of artificial light – Kinians prefer darker tones, resembling the Beam while Humans are more inclined to brighter and warmer light."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Some notable landmarks include the Great Garden, in Pendence, an immense botanic garden the size of Germany where all sorts of creatures live and where some pay high amounts of money to go on holiday. What about the floating districts? These are towers that rise hundreds of metres into the air and support city-sized exclusive environments for the wealthiest."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Money"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Although some other currencies exist, like the Northern Federation’s Nordcoin or Nasra’s Nas, most people in the Confederation use ConfCoin or Conf for short."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "The GRID"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "GRID stands for Grand Radius of Interconnected Devices. Not everybody knows that. It’s the Grid to you and me. When you’re born they may pierce your ears, but, these days, they’ll surely pierce the inner side of your wrist to insert a chip. The GRID grows with a person and displays as their thoughts become intricate and complex enough. For most people, life without the GRID is unimaginable. And yet some, cut them off to flee into exile…"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The GRID appears as an overlay in one’s field of vision, superimposed on the real world. You’ll use it to order food, to study, research or communicate with your friends. You don’t need a device, you only need to think about what you want and it’ll flash before you. Businesses will detect you as you walk near their establishments and send you offers. The GRID can get a bit too much, but you wouldn’t know otherwise."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Some are known to use the GRID to attack someone else’s brain, but this is an abominable practice banned by all war laws. Of course, it still happens. For that, one must modify its chip, a practice that’s highly pricey and illegal."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "In places like the Buffer and the Outer Confederation, non-chipped people are not unheard of. Illegal chips are also a feature, allowing their users access to the Confederation."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Religion"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Although more than half of the population doesn’t hold supernatural beliefs, religion still plays an important role in Neblir. Most religious folks believe in Tritheology, the belief that three divine beings ruled over the forces of chaos and tamed Siike into the Beam, which could then sustain life as we know it. There are many different churches and denominations that explain this same general idea of three creators from different perspectives."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Monotheists also exist, mostly Human, linking the Beam to the one God, the entity that saved all races from extinction and built the Beam for them to worship and protect."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Fenne are mostly concerned with the natural forces, believing in the sacred nature of Siike as a force emanating from the core of the universe, not from some divine being. Some Fenne believe themselves to be the Chosen People, sent to Neblir to establish a balance between Kinians and Humans."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Other religions and cults exist but aren’t incredibly well-known."
+            }
+          ]
+        }
+      ]
+    },
+    "contentHtml": null,
+    "sourceFile": "../../Downloads/IntroductionToNeblir.html",
+    "gameId": null,
+    "createdAt": "2026-04-25T17:44:27.239Z",
+    "updatedAt": "2026-05-17T14:02:39.157Z"
+  }
+]

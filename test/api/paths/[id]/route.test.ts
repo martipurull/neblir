@@ -111,6 +111,7 @@ describe("/api/paths/[id] route handlers", () => {
       expect(response.status).toBe(200);
       expect(updatePathMock).toHaveBeenCalledWith("p-1", {
         baseFeature: "<p>updated</p>",
+        protectedFromOfficialImport: true,
       });
     });
   });

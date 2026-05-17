@@ -174,13 +174,18 @@ These variables are used by `npm run seed:official-data`. The command imports ca
 
 Legacy `*_CSV` env names are still accepted by the orchestrator for backward compatibility.
 
+#### `OFFICIAL_DATA_REFERENCE_FILE` (optional)
+
+- **Description**: JSON file for global/game reference import (`upsertReferenceEntriesFromFile.ts`). Root may be an array or `{ "reference": [ ... ] }` (catalogue export shape). When set, `data:seed:official` uses this instead of the HTML dirs below.
+- **Example**: `prisma/data/Reference_Upload.json`
+
 #### `OFFICIAL_DATA_REFERENCE_MECHANICS_DIR` (optional)
 
-- **Description**: Directory or HTML file for `MECHANICS` reference import
+- **Description**: Directory or HTML file for `MECHANICS` reference import (legacy HTML workflow; skipped when `OFFICIAL_DATA_REFERENCE_FILE` is set)
 
 #### `OFFICIAL_DATA_REFERENCE_WORLD_DIR` (optional)
 
-- **Description**: Directory or HTML file for `WORLD` reference import
+- **Description**: Directory or HTML file for `WORLD` reference import (legacy HTML workflow; skipped when `OFFICIAL_DATA_REFERENCE_FILE` is set)
 
 ---
 

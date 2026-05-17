@@ -74,9 +74,12 @@ export default function SuperAdminPageClient() {
           <p className="font-semibold text-black">Update seed data in git</p>
           <p className="mt-2 text-sm text-black/80">
             Catalogue rows were changed via the API. Export or hand-edit the
-            official JSON/CSV under{" "}
-            <code className="rounded bg-black/5 px-1">prisma/data</code>, then
-            commit. Domains touched:{" "}
+            official JSON under{" "}
+            <code className="rounded bg-black/5 px-1">prisma/data</code> (e.g.{" "}
+            <code className="rounded bg-black/5 px-1">
+              Reference_Upload.json
+            </code>
+            ), then commit. Domains touched:{" "}
             <span className="font-medium">
               {data.touchedDomains.length > 0
                 ? data.touchedDomains.join(", ")

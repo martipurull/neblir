@@ -110,6 +110,7 @@ async function main() {
     "OFFICIAL_DATA_PATHS_FILE",
     "OFFICIAL_DATA_PATHS_CSV",
   ]);
+  const referenceFile = optionalEnv("OFFICIAL_DATA_REFERENCE_FILE");
   const mechanicsDir = optionalEnv("OFFICIAL_DATA_REFERENCE_MECHANICS_DIR");
   const worldDir = optionalEnv("OFFICIAL_DATA_REFERENCE_WORLD_DIR");
 
@@ -158,40 +159,52 @@ async function main() {
     });
   }
 
-  if (mechanicsDir) {
+  if (referenceFile) {
     results.push(
-      runScript("Reference Mechanics", [
-        "prisma/scripts/importReferenceEntries.ts",
-        "MECHANICS",
-        mechanicsDir,
+      runScript("Reference", [
+        "prisma/scripts/upsertReferenceEntriesFromFile.ts",
+        referenceFile,
         ...maybeDry,
       ])
     );
   } else {
-    results.push({
-      name: "Reference Mechanics",
-      command: "",
-      status: "skipped",
-      summary: "OFFICIAL_DATA_REFERENCE_MECHANICS_DIR not set",
-    });
-  }
+    if (mechanicsDir) {
+      results.push(
+        runScript("Reference Mechanics", [
+          "prisma/scripts/importReferenceEntries.ts",
+          "MECHANICS",
+          mechanicsDir,
+          ...maybeDry,
+        ])
+      );
+    } else {
+      results.push({
+        name: "Reference Mechanics",
+        command: "",
+        status: "skipped",
+        summary:
+          "OFFICIAL_DATA_REFERENCE_FILE or OFFICIAL_DATA_REFERENCE_MECHANICS_DIR not set",
+      });
+    }
 
-  if (worldDir) {
-    results.push(
-      runScript("Reference World", [
-        "prisma/scripts/importReferenceEntries.ts",
-        "WORLD",
-        worldDir,
-        ...maybeDry,
-      ])
-    );
-  } else {
-    results.push({
-      name: "Reference World",
-      command: "",
-      status: "skipped",
-      summary: "OFFICIAL_DATA_REFERENCE_WORLD_DIR not set",
-    });
+    if (worldDir) {
+      results.push(
+        runScript("Reference World", [
+          "prisma/scripts/importReferenceEntries.ts",
+          "WORLD",
+          worldDir,
+          ...maybeDry,
+        ])
+      );
+    } else {
+      results.push({
+        name: "Reference World",
+        command: "",
+        status: "skipped",
+        summary:
+          "OFFICIAL_DATA_REFERENCE_FILE or OFFICIAL_DATA_REFERENCE_WORLD_DIR not set",
+      });
+    }
   }
   printSummary(results, dryRun);
 }

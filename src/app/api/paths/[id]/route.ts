@@ -80,7 +80,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("No fields to update", 400);
     }
 
-    const updated = await updatePath(id.trim(), parsed.data);
+    const updated = await updatePath(id.trim(), {
+      ...parsed.data,
+      protectedFromOfficialImport: true,
+    });
     await touchStaffCatalogueDrift(["paths"]);
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {

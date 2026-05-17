@@ -39,7 +39,7 @@ export type SuperAdminItemFormValues = {
 };
 
 function numOrUndefined(n: number | null | undefined): number | undefined {
-  return n === null || n === undefined ? undefined : n;
+  return n ?? undefined;
 }
 
 function damageToForm(damage: ItemDamage | null | undefined) {
