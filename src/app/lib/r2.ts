@@ -29,6 +29,7 @@ export const ALLOWED_UPLOAD_PREFIXES = [
   "games-",
   "characters-",
   "items-",
+  "maps-",
   "recaps-",
 ] as const;
 

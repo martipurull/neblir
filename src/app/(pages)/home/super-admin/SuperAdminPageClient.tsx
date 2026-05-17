@@ -116,6 +116,48 @@ export default function SuperAdminPageClient() {
 
       <div className="mt-6">
         <h2 className="mb-4 text-center text-xl font-bold text-black sm:mb-6 sm:text-2xl">
+          Browse official catalogue
+        </h2>
+        <Link
+          href="/home/super-admin/items/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Items
+        </Link>
+        <Link
+          href="/home/super-admin/paths/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Paths
+        </Link>
+        <Link
+          href="/home/super-admin/features/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Features
+        </Link>
+        <Link
+          href="/home/super-admin/enemies/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Enemies
+        </Link>
+        <Link
+          href="/home/super-admin/reference/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Reference entries
+        </Link>
+        <Link
+          href="/home/super-admin/maps/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Maps
+        </Link>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="mb-4 text-center text-xl font-bold text-black sm:mb-6 sm:text-2xl">
           Create official catalogue
         </h2>
         <Link

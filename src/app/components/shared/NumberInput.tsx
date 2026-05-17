@@ -22,6 +22,8 @@ export interface NumberInputProps {
   className?: string;
   /** Optional input class (extends base styles). */
   inputClassName?: string;
+  /** When true, blank input stores `undefined` instead of coercing to min/0. */
+  allowEmpty?: boolean;
 }
 
 function fieldValueToString(value: unknown): string {
@@ -42,6 +44,7 @@ export default function NumberInput({
   disabled = false,
   className = "",
   inputClassName = "",
+  allowEmpty = false,
 }: NumberInputProps) {
   const { control } = useFormContext();
 
@@ -61,6 +64,10 @@ export default function NumberInput({
           const displayValue = fieldValueToString(field.value);
 
           const setFromRaw = (raw: string) => {
+            if (allowEmpty && raw.trim() === "") {
+              field.onChange(undefined);
+              return;
+            }
             field.onChange(coerceNumericFieldValue(raw, parseAs, min, max));
           };
 

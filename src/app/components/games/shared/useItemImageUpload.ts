@@ -1,7 +1,7 @@
 "use client";
 
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type ItemImageUploadType =
   | "custom_items"
@@ -9,10 +9,19 @@ export type ItemImageUploadType =
   | "unique_items"
   | "games"
   | "characters"
-  | "items";
+  | "items"
+  | "maps";
 
-export function useItemImageUpload(type: ItemImageUploadType) {
-  const [imageKey, setImageKey] = useState("");
+export function useItemImageUpload(
+  type: ItemImageUploadType,
+  initialImageKey = ""
+) {
+  const [imageKey, setImageKey] = useState(initialImageKey);
+  useEffect(() => {
+    if (initialImageKey) {
+      setImageKey(initialImageKey);
+    }
+  }, [initialImageKey]);
   const [pendingImageKey, setPendingImageKey] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);

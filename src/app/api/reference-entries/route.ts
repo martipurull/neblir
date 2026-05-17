@@ -28,12 +28,30 @@ export const GET = auth(async (request: AuthNextRequest) => {
     const { searchParams } = request.nextUrl;
     const categoryParam = searchParams.get("category") ?? undefined;
     const gameId = searchParams.get("gameId");
+    const scope = searchParams.get("scope");
 
     const parsedCategory = categoryParam
       ? referenceCategorySchema.safeParse(categoryParam)
       : null;
     if (parsedCategory && !parsedCategory.success) {
       return errorResponse("Invalid reference category", 400);
+    }
+
+    if (scope === "official") {
+      if (!(await userIsSuperAdmin(userId))) {
+        return errorResponse("Forbidden", 403);
+      }
+      if (parsedCategory?.data === "CAMPAIGN_LORE") {
+        return errorResponse(
+          "CAMPAIGN_LORE is not part of the official catalogue",
+          400
+        );
+      }
+      const entries = await getReferenceEntries({
+        category: parsedCategory?.data,
+        gameId: null,
+      });
+      return NextResponse.json(entries, { status: 200 });
     }
 
     if (parsedCategory?.data === "CAMPAIGN_LORE" && !gameId) {

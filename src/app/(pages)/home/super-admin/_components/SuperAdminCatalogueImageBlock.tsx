@@ -13,15 +13,17 @@ export function SuperAdminCatalogueImageBlock({
   id,
   label,
   disabled = false,
+  initialImageKey = "",
   onImageKey,
 }: {
   uploadType: ItemImageUploadType;
   id: string;
   label: string;
   disabled?: boolean;
+  initialImageKey?: string;
   onImageKey: (key: string) => void;
 }) {
-  const imageUpload = useItemImageUpload(uploadType);
+  const imageUpload = useItemImageUpload(uploadType, initialImageKey);
 
   useEffect(() => {
     onImageKey(imageUpload.imageKey);

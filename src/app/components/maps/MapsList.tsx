@@ -1,5 +1,6 @@
 "use client";
 
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import type { GameMap } from "@/app/lib/types/map";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
@@ -62,9 +63,10 @@ export function MapsList({ maps }: MapsListProps) {
                     {map.name}
                   </span>
                   {map.description ? (
-                    <span className="mt-1 block text-sm text-black/70">
-                      {map.description}
-                    </span>
+                    <StoredRichTextHtml
+                      content={map.description}
+                      className="mt-1 block text-sm text-black/70"
+                    />
                   ) : null}
                 </span>
                 <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-black/70">
@@ -75,9 +77,10 @@ export function MapsList({ maps }: MapsListProps) {
               <header className="mb-3">
                 <h2 className="text-lg font-semibold text-black">{map.name}</h2>
                 {map.description ? (
-                  <p className="mt-1 text-sm text-black/70">
-                    {map.description}
-                  </p>
+                  <StoredRichTextHtml
+                    content={map.description}
+                    className="mt-1 text-sm text-black/70"
+                  />
                 ) : null}
               </header>
             )}

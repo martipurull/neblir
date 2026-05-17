@@ -17,6 +17,7 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
+import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
 import SuperAdminSectionShell from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
@@ -114,6 +115,8 @@ export default function SuperAdminCreateEnemyForm() {
       title="Create enemy"
       description="Official enemy template. Description and notes use TipTap (stored as HTML). Defence and attack stats use schema defaults (0) unless you add them later via PATCH or the DB."
     >
+      <SuperAdminCatalogueDomainNav domain="enemies" active="create" />
+
       <FormProvider {...form}>
         <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
           <SuperAdminLabeledField

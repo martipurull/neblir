@@ -19,6 +19,7 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
+import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
 import SuperAdminSectionShell from "./SuperAdminSectionShell";
 import { buildAvailablePathNameSelectOptions } from "./pathNameSelectOptions";
 
@@ -150,6 +151,8 @@ export default function SuperAdminCreatePathForm() {
       title="Create path"
       description="Only PathName enum values without a catalogue row are listed. Add a new enum member in Prisma first, then create its path here."
     >
+      <SuperAdminCatalogueDomainNav domain="paths" active="create" />
+
       {pathsLoading ? (
         <InfoCard className="mb-6">
           <LoadingState text="Loading existing paths…" />

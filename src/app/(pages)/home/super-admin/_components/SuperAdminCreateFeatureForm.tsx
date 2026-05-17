@@ -16,6 +16,7 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
+import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
 import SuperAdminSectionShell from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
@@ -134,6 +135,8 @@ export default function SuperAdminCreateFeatureForm() {
       title="Create feature"
       description="Description and examples use TipTap (stored as HTML). Examples are saved as a single optional rich-text entry. Select paths that already exist in the catalogue; PathFeature links are synced automatically."
     >
+      <SuperAdminCatalogueDomainNav domain="features" active="create" />
+
       <FormProvider {...form}>
         <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
           <SuperAdminLabeledField

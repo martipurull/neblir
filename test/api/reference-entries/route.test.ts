@@ -75,6 +75,41 @@ describe("/api/reference-entries route handlers", () => {
       expect(response.status).toBe(400);
     });
 
+    it("returns official global entries for super admin with scope=official", async () => {
+      getReferenceEntriesMock.mockResolvedValue([
+        { id: "r-global", category: "MECHANICS", gameId: null },
+      ]);
+      const { GET } = await import("@/app/api/reference-entries/route");
+
+      const response = await invokeRoute(
+        GET,
+        requestWithSearch("scope=official&category=MECHANICS")
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual([
+        { id: "r-global", category: "MECHANICS", gameId: null },
+      ]);
+      expect(getReferenceEntriesMock).toHaveBeenCalledWith({
+        category: "MECHANICS",
+        gameId: null,
+      });
+      expect(userIsInGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 for scope=official when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      const { GET } = await import("@/app/api/reference-entries/route");
+
+      const response = await invokeRoute(
+        GET,
+        requestWithSearch("scope=official")
+      );
+
+      expect(response.status).toBe(403);
+      expect(getReferenceEntriesMock).not.toHaveBeenCalled();
+    });
+
     it("returns 403 when game-scoped entries are requested by a non-member", async () => {
       userIsInGameMock.mockResolvedValue(false);
       const { GET } = await import("@/app/api/reference-entries/route");

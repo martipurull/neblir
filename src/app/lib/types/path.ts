@@ -42,4 +42,7 @@ export const pathSchema = z.object({
 
 export const pathUpdateSchema = pathSchema.partial().strict();
 
+/** PATCH /api/paths/[id] (super-admin official catalogue). */
+export const pathCatalogueUpdateSchema = pathCreateSchema.partial().strict();
+
 export type Path = z.infer<typeof pathSchema>;

@@ -1,40 +1,40 @@
 "use client";
 
+import {
+  contentJsonForApi,
+  GeneralInformationRichTextJsonField,
+} from "@/app/components/character/GeneralInformationRichTextJsonField";
+import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
 import {
   referenceEntryCreateSchema,
   type ReferenceCategory,
 } from "@/app/lib/types/reference";
+import type { JSONContent } from "@tiptap/core";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import {
+  optionalSuperAdminRichHtml,
+  superAdminRichEditorScrollClass,
+} from "../_utils/superAdminRichTextEditor";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
+import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
 import SuperAdminSectionShell from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-
-const DEFAULT_DOC = {
-  type: "doc",
-  content: [
-    {
-      type: "paragraph",
-      content: [
-        { type: "text", text: "Replace this body with valid TipTap JSON." },
-      ],
-    },
-  ],
-};
 
 type RefFormValues = {
   category: ReferenceCategory;
   slug: string;
   title: string;
   summary: string;
-  contentJson: string;
+  contentJson: JSONContent;
 };
 
 const categoryOptions = [
@@ -47,34 +47,25 @@ export default function SuperAdminCreateReferenceForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const defaultJson = useMemo(() => JSON.stringify(DEFAULT_DOC, null, 2), []);
-
   const form = useForm<RefFormValues>({
     defaultValues: {
       category: "MECHANICS",
       slug: "",
       title: "",
       summary: "",
-      contentJson: defaultJson,
+      contentJson: EMPTY_NOTE_DOC,
     },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
     setErrorMessage(null);
-    let contentJson: unknown;
-    try {
-      contentJson = JSON.parse(values.contentJson) as unknown;
-    } catch {
-      setErrorMessage("contentJson must be valid JSON.");
-      return;
-    }
 
     const payload = {
       category: values.category,
       slug: values.slug.trim(),
       title: values.title.trim(),
-      summary: values.summary.trim() || null,
-      contentJson,
+      summary: optionalSuperAdminRichHtml(values.summary) ?? null,
+      contentJson: contentJsonForApi(values.contentJson),
       gameId: null,
     };
 
@@ -116,60 +107,117 @@ export default function SuperAdminCreateReferenceForm() {
   return (
     <SuperAdminSectionShell
       title="Create global reference entry"
-      description="MECHANICS and WORLD only (no gameId). Paste TipTap-compatible JSON for contentJson."
+      description="MECHANICS and WORLD only (no gameId). Summary and body use TipTap; the body is stored as TipTap JSON in contentJson."
     >
-      <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
-        <div className="mb-6">
-          <SelectDropdown
-            id="ref-category"
-            label="Category"
-            placeholder="Category"
-            value={form.watch("category")}
-            options={categoryOptions}
-            onChange={(v) =>
-              form.setValue("category", v as ReferenceCategory, {
-                shouldValidate: true,
-              })
-            }
+      <SuperAdminCatalogueDomainNav domain="reference" active="create" />
+
+      <FormProvider {...form}>
+        <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
+          <div className="mb-6">
+            <SelectDropdown
+              id="ref-category"
+              label="Category"
+              placeholder="Category"
+              value={form.watch("category")}
+              options={categoryOptions}
+              onChange={(v) =>
+                form.setValue("category", v as ReferenceCategory, {
+                  shouldValidate: true,
+                })
+              }
+            />
+          </div>
+
+          <div className="mb-6">
+            <SuperAdminLabeledField
+              id="ref-slug"
+              label="Slug"
+              register={form.register}
+              name="slug"
+              placeholder="combat-actions"
+            />
+            <p className="mt-2 text-xs text-black/70">
+              URL-safe identifier: lowercase letters, numbers, and hyphens only.
+              Used in links and must be unique per category. Examples:{" "}
+              <code className="rounded bg-black/5 px-1">attack-rolls</code>,{" "}
+              <code className="rounded bg-black/5 px-1">world-nebula</code>,{" "}
+              <code className="rounded bg-black/5 px-1">skills-overview</code>.
+            </p>
+          </div>
+
+          <SuperAdminLabeledField
+            id="ref-title"
+            label="Title"
+            register={form.register}
+            name="title"
           />
-        </div>
-        <SuperAdminLabeledField
-          id="ref-slug"
-          label="Slug (URL-safe)"
-          register={form.register}
-          name="slug"
-        />
-        <SuperAdminLabeledField
-          id="ref-title"
-          label="Title"
-          register={form.register}
-          name="title"
-        />
-        <SuperAdminLabeledField
-          id="ref-summary"
-          label="Summary (optional)"
-          register={form.register}
-          name="summary"
-          rows={2}
-        />
-        <SuperAdminLabeledField
-          id="ref-content-json"
-          label="contentJson"
-          register={form.register}
-          name="contentJson"
-          rows={12}
-        />
 
-        {errorMessage ? (
-          <InfoCard className="border-neblirDanger bg-paleBlue/20">
-            <p className="text-sm text-black">{errorMessage}</p>
-          </InfoCard>
-        ) : null}
+          <div className="mb-6">
+            <label
+              htmlFor="ref-summary"
+              className="mb-1 block font-bold text-black"
+            >
+              Summary (optional)
+            </label>
+            <p className="mb-2 text-xs text-black/70">
+              Short preview shown in lists. Stored as HTML when non-empty.
+            </p>
+            <Controller
+              name="summary"
+              control={form.control}
+              render={({ field }) => (
+                <GeneralInformationRichTextField
+                  id="ref-summary"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  minHeightClass="min-h-24"
+                  editorContentClassName={superAdminRichEditorScrollClass}
+                />
+              )}
+            />
+          </div>
 
-        <Button type="submit" variant="primary" disabled={submitting}>
-          {submitting ? "Creating…" : "Create reference entry"}
-        </Button>
-      </form>
+          <div className="mb-6">
+            <label
+              htmlFor="ref-content"
+              className="mb-1 block font-bold text-black"
+            >
+              Content
+            </label>
+            <p className="mb-2 text-xs text-black/70">
+              Main article body. Saved as TipTap JSON (
+              <code className="rounded bg-black/5 px-1">contentJson</code>) in
+              the database—the same format used when players read reference
+              pages.
+            </p>
+            <Controller
+              name="contentJson"
+              control={form.control}
+              render={({ field }) => (
+                <GeneralInformationRichTextJsonField
+                  id="ref-content"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  minHeightClass="min-h-28"
+                  editorContentClassName={superAdminRichEditorScrollClass}
+                />
+              )}
+            />
+          </div>
+
+          {errorMessage ? (
+            <InfoCard className="border-neblirDanger bg-paleBlue/20">
+              <p className="text-sm text-black">{errorMessage}</p>
+            </InfoCard>
+          ) : null}
+
+          <Button type="submit" variant="primary" disabled={submitting}>
+            {submitting ? "Creating…" : "Create reference entry"}
+          </Button>
+        </form>
+      </FormProvider>
     </SuperAdminSectionShell>
   );
 }

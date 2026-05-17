@@ -127,7 +127,7 @@ describe("/api/upload-image POST", () => {
     const response = await invokeRoute(POST, request);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.message).toMatch(/custom_items|unique_items|items/);
+    expect(data.message).toMatch(/custom_items|unique_items|items|maps/);
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
@@ -290,6 +290,40 @@ describe("/api/upload-image POST", () => {
     expect(userIsSuperAdminMock).toHaveBeenCalled();
     expect(s3SendMock).toHaveBeenCalledTimes(1);
   });
+
+  it("returns 403 when type is maps and user is not super admin", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    userIsSuperAdminMock.mockResolvedValueOnce(false);
+
+    const file = new File(["x"], "neblir.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "maps" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 with fileKey prefixed maps- when type is maps and user is super admin", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "Neblir.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "maps" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^maps-/);
+    expect(data.fileKey).toMatch(/\.png$/);
+    expect(userIsSuperAdminMock).toHaveBeenCalled();
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("/api/upload-image DELETE", () => {
@@ -374,6 +408,24 @@ describe("/api/upload-image DELETE", () => {
     process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
 
     const key = "items-official_sword-abc12.png";
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({ fileKey: key });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("bucket");
+    expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 204 when fileKey is maps- prefixed", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const key = "maps-neblir.png";
     const { DELETE } = await import("@/app/api/upload-image/route");
     const request = makeDeleteRequest({ fileKey: key });
     const response = await invokeRoute(DELETE, request);

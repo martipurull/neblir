@@ -26,3 +26,7 @@ export function getEnemies() {
     orderBy: { name: "asc" },
   });
 }
+
+export function updateEnemy(id: string, data: Prisma.EnemyUpdateInput) {
+  return prisma.enemy.update({ where: { id }, data });
+}

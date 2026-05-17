@@ -1,15 +1,22 @@
 "use client";
 
+import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
 import { mapCreateSchema } from "@/app/lib/types/map";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  optionalSuperAdminRichHtml,
+  superAdminRichEditorScrollClass,
+} from "../_utils/superAdminRichTextEditor";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
+import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
+import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
 import SuperAdminSectionShell from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
@@ -28,12 +35,26 @@ export default function SuperAdminCreateMapForm() {
     defaultValues: { name: "", imageKey: "", description: "" },
   });
 
+  const onImageKey = useCallback(
+    (key: string) => {
+      form.setValue("imageKey", key, { shouldDirty: true });
+    },
+    [form]
+  );
+
   const onSubmit = form.handleSubmit(async (values) => {
     setErrorMessage(null);
+
+    const imageKey = values.imageKey.trim();
+    if (!imageKey) {
+      setErrorMessage("Image is required. Upload a map image before creating.");
+      return;
+    }
+
     const payload = {
       name: values.name.trim(),
-      imageKey: values.imageKey.trim(),
-      description: values.description.trim() || null,
+      imageKey,
+      description: optionalSuperAdminRichHtml(values.description) ?? null,
     };
     const parsed = mapCreateSchema.safeParse(payload);
     if (!parsed.success) {
@@ -72,8 +93,10 @@ export default function SuperAdminCreateMapForm() {
   return (
     <SuperAdminSectionShell
       title="Create global map"
-      description="Global maps omit gameId. Use an existing R2 image key (same as other map uploads)."
+      description="Global maps omit gameId. Upload the map image and optionally add a rich-text description."
     >
+      <SuperAdminCatalogueDomainNav domain="maps" active="create" />
+
       <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
         <SuperAdminLabeledField
           id="map-name"
@@ -81,20 +104,40 @@ export default function SuperAdminCreateMapForm() {
           register={form.register}
           name="name"
         />
-        <SuperAdminLabeledField
-          id="map-image-key"
-          label="Image key"
-          register={form.register}
-          name="imageKey"
-          placeholder="maps/…"
+
+        <SuperAdminCatalogueImageBlock
+          uploadType="maps"
+          id="map-image"
+          label="Image"
+          disabled={submitting}
+          onImageKey={onImageKey}
         />
-        <SuperAdminLabeledField
-          id="map-description"
-          label="Description (optional)"
-          register={form.register}
-          name="description"
-          rows={3}
-        />
+
+        <div className="mb-6">
+          <label
+            htmlFor="map-description"
+            className="mb-1 block font-bold text-black"
+          >
+            Description (optional)
+          </label>
+          <p className="mb-2 text-xs text-black/70">
+            Rich text is stored as HTML (same editor as character backstory).
+          </p>
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field }) => (
+              <GeneralInformationRichTextField
+                id="map-description"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                minHeightClass="min-h-24"
+                editorContentClassName={superAdminRichEditorScrollClass}
+              />
+            )}
+          />
+        </div>
 
         {errorMessage ? (
           <InfoCard className="border-neblirDanger bg-paleBlue/20">

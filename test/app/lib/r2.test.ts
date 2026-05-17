@@ -36,6 +36,11 @@ describe("r2 helper", () => {
       expect(isDeletableUploadKey("items-official_sword-abc12.png")).toBe(true);
     });
 
+    it("returns true for keys starting with maps- (official catalogue)", () => {
+      expect(isDeletableUploadKey("maps-neblir.png")).toBe(true);
+      expect(isDeletableUploadKey("maps-northern_federation.png")).toBe(true);
+    });
+
     it("returns false for other key prefixes", () => {
       expect(isDeletableUploadKey("custom-items-old.png")).toBe(false);
       expect(isDeletableUploadKey("unique-items-old.png")).toBe(false);

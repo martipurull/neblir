@@ -8,13 +8,19 @@ import {
 
 const userIsSuperAdminMock = vi.fn();
 const getEnemyMock = vi.fn();
+const updateEnemyMock = vi.fn();
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
 }));
 
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/app/lib/prisma/enemy", () => ({
   getEnemy: getEnemyMock,
+  updateEnemy: updateEnemyMock,
 }));
 
 describe("/api/enemies/[id] route handlers", () => {
@@ -67,6 +73,32 @@ describe("/api/enemies/[id] route handlers", () => {
       );
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual(row);
+    });
+  });
+
+  describe("PATCH", () => {
+    it("returns 404 when missing", async () => {
+      getEnemyMock.mockResolvedValue(null);
+      const { PATCH } = await import("@/app/api/enemies/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "Bandit II" }),
+        makeParams({ id: "e-1" })
+      );
+      expect(response.status).toBe(404);
+    });
+
+    it("returns 200 when updated", async () => {
+      getEnemyMock.mockResolvedValue({ id: "e-1", name: "Bandit" });
+      updateEnemyMock.mockResolvedValue({ id: "e-1", name: "Bandit II" });
+      const { PATCH } = await import("@/app/api/enemies/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "Bandit II" }),
+        makeParams({ id: "e-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateEnemyMock).toHaveBeenCalled();
     });
   });
 });

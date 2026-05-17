@@ -92,6 +92,10 @@ export const enemyBaseSchema = z.object({
 export const enemyCreateSchema = enemyBaseSchema;
 export type EnemyCreate = z.infer<typeof enemyCreateSchema>;
 
+/** PATCH /api/enemies/[id] (super-admin official catalogue). */
+export const enemyCatalogueUpdateSchema = enemyCreateSchema.partial().strict();
+export type EnemyCatalogueUpdate = z.infer<typeof enemyCatalogueUpdateSchema>;
+
 export const customEnemyCreateSchema = enemyBaseSchema.extend({
   gameId: z.string(),
 });

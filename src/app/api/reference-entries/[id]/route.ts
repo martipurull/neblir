@@ -52,6 +52,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Reference entry not found", 404);
     }
 
+    const isSuperAdmin = await userIsSuperAdmin(request.auth.user.id);
+    if (!entry.gameId && isSuperAdmin) {
+      return NextResponse.json(entry, { status: 200 });
+    }
+
     const canRead = await canReadReferenceEntry(entry, request.auth.user.id);
     if (!canRead) {
       return errorResponse("You cannot access this reference entry", 403);

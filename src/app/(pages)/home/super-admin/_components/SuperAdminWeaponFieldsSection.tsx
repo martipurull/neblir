@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import NumberInput from "@/app/components/shared/NumberInput";
 import {
   ATTACK_ROLL_TYPES,
   DAMAGE_TYPES,
@@ -10,34 +11,31 @@ import type {
   FieldValues,
   Path,
   UseFormGetValues,
-  UseFormRegister,
   UseFormSetValue,
 } from "react-hook-form";
 import { useWatch } from "react-hook-form";
-import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 export type WeaponAttackRollChoice = "MELEE" | "RANGE" | "GRID" | "THROW";
 
 /** Weapon-related slice of the super-admin create-item form (structural typing). */
 export type SuperAdminWeaponFormSlice = FieldValues & {
   attackRoll: WeaponAttackRollChoice[];
-  attackMeleeBonus: string;
-  attackRangeBonus: string;
-  attackThrowBonus: string;
-  defenceMeleeBonus: string;
-  defenceRangeBonus: string;
-  gridAttackBonus: string;
-  gridDefenceBonus: string;
-  effectiveRange: string;
-  maxRange: string;
+  attackMeleeBonus?: number;
+  attackRangeBonus?: number;
+  attackThrowBonus?: number;
+  defenceMeleeBonus?: number;
+  defenceRangeBonus?: number;
+  gridAttackBonus?: number;
+  gridDefenceBonus?: number;
+  effectiveRange?: number;
+  maxRange?: number;
   damageTypes: string[];
-  damageDiceType: string;
-  damageNumberOfDice: string;
+  damageDiceType: number;
+  damageNumberOfDice: number;
 };
 
 type SuperAdminWeaponFieldsSectionProps<T extends SuperAdminWeaponFormSlice> = {
   control: Control<T>;
-  register: UseFormRegister<T>;
   setValue: UseFormSetValue<T>;
   getValues: UseFormGetValues<T>;
   disabled: boolean;
@@ -47,7 +45,6 @@ export function SuperAdminWeaponFieldsSection<
   T extends SuperAdminWeaponFormSlice,
 >({
   control,
-  register,
   setValue,
   getValues,
   disabled,
@@ -123,60 +120,60 @@ export function SuperAdminWeaponFieldsSection<
       </div>
 
       {rolls.includes("MELEE") ? (
-        <div className="mb-4 grid gap-4 sm:grid-cols-2">
-          <SuperAdminLabeledField
-            id="weapon-melee-bonus"
+        <div className="mb-4 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+          <NumberInput
+            name="attackMeleeBonus"
             label="Melee attack bonus (optional)"
-            register={register}
-            name={"attackMeleeBonus" as never}
-            type="number"
+            allowEmpty
+            className="mb-0"
+            disabled={disabled}
           />
-          <SuperAdminLabeledField
-            id="weapon-def-melee"
+          <NumberInput
+            name="defenceMeleeBonus"
             label="Defence vs melee (optional)"
-            register={register}
-            name={"defenceMeleeBonus" as never}
-            type="number"
+            allowEmpty
+            className="mb-0"
+            disabled={disabled}
           />
         </div>
       ) : null}
 
       {rolls.includes("RANGE") ? (
         <div className="mb-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SuperAdminLabeledField
-              id="weapon-range-bonus"
+          <div className="grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+            <NumberInput
+              name="attackRangeBonus"
               label="Range attack bonus (optional)"
-              register={register}
-              name={"attackRangeBonus" as never}
-              type="number"
+              allowEmpty
+              className="mb-0"
+              disabled={disabled}
             />
-            <SuperAdminLabeledField
-              id="weapon-def-range"
+            <NumberInput
+              name="defenceRangeBonus"
               label="Defence vs range (optional)"
-              register={register}
-              name={"defenceRangeBonus" as never}
-              type="number"
+              allowEmpty
+              className="mb-0"
+              disabled={disabled}
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SuperAdminLabeledField
-              id="weapon-effective-range"
+          <div className="grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+            <NumberInput
+              name="effectiveRange"
               label="Effective range (optional)"
-              register={register}
-              name={"effectiveRange" as never}
-              type="number"
               min={0}
+              allowEmpty
               placeholder="Distance units"
+              className="mb-0"
+              disabled={disabled}
             />
-            <SuperAdminLabeledField
-              id="weapon-max-range"
+            <NumberInput
+              name="maxRange"
               label="Max range (optional)"
-              register={register}
-              name={"maxRange" as never}
-              type="number"
               min={0}
+              allowEmpty
               placeholder="Distance units"
+              className="mb-0"
+              disabled={disabled}
             />
           </div>
         </div>
@@ -184,31 +181,30 @@ export function SuperAdminWeaponFieldsSection<
 
       {rolls.includes("THROW") ? (
         <div className="mb-4">
-          <SuperAdminLabeledField
-            id="weapon-throw-bonus"
+          <NumberInput
+            name="attackThrowBonus"
             label="Throw attack bonus (optional)"
-            register={register}
-            name={"attackThrowBonus" as never}
-            type="number"
+            allowEmpty
+            disabled={disabled}
           />
         </div>
       ) : null}
 
       {rolls.includes("GRID") ? (
-        <div className="mb-4 grid gap-4 sm:grid-cols-2">
-          <SuperAdminLabeledField
-            id="weapon-grid-attack"
+        <div className="mb-4 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+          <NumberInput
+            name="gridAttackBonus"
             label="Grid attack bonus (optional)"
-            register={register}
-            name={"gridAttackBonus" as never}
-            type="number"
+            allowEmpty
+            className="mb-0"
+            disabled={disabled}
           />
-          <SuperAdminLabeledField
-            id="weapon-grid-defence"
+          <NumberInput
+            name="gridDefenceBonus"
             label="Grid defence bonus (optional)"
-            register={register}
-            name={"gridDefenceBonus" as never}
-            type="number"
+            allowEmpty
+            className="mb-0"
+            disabled={disabled}
           />
         </div>
       ) : null}
@@ -232,24 +228,22 @@ export function SuperAdminWeaponFieldsSection<
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SuperAdminLabeledField
-          id="weapon-dice-type"
+      <div className="grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+        <NumberInput
+          name="damageDiceType"
           label="Damage dice type (faces)"
-          register={register}
-          name={"damageDiceType" as never}
-          type="number"
           min={1}
           placeholder="e.g. 6"
+          className="mb-0"
+          disabled={disabled}
         />
-        <SuperAdminLabeledField
-          id="weapon-num-dice"
+        <NumberInput
+          name="damageNumberOfDice"
           label="Number of damage dice"
-          register={register}
-          name={"damageNumberOfDice" as never}
-          type="number"
           min={1}
           placeholder="e.g. 1"
+          className="mb-0"
+          disabled={disabled}
         />
       </div>
     </div>

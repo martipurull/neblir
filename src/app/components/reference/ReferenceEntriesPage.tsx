@@ -12,6 +12,7 @@ import InfoCard from "../shared/InfoCard";
 import LoadingState from "../shared/LoadingState";
 import PageSection from "../shared/PageSection";
 import PageTitle from "../shared/PageTitle";
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import { ReferenceEntryHtml } from "./ReferenceEntryHtml";
 
 interface ReferenceEntriesPageProps {
@@ -28,7 +29,10 @@ function ReferenceEntryContent({ entry }: { entry: ReferenceEntry }) {
   return (
     <>
       {entry.summary ? (
-        <p className="mb-3 text-sm text-black/70">{entry.summary}</p>
+        <StoredRichTextHtml
+          content={entry.summary}
+          className="mb-3 text-sm text-black/70"
+        />
       ) : null}
       <ReferenceEntryHtml
         contentJson={entry.contentJson}
@@ -130,9 +134,10 @@ export function ReferenceEntriesPage({
                         </span>
                       ) : null}
                       {entry.summary ? (
-                        <span className="mt-1 block text-sm text-black/70">
-                          {entry.summary}
-                        </span>
+                        <StoredRichTextHtml
+                          content={entry.summary}
+                          className="mt-1 block text-sm text-black/70"
+                        />
                       ) : null}
                     </span>
                     <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-black/70">
