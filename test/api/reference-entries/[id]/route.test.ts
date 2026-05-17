@@ -66,7 +66,8 @@ describe("/api/reference-entries/[id] route handlers", () => {
       expect(response.status).toBe(404);
     });
 
-    it("returns 403 for global GM-only entries", async () => {
+    it("returns 403 for global GM-only entries when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
       getReferenceEntryMock.mockResolvedValue({
         id: "r-1",
         gameId: null,
@@ -81,6 +82,25 @@ describe("/api/reference-entries/[id] route handlers", () => {
       );
 
       expect(response.status).toBe(403);
+    });
+
+    it("returns 200 for global GM-only entries when super admin", async () => {
+      const entry = {
+        id: "r-1",
+        gameId: null,
+        access: "GAME_MASTER",
+      };
+      getReferenceEntryMock.mockResolvedValue(entry);
+      const { GET } = await import("@/app/api/reference-entries/[id]/route");
+
+      const response = await invokeRoute(
+        GET,
+        makeAuthedRequest(),
+        makeParams({ id: "r-1" })
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual(entry);
     });
 
     it("returns 403 for game entries when the user is not in the game", async () => {
