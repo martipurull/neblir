@@ -1,8 +1,10 @@
 "use client";
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { TextField } from "@/app/components/shared/TextField";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -243,12 +245,17 @@ export function PathAndFeaturesStep({
         </div>
         {selectedPath ? (
           <div className="mx-auto max-w-2xl rounded border border-black/20 bg-black/5 p-2 text-sm">
-            <p className="font-medium">
-              Base feature: {selectedPath.baseFeature}
-            </p>
-            {selectedPath.description && (
-              <p className="mt-1 text-black/70">{selectedPath.description}</p>
-            )}
+            <p className="font-medium text-black">Base feature</p>
+            <StoredRichTextHtml
+              content={selectedPath.baseFeature}
+              className="mt-1 text-black/90"
+            />
+            {selectedPath.description ? (
+              <StoredRichTextHtml
+                content={selectedPath.description}
+                className="mt-2 text-black/70"
+              />
+            ) : null}
           </div>
         ) : (
           <div className="mx-auto max-w-2xl rounded border border-black/10 bg-black/[0.02] p-2 text-sm text-black/50">
@@ -339,7 +346,7 @@ export function PathAndFeaturesStep({
                       <>
                         <label className="text-sm">
                           Grade:
-                          <input
+                          <TextField
                             type="number"
                             min={1}
                             max={f.maxGrade}
@@ -350,7 +357,7 @@ export function PathAndFeaturesStep({
                                 Math.max(1, parseInt(e.target.value, 10) || 1)
                               )
                             }
-                            className="ml-1 w-14 rounded border border-black/30 px-1 py-0.5 text-sm"
+                            className="ml-1 !w-14 !min-h-8 px-1 py-0.5 text-sm"
                           />
                         </label>
                         <Button

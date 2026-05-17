@@ -9,6 +9,15 @@ const getReferenceEntriesMock = vi.fn();
 const createReferenceEntryMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/referenceEntry", () => ({
   getReferenceEntries: getReferenceEntriesMock,
@@ -30,6 +39,7 @@ function requestWithSearch(search: string, userId = "user-1") {
 describe("/api/reference-entries route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   describe("GET", () => {
@@ -236,6 +246,29 @@ describe("/api/reference-entries route handlers", () => {
         id: "r-1",
         title: "World",
       });
+      expect(createReferenceEntryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: "WORLD",
+          slug: "world",
+          title: "World",
+          protectedFromOfficialImport: true,
+        })
+      );
+    });
+
+    it("returns 403 for global entries when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/reference-entries/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest({
+          category: "WORLD",
+          slug: "world",
+          title: "World",
+        })
+      );
+      expect(response.status).toBe(403);
+      expect(createReferenceEntryMock).not.toHaveBeenCalled();
     });
 
     it("returns 201 for scoped entries created by the GM", async () => {

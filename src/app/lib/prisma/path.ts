@@ -1,5 +1,9 @@
 import { prisma } from "./client";
-import type { Prisma } from "@prisma/client";
+import type { PathName, Prisma } from "@prisma/client";
+
+export async function findPathByName(name: PathName) {
+  return prisma.path.findFirst({ where: { name } });
+}
 
 export async function createPath(data: Prisma.PathCreateInput) {
   return prisma.path.create({ data });

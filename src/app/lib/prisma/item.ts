@@ -10,9 +10,17 @@ import { prisma } from "./client";
 
 type ItemUpdateParsed = z.infer<typeof itemUpdateSchema>;
 
-export async function createItem(data: ParsedItem) {
+export async function createItem(
+  data: ParsedItem,
+  options?: { officialCatalogueWrite?: boolean }
+) {
   const row = await prisma.item.create({
-    data: mapParsedItemToPrismaCreate(data),
+    data: {
+      ...mapParsedItemToPrismaCreate(data),
+      ...(options?.officialCatalogueWrite
+        ? { protectedFromOfficialImport: true }
+        : {}),
+    },
   });
   return mapPrismaItemToApi(row);
 }
@@ -27,10 +35,19 @@ export async function getItems() {
   return rows.map(mapPrismaItemToApi);
 }
 
-export async function updateItem(id: string, data: ItemUpdateParsed) {
+export async function updateItem(
+  id: string,
+  data: ItemUpdateParsed,
+  options?: { officialCatalogueWrite?: boolean }
+) {
   const row = await prisma.item.update({
     where: { id },
-    data: mapItemUpdateParsedToPrisma(data),
+    data: {
+      ...mapItemUpdateParsedToPrisma(data),
+      ...(options?.officialCatalogueWrite
+        ? { protectedFromOfficialImport: true }
+        : {}),
+    },
   });
   return mapPrismaItemToApi(row);
 }

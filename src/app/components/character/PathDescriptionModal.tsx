@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import type { Path } from "@/app/lib/types/path";
 export interface PathDescriptionModalProps {
   path: Path;
@@ -39,11 +40,12 @@ export function PathDescriptionModal({
           </Button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
-          {path.description && (
-            <p className="text-sm leading-relaxed text-paleBlue">
-              {path.description}
-            </p>
-          )}
+          {path.description ? (
+            <StoredRichTextHtml
+              content={path.description}
+              className="text-sm leading-relaxed text-paleBlue"
+            />
+          ) : null}
         </div>
       </div>
     </div>

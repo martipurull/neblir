@@ -17,6 +17,7 @@ import { useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import type { UseFormSetError } from "react-hook-form";
 import type { z } from "zod";
+import { TextArea } from "@/app/components/shared/TextArea";
 import TextInput from "@/app/components/shared/TextInput";
 
 function setZodErrorsOnForm(
@@ -105,12 +106,12 @@ function CreateGameFormContent() {
         <label htmlFor="game.premise" className="block font-bold text-black">
           Premise
         </label>
-        <textarea
+        <TextArea
           id="game.premise"
           {...register("game.premise")}
           placeholder="Brief description or premise of the game"
           rows={4}
-          className="mt-1 min-h-24 w-full rounded-md px-3 py-2 bg-paleBlue focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+          className="mt-1 min-h-24"
         />
       </div>
       <ImageUploadDropzone

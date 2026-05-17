@@ -35,8 +35,16 @@ import {
   csvRowToItemModifierPatch,
   normalizeItemNameKey,
 } from "./uploadItemsFromCSV";
+import { parseOfficialImportArgv } from "./officialImportCli";
 
 const prisma = new PrismaClient();
+
+function itemImportWouldOverwriteProtectedRow(
+  existing: { protectedFromOfficialImport: boolean } | null,
+  forceOfficialImport: boolean
+): boolean {
+  return Boolean(existing?.protectedFromOfficialImport && !forceOfficialImport);
+}
 
 const itemRowWithOptionalIdSchema = itemSchema.and(
   z.object({ id: z.string().optional() })
@@ -100,12 +108,13 @@ function parseJsonRows(raw: string): FullItemRow[] {
 }
 
 async function main() {
-  const args = process.argv.slice(2).filter((v) => v !== "--");
-  const dryRun = args.includes("--dry-run");
-  const csvPath = args.find((v) => !v.startsWith("--"));
+  const { dryRun, forceOfficialImport, positional } = parseOfficialImportArgv(
+    process.argv.slice(2)
+  );
+  const csvPath = positional[0];
   if (!csvPath) {
     console.error(
-      "Usage: npx tsx prisma/scripts/upsertItemsFromFile.ts <path-to-items.csv|json> [--dry-run]"
+      "Usage: npx tsx prisma/scripts/upsertItemsFromFile.ts <path-to-items.csv|json> [--dry-run] [--force-official-import]"
     );
     process.exit(1);
   }
@@ -118,6 +127,8 @@ async function main() {
 
   let fullUpserts = 0;
   let patches = 0;
+  let skippedProtectedFull = 0;
+  let skippedProtectedPatch = 0;
   const ext = path.extname(resolvedPath).toLowerCase();
   if (ext === ".json") {
     const fullRows = parseJsonRows(fs.readFileSync(resolvedPath, "utf8"));
@@ -131,8 +142,18 @@ async function main() {
       if (idFromRow?.trim()) {
         const existing = await prisma.item.findUnique({
           where: { id: idFromRow.trim() },
+          select: { id: true, protectedFromOfficialImport: true },
         });
         if (existing) {
+          if (
+            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
+          ) {
+            console.warn(
+              `[skip] Item id "${idFromRow.trim()}" is protected from official import (use --force-official-import to overwrite).`
+            );
+            skippedProtectedFull += 1;
+            continue;
+          }
           await prisma.item.update({
             where: { id: idFromRow.trim() },
             data: { ...createData },
@@ -146,8 +167,22 @@ async function main() {
         const nameKey = normalizeItemNameKey(itemPayload.name);
         const existing = await prisma.item.findFirst({
           where: { name: itemPayload.name.trim() },
+          select: {
+            id: true,
+            name: true,
+            protectedFromOfficialImport: true,
+          },
         });
         if (existing && normalizeItemNameKey(existing.name) === nameKey) {
+          if (
+            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
+          ) {
+            console.warn(
+              `[skip] Item "${itemPayload.name}" is protected from official import (use --force-official-import to overwrite).`
+            );
+            skippedProtectedFull += 1;
+            continue;
+          }
           await prisma.item.update({
             where: { id: existing.id },
             data: { ...createData },
@@ -159,7 +194,7 @@ async function main() {
       fullUpserts++;
     }
     console.log(
-      `Done. JSON full upserts: ${fullUpserts}, modifier patches: 0, items: ${fullRows.length}.`
+      `Done. JSON full upserts: ${fullUpserts}, skippedProtectedFull: ${skippedProtectedFull}, modifier patches: 0, items: ${fullRows.length}.`
     );
     return;
   }
@@ -210,8 +245,18 @@ async function main() {
       if (idFromRow?.trim()) {
         const existing = await prisma.item.findUnique({
           where: { id: idFromRow.trim() },
+          select: { id: true, protectedFromOfficialImport: true },
         });
         if (existing) {
+          if (
+            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
+          ) {
+            console.warn(
+              `[skip] Item id "${idFromRow.trim()}" is protected from official import (use --force-official-import to overwrite).`
+            );
+            skippedProtectedFull += 1;
+            continue;
+          }
           await prisma.item.update({
             where: { id: idFromRow.trim() },
             data: { ...createData },
@@ -225,8 +270,22 @@ async function main() {
         const nameKey = normalizeItemNameKey(itemPayload.name);
         const existing = await prisma.item.findFirst({
           where: { name: itemPayload.name.trim() },
+          select: {
+            id: true,
+            name: true,
+            protectedFromOfficialImport: true,
+          },
         });
         if (existing && normalizeItemNameKey(existing.name) === nameKey) {
+          if (
+            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
+          ) {
+            console.warn(
+              `[skip] Item "${itemPayload.name}" is protected from official import (use --force-official-import to overwrite).`
+            );
+            skippedProtectedFull += 1;
+            continue;
+          }
           await prisma.item.update({
             where: { id: existing.id },
             data: { ...createData },
@@ -260,18 +319,33 @@ async function main() {
     const id = p.id?.trim();
     let targetId: string | null = null;
     if (id) {
-      const found = await prisma.item.findUnique({ where: { id } });
+      const found = await prisma.item.findUnique({
+        where: { id },
+        select: { id: true, protectedFromOfficialImport: true },
+      });
       if (!found) {
         console.error(
           `Row ${rowIndex}: no Item with id ${id}. Use a full row to create.`
         );
         process.exit(1);
       }
+      if (itemImportWouldOverwriteProtectedRow(found, forceOfficialImport)) {
+        console.warn(
+          `[skip] Modifier patch for item id "${id}" skipped (protected from official import; use --force-official-import).`
+        );
+        skippedProtectedPatch += 1;
+        continue;
+      }
       targetId = found.id;
     } else if (p.name?.trim()) {
       const nameKey = normalizeItemNameKey(p.name);
       const candidates = await prisma.item.findMany({
         where: { name: p.name.trim() },
+        select: {
+          id: true,
+          name: true,
+          protectedFromOfficialImport: true,
+        },
       });
       const found = candidates.find(
         (c) => normalizeItemNameKey(c.name) === nameKey
@@ -281,6 +355,13 @@ async function main() {
           `Row ${rowIndex}: no Item matched name "${p.name}". Use a full row to create.`
         );
         process.exit(1);
+      }
+      if (itemImportWouldOverwriteProtectedRow(found, forceOfficialImport)) {
+        console.warn(
+          `[skip] Modifier patch for item "${p.name}" skipped (protected from official import; use --force-official-import).`
+        );
+        skippedProtectedPatch += 1;
+        continue;
       }
       targetId = found.id;
     }
@@ -303,7 +384,7 @@ async function main() {
   }
 
   console.log(
-    `Done. Full upserts: ${fullUpserts}, modifier patches: ${patches}, data rows: ${rows.length}.`
+    `Done. Full upserts: ${fullUpserts}, skippedProtectedFull: ${skippedProtectedFull}, modifier patches: ${patches}, skippedProtectedPatch: ${skippedProtectedPatch}, data rows: ${rows.length}.`
   );
 }
 

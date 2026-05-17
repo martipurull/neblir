@@ -1,5 +1,7 @@
 "use client";
 
+import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
+import { NumberFieldStepperRail } from "@/app/components/shared/NumberFieldStepperRail";
 import { ModalFieldLabel } from "./ModalFieldLabel";
 import { modalNumberInputClass } from "./modalStyles";
 
@@ -18,55 +20,6 @@ export type ModalNumberFieldProps = {
   /** Appended to the number input class string. */
   inputClassName?: string;
 };
-
-function bumpValue(
-  raw: string,
-  direction: 1 | -1,
-  min?: number,
-  max?: number,
-  step = 1
-): string {
-  const trimmed = raw.trim();
-  let n = trimmed === "" ? 0 : Number(trimmed);
-  if (Number.isNaN(n)) {
-    n = 0;
-  }
-  let next = n + direction * step;
-  if (min != null) {
-    next = Math.max(min, next);
-  }
-  if (max != null) {
-    next = Math.min(max, next);
-  }
-  if (!Number.isInteger(step)) {
-    const decPart = step.toString().split(".")[1];
-    const decimals = decPart ? decPart.length : 1;
-    return Number(next.toFixed(decimals)).toString();
-  }
-  return String(Math.round(next));
-}
-
-function ChevronIcon({ up }: { up: boolean }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 12 12"
-      width={11}
-      height={11}
-      fill="none"
-      className="shrink-0"
-      aria-hidden
-    >
-      <path
-        d={up ? "M3 7.5 6 4.5 9 7.5" : "M3 4.5 6 7.5 9 4.5"}
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** Controlled number input for game modals (dark theme, ModalFieldLabel). */
 export function ModalNumberField({
@@ -87,7 +40,7 @@ export function ModalNumberField({
     .join(" ");
 
   const bump = (direction: 1 | -1) => {
-    onChange(bumpValue(value, direction, min, max, step));
+    onChange(bumpNumericFieldValue(value, direction, min, max, step));
   };
 
   return (
@@ -107,33 +60,12 @@ export function ModalNumberField({
           max={max}
           step={step}
         />
-        <div
-          className={
-            "absolute inset-y-px right-px z-[1] flex w-8 flex-col overflow-hidden rounded-r border-l border-white/25 bg-black/25 p-0.5 " +
-            (disabled ? "opacity-40" : "")
-          }
-        >
-          <button
-            type="button"
-            tabIndex={-1}
-            disabled={disabled}
-            aria-label={`Increase ${label}`}
-            className="flex flex-1 items-center justify-center rounded-sm text-white/75 transition hover:bg-paleBlue/15 hover:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-white/60 disabled:pointer-events-none"
-            onClick={() => bump(1)}
-          >
-            <ChevronIcon up />
-          </button>
-          <button
-            type="button"
-            tabIndex={-1}
-            disabled={disabled}
-            aria-label={`Decrease ${label}`}
-            className="flex flex-1 items-center justify-center rounded-sm text-white/75 transition hover:bg-paleBlue/15 hover:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-white/60 disabled:pointer-events-none"
-            onClick={() => bump(-1)}
-          >
-            <ChevronIcon up={false} />
-          </button>
-        </div>
+        <NumberFieldStepperRail
+          label={label}
+          disabled={disabled}
+          variant="dark"
+          onBump={bump}
+        />
       </div>
     </div>
   );

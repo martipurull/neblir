@@ -1,7 +1,9 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   createReferenceEntry,
   getReferenceEntries,
 } from "@/app/lib/prisma/referenceEntry";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import {
@@ -100,9 +102,18 @@ export const POST = auth(async (request: AuthNextRequest) => {
           403
         );
       }
+    } else if (!(await userIsSuperAdmin(userId))) {
+      return errorResponse("Forbidden", 403);
     }
 
-    const entry = await createReferenceEntry(parsedBody);
+    const entry = await createReferenceEntry({
+      ...parsedBody,
+      gameId: parsedBody.gameId ?? null,
+      protectedFromOfficialImport: !parsedBody.gameId,
+    });
+    if (!parsedBody.gameId) {
+      await touchStaffCatalogueDrift(["reference"]);
+    }
     return NextResponse.json(entry, { status: 201 });
   } catch (error) {
     const details = serializeError(error);

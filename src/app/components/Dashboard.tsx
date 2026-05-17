@@ -3,6 +3,7 @@
 import GameInvitesReceivedBlock from "@/app/components/games/GameInvitesReceivedBlock";
 import { useGameInvites } from "@/hooks/use-game-invites";
 import { useGames } from "@/hooks/use-games";
+import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -10,6 +11,7 @@ import React, { useState } from "react";
 const Dashboard: React.FC = () => {
   const { invites, mutate: mutateInvites } = useGameInvites();
   const { mutate: mutateGames } = useGames();
+  const { user } = useUser();
   const router = useRouter();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [decliningId, setDecliningId] = useState<string | null>(null);
@@ -51,6 +53,9 @@ const Dashboard: React.FC = () => {
     { label: "Mechanics", link: "/home/mechanics" },
     { label: "World", link: "/home/world" },
     { label: "Maps", link: "/home/maps" },
+    ...(user?.isSuperAdmin
+      ? [{ label: "Super admin", link: "/home/super-admin" } as const]
+      : []),
   ];
 
   return (

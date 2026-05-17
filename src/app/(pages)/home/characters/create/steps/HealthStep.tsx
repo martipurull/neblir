@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
 import Button from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 
 function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
@@ -196,7 +197,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             </p>
             <div className="flex items-center gap-2">
               <label className="text-sm text-black/60">Rolled total</label>
-              <input
+              <TextField
                 type="number"
                 max={maxRolled}
                 value={physicalInput}
@@ -217,7 +218,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   });
                   setPhysicalInput(String(safe));
                 }}
-                className="w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                className="!w-24 px-2 py-1 text-sm !min-h-9"
               />
               <span className="text-xs text-black/40">max {maxRolled}</span>
             </div>
@@ -265,7 +266,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             </p>
             <div className="flex items-center gap-2">
               <label className="text-sm text-black/60">Rolled total</label>
-              <input
+              <TextField
                 type="number"
                 max={maxRolled}
                 value={mentalInput}
@@ -286,7 +287,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   });
                   setMentalInput(String(safe));
                 }}
-                className="w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                className="!w-24 px-2 py-1 text-sm !min-h-9"
               />
               <span className="text-xs text-black/40">max {maxRolled}</span>
             </div>

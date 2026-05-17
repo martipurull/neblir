@@ -2,6 +2,7 @@
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
+import { TextField } from "@/app/components/shared/TextField";
 import { useMemo } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
@@ -154,15 +155,15 @@ export function LearnedSkillsStep() {
             name={`learnedSkills.specialSkills.${i}` as const}
             control={control}
             render={({ field }) => (
-              <input
+              <TextField
                 type="text"
                 {...field}
                 value={field.value ?? ""}
                 placeholder={`Special skill ${i + 1}`}
-                className={`mb-2 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover ${
+                className={`mb-2 text-sm ${
                   isOverAllocated
-                    ? "border-neblirDanger-600 bg-neblirDanger-50/50"
-                    : "border-black/20 bg-paleBlue"
+                    ? "!border-neblirDanger-600 bg-neblirDanger-50/50"
+                    : ""
                 }`}
               />
             )}

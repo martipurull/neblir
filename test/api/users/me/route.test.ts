@@ -34,11 +34,12 @@ describe("/api/users/me handlers", () => {
     expect(response.status).toBe(404);
   });
 
-  it("GET returns 200 with frontend-safe user payload", async () => {
+  it("GET returns 200 with isSuperAdmin true when role is SUPER_ADMIN", async () => {
     getUserMock.mockResolvedValue({
       id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
+      role: "SUPER_ADMIN",
       characters: [],
       games: [],
     });
@@ -51,6 +52,29 @@ describe("/api/users/me handlers", () => {
     await expect(response.json()).resolves.toEqual({
       name: "Taylor",
       email: "taylor@example.com",
+      isSuperAdmin: true,
+    });
+  });
+
+  it("GET returns 200 with frontend-safe user payload", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characters: [],
+      games: [],
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
     });
   });
 

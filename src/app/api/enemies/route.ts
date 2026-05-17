@@ -1,4 +1,6 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { createEnemy, getEnemies } from "@/app/lib/prisma/enemy";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
@@ -13,6 +15,10 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    if (!(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
     const requestBody = await request.json();
     const { data: parsedBody, error } =
       enemyCreateSchema.safeParse(requestBody);
@@ -24,7 +30,11 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const enemy = await createEnemy(parsedBody);
+    const enemy = await createEnemy({
+      ...parsedBody,
+      protectedFromOfficialImport: true,
+    });
+    await touchStaffCatalogueDrift(["enemies"]);
     return NextResponse.json(enemy, { status: 201 });
   } catch (error) {
     logger.error({

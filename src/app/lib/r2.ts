@@ -28,6 +28,7 @@ export const ALLOWED_UPLOAD_PREFIXES = [
   "unique_items-",
   "games-",
   "characters-",
+  "items-",
   "recaps-",
 ] as const;
 

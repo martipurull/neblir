@@ -34,6 +34,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
       {
         name: user.name,
         email: user.email,
+        isSuperAdmin: user.role === "SUPER_ADMIN",
       },
       { status: 200 }
     );

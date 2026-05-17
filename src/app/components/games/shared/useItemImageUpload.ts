@@ -8,7 +8,8 @@ export type ItemImageUploadType =
   | "custom_enemies"
   | "unique_items"
   | "games"
-  | "characters";
+  | "characters"
+  | "items";
 
 export function useItemImageUpload(type: ItemImageUploadType) {
   const [imageKey, setImageKey] = useState("");

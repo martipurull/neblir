@@ -7,6 +7,15 @@ import {
 
 const createEnemyMock = vi.fn();
 const getEnemiesMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/enemy", () => ({
   createEnemy: createEnemyMock,
@@ -16,6 +25,7 @@ vi.mock("@/app/lib/prisma/enemy", () => ({
 describe("/api/enemies route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   it("GET returns 401 when unauthenticated", async () => {
@@ -55,6 +65,23 @@ describe("/api/enemies route handlers", () => {
     expect(createEnemyMock).not.toHaveBeenCalled();
   });
 
+  it("POST returns 403 when not super admin", async () => {
+    userIsSuperAdminMock.mockResolvedValue(false);
+    const { POST } = await import("@/app/api/enemies/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        name: "Orc",
+        health: 20,
+        speed: 5,
+        initiativeModifier: 0,
+        numberOfReactions: 1,
+      })
+    );
+    expect(response.status).toBe(403);
+    expect(createEnemyMock).not.toHaveBeenCalled();
+  });
+
   it("POST returns 400 when body fails schema validation", async () => {
     const { POST } = await import("@/app/api/enemies/route");
     const response = await invokeRoute(POST, makeAuthedRequest({ name: "" }));
@@ -86,7 +113,10 @@ describe("/api/enemies route handlers", () => {
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toEqual(created);
     expect(createEnemyMock).toHaveBeenCalledWith(
-      expect.objectContaining(payload)
+      expect.objectContaining({
+        ...payload,
+        protectedFromOfficialImport: true,
+      })
     );
   });
 

@@ -11,6 +11,15 @@ const updateReferenceEntryMock = vi.fn();
 const deleteReferenceEntryMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/referenceEntry", () => ({
   getReferenceEntry: getReferenceEntryMock,
@@ -29,6 +38,7 @@ const gmEntry = { id: "r-1", gameId: "game-1", access: "GAME_MASTER" };
 describe("/api/reference-entries/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   describe("GET", () => {
@@ -260,9 +270,13 @@ describe("/api/reference-entries/[id] route handlers", () => {
       );
 
       expect(response.status).toBe(200);
-      expect(updateReferenceEntryMock).toHaveBeenCalledWith("r-1", {
-        title: "Updated",
-      });
+      expect(updateReferenceEntryMock).toHaveBeenCalledWith(
+        "r-1",
+        expect.objectContaining({
+          title: "Updated",
+          protectedFromOfficialImport: true,
+        })
+      );
     });
 
     it("returns 500 when update throws", async () => {

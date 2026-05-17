@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import { ModalFieldLabel } from "./ModalFieldLabel";
-import React from "react";
+import { useCallback, useRef } from "react";
 
 type ImageUploadDropzoneProps = {
   id: string;
@@ -18,6 +18,13 @@ type ImageUploadDropzoneProps = {
   variant?: "default" | "light";
 };
 
+/**
+ * Native file inputs must not use in-flow `sr-only` positioning: focusing them
+ * (via label htmlFor) scrolls the page and can inflate scroll height.
+ */
+const hiddenFileInputClassName =
+  "pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0";
+
 export function ImageUploadDropzone({
   id,
   label,
@@ -31,30 +38,58 @@ export function ImageUploadDropzone({
   variant = "default",
 }: ImageUploadDropzoneProps) {
   const isLight = variant === "light";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const labelId = `${id}-label`;
+  const inactive = disabled || uploading;
+
+  const openFilePicker = useCallback(() => {
+    if (inactive) return;
+    const scrollRoot =
+      fileInputRef.current?.closest("#app-scroll") ??
+      document.getElementById("app-scroll");
+    const scrollTop =
+      scrollRoot instanceof HTMLElement ? scrollRoot.scrollTop : 0;
+    fileInputRef.current?.click();
+    // Browsers may nudge scroll when the native picker opens; restore home scroll position.
+    requestAnimationFrame(() => {
+      if (scrollRoot instanceof HTMLElement) {
+        scrollRoot.scrollTop = scrollTop;
+      }
+    });
+  }, [inactive]);
+
+  const dropzoneClassName = isLight
+    ? "relative mt-1 overflow-hidden rounded-md border-2 border-dashed border-black/30 bg-black/5 p-4 transition-colors hover:border-black/50"
+    : "relative mt-1 overflow-hidden rounded border-2 border-dashed border-white/30 bg-paleBlue/5 p-4 transition-colors hover:border-white/50";
+
   return (
-    <section>
+    <section className="min-h-0">
       {isLight ? (
-        <label htmlFor={id} className="mb-1 block text-sm font-bold text-black">
+        <p id={labelId} className="mb-1 block text-sm font-bold text-black">
           {label}
-        </label>
+        </p>
       ) : (
-        <ModalFieldLabel id={id} label={label} required={false} />
+        <ModalFieldLabel
+          id={labelId}
+          label={label}
+          required={false}
+          associateControl={false}
+        />
       )}
       <div
         onDrop={onDrop}
         onDragOver={onDragOver}
-        className={
-          isLight
-            ? "mt-1 rounded-md border-2 border-dashed border-black/30 bg-black/5 p-4 transition-colors hover:border-black/50"
-            : "mt-1 rounded border-2 border-dashed border-white/30 bg-paleBlue/5 p-4 transition-colors hover:border-white/50"
-        }
+        className={dropzoneClassName}
       >
         <input
+          ref={fileInputRef}
           id={id}
           type="file"
           accept="image/jpeg,image/png,image/gif,image/webp"
-          className="sr-only"
-          disabled={disabled || uploading}
+          tabIndex={-1}
+          aria-hidden
+          className={hiddenFileInputClassName}
+          disabled={inactive}
           onChange={(e) => {
             const f = e.target.files?.[0];
             onFileChange(f ?? null);
@@ -79,28 +114,34 @@ export function ImageUploadDropzone({
               }
               fullWidth={false}
               onClick={() => onFileChange(null)}
-              disabled={disabled || uploading}
+              disabled={inactive}
             >
               Remove
             </Button>
           </div>
         ) : (
-          <label
-            htmlFor={id}
+          <button
+            type="button"
+            disabled={inactive}
+            aria-labelledby={labelId}
             className={
               isLight
-                ? "flex cursor-pointer flex-col items-center gap-1 text-center text-sm text-black/70 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-                : "flex cursor-pointer flex-col items-center gap-1 text-center text-sm text-white/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                ? "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-black/70 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                : "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-white/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             }
+            onClick={(e) => {
+              e.preventDefault();
+              openFilePicker();
+            }}
           >
             <span>
               {uploading
                 ? "Uploading…"
                 : "Drag an image here or click to browse"}
             </span>
-          </label>
+          </button>
         )}
-        {error && (
+        {error ? (
           <p
             className={
               isLight
@@ -110,7 +151,7 @@ export function ImageUploadDropzone({
           >
             {error}
           </p>
-        )}
+        ) : null}
       </div>
     </section>
   );

@@ -11,6 +11,15 @@ const updateMapMock = vi.fn();
 const deleteMapMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/map", () => ({
   getMap: getMapMock,
@@ -33,6 +42,7 @@ const globalMap = {
 describe("/api/maps/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   describe("GET", () => {
@@ -208,7 +218,13 @@ describe("/api/maps/[id] route handlers", () => {
       );
 
       expect(response.status).toBe(200);
-      expect(updateMapMock).toHaveBeenCalledWith("m-1", { name: "Updated" });
+      expect(updateMapMock).toHaveBeenCalledWith(
+        "m-1",
+        expect.objectContaining({
+          name: "Updated",
+          protectedFromOfficialImport: true,
+        })
+      );
     });
 
     it("returns 500 when update throws", async () => {

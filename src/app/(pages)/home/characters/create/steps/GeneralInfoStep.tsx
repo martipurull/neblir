@@ -1,8 +1,9 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import TextInput from "@/app/components/shared/TextInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { TextField } from "@/app/components/shared/TextField";
+import TextInput from "@/app/components/shared/TextInput";
 import NumberInput from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
@@ -233,7 +234,7 @@ export function GeneralInfoStep() {
               >
                 Height (cm)
               </label>
-              <input
+              <TextField
                 {...field}
                 id="generalInformation.height"
                 type="number"
@@ -248,7 +249,6 @@ export function GeneralInfoStep() {
                   const parsed = parseInt(raw, 10);
                   field.onChange(Number.isNaN(parsed) ? raw : parsed);
                 }}
-                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
               />
               <p className="mt-2 ml-1 text-xs text-black/70">
                 {HEIGHT_HELP_BY_RACE[selectedRace]}
@@ -267,7 +267,7 @@ export function GeneralInfoStep() {
               >
                 Weight (kg)
               </label>
-              <input
+              <TextField
                 {...field}
                 id="generalInformation.weight"
                 type="number"
@@ -282,7 +282,6 @@ export function GeneralInfoStep() {
                   const parsed = parseInt(raw, 10);
                   field.onChange(Number.isNaN(parsed) ? raw : parsed);
                 }}
-                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
               />
               <p className="mt-2 ml-1 text-xs text-black/70">
                 {WEIGHT_HELP_BY_RACE[selectedRace]}
@@ -378,7 +377,7 @@ export function GeneralInfoStep() {
                               )}
                             </span>
                           </span>
-                          <input
+                          <TextField
                             type="number"
                             min={0}
                             value={entry.quantity}
@@ -388,7 +387,7 @@ export function GeneralInfoStep() {
                                 Math.max(0, parseInt(e.target.value, 10) || 0)
                               )
                             }
-                            className="ml-auto w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-right text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                            className="ml-auto !w-24 shrink-0 py-1 text-right text-sm !min-h-9 px-2"
                           />
                           <Button
                             type="button"

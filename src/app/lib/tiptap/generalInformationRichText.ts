@@ -39,3 +39,13 @@ export function serializeEditorToStoredHtml(html: string): string {
   if (!text) return "";
   return t;
 }
+
+/** Read path/item rich text in the UI (HTML from TipTap or legacy plain string). */
+export function storedRichTextToDisplayHtml(
+  stored: string | null | undefined
+): string {
+  const s = stored?.trim() ?? "";
+  if (!s) return "";
+  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
+}

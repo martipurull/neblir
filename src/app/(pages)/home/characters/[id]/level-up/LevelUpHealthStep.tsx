@@ -1,5 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
 import Button from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 import { rollD10 } from "./character-helpers";
 import type { LevelUpFormValues } from "./types";
 
@@ -35,14 +36,14 @@ export default function LevelUpHealthStep({
         <div className="rounded border border-black/20 p-3">
           <p className="mb-2 font-medium">Physical health roll</p>
           <div className="flex items-center gap-2">
-            <input
+            <TextField
               type="number"
               min={1}
               max={10}
               {...form.register("rolledPhysicalHealth", {
                 valueAsNumber: true,
               })}
-              className="w-24 rounded border border-black/30 px-2 py-1"
+              className="!w-24 px-2 py-1 !min-h-9"
             />
             <Button
               type="button"
@@ -85,14 +86,14 @@ export default function LevelUpHealthStep({
         <div className="rounded border border-black/20 p-3">
           <p className="mb-2 font-medium">Mental health roll</p>
           <div className="flex items-center gap-2">
-            <input
+            <TextField
               type="number"
               min={1}
               max={10}
               {...form.register("rolledMentalHealth", {
                 valueAsNumber: true,
               })}
-              className="w-24 rounded border border-black/30 px-2 py-1"
+              className="!w-24 px-2 py-1 !min-h-9"
             />
             <Button
               type="button"

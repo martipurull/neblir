@@ -18,10 +18,13 @@ import path from "node:path";
 import { prisma } from "@/app/lib/prisma/client";
 import { parseCustomEnemyCsv, parseCustomEnemyJson } from "@/app/lib/enemyCsv";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
+import { parseOfficialImportArgv } from "./officialImportCli";
 
 async function main() {
-  const csvPath = process.argv[2];
-  const dryRun = process.argv.includes("--dry-run");
+  const { dryRun, forceOfficialImport, positional } = parseOfficialImportArgv(
+    process.argv.slice(2)
+  );
+  const csvPath = positional[0];
 
   if (!csvPath) {
     console.error(
@@ -54,6 +57,7 @@ async function main() {
 
   let created = 0;
   let updated = 0;
+  let skippedProtected = 0;
 
   for (const row of rows) {
     const parsed = enemyCreateSchema.safeParse(row);
@@ -65,10 +69,17 @@ async function main() {
     const enemy = parsed.data;
     const existing = await prisma.enemy.findUnique({
       where: { name: enemy.name },
-      select: { id: true },
+      select: { id: true, protectedFromOfficialImport: true },
     });
     if (dryRun) {
       console.log(`[dry-run] ${existing ? "update" : "create"} ${enemy.name}`);
+      continue;
+    }
+    if (existing?.protectedFromOfficialImport && !forceOfficialImport) {
+      console.warn(
+        `[skip] Enemy "${enemy.name}" is protected from official import (use --force-official-import to overwrite).`
+      );
+      skippedProtected += 1;
       continue;
     }
     await prisma.enemy.upsert({
@@ -85,7 +96,7 @@ async function main() {
     return;
   }
   console.log(
-    `Done. Upserted ${rows.length} enemy row(s) (created: ${created}, updated: ${updated}).`
+    `Done. Upserted ${rows.length} enemy row(s) (created: ${created}, updated: ${updated}, skippedProtected: ${skippedProtected}).`
   );
 }
 
