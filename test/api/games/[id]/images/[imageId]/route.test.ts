@@ -41,9 +41,8 @@ describe("DELETE /api/games/[id]/images/[imageId]", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { DELETE } = await import(
-      "@/app/api/games/[id]/images/[imageId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/games/[id]/images/[imageId]/route");
     const response = await invokeRoute(
       DELETE,
       makeUnauthedRequest(),
@@ -54,9 +53,8 @@ describe("DELETE /api/games/[id]/images/[imageId]", () => {
 
   it("returns 403 when requester is not GM", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
-    const { DELETE } = await import(
-      "@/app/api/games/[id]/images/[imageId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/games/[id]/images/[imageId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "u-1"),
@@ -72,9 +70,8 @@ describe("DELETE /api/games/[id]/images/[imageId]", () => {
       gameId: "g-1",
       imageKey: "games-ref-1.png",
     });
-    const { DELETE } = await import(
-      "@/app/api/games/[id]/images/[imageId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/games/[id]/images/[imageId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "gm-1"),

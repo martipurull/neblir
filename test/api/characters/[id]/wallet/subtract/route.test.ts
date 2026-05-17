@@ -35,9 +35,8 @@ describe("/api/characters/[id]/wallet/subtract POST", () => {
     subtractCharacterCurrencyMock.mockRejectedValue(
       new Error("CURRENCY_NOT_FOUND")
     );
-    const { POST } = await import(
-      "@/app/api/characters/[id]/wallet/subtract/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({}),
@@ -55,9 +54,8 @@ describe("/api/characters/[id]/wallet/subtract POST", () => {
     subtractCharacterCurrencyMock.mockRejectedValue(
       new Error("INSUFFICIENT_FUNDS")
     );
-    const { POST } = await import(
-      "@/app/api/characters/[id]/wallet/subtract/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({}),
@@ -73,9 +71,8 @@ describe("/api/characters/[id]/wallet/subtract POST", () => {
       error: undefined,
     });
     subtractCharacterCurrencyMock.mockRejectedValue(new Error("boom"));
-    const { POST } = await import(
-      "@/app/api/characters/[id]/wallet/subtract/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({}),
@@ -93,9 +90,8 @@ describe("/api/characters/[id]/wallet/subtract POST", () => {
     subtractCharacterCurrencyMock.mockResolvedValue([
       { currencyName: "CREDIT", quantity: 1 },
     ]);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/wallet/subtract/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({}),

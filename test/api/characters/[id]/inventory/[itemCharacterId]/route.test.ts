@@ -30,9 +30,8 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { DELETE } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       DELETE,
       makeUnauthedRequest(),
@@ -43,9 +42,8 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
 
   it("returns 403 when character does not belong to user", async () => {
     characterBelongsToUserMock.mockResolvedValue(false);
-    const { DELETE } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "user-1"),
@@ -57,9 +55,8 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
   it("returns 500 when deleteItemCharacter rejects", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteItemCharacterMock.mockRejectedValue(new Error("db fail"));
-    const { DELETE } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "user-1"),
@@ -72,9 +69,8 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     deleteItemCharacterMock.mockResolvedValue(undefined);
     getCharacterMock.mockResolvedValue(null);
-    const { DELETE } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "user-1"),

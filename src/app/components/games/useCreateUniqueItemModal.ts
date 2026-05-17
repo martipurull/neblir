@@ -123,9 +123,8 @@ export function useCreateUniqueItemModal({
         const data = await getItems();
         setGlobalItems(data);
       } else {
-        const { fetchGameCustomItemsForBrowse } = await import(
-          "@/lib/api/customItems"
-        );
+        const { fetchGameCustomItemsForBrowse } =
+          await import("@/lib/api/customItems");
         if (customTemplateGameIds.length === 0) {
           setCustomTemplateBrowseItems([]);
         } else {

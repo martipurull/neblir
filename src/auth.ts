@@ -1,11 +1,12 @@
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
 import { parseSuperAdminEmailSet } from "./app/lib/authz/superAdmin";
 import { createUser, getUserByEmail, updateUser } from "./app/lib/prisma/user";
 import type { AdapterUser } from "next-auth/adapters";
+import authConfig from "./auth.config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  ...authConfig,
+  session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, user }) {
       if (user && typeof user.email === "string") {
@@ -42,9 +43,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return session;
     },
-
-    // authorized: async ({ auth, request }) => {
-    //     return !!auth
-    // },
   },
 });

@@ -63,9 +63,8 @@ function minimalUniqueRow(
 
 describe("buildStandaloneResolvedItem", () => {
   it("maps name and weight from overrides", async () => {
-    const { buildStandaloneResolvedItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { buildStandaloneResolvedItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const row = minimalUniqueRow({
       id: "u-1",
       sourceType: "STANDALONE",
@@ -86,9 +85,8 @@ describe("buildStandaloneResolvedItem", () => {
   });
 
   it("uses Unknown item when name is blank after trim", async () => {
-    const { buildStandaloneResolvedItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { buildStandaloneResolvedItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const row = minimalUniqueRow({
       id: "u-2",
       sourceType: "STANDALONE",
@@ -99,9 +97,8 @@ describe("buildStandaloneResolvedItem", () => {
   });
 
   it("uses weight 0 when weightOverride is null", async () => {
-    const { buildStandaloneResolvedItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { buildStandaloneResolvedItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const row = minimalUniqueRow({
       id: "u-3",
       sourceType: "STANDALONE",
@@ -112,9 +109,8 @@ describe("buildStandaloneResolvedItem", () => {
   });
 
   it("includes equip slot types from JSON override when array", async () => {
-    const { buildStandaloneResolvedItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { buildStandaloneResolvedItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const row = minimalUniqueRow({
       id: "u-4",
       sourceType: "STANDALONE",
@@ -132,9 +128,8 @@ describe("buildStandaloneResolvedItem", () => {
 
 describe("prismaDataFromUniqueItemCreate", () => {
   it("omits itemId for STANDALONE", async () => {
-    const { prismaDataFromUniqueItemCreate } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { prismaDataFromUniqueItemCreate } =
+      await import("@/app/lib/prisma/uniqueItem");
     const data = prismaDataFromUniqueItemCreate("user-1", undefined, {
       sourceType: "STANDALONE",
       nameOverride: "A",
@@ -148,9 +143,8 @@ describe("prismaDataFromUniqueItemCreate", () => {
   });
 
   it("includes itemId for GLOBAL_ITEM", async () => {
-    const { prismaDataFromUniqueItemCreate } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { prismaDataFromUniqueItemCreate } =
+      await import("@/app/lib/prisma/uniqueItem");
     const data = prismaDataFromUniqueItemCreate("user-1", "g-1", {
       sourceType: "GLOBAL_ITEM",
       itemId: "item-xyz",
@@ -168,9 +162,8 @@ describe("getResolvedUniqueItem", () => {
 
   it("returns null when unique row is missing", async () => {
     uniqueItemFindUnique.mockResolvedValue(null);
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     await expect(getResolvedUniqueItem("missing")).resolves.toBeNull();
   });
 
@@ -182,9 +175,8 @@ describe("getResolvedUniqueItem", () => {
       weightOverride: 0.01,
     });
     uniqueItemFindUnique.mockResolvedValue(row);
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const out = await getResolvedUniqueItem("u-s");
     expect(out?.templateItem).toBeNull();
     expect(out?.resolvedItem).toMatchObject({
@@ -202,9 +194,8 @@ describe("getResolvedUniqueItem", () => {
       itemId: null,
     });
     uniqueItemFindUnique.mockResolvedValue(row);
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const out = await getResolvedUniqueItem("u-bad");
     expect(out?.templateItem).toBeNull();
     expect(out?.resolvedItem).toBeNull();
@@ -226,9 +217,8 @@ describe("getResolvedUniqueItem", () => {
       weight: 1,
       description: "Sharp",
     });
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const out = await getResolvedUniqueItem("u-g");
     expect(out?.templateItem).toEqual(
       expect.objectContaining({ id: "tpl-1", name: "Base knife" })
@@ -251,9 +241,8 @@ describe("getResolvedUniqueItem", () => {
     });
     uniqueItemFindUnique.mockResolvedValue(row);
     itemFindUnique.mockResolvedValue(null);
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const out = await getResolvedUniqueItem("u-g2");
     expect(out?.resolvedItem).toBeNull();
     expect(out?.templateItem).toBeNull();
@@ -271,9 +260,8 @@ describe("getResolvedUniqueItem", () => {
       name: "GM brew",
       weight: 0.5,
     });
-    const { getResolvedUniqueItem } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getResolvedUniqueItem } =
+      await import("@/app/lib/prisma/uniqueItem");
     const out = await getResolvedUniqueItem("u-c");
     expect(out?.templateItem).toEqual(
       expect.objectContaining({ id: "cust-1", name: "GM brew" })
@@ -299,9 +287,8 @@ describe("getUniqueItemsByGameId", () => {
         itemId: null,
       },
     ]);
-    const { getUniqueItemsByGameId } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getUniqueItemsByGameId } =
+      await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
     expect(list).toEqual([{ id: "a", name: "Shown" }]);
   });
@@ -315,9 +302,8 @@ describe("getUniqueItemsByGameId", () => {
         itemId: null,
       },
     ]);
-    const { getUniqueItemsByGameId } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getUniqueItemsByGameId } =
+      await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
     expect(list).toEqual([{ id: "b", name: "Unnamed item" }]);
   });
@@ -332,18 +318,16 @@ describe("getUniqueItemsByGameId", () => {
       },
     ]);
     itemFindUnique.mockResolvedValue({ name: "Rifle" });
-    const { getUniqueItemsByGameId } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getUniqueItemsByGameId } =
+      await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
     expect(list).toEqual([{ id: "c", name: "Rifle" }]);
   });
 
   it("passes ownerUserId filter into findMany when provided", async () => {
     uniqueItemFindMany.mockResolvedValue([]);
-    const { getUniqueItemsByGameId } = await import(
-      "@/app/lib/prisma/uniqueItem"
-    );
+    const { getUniqueItemsByGameId } =
+      await import("@/app/lib/prisma/uniqueItem");
     await getUniqueItemsByGameId("g-1", "user-99");
     expect(uniqueItemFindMany).toHaveBeenCalledWith(
       expect.objectContaining({

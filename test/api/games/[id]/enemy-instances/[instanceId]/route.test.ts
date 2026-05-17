@@ -41,9 +41,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
   describe("GET", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeUnauthedRequest(),
@@ -53,9 +52,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     });
 
     it("returns 400 when instanceId missing", async () => {
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "u-1"),
@@ -65,9 +63,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     });
 
     it("returns 400 when game id is empty", async () => {
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),
@@ -79,9 +76,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
     it("returns 404 when game does not exist", async () => {
       getGameMock.mockResolvedValue(null);
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),
@@ -94,9 +90,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 403 when user is not GM and not in game", async () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(false);
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "stranger"),
@@ -110,9 +105,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(true);
       getEnemyInstanceMock.mockResolvedValue(null);
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "player-1"),
@@ -125,9 +119,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(false);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "gm-1"),
@@ -144,9 +137,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         ...instanceRow,
         gameId: "other",
       });
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "player-1"),
@@ -159,9 +151,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(true);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "player-1"),
@@ -175,9 +166,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(true);
       getEnemyInstanceMock.mockRejectedValue(new Error("db"));
-      const { GET } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequest(undefined, "player-1"),
@@ -192,9 +182,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
   describe("PATCH", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeUnauthedRequest({}),
@@ -204,9 +193,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     });
 
     it("returns 400 when game id is empty", async () => {
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "x" }, "gm-1"),
@@ -218,9 +206,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
     it("returns 404 when game does not exist", async () => {
       getGameMock.mockResolvedValue(null);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "x" }, "gm-1"),
@@ -233,9 +220,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 404 when instance is unknown", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(null);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "x" }, "gm-1"),
@@ -251,9 +237,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         ...instanceRow,
         gameId: "other",
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "x" }, "gm-1"),
@@ -266,9 +251,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 400 when request body fails validation", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const emptyName = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "   " }, "gm-1"),
@@ -289,9 +273,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(true);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "Renamed" }, "player-1"),
@@ -303,9 +286,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 400 when currentHealth exceeds maxHealth", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ currentHealth: 999 }, "gm-1"),
@@ -318,9 +300,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 400 when currentHealth exceeds newly lowered maxHealth", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ maxHealth: 5, currentHealth: 7 }, "gm-1"),
@@ -333,9 +314,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 400 when reactionsRemaining exceeds cap", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ reactionsRemaining: 10 }, "gm-1"),
@@ -352,9 +332,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         ...instanceRow,
         name: "Renamed",
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "Renamed" }, "gm-1"),
@@ -370,9 +349,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
       updateEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({}, "gm-1"),
@@ -390,9 +368,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         maxHealth: 5,
         currentHealth: 5,
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ maxHealth: 5 }, "gm-1"),
@@ -413,9 +390,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         reactionsPerRound: 1,
         reactionsRemaining: 1,
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ reactionsPerRound: 1 }, "gm-1"),
@@ -437,9 +413,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         description: null,
         status: "DEFEATED",
       });
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest(
@@ -470,9 +445,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
       updateEnemyInstanceMock.mockRejectedValue(new Error("write fail"));
-      const { PATCH } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "X" }, "gm-1"),
@@ -487,9 +461,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
   describe("DELETE", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeUnauthedRequest(),
@@ -501,9 +474,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 403 when caller is not game master", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "player-1"),
@@ -514,9 +486,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     });
 
     it("returns 400 when game id is empty", async () => {
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -528,9 +499,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
     it("returns 404 when game does not exist", async () => {
       getGameMock.mockResolvedValue(null);
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -543,9 +513,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
     it("returns 404 when instance is unknown", async () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(null);
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -561,9 +530,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         ...instanceRow,
         gameId: "other",
       });
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -577,9 +545,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
       deleteEnemyInstanceMock.mockResolvedValue(undefined);
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),
@@ -593,9 +560,8 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       getGameMock.mockResolvedValue(gmGame);
       getEnemyInstanceMock.mockResolvedValue(instanceRow);
       deleteEnemyInstanceMock.mockRejectedValue(new Error("db"));
-      const { DELETE } = await import(
-        "@/app/api/games/[id]/enemy-instances/[instanceId]/route"
-      );
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
         DELETE,
         makeAuthedRequest(undefined, "gm-1"),

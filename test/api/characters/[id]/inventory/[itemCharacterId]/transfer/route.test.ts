@@ -47,9 +47,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeUnauthedRequest(),
@@ -60,9 +59,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
 
   it("returns 403 when character does not belong to user", async () => {
     belongsMock.mockResolvedValue(false);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 1 }, "user-1"),
@@ -80,9 +78,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
       sourceType: "GLOBAL_ITEM",
       itemId: "item-1",
     });
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 5 }, "user-1"),
@@ -95,9 +92,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
   it("returns 404 when inventory row missing", async () => {
     belongsMock.mockResolvedValue(true);
     findFirstMock.mockResolvedValue(null);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 1 }, "user-1"),
@@ -116,9 +112,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
       itemId: "item-1",
     });
     validateMock.mockResolvedValue({ message: "nope", status: 403 });
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 2 }, "user-1"),
@@ -140,9 +135,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
     performMock.mockRejectedValue(
       new InventoryTransferConflictError("Stack changed")
     );
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 1 }, "user-1"),
@@ -160,9 +154,8 @@ describe("POST /api/characters/[id]/inventory/[itemCharacterId]/transfer", () =>
       sourceType: "GLOBAL_ITEM",
       itemId: "item-1",
     });
-    const { POST } = await import(
-      "@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/transfer/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ toCharacterId: "char-2", quantity: 2 }, "user-1"),

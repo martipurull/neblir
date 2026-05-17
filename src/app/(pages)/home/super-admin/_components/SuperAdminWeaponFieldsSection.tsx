@@ -8,6 +8,7 @@ import {
 import type {
   Control,
   FieldValues,
+  Path,
   UseFormGetValues,
   UseFormRegister,
   UseFormSetValue,
@@ -51,47 +52,51 @@ export function SuperAdminWeaponFieldsSection<
   getValues,
   disabled,
 }: SuperAdminWeaponFieldsSectionProps<T>) {
-  const watchedRolls = useWatch({ control, name: "attackRoll" as never }) as
-    | WeaponAttackRollChoice[]
-    | undefined;
+  const attackRollField = "attackRoll" as Path<T>;
+  const damageTypesField = "damageTypes" as Path<T>;
+
+  const watchedRolls = useWatch({ control, name: attackRollField });
   const rolls: WeaponAttackRollChoice[] =
     Array.isArray(watchedRolls) && watchedRolls.length > 0
-      ? watchedRolls
+      ? (watchedRolls as WeaponAttackRollChoice[])
       : ["MELEE"];
 
   const toggleAttackRoll = (value: WeaponAttackRollChoice) => {
-    const cur = (getValues("attackRoll" as never) ??
-      []) as WeaponAttackRollChoice[];
+    const raw = getValues(attackRollField);
+    const cur: WeaponAttackRollChoice[] = Array.isArray(raw)
+      ? (raw as WeaponAttackRollChoice[])
+      : [];
     if (cur.includes(value)) {
       if (cur.length <= 1) return;
-      setValue("attackRoll" as never, cur.filter((x) => x !== value) as never, {
+      setValue(attackRollField, cur.filter((x) => x !== value) as never, {
         shouldValidate: true,
       });
     } else {
-      setValue("attackRoll" as never, [...cur, value] as never, {
+      setValue(attackRollField, [...cur, value] as never, {
         shouldValidate: true,
       });
     }
   };
 
   const toggleDamageType = (d: string) => {
-    const cur = (getValues("damageTypes" as never) ?? []) as string[];
+    const raw = getValues(damageTypesField);
+    const cur: string[] = Array.isArray(raw) ? (raw as string[]) : [];
     if (cur.includes(d)) {
       if (cur.length <= 1) return;
-      setValue("damageTypes" as never, cur.filter((x) => x !== d) as never, {
+      setValue(damageTypesField, cur.filter((x) => x !== d) as never, {
         shouldValidate: true,
       });
     } else {
-      setValue("damageTypes" as never, [...cur, d] as never, {
+      setValue(damageTypesField, [...cur, d] as never, {
         shouldValidate: true,
       });
     }
   };
 
-  const damageTypes =
-    (useWatch({ control, name: "damageTypes" as never }) as
-      | string[]
-      | undefined) ?? [];
+  const watchedDamageTypes = useWatch({ control, name: damageTypesField });
+  const damageTypes: string[] = Array.isArray(watchedDamageTypes)
+    ? (watchedDamageTypes as string[])
+    : [];
 
   return (
     <div className="mb-6 rounded-md border border-black/15 bg-paleBlue/25 p-4">

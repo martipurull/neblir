@@ -34,9 +34,8 @@ describe("/api/characters/[id]/general-info PATCH", () => {
       data: undefined,
       error: { issues: [{ message: "invalid general info" }] },
     });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/general-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/general-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
@@ -49,9 +48,8 @@ describe("/api/characters/[id]/general-info PATCH", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({ data: { name: "new" }, error: undefined });
     getCharacterMock.mockResolvedValue(null);
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/general-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/general-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
@@ -65,9 +63,8 @@ describe("/api/characters/[id]/general-info PATCH", () => {
     safeParseMock.mockReturnValue({ data: { name: "new" }, error: undefined });
     getCharacterMock.mockResolvedValue({ generalInformation: { name: "old" } });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/general-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/general-info/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest({}),
@@ -86,9 +83,8 @@ describe("/api/characters/[id]/general-info PATCH", () => {
       generalInformation: { name: "A", surname: "B" },
     });
     updateCharacterMock.mockResolvedValue({ id: "char-1" });
-    const { PATCH } = await import(
-      "@/app/api/characters/[id]/general-info/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/general-info/route");
     await invokeRoute(
       PATCH,
       makeAuthedRequest({ backstory: "<p>New backstory</p>" }),

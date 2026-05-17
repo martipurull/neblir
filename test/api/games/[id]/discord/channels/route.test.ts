@@ -24,9 +24,8 @@ describe("/api/games/[id]/discord/channels", () => {
 
   describe("GET", () => {
     it("returns 401 when unauthenticated", async () => {
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/channels/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/channels/route");
       const response = await invokeRoute(
         GET,
         {
@@ -40,9 +39,8 @@ describe("/api/games/[id]/discord/channels", () => {
 
     it("returns 400 when guildId query missing", async () => {
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/channels/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/channels/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequestWithUrl(
@@ -57,9 +55,8 @@ describe("/api/games/[id]/discord/channels", () => {
     it("returns 502 when Discord API throws", async () => {
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
       fetchChannelsMock.mockRejectedValue(new Error("Discord token invalid"));
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/channels/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/channels/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequestWithUrl(
@@ -80,9 +77,8 @@ describe("/api/games/[id]/discord/channels", () => {
           { id: "c2", name: "Lobby", channelType: 2 },
         ],
       });
-      const { GET } = await import(
-        "@/app/api/games/[id]/discord/channels/route"
-      );
+      const { GET } =
+        await import("@/app/api/games/[id]/discord/channels/route");
       const response = await invokeRoute(
         GET,
         makeAuthedRequestWithUrl(

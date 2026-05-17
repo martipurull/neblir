@@ -65,9 +65,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeUnauthedRequest(),
@@ -78,9 +77,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
 
   it("returns 403 when character is not owned", async () => {
     characterBelongsToUserMock.mockResolvedValue(false);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -100,9 +98,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   it("returns 404 when character does not exist", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getCharacterMock.mockResolvedValue(null);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -121,9 +118,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
 
   it("returns 400 when STANDALONE payload is invalid (missing name)", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -138,9 +134,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
 
   it("returns 400 when STANDALONE weight is negative", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -159,9 +154,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
 
   it("returns 201 for STANDALONE with name and weight and adds to inventory", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const body = {
       sourceType: "STANDALONE" as const,
       nameOverride: "Mysterious bracelet",
@@ -200,9 +194,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   it("returns 403 when STANDALONE includes gameId but user is not in that game", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     userIsInGameMock.mockResolvedValue(false);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -224,9 +217,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   it("returns 201 when STANDALONE includes gameId and user is in game", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     userIsInGameMock.mockResolvedValue(true);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -252,9 +244,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   it("returns 404 when GLOBAL_ITEM template is missing", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getItemMock.mockResolvedValue(null);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -270,9 +261,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
   it("returns 201 for GLOBAL_ITEM when template exists", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getItemMock.mockResolvedValue({ id: "item-1", name: "Knife" });
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -300,9 +290,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     getItemMock.mockResolvedValue({ id: "item-1", name: "Knife" });
     getEffectiveMaxUsesForUniqueCreateMock.mockResolvedValue(7);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -330,9 +319,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     getGameMock.mockResolvedValue({ id: "g-1" });
     userIsInGameMock.mockResolvedValue(false);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ sourceType: "CUSTOM_ITEM", itemId: "c-1" }, "user-1"),
@@ -347,9 +335,8 @@ describe("POST /api/characters/[id]/unique-items", () => {
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     getGameMock.mockResolvedValue({ id: "g-1" });
     userIsInGameMock.mockResolvedValue(true);
-    const { POST } = await import(
-      "@/app/api/characters/[id]/unique-items/route"
-    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-items/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ sourceType: "CUSTOM_ITEM", itemId: "c-1" }, "user-1"),

@@ -52,9 +52,8 @@ describe("POST /api/games/[id]/custom-enemies/from-official", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/from-official/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/from-official/route");
     const response = await invokeRoute(
       POST,
       makeUnauthedRequest({ enemyId: "e-1" }),
@@ -65,9 +64,8 @@ describe("POST /api/games/[id]/custom-enemies/from-official", () => {
 
   it("returns 403 when caller is not game master", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/from-official/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/from-official/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ enemyId: "e-1" }, "player-1"),
@@ -79,9 +77,8 @@ describe("POST /api/games/[id]/custom-enemies/from-official", () => {
   it("returns 404 when enemy does not exist", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     getEnemyMock.mockResolvedValue(null);
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/from-official/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/from-official/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ enemyId: "missing" }, "gm-1"),
@@ -94,9 +91,8 @@ describe("POST /api/games/[id]/custom-enemies/from-official", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     getEnemyMock.mockResolvedValue(enemy);
     createCustomEnemyMock.mockResolvedValue({ id: "ce-1", gameId: "g-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/from-official/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/from-official/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ enemyId: "e-1" }, "gm-1"),

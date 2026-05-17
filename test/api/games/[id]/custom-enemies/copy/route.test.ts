@@ -50,9 +50,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeUnauthedRequest({}),
@@ -62,9 +61,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
   });
 
   it("returns 400 when target game id is empty", async () => {
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -77,9 +75,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
   });
 
   it("returns 400 when user id is empty string on session", async () => {
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -95,9 +92,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
 
   it("returns 404 when target game not found", async () => {
     getGameMock.mockResolvedValueOnce(null);
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -111,9 +107,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
 
   it("returns 403 when caller is not target game master", async () => {
     getGameMock.mockResolvedValue({ id: "g-target", gameMaster: "gm-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -127,9 +122,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
 
   it("returns 400 when body fails zod validation", async () => {
     getGameMock.mockResolvedValue({ id: "g-target", gameMaster: "gm-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ sourceGameId: "" }, "gm-1"),
@@ -142,9 +136,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
 
   it("returns 400 when source and target game are the same", async () => {
     getGameMock.mockResolvedValue({ id: "g-same", gameMaster: "gm-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -162,9 +155,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
     getGameMock
       .mockResolvedValueOnce({ id: "g-target", gameMaster: "gm-1" })
       .mockResolvedValueOnce(null);
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -182,9 +174,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
     getGameMock
       .mockResolvedValueOnce({ id: "g-target", gameMaster: "gm-1" })
       .mockResolvedValueOnce({ id: "g-src", gameMaster: "someone-else" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -204,9 +195,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
       ...sourceEnemy,
       gameId: "wrong-game",
     });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -228,9 +218,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
       gameId: "g-target",
       name: sourceEnemy.name,
     });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
@@ -259,9 +248,8 @@ describe("POST /api/games/[id]/custom-enemies/copy", () => {
       .mockResolvedValueOnce({ id: "g-src", gameMaster: "gm-1" });
     getCustomEnemyMock.mockResolvedValue(sourceEnemy);
     createCustomEnemyMock.mockRejectedValue(new Error("db"));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/copy/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/copy/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
