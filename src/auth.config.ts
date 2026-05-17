@@ -3,7 +3,7 @@ import type { NextAuthConfig } from "next-auth";
 
 /**
  * Edge/proxy-safe Auth.js config (no Prisma or other Node-only imports).
- * Used by `proxy.ts` on Vercel; full DB callbacks live in `auth.ts`.
+ * Shared with `auth.ts`; keep this file free of Prisma / Node-only imports.
  * @see https://authjs.dev/getting-started/migrating-to-v5#edge-compatibility
  */
 export default {
