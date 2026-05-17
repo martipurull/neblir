@@ -1,13 +1,20 @@
-import { Suspense } from "react";
+import { auth } from "@/auth";
 import { BackButton } from "@/app/components/BackButton";
 import { HomeButton } from "@/app/components/HomeButton";
 import { SignOut } from "@/app/components/SignOut";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
-export default function HomeLayout({
+export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session) {
+    redirect("/signin");
+  }
+
   return (
     <>
       <main className="flex h-dvh flex-col overflow-hidden bg-transparent px-4 pb-6 pt-1 sm:px-8 sm:pb-8 sm:pt-3">
