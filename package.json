@@ -36,6 +36,7 @@
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
+    "@swc/helpers": "^0.5.20",
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/s3-request-presigner": "^3.937.0",
     "@prisma/client": "^6.19.0",
