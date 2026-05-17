@@ -1,0 +1,37 @@
+name: Deploy smoke test
+
+# Runs after Vercel (or any host) reports a successful deployment.
+# Catches runtime bundle failures (e.g. missing @swc/helpers) that `next build` does not.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL to smoke test (e.g. https://neblir.com)
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.deployment_status.state == 'success' &&
+        github.event.deployment_status.environment_url != ''
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve base URL
+        id: url
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "base=${{ inputs.base_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: HTTP smoke test
+        run: bash scripts/smoke-http.sh "${{ steps.url.outputs.base }}"
