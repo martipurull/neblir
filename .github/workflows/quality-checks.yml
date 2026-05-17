@@ -24,3 +24,28 @@ jobs:
       - run: npm run format:check
       - run: npm run test:file
       - run: npm run build
+
+      - name: Smoke test (production server boot)
+        env:
+          PORT: "3000"
+          HOSTNAME: "127.0.0.1"
+        run: |
+          npm run start &
+          SERVER_PID=$!
+          cleanup() { kill "$SERVER_PID" 2>/dev/null || true; }
+          trap cleanup EXIT
+
+          echo "Waiting for server..."
+          for i in $(seq 1 45); do
+            if curl -sf -o /dev/null --connect-timeout 2 "http://127.0.0.1:3000/signin"; then
+              echo "Server ready after ${i} attempt(s)"
+              break
+            fi
+            if [ "$i" -eq 45 ]; then
+              echo "Server did not become ready in time"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          bash scripts/smoke-http.sh "http://127.0.0.1:3000"

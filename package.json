@@ -32,6 +32,7 @@
     "data:seed:official": "tsx prisma/scripts/seedOfficialDataFromFiles.ts",
     "data:seed:official:dry-run": "tsx prisma/scripts/seedOfficialDataFromFiles.ts --dry-run",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",
+    "smoke:http": "bash scripts/smoke-http.sh",
     "prepare": "husky",
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
