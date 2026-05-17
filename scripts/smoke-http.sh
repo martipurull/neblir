@@ -30,12 +30,21 @@ fail() {
 
 fetch() {
   local path="$1"
+  local follow_redirects="${2:-0}"
   local out="$TMP_DIR/body"
+  local curl_args=(
+    -sS
+    -o "$out"
+    -w "%{http_code}"
+    --connect-timeout 10
+    --max-time 30
+  )
+  if [[ "$follow_redirects" == "1" ]]; then
+    curl_args+=(-L --max-redirs 10)
+  fi
   local code
   code="$(
-    curl -sS -o "$out" -w "%{http_code}" \
-      --connect-timeout 10 \
-      --max-time 30 \
+    curl "${curl_args[@]}" \
       "${CURL_VERCEL_ARGS[@]}" \
       "${BASE_URL}${path}"
   )" || fail "request failed for ${path}"
@@ -69,7 +78,8 @@ assert_status() {
   shift
   local allowed=("$@")
   local code
-  fetch "$path"
+  # Vercel bypass cookie setup returns 307 before the real page; follow to final response.
+  fetch "$path" 1
   code="$(cat "$TMP_DIR/code")"
   for ok in "${allowed[@]}"; do
     if [[ "$code" == "$ok" ]]; then
@@ -87,7 +97,7 @@ assert_status() {
 assert_not_5xx() {
   local path="$1"
   local code
-  fetch "$path"
+  fetch "$path" 1
   code="$(cat "$TMP_DIR/code")"
   if [[ "$code" =~ ^5 ]]; then
     assert_no_error_page "$path"
