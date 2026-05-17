@@ -31,10 +31,15 @@ describe("r2 helper", () => {
       expect(isDeletableUploadKey("unique_items-foo.jpeg")).toBe(true);
     });
 
+    it("returns true for keys starting with items- (official catalogue)", () => {
+      expect(isDeletableUploadKey("items-siike_gun.png")).toBe(true);
+      expect(isDeletableUploadKey("items-official_sword-abc12.png")).toBe(true);
+    });
+
     it("returns false for other key prefixes", () => {
-      expect(isDeletableUploadKey("items-siike_gun.png")).toBe(false);
       expect(isDeletableUploadKey("custom-items-old.png")).toBe(false);
       expect(isDeletableUploadKey("unique-items-old.png")).toBe(false);
+      expect(isDeletableUploadKey("enemies-bandit.png")).toBe(false);
     });
 
     it("returns true for keys starting with games- and characters-", () => {
