@@ -34,9 +34,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
   });
 
   it("GET returns 401 when unauthenticated", async () => {
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
     const response = await invokeRoute(
       GET,
       makeUnauthedRequest(),
@@ -47,9 +46,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
 
   it("GET returns 404 when game not found", async () => {
     getGameMock.mockResolvedValue(null);
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -62,9 +60,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-2" });
     userIsInGameMock.mockResolvedValue(true);
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
-    const { GET } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
 
     const response = await invokeRoute(
       GET,
@@ -81,9 +78,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
       error: { issues: [{ message: "bad payload" }] },
       data: undefined,
     });
-    const { PATCH } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
 
     const response = await invokeRoute(
       PATCH,
@@ -101,9 +97,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
       error: undefined,
     });
     updateCustomItemMock.mockResolvedValue({ id: "c-1", name: "updated" });
-    const { PATCH } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
 
     const response = await invokeRoute(
       PATCH,
@@ -117,9 +112,8 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     deleteCustomItemMock.mockResolvedValue(undefined);
-    const { DELETE } = await import(
-      "@/app/api/games/[id]/custom-items/[customItemId]/route"
-    );
+    const { DELETE } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
 
     const response = await invokeRoute(
       DELETE,

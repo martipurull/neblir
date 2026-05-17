@@ -34,9 +34,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeUnauthedRequest(),
@@ -49,9 +48,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
   it("returns 400 when game id is empty", async () => {
     const fd = new FormData();
     fd.set("file", csvBlob(`${header}\nX,,,1,1,0,0,0,0,0,0,0,0,0,,,,`));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -64,9 +62,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
     getGameMock.mockResolvedValue(null);
     const fd = new FormData();
     fd.set("file", csvBlob(`${header}\nX,,,1,1,0,0,0,0,0,0,0,0,0,,,,`));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -79,9 +76,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const fd = new FormData();
     fd.set("file", csvBlob(`${header}\nX,,,1,1,0,0,0,0,0,0,0,0,0,,,,`));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "player-1"),
@@ -93,9 +89,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
   it("returns 400 when file field is missing", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const fd = new FormData();
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -110,9 +105,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const fd = new FormData();
     fd.set("file", "not-a-blob");
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -125,9 +119,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const fd = new FormData();
     fd.set("file", csvBlob(`${header}\n,,,1,1,0,0,0,0,0,0,0,0,0,,,,`));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -149,9 +142,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
         `${customEnemyCsvHeaderLine()}\nAlpha,,,5,5,0,0,0,0,0,0,0,0,0,,,,,,\nBeta,,,5,5,0,0,0,0,0,0,0,0,0,,,,,,`
       )
     );
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -197,9 +189,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
     });
     const fd = new FormData();
     fd.set("file", csvBlob(`${customEnemyCsvHeaderLine()}\n${row}`));
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -225,9 +216,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
         `${header}\nGood,,,5,5,0,0,0,0,0,0,0,0,0,,,,\nBadName,,,-1,5,0,0,0,0,0,0,0,0,0,,,,`
       )
     );
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -252,9 +242,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
         `${header}\nFirst,,,5,5,0,0,0,0,0,0,0,0,0,,,,\nSecond,,,5,5,0,0,0,0,0,0,0,0,0,,,,`
       )
     );
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       makeAuthedFormDataRequest(fd, "gm-1"),
@@ -272,9 +261,8 @@ describe("POST /api/games/[id]/custom-enemies/import", () => {
 
   it("returns 500 when formData throws", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
-    const { POST } = await import(
-      "@/app/api/games/[id]/custom-enemies/import/route"
-    );
+    const { POST } =
+      await import("@/app/api/games/[id]/custom-enemies/import/route");
     const response = await invokeRoute(
       POST,
       {

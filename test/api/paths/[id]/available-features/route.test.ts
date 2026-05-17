@@ -23,9 +23,8 @@ describe("/api/paths/[id]/available-features GET", () => {
   });
 
   it("returns 401 when unauthenticated", async () => {
-    const { GET } = await import(
-      "@/app/api/paths/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/paths/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeUnauthedRequest(),
@@ -36,9 +35,8 @@ describe("/api/paths/[id]/available-features GET", () => {
 
   it("returns 404 when path does not exist", async () => {
     getPathMock.mockResolvedValue(null);
-    const { GET } = await import(
-      "@/app/api/paths/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/paths/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
@@ -50,9 +48,8 @@ describe("/api/paths/[id]/available-features GET", () => {
   it("returns 200 with available features", async () => {
     getPathMock.mockResolvedValue({ id: "p-1", name: "Scholar" });
     getAllFeaturesAvailableForPathMock.mockResolvedValue([{ id: "f-1" }]);
-    const { GET } = await import(
-      "@/app/api/paths/[id]/available-features/route"
-    );
+    const { GET } =
+      await import("@/app/api/paths/[id]/available-features/route");
     const response = await invokeRoute(
       GET,
       makeAuthedRequest(),
