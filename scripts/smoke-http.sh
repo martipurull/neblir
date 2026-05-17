@@ -15,12 +15,16 @@ TMP_DIR="${TMPDIR:-/tmp}/neblir-smoke-$$"
 mkdir -p "$TMP_DIR"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+CURL_COMMON=(
+  -sS
+  --connect-timeout 10
+  --max-time 30
+)
 CURL_VERCEL_ARGS=()
 if [[ -n "$VERCEL_BYPASS" ]]; then
-  CURL_VERCEL_ARGS+=(
-    -H "x-vercel-protection-bypass: ${VERCEL_BYPASS}"
-    -H "x-vercel-set-bypass-cookie: true"
-  )
+  # Header-only bypass (Vercel-recommended for CI). Do not send x-vercel-set-bypass-cookie
+  # on every request — it returns 307 and loops when combined with curl -L.
+  CURL_VERCEL_ARGS+=(-H "x-vercel-protection-bypass: ${VERCEL_BYPASS}")
 fi
 
 fail() {
@@ -30,21 +34,10 @@ fail() {
 
 fetch() {
   local path="$1"
-  local follow_redirects="${2:-0}"
   local out="$TMP_DIR/body"
-  local curl_args=(
-    -sS
-    -o "$out"
-    -w "%{http_code}"
-    --connect-timeout 10
-    --max-time 30
-  )
-  if [[ "$follow_redirects" == "1" ]]; then
-    curl_args+=(-L --max-redirs 10)
-  fi
   local code
   code="$(
-    curl "${curl_args[@]}" \
+    curl "${CURL_COMMON[@]}" -o "$out" -w "%{http_code}" \
       "${CURL_VERCEL_ARGS[@]}" \
       "${BASE_URL}${path}"
   )" || fail "request failed for ${path}"
@@ -56,6 +49,11 @@ is_vercel_deployment_protection_page() {
   grep -qE 'Authentication Required|requires Vercel authentication' "$TMP_DIR/last-body" 2>/dev/null
 }
 
+is_vercel_bypass_redirect_stub() {
+  [[ "$(cat "$TMP_DIR/code")" == "307" ]] &&
+    grep -qE '^Redirecting\.\.\.$' "$TMP_DIR/last-body" 2>/dev/null
+}
+
 assert_no_error_page() {
   local path="$1"
   local body="$TMP_DIR/last-body"
@@ -64,6 +62,9 @@ assert_no_error_page() {
       fail "Vercel Deployment Protection blocked ${path} (401). Add GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET from Vercel project settings → Deployment Protection → Protection Bypass for Automation."
     fi
     fail "Vercel Deployment Protection blocked ${path} despite bypass token — check VERCEL_AUTOMATION_BYPASS_SECRET is current and matches the project."
+  fi
+  if is_vercel_bypass_redirect_stub; then
+    fail "Vercel returned 307 Redirecting... for ${path}. Use header-only bypass (no x-vercel-set-bypass-cookie) or update smoke-http.sh."
   fi
   if grep -qE 'MIDDLEWARE_INVOCATION_FAILED|This page couldn'\''t load|500: INTERNAL_SERVER_ERROR' "$body" 2>/dev/null; then
     echo "--- response body (${path}) ---" >&2
@@ -78,8 +79,7 @@ assert_status() {
   shift
   local allowed=("$@")
   local code
-  # Vercel bypass cookie setup returns 307 before the real page; follow to final response.
-  fetch "$path" 1
+  fetch "$path"
   code="$(cat "$TMP_DIR/code")"
   for ok in "${allowed[@]}"; do
     if [[ "$code" == "$ok" ]]; then
@@ -97,7 +97,7 @@ assert_status() {
 assert_not_5xx() {
   local path="$1"
   local code
-  fetch "$path" 1
+  fetch "$path"
   code="$(cat "$TMP_DIR/code")"
   if [[ "$code" =~ ^5 ]]; then
     assert_no_error_page "$path"
