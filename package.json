@@ -36,7 +36,7 @@
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
-    "@swc/helpers": "^0.5.20",
+    "@swc/helpers": "0.5.15",
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/s3-request-presigner": "^3.937.0",
     "@prisma/client": "^6.19.0",
@@ -48,7 +48,7 @@
     "dotenv": "^16.4.7",
     "googleapis": "^169.0.0",
     "mongodb": "^6.15.0",
-    "next": "^16.2.6",
+    "next": "16.2.4",
     "next-auth": "^5.0.0-beta.25",
     "pino": "^10.1.0",
     "react": "19.2.4",
@@ -98,7 +98,6 @@
     "@typescript-eslint/visitor-keys": {
       "eslint-visitor-keys": "4.2.1"
     },
-    "effect": "^3.20.0",
-    "@swc/helpers": "^0.5.20"
+    "effect": "^3.20.0"
   }
 }
