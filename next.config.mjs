@@ -2,9 +2,13 @@ import { withSerwist } from "@serwist/turbopack";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Proxy bundles are file-traced separately on Vercel; ensure SWC runtime helpers ship.
+  // Proxy/middleware NFT traces CJS helpers by default; runtime may require ESM paths too.
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/@swc/helpers/**/*"],
+    "/middleware": [
+      "./node_modules/@swc/helpers/esm/**/*",
+      "./node_modules/@swc/helpers/cjs/**/*",
+      "./node_modules/@swc/helpers/package.json",
+    ],
   },
   images: {
     remotePatterns: [
