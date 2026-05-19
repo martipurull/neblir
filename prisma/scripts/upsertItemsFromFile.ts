@@ -2,8 +2,9 @@
  * Upsert global Item documents from CSV or JSON.
  *
  * - **Full row**: `type` is GENERAL_ITEM or WEAPON; all columns match the upload script.
- *   Optional `id` / `_id` column: update by that id, or insert with that id if missing.
- *   Without id, match by normalized name (same as JSON upsert).
+ *   Optional `id` / `_id` column: update by that id when present in the DB; if the id is
+ *   missing (e.g. seed from another environment), fall back to normalized name match before
+ *   insert. Without id, match by normalized name only.
  * - **Patch row**: omit `type` (or leave empty). Row must include `id`/`_id` or `name`;
  *   only `modifiesAttribute`, `attributeMod`, `modifiesSkill`, `skillMod` are applied
  *   when those columns are non-empty (others unchanged).
@@ -44,6 +45,83 @@ function itemImportWouldOverwriteProtectedRow(
   forceOfficialImport: boolean
 ): boolean {
   return Boolean(existing?.protectedFromOfficialImport && !forceOfficialImport);
+}
+
+type ExistingItemRow = {
+  id: string;
+  name: string;
+  protectedFromOfficialImport: boolean;
+};
+
+async function findExistingItemByName(
+  name: string
+): Promise<ExistingItemRow | null> {
+  const nameKey = normalizeItemNameKey(name);
+  const candidates = await prisma.item.findMany({
+    where: { name: name.trim() },
+    select: {
+      id: true,
+      name: true,
+      protectedFromOfficialImport: true,
+    },
+  });
+  return (
+    candidates.find((c) => normalizeItemNameKey(c.name) === nameKey) ?? null
+  );
+}
+
+/** Resolve an existing row by id, else by normalized name (cross-env seed safe). */
+async function resolveExistingItemForFullUpsert(
+  idFromRow: string | undefined,
+  itemName: string
+): Promise<ExistingItemRow | null> {
+  if (idFromRow?.trim()) {
+    const byId = await prisma.item.findUnique({
+      where: { id: idFromRow.trim() },
+      select: {
+        id: true,
+        name: true,
+        protectedFromOfficialImport: true,
+      },
+    });
+    if (byId) return byId;
+  }
+  return findExistingItemByName(itemName);
+}
+
+async function upsertFullItemFromRow(options: {
+  idFromRow: string | undefined;
+  itemPayload: Omit<FullItemRow, "id">;
+  createData: ReturnType<typeof mapParsedItemToPrismaCreate>;
+  forceOfficialImport: boolean;
+}): Promise<"created" | "updated" | "skippedProtected"> {
+  const existing = await resolveExistingItemForFullUpsert(
+    options.idFromRow,
+    options.itemPayload.name
+  );
+  if (existing) {
+    if (
+      itemImportWouldOverwriteProtectedRow(
+        existing,
+        options.forceOfficialImport
+      )
+    ) {
+      return "skippedProtected";
+    }
+    await prisma.item.update({
+      where: { id: existing.id },
+      data: { ...options.createData },
+    });
+    return "updated";
+  }
+  if (options.idFromRow?.trim()) {
+    await prisma.item.create({
+      data: { ...options.createData, id: options.idFromRow.trim() },
+    });
+  } else {
+    await prisma.item.create({ data: options.createData });
+  }
+  return "created";
 }
 
 const itemRowWithOptionalIdSchema = itemSchema.and(
@@ -139,57 +217,21 @@ async function main() {
     for (const fullItem of fullRows) {
       const { id: idFromRow, ...itemPayload } = fullItem;
       const createData = mapParsedItemToPrismaCreate(itemPayload);
-      if (idFromRow?.trim()) {
-        const existing = await prisma.item.findUnique({
-          where: { id: idFromRow.trim() },
-          select: { id: true, protectedFromOfficialImport: true },
-        });
-        if (existing) {
-          if (
-            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
-          ) {
-            console.warn(
-              `[skip] Item id "${idFromRow.trim()}" is protected from official import (use --force-official-import to overwrite).`
-            );
-            skippedProtectedFull += 1;
-            continue;
-          }
-          await prisma.item.update({
-            where: { id: idFromRow.trim() },
-            data: { ...createData },
-          });
-        } else {
-          await prisma.item.create({
-            data: { ...createData, id: idFromRow.trim() },
-          });
-        }
-      } else {
-        const nameKey = normalizeItemNameKey(itemPayload.name);
-        const existing = await prisma.item.findFirst({
-          where: { name: itemPayload.name.trim() },
-          select: {
-            id: true,
-            name: true,
-            protectedFromOfficialImport: true,
-          },
-        });
-        if (existing && normalizeItemNameKey(existing.name) === nameKey) {
-          if (
-            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
-          ) {
-            console.warn(
-              `[skip] Item "${itemPayload.name}" is protected from official import (use --force-official-import to overwrite).`
-            );
-            skippedProtectedFull += 1;
-            continue;
-          }
-          await prisma.item.update({
-            where: { id: existing.id },
-            data: { ...createData },
-          });
-        } else {
-          await prisma.item.create({ data: createData });
-        }
+      const result = await upsertFullItemFromRow({
+        idFromRow,
+        itemPayload,
+        createData,
+        forceOfficialImport,
+      });
+      if (result === "skippedProtected") {
+        const label = idFromRow?.trim()
+          ? `id "${idFromRow.trim()}"`
+          : `"${itemPayload.name}"`;
+        console.warn(
+          `[skip] Item ${label} is protected from official import (use --force-official-import to overwrite).`
+        );
+        skippedProtectedFull += 1;
+        continue;
       }
       fullUpserts++;
     }
@@ -241,58 +283,21 @@ async function main() {
 
       const { id: idFromRow, ...itemPayload } = full.data;
       const createData = mapParsedItemToPrismaCreate(itemPayload);
-
-      if (idFromRow?.trim()) {
-        const existing = await prisma.item.findUnique({
-          where: { id: idFromRow.trim() },
-          select: { id: true, protectedFromOfficialImport: true },
-        });
-        if (existing) {
-          if (
-            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
-          ) {
-            console.warn(
-              `[skip] Item id "${idFromRow.trim()}" is protected from official import (use --force-official-import to overwrite).`
-            );
-            skippedProtectedFull += 1;
-            continue;
-          }
-          await prisma.item.update({
-            where: { id: idFromRow.trim() },
-            data: { ...createData },
-          });
-        } else {
-          await prisma.item.create({
-            data: { ...createData, id: idFromRow.trim() },
-          });
-        }
-      } else {
-        const nameKey = normalizeItemNameKey(itemPayload.name);
-        const existing = await prisma.item.findFirst({
-          where: { name: itemPayload.name.trim() },
-          select: {
-            id: true,
-            name: true,
-            protectedFromOfficialImport: true,
-          },
-        });
-        if (existing && normalizeItemNameKey(existing.name) === nameKey) {
-          if (
-            itemImportWouldOverwriteProtectedRow(existing, forceOfficialImport)
-          ) {
-            console.warn(
-              `[skip] Item "${itemPayload.name}" is protected from official import (use --force-official-import to overwrite).`
-            );
-            skippedProtectedFull += 1;
-            continue;
-          }
-          await prisma.item.update({
-            where: { id: existing.id },
-            data: { ...createData },
-          });
-        } else {
-          await prisma.item.create({ data: createData });
-        }
+      const result = await upsertFullItemFromRow({
+        idFromRow,
+        itemPayload,
+        createData,
+        forceOfficialImport,
+      });
+      if (result === "skippedProtected") {
+        const label = idFromRow?.trim()
+          ? `id "${idFromRow.trim()}"`
+          : `"${itemPayload.name}"`;
+        console.warn(
+          `[skip] Item ${label} is protected from official import (use --force-official-import to overwrite).`
+        );
+        skippedProtectedFull += 1;
+        continue;
       }
       fullUpserts++;
       continue;

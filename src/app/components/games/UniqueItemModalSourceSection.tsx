@@ -3,6 +3,7 @@
 import Button from "@/app/components/shared/Button";
 import { ItemTemplatePeekModal } from "@/app/components/games/ItemTemplatePeekModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
@@ -78,25 +79,16 @@ export function UniqueItemModalSourceSection({ f }: Props) {
                 disabled={f.submitting}
               />
             </div>
-            <div>
-              <ModalFieldLabel
-                id="standalone-unique-weight"
-                label="Weight (kg)"
-                required
-              />
-              <input
-                id="standalone-unique-weight"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="any"
-                value={f.weightOverride}
-                onChange={(e) => f.setWeightOverride(e.target.value)}
-                className={modalInputClass}
-                placeholder="0"
-                disabled={f.submitting}
-              />
-            </div>
+            <ModalNumberField
+              id="standalone-unique-weight"
+              label="Weight (kg)"
+              value={f.weightOverride}
+              onChange={f.setWeightOverride}
+              disabled={f.submitting}
+              min={0}
+              step={0.1}
+              placeholder="0"
+            />
           </div>
         ) : (
           <>

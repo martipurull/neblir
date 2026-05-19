@@ -1,4 +1,6 @@
+import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { UniqueItemEquippableOverrideFields } from "@/app/components/games/shared/UniqueItemEquippableOverrideFields";
@@ -18,6 +20,10 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           ? "Extra details (all optional)"
           : "Overrides (all optional)"}
       </h3>
+      <p className="mb-3 text-xs text-white/55">
+        Description, usage, and notes overrides use rich text (stored as HTML),
+        same as global catalogue items.
+      </p>
       <div className="space-y-3">
         {!standalone && (
           <div>
@@ -33,43 +39,30 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
             />
           </div>
         )}
-        <div>
-          <ModalFieldLabel
-            id="unique-desc-override"
-            label="Description override"
-          />
-          <textarea
-            id="unique-desc-override"
-            value={f.descriptionOverride}
-            onChange={(e) => f.setDescriptionOverride(e.target.value)}
-            className={modalInputClass + " min-h-[60px]"}
-            placeholder="Override description"
-            disabled={f.submitting}
-            rows={2}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id="unique-usage-override" label="Usage override" />
-          <textarea
-            id="unique-usage-override"
-            value={f.usageOverride}
-            onChange={(e) => f.setUsageOverride(e.target.value)}
-            className={modalInputClass + " min-h-[60px]"}
-            disabled={f.submitting}
-            rows={2}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id="unique-notes-override" label="Notes override" />
-          <textarea
-            id="unique-notes-override"
-            value={f.notesOverride}
-            onChange={(e) => f.setNotesOverride(e.target.value)}
-            className={modalInputClass + " min-h-[60px]"}
-            disabled={f.submitting}
-            rows={2}
-          />
-        </div>
+        <GameModalRichTextField
+          id="unique-desc-override"
+          label="Description override"
+          value={f.descriptionOverride}
+          onChange={f.setDescriptionOverride}
+          disabled={f.submitting}
+          syncKey={f.richTextSyncKey}
+        />
+        <GameModalRichTextField
+          id="unique-usage-override"
+          label="Usage override"
+          value={f.usageOverride}
+          onChange={f.setUsageOverride}
+          disabled={f.submitting}
+          syncKey={f.richTextSyncKey}
+        />
+        <GameModalRichTextField
+          id="unique-notes-override"
+          label="Notes override"
+          value={f.notesOverride}
+          onChange={f.setNotesOverride}
+          disabled={f.submitting}
+          syncKey={f.richTextSyncKey}
+        />
         <div>
           <ModalFieldLabel id="unique-special-tag" label="Special tag" />
           <input
@@ -88,38 +81,26 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           }
         >
           {!standalone && (
-            <div>
-              <ModalFieldLabel
-                id="unique-weight-override"
-                label="Weight override"
-              />
-              <input
-                id="unique-weight-override"
-                type="number"
-                min={0}
-                step={0.1}
-                value={f.weightOverride}
-                onChange={(e) => f.setWeightOverride(e.target.value)}
-                className={modalInputClass}
-                disabled={f.submitting}
-              />
-            </div>
-          )}
-          <div>
-            <ModalFieldLabel
-              id="unique-conf-cost-override"
-              label="Conf cost override"
-            />
-            <input
-              id="unique-conf-cost-override"
-              type="number"
-              min={0}
-              value={f.confCostOverride}
-              onChange={(e) => f.setConfCostOverride(e.target.value)}
-              className={modalInputClass}
+            <ModalNumberField
+              id="unique-weight-override"
+              label="Weight override"
+              value={f.weightOverride}
+              onChange={f.setWeightOverride}
               disabled={f.submitting}
+              required={false}
+              min={0}
+              step={0.1}
             />
-          </div>
+          )}
+          <ModalNumberField
+            id="unique-conf-cost-override"
+            label="Conf cost override"
+            value={f.confCostOverride}
+            onChange={f.setConfCostOverride}
+            disabled={f.submitting}
+            required={false}
+            min={0}
+          />
         </div>
         <div>
           <ModalFieldLabel

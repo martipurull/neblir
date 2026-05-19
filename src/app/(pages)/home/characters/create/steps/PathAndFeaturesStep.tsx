@@ -3,8 +3,8 @@
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import Button from "@/app/components/shared/Button";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { TextField } from "@/app/components/shared/TextField";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -312,24 +312,23 @@ export function PathAndFeaturesStep({
                     {desc.trim().length > 0 && (
                       <div className="w-full">
                         <div
-                          className="mt-1 text-xs text-black/70"
-                          style={{
-                            maxHeight: isExpandedDesc ? 96 : 48,
-                            overflowY: isExpandedDesc ? "auto" : "hidden",
-                          }}
+                          className={`mt-1 whitespace-pre-wrap text-xs text-black/70 ${
+                            isExpandedDesc ? "" : "max-h-12 overflow-hidden"
+                          }`}
                         >
                           {desc}
                         </div>
 
-                        <Button
-                          type="button"
-                          variant="lightLinkSubtle"
-                          fullWidth={false}
-                          onClick={() => toggleExpandedDescription(f.id)}
-                          disabled={!(desc.trim().length > 120)}
-                        >
-                          {isExpandedDesc ? "Show less" : "Show more"}
-                        </Button>
+                        {desc.trim().length > 120 && (
+                          <Button
+                            type="button"
+                            variant="lightLinkSubtle"
+                            fullWidth={false}
+                            onClick={() => toggleExpandedDescription(f.id)}
+                          >
+                            {isExpandedDesc ? "Show less" : "Show more"}
+                          </Button>
+                        )}
                       </div>
                     )}
                     {!sel ? (
@@ -344,20 +343,22 @@ export function PathAndFeaturesStep({
                       </Button>
                     ) : (
                       <>
-                        <label className="text-sm">
+                        <label className="flex items-center gap-1 text-sm">
                           Grade:
-                          <TextField
-                            type="number"
+                          <NumberField
+                            id={`feature-grade-${f.id}`}
                             min={1}
                             max={f.maxGrade}
                             value={sel.grade}
-                            onChange={(e) =>
+                            stepperLabel={`${f.name} grade`}
+                            onChange={(raw) =>
                               setFeatureGrade(
                                 f.id,
-                                Math.max(1, parseInt(e.target.value, 10) || 1)
+                                Math.max(1, parseInt(raw, 10) || 1)
                               )
                             }
-                            className="ml-1 !w-14 !min-h-8 px-1 py-0.5 text-sm"
+                            className="!w-14 !min-h-8"
+                            inputClassName="px-1 py-0.5 text-sm"
                           />
                         </label>
                         <Button

@@ -45,7 +45,7 @@ export function NumberFieldStepperRail({
   return (
     <div
       className={
-        `absolute inset-y-px right-px z-[1] flex w-8 flex-col overflow-hidden rounded-r border-l p-0.5 ${railClass} ` +
+        `absolute inset-y-0 right-0 z-[1] flex w-8 flex-col border-l p-0.5 ${railClass} ` +
         (disabled ? "opacity-40" : "")
       }
     >

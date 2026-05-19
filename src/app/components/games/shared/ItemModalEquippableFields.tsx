@@ -1,6 +1,6 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { EQUIP_SLOTS } from "./itemModalConstants";
 
 type Props = {
@@ -52,37 +52,28 @@ export function ItemModalEquippableFields({
               ))}
             </div>
           </div>
-          <div>
-            <ModalFieldLabel
-              id="custom-item-equip-slot-cost"
-              label="Equip slot cost (0, 1, or 2)"
-            />
-            <input
-              id="custom-item-equip-slot-cost"
-              type="number"
-              min={0}
-              max={2}
-              value={equipSlotCost}
-              onChange={(e) => onEquipSlotCostChange(e.target.value)}
-              className={modalInputClass}
-              disabled={disabled}
-            />
-          </div>
+          <ModalNumberField
+            id="custom-item-equip-slot-cost"
+            label="Equip slot cost (0, 1, or 2)"
+            value={equipSlotCost}
+            onChange={onEquipSlotCostChange}
+            disabled={disabled}
+            required={false}
+            min={0}
+            max={2}
+          />
         </>
       )}
-      <div>
-        <ModalFieldLabel id="custom-item-max-uses" label="Max uses" />
-        <input
-          id="custom-item-max-uses"
-          type="number"
-          min={1}
-          value={maxUses}
-          onChange={(e) => onMaxUsesChange(e.target.value)}
-          className={modalInputClass}
-          placeholder="Leave empty for unlimited"
-          disabled={disabled}
-        />
-      </div>
+      <ModalNumberField
+        id="custom-item-max-uses"
+        label="Max uses"
+        value={maxUses}
+        onChange={onMaxUsesChange}
+        disabled={disabled}
+        required={false}
+        min={1}
+        placeholder="Leave empty for unlimited"
+      />
     </div>
   );
 }

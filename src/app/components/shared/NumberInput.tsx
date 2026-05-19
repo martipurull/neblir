@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  bumpNumericFieldValue,
-  coerceNumericFieldValue,
-} from "@/app/components/shared/bumpNumericFieldValue";
-import { NumberFieldStepperRail } from "@/app/components/shared/NumberFieldStepperRail";
-import { sharedNumberInputClassName } from "@/app/components/shared/inputStyles";
+import { coerceNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { Controller, useFormContext } from "react-hook-form";
 
 export interface NumberInputProps {
@@ -48,10 +44,6 @@ export default function NumberInput({
 }: NumberInputProps) {
   const { control } = useFormContext();
 
-  const inputClass = [sharedNumberInputClassName, inputClassName]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <div className={`mb-6 ${className}`.trim()}>
       <label htmlFor={name} className="mb-1 block font-bold text-black">
@@ -71,40 +63,26 @@ export default function NumberInput({
             field.onChange(coerceNumericFieldValue(raw, parseAs, min, max));
           };
 
-          const bump = (direction: 1 | -1) => {
-            setFromRaw(
-              bumpNumericFieldValue(displayValue, direction, min, max, step)
-            );
-          };
-
           return (
-            <div className="relative">
-              <input
-                ref={field.ref}
-                name={field.name}
-                id={name}
-                type="number"
-                inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
-                value={displayValue}
-                onChange={(e) => setFromRaw(e.target.value)}
-                onBlur={(e) => {
-                  field.onBlur();
-                  setFromRaw(e.target.value);
-                }}
-                className={inputClass}
-                disabled={disabled}
-                placeholder={placeholder}
-                min={min}
-                max={max}
-                step={step}
-              />
-              <NumberFieldStepperRail
-                label={label}
-                disabled={disabled}
-                variant="light"
-                onBump={bump}
-              />
-            </div>
+            <NumberField
+              ref={field.ref}
+              id={name}
+              name={field.name}
+              value={displayValue}
+              onChange={setFromRaw}
+              onBlur={(e) => {
+                field.onBlur();
+                setFromRaw(e.target.value);
+              }}
+              disabled={disabled}
+              placeholder={placeholder}
+              min={min}
+              max={max}
+              step={step}
+              variant="light"
+              stepperLabel={label}
+              inputClassName={inputClassName}
+            />
           );
         }}
       />

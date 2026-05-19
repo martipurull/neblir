@@ -40,6 +40,12 @@ export function serializeEditorToStoredHtml(html: string): string {
   return t;
 }
 
+/** Persist rich text when non-empty; omit field when blank (API optional fields). */
+export function optionalStoredRichHtml(html: string): string | undefined {
+  const persisted = serializeEditorToStoredHtml(html.trim());
+  return persisted || undefined;
+}
+
 /** Read path/item rich text in the UI (HTML from TipTap or legacy plain string). */
 export function storedRichTextToDisplayHtml(
   stored: string | null | undefined

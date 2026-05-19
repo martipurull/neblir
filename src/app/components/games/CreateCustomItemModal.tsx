@@ -1,5 +1,6 @@
 "use client";
 
+import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
@@ -92,43 +93,35 @@ export default function CreateCustomItemModal({
         <h3 className="mb-3 text-sm font-semibold text-white/90">
           Description &amp; usage
         </h3>
+        <p className="mb-3 text-xs text-white/55">
+          Description, usage, and notes use the same rich text editor as global
+          catalogue items (stored as HTML).
+        </p>
         <div className="space-y-3">
-          <div>
-            <ModalFieldLabel id="custom-item-description" label="Description" />
-            <textarea
-              id="custom-item-description"
-              value={f.description}
-              onChange={(e) => f.setDescription(e.target.value)}
-              className={modalInputClass + " min-h-[80px]"}
-              placeholder="Item description"
-              disabled={f.submitting}
-              rows={3}
-            />
-          </div>
-          <div>
-            <ModalFieldLabel id="custom-item-usage" label="Usage" />
-            <textarea
-              id="custom-item-usage"
-              value={f.usage}
-              onChange={(e) => f.setUsage(e.target.value)}
-              className={modalInputClass + " min-h-[80px]"}
-              placeholder="e.g. One use per round"
-              disabled={f.submitting}
-              rows={3}
-            />
-          </div>
-          <div>
-            <ModalFieldLabel id="custom-item-notes" label="Notes" />
-            <input
-              id="custom-item-notes"
-              type="text"
-              value={f.notes}
-              onChange={(e) => f.setNotes(e.target.value)}
-              className={modalInputClass}
-              placeholder="GM notes"
-              disabled={f.submitting}
-            />
-          </div>
+          <GameModalRichTextField
+            id="custom-item-description"
+            label="Description"
+            value={f.description}
+            onChange={f.setDescription}
+            disabled={f.submitting}
+            syncKey={f.richTextSyncKey}
+          />
+          <GameModalRichTextField
+            id="custom-item-usage"
+            label="Usage"
+            value={f.usage}
+            onChange={f.setUsage}
+            disabled={f.submitting}
+            syncKey={f.richTextSyncKey}
+          />
+          <GameModalRichTextField
+            id="custom-item-notes"
+            label="Notes"
+            value={f.notes}
+            onChange={f.setNotes}
+            disabled={f.submitting}
+            syncKey={f.richTextSyncKey}
+          />
           <div>
             <ModalFieldLabel id="custom-item-cost-info" label="Cost info" />
             <input

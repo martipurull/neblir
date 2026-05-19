@@ -2,7 +2,7 @@
 
 import type { z } from "zod";
 import React, { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { UseFormSetError } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
@@ -46,6 +46,8 @@ const STEPS = [
 
 export function useCharacterCreateController() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const freshStart = searchParams.get("fresh") === "1";
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -56,8 +58,13 @@ export function useCharacterCreateController() {
   const { getValues, setError, clearErrors } =
     useFormContext<CharacterCreationRequest>();
 
-  // Restore step index on refresh.
+  // Restore step index when resuming a draft (page refresh). Skip on ?fresh=1 so we
+  // do not jump ahead before CreateCharacterPageClient clears localStorage.
   React.useEffect(() => {
+    if (freshStart) {
+      setCurrentStepIndex(0);
+      return;
+    }
     try {
       const raw = window.localStorage.getItem(CREATE_CHARACTER_STEP_DRAFT_KEY);
       if (!raw) return;
@@ -74,10 +81,11 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-  }, []);
+  }, [freshStart]);
 
   // Persist current step index.
   React.useEffect(() => {
+    if (freshStart) return;
     try {
       window.localStorage.setItem(
         CREATE_CHARACTER_STEP_DRAFT_KEY,
@@ -86,10 +94,14 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-  }, [currentStepIndex]);
+  }, [currentStepIndex, freshStart]);
 
   // Rehydrate feature selection on refresh.
   React.useEffect(() => {
+    if (freshStart) {
+      setInitialFeatures([]);
+      return;
+    }
     try {
       const raw = window.localStorage.getItem(
         CREATE_CHARACTER_FEATURES_DRAFT_KEY
@@ -109,10 +121,11 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-  }, []);
+  }, [freshStart]);
 
   // Persist feature selection whenever it changes.
   React.useEffect(() => {
+    if (freshStart) return;
     try {
       window.localStorage.setItem(
         CREATE_CHARACTER_FEATURES_DRAFT_KEY,
@@ -121,7 +134,7 @@ export function useCharacterCreateController() {
     } catch {
       // ignore
     }
-  }, [initialFeatures]);
+  }, [initialFeatures, freshStart]);
 
   const scrollToTop = () => {
     const el = document.getElementById("app-scroll");

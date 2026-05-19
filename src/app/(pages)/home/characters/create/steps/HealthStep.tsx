@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
 import Button from "@/app/components/shared/Button";
-import { TextField } from "@/app/components/shared/TextField";
+import { NumberField } from "@/app/components/shared/NumberField";
 
 function rollD10(): number {
   return Math.floor(Math.random() * 10) + 1;
@@ -197,13 +197,12 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             </p>
             <div className="flex items-center gap-2">
               <label className="text-sm text-black/60">Rolled total</label>
-              <TextField
-                type="number"
+              <NumberField
+                id="health-rolled-physical"
                 max={maxRolled}
                 value={physicalInput}
-                onChange={(e) => {
-                  setPhysicalInput(e.target.value);
-                }}
+                stepperLabel="Rolled physical HP"
+                onChange={setPhysicalInput}
                 onBlur={() => {
                   const next = Number.parseInt(physicalInput, 10);
                   if (Number.isNaN(next)) {
@@ -218,7 +217,8 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   });
                   setPhysicalInput(String(safe));
                 }}
-                className="!w-24 px-2 py-1 text-sm !min-h-9"
+                className="!w-24 !min-h-9"
+                inputClassName="px-2 py-1 text-sm"
               />
               <span className="text-xs text-black/40">max {maxRolled}</span>
             </div>
@@ -266,13 +266,12 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
             </p>
             <div className="flex items-center gap-2">
               <label className="text-sm text-black/60">Rolled total</label>
-              <TextField
-                type="number"
+              <NumberField
+                id="health-rolled-mental"
                 max={maxRolled}
                 value={mentalInput}
-                onChange={(e) => {
-                  setMentalInput(e.target.value);
-                }}
+                stepperLabel="Rolled mental HP"
+                onChange={setMentalInput}
                 onBlur={() => {
                   const next = Number.parseInt(mentalInput, 10);
                   if (Number.isNaN(next)) {
@@ -287,7 +286,8 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   });
                   setMentalInput(String(safe));
                 }}
-                className="!w-24 px-2 py-1 text-sm !min-h-9"
+                className="!w-24 !min-h-9"
+                inputClassName="px-2 py-1 text-sm"
               />
               <span className="text-xs text-black/40">max {maxRolled}</span>
             </div>

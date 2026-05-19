@@ -1,6 +1,6 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { EQUIP_SLOTS } from "./itemModalConstants";
 
@@ -80,40 +80,28 @@ export function UniqueItemEquippableOverrideFields({
               ))}
             </div>
           </div>
-          <div>
-            <ModalFieldLabel
-              id="unique-equip-slot-cost-override"
-              label="Equip slot cost (0–2)"
-            />
-            <input
-              id="unique-equip-slot-cost-override"
-              type="number"
-              min={0}
-              max={2}
-              value={equipSlotCostOverride}
-              onChange={(e) => onEquipSlotCostOverrideChange(e.target.value)}
-              className={modalInputClass}
-              disabled={disabled}
-            />
-          </div>
+          <ModalNumberField
+            id="unique-equip-slot-cost-override"
+            label="Equip slot cost (0–2)"
+            value={equipSlotCostOverride}
+            onChange={onEquipSlotCostOverrideChange}
+            disabled={disabled}
+            required={false}
+            min={0}
+            max={2}
+          />
         </>
       )}
-      <div>
-        <ModalFieldLabel
-          id="unique-max-uses-override"
-          label="Max uses override"
-        />
-        <input
-          id="unique-max-uses-override"
-          type="number"
-          min={1}
-          value={maxUsesOverride}
-          onChange={(e) => onMaxUsesOverrideChange(e.target.value)}
-          className={modalInputClass}
-          placeholder="Leave empty to use template"
-          disabled={disabled}
-        />
-      </div>
+      <ModalNumberField
+        id="unique-max-uses-override"
+        label="Max uses override"
+        value={maxUsesOverride}
+        onChange={onMaxUsesOverrideChange}
+        disabled={disabled}
+        required={false}
+        min={1}
+        placeholder="Leave empty to use template"
+      />
     </>
   );
 }

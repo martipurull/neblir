@@ -1,8 +1,12 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
+import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
+import { useImageUrls } from "@/hooks/use-image-urls";
+import Image from "next/image";
+import { useMemo } from "react";
 
 type Props = {
   item: ItemBrowseDetailFields | null;
@@ -11,6 +15,18 @@ type Props = {
 
 /** Compact template preview above the create-unique modal (mobile-friendly bottom sheet on small screens). */
 export function ItemTemplatePeekModal({ item, onClose }: Props) {
+  const itemImageKey = item?.imageKey ?? null;
+  const imageEntries = useMemo(
+    () =>
+      item && itemImageKey
+        ? [{ id: `template-peek-${item.id}`, imageKey: itemImageKey }]
+        : [],
+    [item, itemImageKey]
+  );
+  const imageUrls = useImageUrls(imageEntries);
+  const itemImageUrl =
+    item && itemImageKey ? imageUrls[`template-peek-${item.id}`] : null;
+
   if (!item) return null;
 
   return (
@@ -26,13 +42,29 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-paleBlue/30 sm:hidden" />
-        <div className="flex shrink-0 items-start justify-between gap-2 border-b border-white/20 px-4 pb-3 pt-2 sm:pt-3">
+        <div className="flex shrink-0 items-start gap-3 border-b border-white/20 px-4 pb-3 pt-2 sm:pt-3">
           <h2
             id="template-peek-title"
-            className="min-w-0 pr-2 text-base font-semibold leading-snug text-white"
+            className="min-w-0 flex-1 text-base font-semibold leading-snug text-white"
           >
             {item.name}
           </h2>
+          {itemImageKey ? (
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+              {itemImageUrl ? (
+                <Image
+                  src={itemImageUrl}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 object-cover object-center"
+                  unoptimized
+                />
+              ) : itemImageUrl === undefined ? (
+                <ImageLoadingSkeleton variant="item" />
+              ) : null}
+            </div>
+          ) : null}
           <Button
             type="button"
             variant="modalClose"

@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/shared/Button";
 import InfoCard from "@/app/components/shared/InfoCard";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
@@ -26,13 +27,10 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
     rollResult,
     canRoll,
     setDiceTypeAndClearResult,
-    decreaseDiceCount,
-    increaseDiceCount,
     applyDiceCountFromInput,
     handleAdvancedDiceOptionChange,
     handleEnableAdvancedDice,
     handleReturnToQuickDice,
-    adjustCustomSidesBy,
     applyCustomSidesFromInput,
     tryExecuteRoll,
   } = useGeneralDiceRollerState();
@@ -63,36 +61,16 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm font-semibold text-black">
           Number of dice
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="modalIconStepper"
-              fullWidth={false}
-              onClick={decreaseDiceCount}
-              aria-label="Decrease number of dice"
-            >
-              -
-            </Button>
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={diceCount}
-              onChange={(event) => {
-                applyDiceCountFromInput(event.target.value);
-              }}
-              className="min-h-11 w-20 rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-center text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
-            />
-            <Button
-              type="button"
-              variant="modalIconStepper"
-              fullWidth={false}
-              onClick={increaseDiceCount}
-              aria-label="Increase number of dice"
-            >
-              +
-            </Button>
-          </div>
+          <NumberField
+            id="gm-dice-count"
+            min={1}
+            step={1}
+            value={String(diceCount)}
+            onChange={applyDiceCountFromInput}
+            className="min-h-11 w-20"
+            inputClassName="text-center"
+            stepperLabel="Number of dice"
+          />
         </label>
 
         <div className="flex flex-col gap-2 text-sm font-semibold text-black">
@@ -139,34 +117,16 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
 
               {advancedDiceOption === "custom" ? (
                 <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="modalIconStepper"
-                    fullWidth={false}
-                    onClick={() => adjustCustomSidesBy(-1)}
-                    aria-label="Decrease custom dice sides"
-                  >
-                    -
-                  </Button>
-                  <input
-                    type="number"
+                  <NumberField
+                    id="gm-dice-custom-sides"
                     min={2}
                     step={1}
-                    value={customSides}
-                    onChange={(event) => {
-                      applyCustomSidesFromInput(event.target.value);
-                    }}
-                    className="min-h-11 w-24 rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-center text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                    value={String(customSides)}
+                    onChange={applyCustomSidesFromInput}
+                    className="min-h-11 w-24"
+                    inputClassName="text-center"
+                    stepperLabel="Custom dice sides"
                   />
-                  <Button
-                    type="button"
-                    variant="modalIconStepper"
-                    fullWidth={false}
-                    onClick={() => adjustCustomSidesBy(1)}
-                    aria-label="Increase custom dice sides"
-                  >
-                    +
-                  </Button>
                   <span className="text-xs text-black/70">custom sides</span>
                 </div>
               ) : null}

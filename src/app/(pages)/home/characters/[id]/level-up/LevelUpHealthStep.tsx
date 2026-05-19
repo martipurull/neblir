@@ -1,6 +1,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import Button from "@/app/components/shared/Button";
-import { TextField } from "@/app/components/shared/TextField";
+import { NumberField } from "@/app/components/shared/NumberField";
+import { Controller } from "react-hook-form";
 import { rollD10 } from "./character-helpers";
 import type { LevelUpFormValues } from "./types";
 
@@ -36,14 +37,29 @@ export default function LevelUpHealthStep({
         <div className="rounded border border-black/20 p-3">
           <p className="mb-2 font-medium">Physical health roll</p>
           <div className="flex items-center gap-2">
-            <TextField
-              type="number"
-              min={1}
-              max={10}
-              {...form.register("rolledPhysicalHealth", {
-                valueAsNumber: true,
-              })}
-              className="!w-24 px-2 py-1 !min-h-9"
+            <Controller
+              name="rolledPhysicalHealth"
+              control={form.control}
+              render={({ field }) => (
+                <NumberField
+                  id="level-up-rolled-physical"
+                  min={1}
+                  max={10}
+                  value={
+                    field.value === undefined || field.value === null
+                      ? ""
+                      : String(field.value)
+                  }
+                  stepperLabel="Physical health roll"
+                  onChange={(raw) => {
+                    const n = parseInt(raw, 10);
+                    field.onChange(Number.isNaN(n) ? undefined : n);
+                  }}
+                  onBlur={field.onBlur}
+                  className="!w-24 !min-h-9"
+                  inputClassName="px-2 py-1"
+                />
+              )}
             />
             <Button
               type="button"
@@ -86,14 +102,29 @@ export default function LevelUpHealthStep({
         <div className="rounded border border-black/20 p-3">
           <p className="mb-2 font-medium">Mental health roll</p>
           <div className="flex items-center gap-2">
-            <TextField
-              type="number"
-              min={1}
-              max={10}
-              {...form.register("rolledMentalHealth", {
-                valueAsNumber: true,
-              })}
-              className="!w-24 px-2 py-1 !min-h-9"
+            <Controller
+              name="rolledMentalHealth"
+              control={form.control}
+              render={({ field }) => (
+                <NumberField
+                  id="level-up-rolled-mental"
+                  min={1}
+                  max={10}
+                  value={
+                    field.value === undefined || field.value === null
+                      ? ""
+                      : String(field.value)
+                  }
+                  stepperLabel="Mental health roll"
+                  onChange={(raw) => {
+                    const n = parseInt(raw, 10);
+                    field.onChange(Number.isNaN(n) ? undefined : n);
+                  }}
+                  onBlur={field.onBlur}
+                  className="!w-24 !min-h-9"
+                  inputClassName="px-2 py-1"
+                />
+              )}
             />
             <Button
               type="button"

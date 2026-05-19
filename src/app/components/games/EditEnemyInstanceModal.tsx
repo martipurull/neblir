@@ -5,6 +5,7 @@ import { ModalShell } from "@/app/components/shared/ModalShell";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {
   modalInputClass,
   modalSelectClass,
@@ -204,91 +205,57 @@ export function EditEnemyInstanceModal({
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              Max HP
-            </span>
-            <input
-              type="number"
-              min={1}
-              value={maxHealth}
-              onChange={(e) =>
-                setMaxHealth(
-                  Math.max(1, Math.trunc(Number(e.target.value) || 1))
-                )
-              }
-              className={modalInputClass}
-              disabled={busy}
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              Current HP
-            </span>
-            <input
-              type="number"
-              min={0}
-              value={currentHealth}
-              onChange={(e) =>
-                setCurrentHealth(
-                  Math.max(0, Math.trunc(Number(e.target.value) || 0))
-                )
-              }
-              className={modalInputClass}
-              disabled={busy}
-            />
-          </label>
+          <ModalNumberField
+            id="edit-enemy-max-hp"
+            label="Max HP"
+            value={String(maxHealth)}
+            onChange={(v) =>
+              setMaxHealth(Math.max(1, Math.trunc(Number(v) || 1)))
+            }
+            disabled={busy}
+            min={1}
+          />
+          <ModalNumberField
+            id="edit-enemy-current-hp"
+            label="Current HP"
+            value={String(currentHealth)}
+            onChange={(v) =>
+              setCurrentHealth(Math.max(0, Math.trunc(Number(v) || 0)))
+            }
+            disabled={busy}
+            min={0}
+          />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              Speed
-            </span>
-            <input
-              type="number"
-              min={0}
-              value={speed}
-              onChange={(e) =>
-                setSpeed(Math.max(0, Math.trunc(Number(e.target.value) || 0)))
-              }
-              className={modalInputClass}
-              disabled={busy}
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              Initiative modifier (stat block)
-            </span>
-            <input
-              type="number"
-              value={initiativeModifier}
-              onChange={(e) =>
-                setInitiativeModifier(Math.trunc(Number(e.target.value) || 0))
-              }
-              className={modalInputClass}
-              disabled={busy}
-            />
-          </label>
+          <ModalNumberField
+            id="edit-enemy-speed"
+            label="Speed"
+            value={String(speed)}
+            onChange={(v) => setSpeed(Math.max(0, Math.trunc(Number(v) || 0)))}
+            disabled={busy}
+            min={0}
+          />
+          <ModalNumberField
+            id="edit-enemy-initiative"
+            label="Initiative modifier (stat block)"
+            value={String(initiativeModifier)}
+            onChange={(v) => setInitiativeModifier(Math.trunc(Number(v) || 0))}
+            disabled={busy}
+            required={false}
+          />
         </div>
 
-        <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
-            Reactions per round
-          </span>
-          <input
-            type="number"
-            min={0}
-            value={reactionsPerRound}
-            onChange={(e) =>
-              setReactionsPerRound(
-                Math.max(0, Math.trunc(Number(e.target.value) || 0))
-              )
-            }
-            className={modalInputClass}
-            disabled={busy}
-          />
-        </label>
+        <ModalNumberField
+          id="edit-enemy-reactions"
+          label="Reactions per round"
+          value={String(reactionsPerRound)}
+          onChange={(v) =>
+            setReactionsPerRound(Math.max(0, Math.trunc(Number(v) || 0)))
+          }
+          disabled={busy}
+          min={0}
+        />
 
         <div>
           <ModalFieldLabel

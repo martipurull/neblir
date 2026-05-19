@@ -20,10 +20,18 @@ export type GiveItemOption = {
   label: string;
 };
 
+export type GiveItemLockedItem = {
+  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
+  itemId: string;
+  itemName: string;
+};
+
 export type GiveItemToCharacterModalProps = {
   isOpen: boolean;
   gameId: string;
   game: GameDetail;
+  /** When set, only the character is chosen (item is fixed). */
+  lockedItem?: GiveItemLockedItem;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -32,6 +40,7 @@ export function GiveItemToCharacterModal({
   isOpen,
   gameId,
   game,
+  lockedItem,
   onClose,
   onSuccess,
 }: GiveItemToCharacterModalProps) {
@@ -82,17 +91,23 @@ export function GiveItemToCharacterModal({
   useEffect(() => {
     if (isOpen) {
       setCharacterId("");
-      setSourceType("GLOBAL_ITEM");
-      setItemId("");
       setError(null);
-      void loadGlobalItems();
-      void loadUniqueItems();
+      if (lockedItem) {
+        setSourceType(lockedItem.sourceType);
+        setItemId(lockedItem.itemId);
+      } else {
+        setSourceType("GLOBAL_ITEM");
+        setItemId("");
+        void loadGlobalItems();
+        void loadUniqueItems();
+      }
     }
-  }, [isOpen, loadGlobalItems, loadUniqueItems]);
+  }, [isOpen, loadGlobalItems, loadUniqueItems, lockedItem]);
 
   useEffect(() => {
+    if (lockedItem) return;
     setItemId("");
-  }, [sourceType]);
+  }, [sourceType, lockedItem]);
 
   const itemOptions: GiveItemOption[] =
     sourceType === "GLOBAL_ITEM"
@@ -117,7 +132,9 @@ export function GiveItemToCharacterModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!characterId || !itemId) {
+    const submitSourceType = lockedItem?.sourceType ?? sourceType;
+    const submitItemId = lockedItem?.itemId ?? itemId;
+    if (!characterId || !submitItemId) {
       setError("Select a character and an item.");
       return;
     }
@@ -126,8 +143,8 @@ export function GiveItemToCharacterModal({
     try {
       await giveItemToCharacter(gameId, {
         characterId,
-        sourceType,
-        itemId,
+        sourceType: submitSourceType,
+        itemId: submitItemId,
       });
       onSuccess?.();
       onClose();
@@ -140,8 +157,13 @@ export function GiveItemToCharacterModal({
 
   const handleClose = () => {
     setCharacterId("");
-    setSourceType("GLOBAL_ITEM");
-    setItemId("");
+    if (lockedItem) {
+      setSourceType(lockedItem.sourceType);
+      setItemId(lockedItem.itemId);
+    } else {
+      setSourceType("GLOBAL_ITEM");
+      setItemId("");
+    }
     setError(null);
     onClose();
   };
@@ -185,14 +207,21 @@ export function GiveItemToCharacterModal({
             ? "No unique items"
             : "Select item";
 
+  const resolvedItemId = lockedItem?.itemId ?? itemId;
+
   return (
     <ModalShell
       isOpen
       onClose={handleClose}
       title="Give item to character"
       titleId="give-item-title"
-      subtitle="Choose a character and an item to add to their inventory."
+      subtitle={
+        lockedItem
+          ? `Add “${lockedItem.itemName}” to a character’s inventory.`
+          : "Choose a character and an item to add to their inventory."
+      }
       closeDisabled={submitting}
+      zIndexClass="z-[70]"
       maxWidthClass="max-w-md"
       footer={
         <div className="flex justify-end gap-2">
@@ -213,7 +242,10 @@ export function GiveItemToCharacterModal({
             fullWidth={false}
             className="font-medium !text-modalBackground-200 disabled:pointer-events-none"
             disabled={
-              submitting || !characterId || !itemId || characters.length === 0
+              submitting ||
+              !characterId ||
+              !resolvedItemId ||
+              characters.length === 0
             }
           >
             {submitting ? "Giving…" : "Give item"}
@@ -240,34 +272,49 @@ export function GiveItemToCharacterModal({
           onChange={setCharacterId}
         />
 
-        <ModalSelect
-          id="give-item-source"
-          label="Item type"
-          placeholder="Item type"
-          value={sourceType}
-          options={sourceTypeOptions}
-          disabled={submitting}
-          onChange={(v) =>
-            setSourceType(v as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM")
-          }
-        />
+        {lockedItem ? (
+          <div>
+            <span className="mb-1 block text-sm font-medium text-white">
+              Item
+            </span>
+            <p className="rounded-md border border-white/20 bg-paleBlue/10 px-3 py-2 text-sm text-white">
+              {lockedItem.itemName}
+            </p>
+          </div>
+        ) : (
+          <>
+            <ModalSelect
+              id="give-item-source"
+              label="Item type"
+              placeholder="Item type"
+              value={sourceType}
+              options={sourceTypeOptions}
+              disabled={submitting}
+              onChange={(v) =>
+                setSourceType(
+                  v as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM"
+                )
+              }
+            />
 
-        <ModalSelect
-          id="give-item-item"
-          label="Item"
-          placeholder={itemSelectPlaceholder}
-          value={itemId}
-          options={selectItemOptions}
-          disabled={
-            submitting ||
-            (sourceType === "GLOBAL_ITEM" &&
-              (loadingItems || globalItems.length === 0)) ||
-            (sourceType === "CUSTOM_ITEM" && customItems.length === 0) ||
-            (sourceType === "UNIQUE_ITEM" &&
-              (loadingUniqueItems || uniqueItems.length === 0))
-          }
-          onChange={setItemId}
-        />
+            <ModalSelect
+              id="give-item-item"
+              label="Item"
+              placeholder={itemSelectPlaceholder}
+              value={itemId}
+              options={selectItemOptions}
+              disabled={
+                submitting ||
+                (sourceType === "GLOBAL_ITEM" &&
+                  (loadingItems || globalItems.length === 0)) ||
+                (sourceType === "CUSTOM_ITEM" && customItems.length === 0) ||
+                (sourceType === "UNIQUE_ITEM" &&
+                  (loadingUniqueItems || uniqueItems.length === 0))
+              }
+              onChange={setItemId}
+            />
+          </>
+        )}
 
         {error && <p className="text-sm text-red-300 break-words">{error}</p>}
       </form>
