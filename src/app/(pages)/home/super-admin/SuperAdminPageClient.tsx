@@ -1,12 +1,12 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageSubtitle from "@/app/components/shared/PageSubtitle";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import Link from "next/link";
 import useSWR from "swr";
 import { useState } from "react";

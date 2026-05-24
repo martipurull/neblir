@@ -1,15 +1,15 @@
 "use client";
 
 import type { PathName } from "@prisma/client";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import { featureCatalogueUpdateSchema } from "@/app/lib/types/featureCatalogue";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";

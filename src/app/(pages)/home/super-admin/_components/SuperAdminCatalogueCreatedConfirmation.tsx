@@ -1,8 +1,8 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { appButtonVariantClassName } from "@/app/components/shared/buttonStyles";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

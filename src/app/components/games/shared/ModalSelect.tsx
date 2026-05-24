@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { useRef, useEffect, useState, useMemo } from "react";
 export type ModalSelectOption = { value: string; label: string };
 

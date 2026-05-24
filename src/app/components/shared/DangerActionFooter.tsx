@@ -2,9 +2,9 @@
 
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState } from "react";
-import Button from "./Button";
-import DangerConfirmModal from "./DangerConfirmModal";
-import FootnoteText from "./FootnoteText";
+import { Button } from "./Button";
+import { DangerConfirmModal } from "./DangerConfirmModal";
+import { FootnoteText } from "./FootnoteText";
 
 interface DangerActionFooterProps {
   note: React.ReactNode;
@@ -94,4 +94,4 @@ const DangerActionFooter: React.FC<DangerActionFooterProps> = ({
   );
 };
 
-export default DangerActionFooter;
+export { DangerActionFooter };

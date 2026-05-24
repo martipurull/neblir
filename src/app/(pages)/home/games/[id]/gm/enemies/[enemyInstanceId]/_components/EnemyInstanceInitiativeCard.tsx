@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { GameDetail } from "@/app/lib/types/game";
 
 type InitiativeEntry = NonNullable<

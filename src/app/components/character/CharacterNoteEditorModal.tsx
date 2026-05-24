@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { CharacterNoteEditor } from "@/app/components/character/CharacterNoteEditor";
 import {
   isNoteDocEmpty,

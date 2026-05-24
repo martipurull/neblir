@@ -1,8 +1,8 @@
 "use client";
 
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import { mapCreateSchema } from "@/app/lib/types/map";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";

@@ -3,7 +3,7 @@
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { createGameImage } from "@/lib/api/gameImages";
 import React, { useMemo, useRef, useState } from "react";
 

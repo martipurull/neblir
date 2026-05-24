@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import type { GameInviteItem } from "@/hooks/use-game-invites";
 import Link from "next/link";
 import React from "react";

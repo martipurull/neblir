@@ -2,12 +2,12 @@
 
 import GameInvitesReceivedBlock from "@/app/components/games/GameInvitesReceivedBlock";
 import GameListCard from "@/app/components/games/GameListCard";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageSubtitle from "@/app/components/shared/PageSubtitle";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { useGameInviteActions } from "@/hooks/use-game-invite-actions";
 import { useGameInvites } from "@/hooks/use-game-invites";
 import { useGames } from "@/hooks/use-games";

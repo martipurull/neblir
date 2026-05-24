@@ -1,8 +1,8 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml";
-import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { formatNoteTimestamp } from "@/app/lib/characterNotes";
 import type { CharacterNoteEntry } from "@/app/lib/types/character";
 import { useCallback, useState } from "react";

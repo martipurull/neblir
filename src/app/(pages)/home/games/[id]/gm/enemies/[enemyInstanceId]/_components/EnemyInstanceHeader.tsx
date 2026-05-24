@@ -1,8 +1,8 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import Image from "next/image";
 import { enemyStatusBadgeClass, enemyStatusLabel } from "../enemyInstanceUtils";

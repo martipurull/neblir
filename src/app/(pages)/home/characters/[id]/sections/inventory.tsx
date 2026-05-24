@@ -4,7 +4,7 @@ import type { CharacterSectionSlide } from "@/app/components/character/Character
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import CreateUniqueItemModal from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,

@@ -1,9 +1,9 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import type { Path } from "@/app/lib/types/path";
 import {

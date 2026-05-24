@@ -18,4 +18,4 @@ const PageSection: React.FC<PageSectionProps> = ({
   );
 };
 
-export default PageSection;
+export { PageSection };

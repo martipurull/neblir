@@ -1,7 +1,7 @@
 "use client";
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";

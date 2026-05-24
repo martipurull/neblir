@@ -1,9 +1,9 @@
 "use client";
 
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";

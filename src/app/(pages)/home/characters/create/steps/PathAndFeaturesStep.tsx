@@ -2,7 +2,7 @@
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useEffect, useMemo, useRef, useState } from "react";

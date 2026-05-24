@@ -1,4 +1,4 @@
-import PageSection from "@/app/components/shared/PageSection";
+import { PageSection } from "@/app/components/shared/PageSection";
 import SuperAdminEditReferenceForm from "../../../_components/SuperAdminEditReferenceForm";
 
 export default async function SuperAdminEditReferencePage({

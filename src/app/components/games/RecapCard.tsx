@@ -1,4 +1,4 @@
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { GameRecap } from "@/app/lib/types/recap";
 
 type RecapCardProps = {

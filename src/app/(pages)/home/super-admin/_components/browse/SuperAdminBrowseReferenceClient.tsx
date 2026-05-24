@@ -1,9 +1,9 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import ResourceGridCard from "@/app/components/shared/ResourceGridCard";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { ResourceGridCard } from "@/app/components/shared/ResourceGridCard";
 import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,

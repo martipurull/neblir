@@ -1,13 +1,13 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import AddCharactersToGameModal from "@/app/components/games/AddCharactersToGameModal";
-import ResourceListCard from "@/app/components/shared/ResourceListCard";
+import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import RemoveCharacterFromGameButton from "@/app/components/games/RemoveCharacterFromGameButton";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";

@@ -2,7 +2,7 @@
 
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
-import Button from "./Button";
+import { Button } from "./Button";
 
 interface DangerConfirmModalProps {
   isOpen: boolean;
@@ -127,4 +127,4 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
   );
 };
 
-export default DangerConfirmModal;
+export { DangerConfirmModal };

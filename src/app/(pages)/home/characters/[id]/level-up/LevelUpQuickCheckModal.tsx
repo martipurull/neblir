@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ATTRIBUTE_GROUP_LABELS } from "./constants";
 
 type Props = {

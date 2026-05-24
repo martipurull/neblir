@@ -4,7 +4,7 @@ import {
   CharacterNoteEditorModal,
   type CharacterNoteModalMode,
 } from "@/app/components/character/CharacterNoteEditorModal";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { CharacterNoteListItem } from "@/app/components/character/CharacterNoteListItem";
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";

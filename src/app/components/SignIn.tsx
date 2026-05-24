@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import Button from "./shared/Button";
+import { Button } from "./shared/Button";
 
 export default function SignIn() {
   return (

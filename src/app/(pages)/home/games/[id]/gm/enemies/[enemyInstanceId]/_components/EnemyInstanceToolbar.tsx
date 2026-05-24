@@ -1,7 +1,7 @@
 "use client";
 
 import { DicePairIcon } from "@/app/components/character/DicePairIcon";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import type { GameDetail } from "@/app/lib/types/game";
 

@@ -9,9 +9,9 @@ import { DedicatedDiceRollModal } from "@/app/components/character/DedicatedDice
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
 import { InitiativeOrderModal } from "@/app/components/character/InitiativeOrderModal";
 import { InitiativeRollModal } from "@/app/components/character/InitiativeRollModal";
-import ErrorState from "@/app/components/shared/ErrorState";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import { useCharacter } from "@/hooks/use-character";

@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SpawnEnemyInstancesModal } from "@/app/components/games/SpawnEnemyInstancesModal";

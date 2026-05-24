@@ -1,8 +1,8 @@
 "use client";
 
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
-import Button from "@/app/components/shared/Button";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import {
@@ -18,7 +18,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import type { UseFormSetError } from "react-hook-form";
 import type { z } from "zod";
 import { TextArea } from "@/app/components/shared/TextArea";
-import TextInput from "@/app/components/shared/TextInput";
+import { TextInput } from "@/app/components/shared/TextInput";
 
 function setZodErrorsOnForm(
   setError: UseFormSetError<CreateGameFormValues>,

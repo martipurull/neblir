@@ -1,12 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageSubtitle from "@/app/components/shared/PageSubtitle";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { Stepper } from "@/app/components/shared/Stepper";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useCharacter } from "@/hooks/use-character";

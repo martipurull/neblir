@@ -1,4 +1,4 @@
-import PageSection from "@/app/components/shared/PageSection";
+import { PageSection } from "@/app/components/shared/PageSection";
 import SuperAdminBrowseItemsClient from "../../_components/browse/SuperAdminBrowseItemsClient";
 
 export default function SuperAdminBrowseItemsPage() {

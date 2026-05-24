@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 export interface EquipErrorModalProps {
   isOpen: boolean;
   title?: string;

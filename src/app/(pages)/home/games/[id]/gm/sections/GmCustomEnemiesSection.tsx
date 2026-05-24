@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Button from "@/app/components/shared/Button";
-import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
-import InfoCard from "@/app/components/shared/InfoCard";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import type { GameDetail } from "@/app/lib/types/game";
 import {
   deleteCustomEnemy,

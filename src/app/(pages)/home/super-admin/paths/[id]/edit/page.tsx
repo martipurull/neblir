@@ -1,4 +1,4 @@
-import PageSection from "@/app/components/shared/PageSection";
+import { PageSection } from "@/app/components/shared/PageSection";
 import SuperAdminEditPathForm from "../../../_components/SuperAdminEditPathForm";
 
 export default async function SuperAdminEditPathPage({

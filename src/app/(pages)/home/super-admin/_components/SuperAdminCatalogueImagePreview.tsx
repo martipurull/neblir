@@ -1,6 +1,6 @@
 "use client";
 
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import { useMemo } from "react";

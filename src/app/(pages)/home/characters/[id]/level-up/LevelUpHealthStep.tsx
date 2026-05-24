@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { Controller } from "react-hook-form";
 import { rollD10 } from "./character-helpers";

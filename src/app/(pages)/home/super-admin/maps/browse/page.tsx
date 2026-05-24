@@ -1,4 +1,4 @@
-import PageSection from "@/app/components/shared/PageSection";
+import { PageSection } from "@/app/components/shared/PageSection";
 import SuperAdminBrowseMapsClient from "../../_components/browse/SuperAdminBrowseMapsClient";
 
 export default function SuperAdminBrowseMapsPage() {

@@ -1,4 +1,4 @@
-import InfoCard from "@/app/components/shared/InfoCard";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import React from "react";
 import { GmSectionTitle } from "./GmSectionTitle";
 

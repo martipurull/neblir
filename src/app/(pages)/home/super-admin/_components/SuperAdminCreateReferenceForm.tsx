@@ -5,8 +5,8 @@ import {
   GeneralInformationRichTextJsonField,
 } from "@/app/components/character/GeneralInformationRichTextJsonField";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
 import {

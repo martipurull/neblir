@@ -11,7 +11,7 @@ import {
   getEquippedSpeedAlteringItems,
   getSpeedReductionTooltipText,
 } from "@/app/lib/carryWeightUtils";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { KeyValueRow } from "./section-shared";
 
 interface CombatSectionOptions {

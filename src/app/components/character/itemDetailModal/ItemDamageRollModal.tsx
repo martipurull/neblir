@@ -1,7 +1,7 @@
 "use client";
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { useEffect, useState } from "react";
 import type { WeaponDamageSlice } from "./weaponDerived";

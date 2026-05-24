@@ -1,6 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
 import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { FEATURE_SLOT_INDEXES } from "./constants";
 import type {

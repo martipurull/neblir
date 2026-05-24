@@ -1,7 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import {
   ATTACK_ROLL_TYPES,
   DAMAGE_TYPES,

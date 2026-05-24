@@ -6,8 +6,8 @@ import {
   WalletAdjustModal,
   type WalletAdjustMode,
 } from "@/app/components/character/WalletAdjustModal";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import Button from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import Image from "next/image";
