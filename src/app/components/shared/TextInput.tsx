@@ -1,3 +1,4 @@
+import { TextField } from "@/app/components/shared/TextField";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -28,12 +29,12 @@ const TextInput: React.FC<TextInputProps> = ({
         control={control}
         defaultValue=""
         render={({ field }) => (
-          <input
+          <TextField
             {...field}
             type={type}
             id={name}
             placeholder={placeholder}
-            className={`min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover ${className}`.trim()}
+            className={className}
           />
         )}
       />

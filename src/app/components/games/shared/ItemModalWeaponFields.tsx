@@ -1,6 +1,6 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { ATTACK_ROLL_TYPES, DAMAGE_TYPES } from "./itemModalConstants";
 
 const WEAPON_FIELD_IDS = {
@@ -143,113 +143,86 @@ export function ItemModalWeaponFields({
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div>
-          <ModalFieldLabel id={ids.melee} label="Melee bonus" />
-          <input
-            id={ids.melee}
-            type="number"
-            value={attackMeleeBonus}
-            onChange={(e) => onAttackMeleeBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.range} label="Range bonus" />
-          <input
-            id={ids.range}
-            type="number"
-            value={attackRangeBonus}
-            onChange={(e) => onAttackRangeBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.throw} label="Throw bonus" />
-          <input
-            id={ids.throw}
-            type="number"
-            value={attackThrowBonus}
-            onChange={(e) => onAttackThrowBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.gridAttack} label="Grid attack" />
-          <input
-            id={ids.gridAttack}
-            type="number"
-            value={gridAttackBonus}
-            onChange={(e) => onGridAttackBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
+        <ModalNumberField
+          id={ids.melee}
+          label="Melee bonus"
+          value={attackMeleeBonus}
+          onChange={onAttackMeleeBonusChange}
+          disabled={disabled}
+          required={false}
+        />
+        <ModalNumberField
+          id={ids.range}
+          label="Range bonus"
+          value={attackRangeBonus}
+          onChange={onAttackRangeBonusChange}
+          disabled={disabled}
+          required={false}
+        />
+        <ModalNumberField
+          id={ids.throw}
+          label="Throw bonus"
+          value={attackThrowBonus}
+          onChange={onAttackThrowBonusChange}
+          disabled={disabled}
+          required={false}
+        />
+        <ModalNumberField
+          id={ids.gridAttack}
+          label="Grid attack"
+          value={gridAttackBonus}
+          onChange={onGridAttackBonusChange}
+          disabled={disabled}
+          required={false}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <ModalFieldLabel id={ids.defenceMelee} label="Defence melee" />
-          <input
-            id={ids.defenceMelee}
-            type="number"
-            value={defenceMeleeBonus}
-            onChange={(e) => onDefenceMeleeBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.defenceRange} label="Defence range" />
-          <input
-            id={ids.defenceRange}
-            type="number"
-            value={defenceRangeBonus}
-            onChange={(e) => onDefenceRangeBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.gridDefence} label="Grid defence" />
-          <input
-            id={ids.gridDefence}
-            type="number"
-            value={gridDefenceBonus}
-            onChange={(e) => onGridDefenceBonusChange(e.target.value)}
-            className={modalInputClass}
-            disabled={disabled}
-          />
-        </div>
+        <ModalNumberField
+          id={ids.defenceMelee}
+          label="Defence melee"
+          value={defenceMeleeBonus}
+          onChange={onDefenceMeleeBonusChange}
+          disabled={disabled}
+          required={false}
+        />
+        <ModalNumberField
+          id={ids.defenceRange}
+          label="Defence range"
+          value={defenceRangeBonus}
+          onChange={onDefenceRangeBonusChange}
+          disabled={disabled}
+          required={false}
+        />
+        <ModalNumberField
+          id={ids.gridDefence}
+          label="Grid defence"
+          value={gridDefenceBonus}
+          onChange={onGridDefenceBonusChange}
+          disabled={disabled}
+          required={false}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <ModalFieldLabel id={ids.effectiveRange} label="Effective range" />
-          <input
-            id={ids.effectiveRange}
-            type="number"
-            min={0}
-            value={effectiveRange}
-            onChange={(e) => onEffectiveRangeChange(e.target.value)}
-            className={modalInputClass}
-            placeholder={rangePlaceholder}
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.maxRange} label="Max range" />
-          <input
-            id={ids.maxRange}
-            type="number"
-            min={0}
-            value={maxRange}
-            onChange={(e) => onMaxRangeChange(e.target.value)}
-            className={modalInputClass}
-            placeholder={rangePlaceholder}
-            disabled={disabled}
-          />
-        </div>
+        <ModalNumberField
+          id={ids.effectiveRange}
+          label="Effective range"
+          value={effectiveRange}
+          onChange={onEffectiveRangeChange}
+          disabled={disabled}
+          required={false}
+          min={0}
+          placeholder={rangePlaceholder}
+        />
+        <ModalNumberField
+          id={ids.maxRange}
+          label="Max range"
+          value={maxRange}
+          onChange={onMaxRangeChange}
+          disabled={disabled}
+          required={false}
+          min={0}
+          placeholder={rangePlaceholder}
+        />
       </div>
       <div>
         <ModalFieldLabel id={ids.damageTypes} label={damageTypesLabel} />
@@ -269,32 +242,26 @@ export function ItemModalWeaponFields({
         )}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <ModalFieldLabel id={ids.diceType} label={diceTypeLabel} />
-          <input
-            id={ids.diceType}
-            type="number"
-            min={1}
-            value={damageDiceType}
-            onChange={(e) => onDamageDiceTypeChange(e.target.value)}
-            className={modalInputClass}
-            placeholder="e.g. 6"
-            disabled={disabled}
-          />
-        </div>
-        <div>
-          <ModalFieldLabel id={ids.numberDice} label={numberOfDiceLabel} />
-          <input
-            id={ids.numberDice}
-            type="number"
-            min={1}
-            value={damageNumberOfDice}
-            onChange={(e) => onDamageNumberOfDiceChange(e.target.value)}
-            className={modalInputClass}
-            placeholder="e.g. 2"
-            disabled={disabled}
-          />
-        </div>
+        <ModalNumberField
+          id={ids.diceType}
+          label={diceTypeLabel}
+          value={damageDiceType}
+          onChange={onDamageDiceTypeChange}
+          disabled={disabled}
+          required={false}
+          min={1}
+          placeholder="e.g. 6"
+        />
+        <ModalNumberField
+          id={ids.numberDice}
+          label={numberOfDiceLabel}
+          value={damageNumberOfDice}
+          onChange={onDamageNumberOfDiceChange}
+          disabled={disabled}
+          required={false}
+          min={1}
+          placeholder="e.g. 2"
+        />
       </div>
     </div>
   );

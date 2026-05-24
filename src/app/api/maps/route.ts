@@ -1,4 +1,6 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { createMap, getMaps } from "@/app/lib/prisma/map";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { mapCreateSchema } from "@/app/lib/types/map";
@@ -66,9 +68,18 @@ export const POST = auth(async (request: AuthNextRequest) => {
       if (game.gameMaster !== userId) {
         return errorResponse("Only the game master can create maps", 403);
       }
+    } else if (!(await userIsSuperAdmin(userId))) {
+      return errorResponse("Forbidden", 403);
     }
 
-    const map = await createMap(parsedBody);
+    const map = await createMap({
+      ...parsedBody,
+      gameId: parsedBody.gameId ?? null,
+      protectedFromOfficialImport: !parsedBody.gameId,
+    });
+    if (!parsedBody.gameId) {
+      await touchStaffCatalogueDrift(["maps"]);
+    }
     return NextResponse.json(map, { status: 201 });
   } catch (error) {
     const details = serializeError(error);

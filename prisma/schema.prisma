@@ -200,6 +200,11 @@ enum ReferenceAccess {
   GAME_MASTER
 }
 
+enum UserRole {
+  USER
+  SUPER_ADMIN
+}
+
 type CharacterCombatInformation {
   armourCurrentHP   Int
   armourMaxHP       Int
@@ -500,6 +505,8 @@ model ReferenceEntry {
   game        Game?             @relation(fields: [gameId], references: [id], onDelete: Cascade)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  /** When true, official import scripts skip overwriting this row unless --force-official-import. */
+  protectedFromOfficialImport Boolean @default(false)
 
   @@unique([category, slug, gameId])
   @@index([category])
@@ -517,6 +524,7 @@ model Map {
   game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
+  protectedFromOfficialImport Boolean @default(false)
 
   @@index([gameId])
   @@index([description])
@@ -659,6 +667,7 @@ model Item {
   modifiesSkill        ItemGeneralSkill?
   skillMod             Int?
   isSpeedAltered       Boolean                    @default(false)
+  protectedFromOfficialImport Boolean @default(false)
 }
 
 model CustomItem {
@@ -747,6 +756,7 @@ model Feature {
   maxGrade        Int
   examples        String[]
   applicablePaths PathName[]
+  protectedFromOfficialImport Boolean @default(false)
 
   pathFeature      PathFeature[]
   FeatureCharacter FeatureCharacter[]
@@ -771,9 +781,10 @@ model FeatureCharacter {
 
 model Path {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        PathName
+  name        PathName @unique
   description String?
   baseFeature String
+  protectedFromOfficialImport Boolean @default(false)
 
   PathCharacter PathCharacter[]
 
@@ -810,6 +821,8 @@ model User {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   email String @unique
   name  String
+  /** Defaults to USER in app logic when unset (existing documents may omit this field). */
+  role  UserRole?
 
   games               GameUser[]
   characters          CharacterUser[]
@@ -817,6 +830,14 @@ model User {
   gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
   discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")
   rollEvents          RollEvent[] @relation("RollEventUser")
+}
+
+/** Singleton row: prompts super admins to sync repo seed files after catalogue edits. */
+model StaffCatalogueDriftState {
+  id                  String   @id @map("_id") @db.ObjectId
+  needsSeedRepoUpdate Boolean  @default(false)
+  touchedDomains      String[] @default([])
+  updatedAt           DateTime @updatedAt
 }
 
 type EnemyAction {
@@ -831,6 +852,7 @@ type EnemyAction {
 model Enemy {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name String
+  protectedFromOfficialImport Boolean @default(false)
   description String?
   imageKey String?
   health Int

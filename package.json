@@ -28,6 +28,7 @@
     "data:import:enemies": "tsx prisma/scripts/upsertEnemiesFromFile.ts",
     "data:import:maps": "tsx prisma/scripts/upsertMapsFromFile.ts",
     "data:import:reference": "tsx prisma/scripts/importReferenceEntries.ts",
+    "data:import:reference-json": "tsx prisma/scripts/upsertReferenceEntriesFromFile.ts",
     "data:import:items": "tsx prisma/scripts/upsertItemsFromFile.ts",
     "data:seed:official": "tsx prisma/scripts/seedOfficialDataFromFiles.ts",
     "data:seed:official:dry-run": "tsx prisma/scripts/seedOfficialDataFromFiles.ts --dry-run",

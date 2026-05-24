@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import Button from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { FEATURE_SLOT_INDEXES } from "./constants";
@@ -73,12 +74,17 @@ export default function LevelUpPathFeaturesStep({
           <p className="font-medium">
             Selected path: {selectedPathInfo.name.replace(/_/g, " ")}
           </p>
-          <p className="mt-1 text-black/70">
-            Base feature: {selectedPathInfo.baseFeature}
-          </p>
-          {selectedPathInfo.description && (
-            <p className="mt-1 text-black/70">{selectedPathInfo.description}</p>
-          )}
+          <p className="font-medium text-black">Base feature</p>
+          <StoredRichTextHtml
+            content={selectedPathInfo.baseFeature}
+            className="mt-1 text-black/70"
+          />
+          {selectedPathInfo.description ? (
+            <StoredRichTextHtml
+              content={selectedPathInfo.description}
+              className="mt-2 text-black/70"
+            />
+          ) : null}
         </div>
       )}
       {isSelectedPathNew && alternativeNewPathOptions.length > 0 && (
@@ -104,12 +110,16 @@ export default function LevelUpPathFeaturesStep({
                 <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-black/55">
                   Base feature
                 </p>
-                <p className="text-sm text-black">{path.baseFeature}</p>
-                {path.description && (
-                  <p className="mt-2 text-sm text-black/70 line-clamp-4">
-                    {path.description}
-                  </p>
-                )}
+                <StoredRichTextHtml
+                  content={path.baseFeature}
+                  className="text-sm text-black"
+                />
+                {path.description ? (
+                  <StoredRichTextHtml
+                    content={path.description}
+                    className="mt-2 line-clamp-4 text-sm text-black/70"
+                  />
+                ) : null}
               </Button>
             ))}
           </div>

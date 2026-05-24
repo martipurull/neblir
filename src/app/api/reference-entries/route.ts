@@ -1,7 +1,9 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   createReferenceEntry,
   getReferenceEntries,
 } from "@/app/lib/prisma/referenceEntry";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import {
@@ -26,12 +28,30 @@ export const GET = auth(async (request: AuthNextRequest) => {
     const { searchParams } = request.nextUrl;
     const categoryParam = searchParams.get("category") ?? undefined;
     const gameId = searchParams.get("gameId");
+    const scope = searchParams.get("scope");
 
     const parsedCategory = categoryParam
       ? referenceCategorySchema.safeParse(categoryParam)
       : null;
     if (parsedCategory && !parsedCategory.success) {
       return errorResponse("Invalid reference category", 400);
+    }
+
+    if (scope === "official") {
+      if (!(await userIsSuperAdmin(userId))) {
+        return errorResponse("Forbidden", 403);
+      }
+      if (parsedCategory?.data === "CAMPAIGN_LORE") {
+        return errorResponse(
+          "CAMPAIGN_LORE is not part of the official catalogue",
+          400
+        );
+      }
+      const entries = await getReferenceEntries({
+        category: parsedCategory?.data,
+        gameId: null,
+      });
+      return NextResponse.json(entries, { status: 200 });
     }
 
     if (parsedCategory?.data === "CAMPAIGN_LORE" && !gameId) {
@@ -100,9 +120,18 @@ export const POST = auth(async (request: AuthNextRequest) => {
           403
         );
       }
+    } else if (!(await userIsSuperAdmin(userId))) {
+      return errorResponse("Forbidden", 403);
     }
 
-    const entry = await createReferenceEntry(parsedBody);
+    const entry = await createReferenceEntry({
+      ...parsedBody,
+      gameId: parsedBody.gameId ?? null,
+      protectedFromOfficialImport: !parsedBody.gameId,
+    });
+    if (!parsedBody.gameId) {
+      await touchStaffCatalogueDrift(["reference"]);
+    }
     return NextResponse.json(entry, { status: 201 });
   } catch (error) {
     const details = serializeError(error);

@@ -30,6 +30,14 @@ interface PathDoc {
   description: string;
   baseFeature: string;
 }
+
+interface FeatureDocWithProtection extends FeatureDoc {
+  protectedFromOfficialImport?: boolean;
+}
+
+interface PathDocWithProtection extends PathDoc {
+  protectedFromOfficialImport?: boolean;
+}
 interface PathFeatureDoc {
   featureId: ObjectId;
   pathId: ObjectId;
@@ -138,6 +146,7 @@ function requiredPath(cliValue: string | undefined, envKey: string): string {
 async function main() {
   const args = process.argv.slice(2).filter((v) => v !== "--");
   const dryRun = args.includes("--dry-run");
+  const forceOfficialImport = args.includes("--force-official-import");
   const positional = args.filter((v) => !v.startsWith("--"));
 
   const featureCsvPath = requiredPath(
@@ -228,12 +237,25 @@ async function main() {
     return;
   }
 
-  const featureCollection = db.collection<FeatureDoc>("Feature");
-  const pathCollection = db.collection<PathDoc>("Path");
+  const featureCollection = db.collection<FeatureDocWithProtection>("Feature");
+  const pathCollection = db.collection<PathDocWithProtection>("Path");
   const pathFeatureCollection = db.collection<PathFeatureDoc>("PathFeature");
 
   const featureIdByName = new Map<string, ObjectId>();
   for (const feature of features) {
+    const existingFeature = await featureCollection.findOne(
+      { name: feature.name },
+      { projection: { _id: 1, protectedFromOfficialImport: 1 } }
+    );
+    if (existingFeature?.protectedFromOfficialImport && !forceOfficialImport) {
+      console.warn(
+        `[skip] Feature "${feature.name}" is protected from official import (use --force-official-import to overwrite).`
+      );
+      if (existingFeature._id) {
+        featureIdByName.set(feature.name, existingFeature._id as ObjectId);
+      }
+      continue;
+    }
     await featureCollection.updateOne(
       { name: feature.name },
       { $set: feature },
@@ -251,6 +273,19 @@ async function main() {
 
   const pathIdByName = new Map<string, ObjectId>();
   for (const p of paths) {
+    const existingPath = await pathCollection.findOne(
+      { name: p.name },
+      { projection: { _id: 1, protectedFromOfficialImport: 1 } }
+    );
+    if (existingPath?.protectedFromOfficialImport && !forceOfficialImport) {
+      console.warn(
+        `[skip] Path "${p.name}" is protected from official import (use --force-official-import to overwrite).`
+      );
+      if (existingPath._id) {
+        pathIdByName.set(p.name, existingPath._id as ObjectId);
+      }
+      continue;
+    }
     await pathCollection.updateOne(
       { name: p.name },
       { $set: p },

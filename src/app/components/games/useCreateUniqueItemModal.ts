@@ -11,6 +11,7 @@ import {
 } from "@/app/lib/types/itemBrowseDetail";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/generalInformationRichText";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { templateOptionLabel } from "./uniqueItemModalTypes";
 
@@ -88,6 +89,7 @@ export function useCreateUniqueItemModal({
     reset: resetImageUpload,
   } = imageUpload;
 
+  const [richTextSyncKey, setRichTextSyncKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -240,6 +242,7 @@ export function useCreateUniqueItemModal({
     setDamageDiceTypeOverride("");
     setDamageNumberOfDiceOverride("");
     resetImageUpload();
+    setRichTextSyncKey((k) => k + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -282,6 +285,10 @@ export function useCreateUniqueItemModal({
       const setStr = (key: string, val: string) => {
         if (val.trim()) (body as Record<string, string>)[key] = val.trim();
       };
+      const setRichStr = (key: string, val: string) => {
+        const persisted = optionalStoredRichHtml(val);
+        if (persisted) (body as Record<string, string>)[key] = persisted;
+      };
       const setNum = (key: string, val: string) => {
         if (val === "") return;
         const n = parseFloat(val);
@@ -297,9 +304,9 @@ export function useCreateUniqueItemModal({
         setStr("nameOverride", nameOverride);
       }
       setStr("imageKeyOverride", imageKeyOverride);
-      setStr("descriptionOverride", descriptionOverride);
-      setStr("notesOverride", notesOverride);
-      setStr("usageOverride", usageOverride);
+      setRichStr("descriptionOverride", descriptionOverride);
+      setRichStr("notesOverride", notesOverride);
+      setRichStr("usageOverride", usageOverride);
       setStr("costInfoOverride", costInfoOverride);
       setStr("specialTag", specialTag);
       setInt("confCostOverride", confCostOverride);
@@ -456,6 +463,7 @@ export function useCreateUniqueItemModal({
     handleClose,
     submitDisabled,
     getTemplateBrowseDetail,
+    richTextSyncKey,
   };
 }
 

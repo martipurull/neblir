@@ -1,8 +1,10 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   deleteReferenceEntry,
   getReferenceEntry,
   updateReferenceEntry,
 } from "@/app/lib/prisma/referenceEntry";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { referenceEntryUpdateSchema } from "@/app/lib/types/reference";
@@ -28,11 +30,11 @@ async function canReadReferenceEntry(
   return game?.gameMaster === userId;
 }
 
-async function canWriteReferenceEntry(
+async function canWriteGameScopedReferenceEntry(
   entry: { gameId: string | null },
   userId: string
 ): Promise<boolean> {
-  if (!entry.gameId) return true;
+  if (!entry.gameId) return false;
 
   const game = await getGame(entry.gameId);
   return game?.gameMaster === userId;
@@ -48,6 +50,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     const entry = await getReferenceEntry(id);
     if (!entry) {
       return errorResponse("Reference entry not found", 404);
+    }
+
+    const isSuperAdmin = await userIsSuperAdmin(request.auth.user.id);
+    if (!entry.gameId && isSuperAdmin) {
+      return NextResponse.json(entry, { status: 200 });
     }
 
     const canRead = await canReadReferenceEntry(entry, request.auth.user.id);
@@ -81,12 +88,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Reference entry not found", 404);
     }
 
-    const canWriteExisting = await canWriteReferenceEntry(
-      existing,
-      request.auth.user.id
-    );
-    if (!canWriteExisting) {
-      return errorResponse("You cannot update this reference entry", 403);
+    if (!existing.gameId) {
+      if (!(await userIsSuperAdmin(request.auth.user.id))) {
+        return errorResponse("You cannot update this reference entry", 403);
+      }
+    } else {
+      const canWriteExisting = await canWriteGameScopedReferenceEntry(
+        existing,
+        request.auth.user.id
+      );
+      if (!canWriteExisting) {
+        return errorResponse("You cannot update this reference entry", 403);
+      }
     }
 
     const requestBody = await request.json();
@@ -120,7 +133,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    const updated = await updateReferenceEntry(id, parsedBody);
+    const updated = await updateReferenceEntry(id, {
+      ...parsedBody,
+      protectedFromOfficialImport: !nextGameId,
+    });
+    if (!nextGameId) {
+      await touchStaffCatalogueDrift(["reference"]);
+    }
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     const details = serializeError(error);
@@ -147,15 +166,24 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Reference entry not found", 404);
     }
 
-    const canWrite = await canWriteReferenceEntry(
-      existing,
-      request.auth.user.id
-    );
-    if (!canWrite) {
-      return errorResponse("You cannot delete this reference entry", 403);
+    if (!existing.gameId) {
+      if (!(await userIsSuperAdmin(request.auth.user.id))) {
+        return errorResponse("You cannot delete this reference entry", 403);
+      }
+    } else {
+      const canWrite = await canWriteGameScopedReferenceEntry(
+        existing,
+        request.auth.user.id
+      );
+      if (!canWrite) {
+        return errorResponse("You cannot delete this reference entry", 403);
+      }
     }
 
     await deleteReferenceEntry(id);
+    if (!existing.gameId) {
+      await touchStaffCatalogueDrift(["reference"]);
+    }
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     const details = serializeError(error);

@@ -21,6 +21,16 @@ export const featureSchema = z.object({
 
 export const featureUpdateSchema = featureSchema.partial().strict();
 
+export const pathCreateSchema = z
+  .object({
+    name: pathName,
+    description: z.string().nullish(),
+    baseFeature: z.string().min(1),
+  })
+  .strict();
+
+export type PathCreate = z.infer<typeof pathCreateSchema>;
+
 export const pathSchema = z.object({
   id: z.string(),
   name: pathName,
@@ -31,5 +41,8 @@ export const pathSchema = z.object({
 });
 
 export const pathUpdateSchema = pathSchema.partial().strict();
+
+/** PATCH /api/paths/[id] (super-admin official catalogue). */
+export const pathCatalogueUpdateSchema = pathCreateSchema.partial().strict();
 
 export type Path = z.infer<typeof pathSchema>;

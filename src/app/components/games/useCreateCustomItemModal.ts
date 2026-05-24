@@ -8,6 +8,7 @@ import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/generalInformationRichText";
 import { useState } from "react";
 
 type Args = {
@@ -55,6 +56,7 @@ export function useCreateCustomItemModal({ gameId, onClose, onSuccess }: Args) {
     reset: resetImageUpload,
   } = imageUpload;
 
+  const [richTextSyncKey, setRichTextSyncKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,6 +125,7 @@ export function useCreateCustomItemModal({ gameId, onClose, onSuccess }: Args) {
     setDamageNumberOfDice("");
     resetImageUpload();
     setError(null);
+    setRichTextSyncKey((k) => k + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,9 +148,9 @@ export function useCreateCustomItemModal({ gameId, onClose, onSuccess }: Args) {
         weight: weightNum,
         type,
         attackRoll,
-        description: description.trim() || undefined,
-        notes: notes.trim() || undefined,
-        usage: usage.trim() || undefined,
+        description: optionalStoredRichHtml(description),
+        notes: optionalStoredRichHtml(notes),
+        usage: optionalStoredRichHtml(usage),
         costInfo: costInfo.trim() || undefined,
         equippable: equippable || undefined,
         equipSlotTypes: equipSlotTypes.length ? equipSlotTypes : undefined,
@@ -290,5 +293,6 @@ export function useCreateCustomItemModal({ gameId, onClose, onSuccess }: Args) {
     error,
     handleSubmit,
     handleClose,
+    richTextSyncKey,
   };
 }

@@ -15,6 +15,8 @@ export interface BrowseItemDetailModalProps {
   onAddToInventory?: (item: ItemBrowseDetailFields) => void | Promise<void>;
   /** When adding from this modal, pass true to show loading state */
   isAdding?: boolean;
+  /** GM flow: opens give-to-character UI for this item */
+  onGiveToCharacter?: () => void;
 }
 
 function fmt(n: number) {
@@ -27,6 +29,7 @@ export function BrowseItemDetailModal({
   item,
   onAddToInventory,
   isAdding = false,
+  onGiveToCharacter,
 }: BrowseItemDetailModalProps) {
   const itemImageKey = item && "imageKey" in item ? item.imageKey : null;
   const imageEntries = useMemo(
@@ -54,18 +57,32 @@ export function BrowseItemDetailModal({
       maxWidthClass="max-w-md"
       maxHeightClass="max-h-[90vh]"
       footer={
-        onAddToInventory ? (
-          <Button
-            type="button"
-            variant="semanticSafeOutline"
-            onClick={() => {
-              void onAddToInventory(item);
-            }}
-            disabled={isAdding}
-            className="w-full"
-          >
-            {isAdding ? "Adding…" : "Add to inventory"}
-          </Button>
+        onGiveToCharacter || onAddToInventory ? (
+          <div className="flex w-full flex-col gap-2">
+            {onGiveToCharacter ? (
+              <Button
+                type="button"
+                variant="semanticSafeOutline"
+                onClick={onGiveToCharacter}
+                className="w-full"
+              >
+                Give item to character
+              </Button>
+            ) : null}
+            {onAddToInventory ? (
+              <Button
+                type="button"
+                variant="semanticSafeOutline"
+                onClick={() => {
+                  void onAddToInventory(item);
+                }}
+                disabled={isAdding}
+                className="w-full"
+              >
+                {isAdding ? "Adding…" : "Add to inventory"}
+              </Button>
+            ) : null}
+          </div>
         ) : undefined
       }
     >

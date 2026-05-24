@@ -10,6 +10,15 @@ const getItemMock = vi.fn();
 const updateItemMock = vi.fn();
 const deleteItemMock = vi.fn();
 const safeParseMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/item", () => ({
   getItem: getItemMock,
@@ -24,6 +33,7 @@ vi.mock("@/app/lib/types/item", () => ({
 describe("/api/items/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   it("GET returns 401 when unauthenticated", async () => {
@@ -75,7 +85,13 @@ describe("/api/items/[id] route handlers", () => {
       makeParams({ id: "item-1" })
     );
     expect(response.status).toBe(200);
-    expect(updateItemMock).toHaveBeenCalledWith("item-1", { name: "Updated" });
+    expect(updateItemMock).toHaveBeenCalledWith(
+      "item-1",
+      { name: "Updated" },
+      {
+        officialCatalogueWrite: true,
+      }
+    );
   });
 
   it("DELETE returns 204 on success", async () => {

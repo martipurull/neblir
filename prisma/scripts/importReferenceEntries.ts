@@ -45,6 +45,7 @@ interface ImportOptions {
   tags: string[];
   storeHtml: boolean;
   dryRun: boolean;
+  forceOfficialImport: boolean;
 }
 
 function usage(): never {
@@ -59,6 +60,7 @@ function usage(): never {
       "  --tag <tag>          Repeatable",
       "  --store-html         Store original HTML in contentHtml",
       "  --dry-run            Do not write to MongoDB",
+      "  --force-official-import  Overwrite rows protected from official import",
     ].join("\n")
   );
   process.exit(1);
@@ -107,6 +109,7 @@ function parseArgs(argv: string[]): ImportOptions {
     tags: [],
     storeHtml: false,
     dryRun: false,
+    forceOfficialImport: false,
   };
 
   for (let i = 2; i < args.length; i++) {
@@ -135,6 +138,9 @@ function parseArgs(argv: string[]): ImportOptions {
         break;
       case "--dry-run":
         options.dryRun = true;
+        break;
+      case "--force-official-import":
+        options.forceOfficialImport = true;
         break;
       default:
         throw new Error(`Unknown option "${arg}".`);
@@ -242,7 +248,7 @@ async function importFile(
   options: ImportOptions,
   input: HtmlInput,
   index: number
-): Promise<"created" | "updated" | "skipped"> {
+): Promise<"created" | "updated" | "skipped" | "skippedProtected"> {
   const { sourceFile, displayName } = input;
   const html = await fs.readFile(sourceFile, "utf8");
   const contentJson = generateJSON(html, [StarterKit]) as JSONContent;
@@ -284,8 +290,15 @@ async function importFile(
       slug,
       gameId: options.gameId ?? null,
     },
-    select: { id: true },
+    select: { id: true, protectedFromOfficialImport: true },
   });
+
+  if (existing?.protectedFromOfficialImport && !options.forceOfficialImport) {
+    console.warn(
+      `[skip] Reference ${options.category}/${slug} is protected from official import (use --force-official-import to overwrite).`
+    );
+    return "skippedProtected";
+  }
 
   if (existing) {
     await prisma.referenceEntry.update({
@@ -313,16 +326,18 @@ async function main() {
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  let skippedProtected = 0;
 
   for (let i = 0; i < files.length; i++) {
     const result = await importFile(options, files[i], i);
     if (result === "created") created++;
     if (result === "updated") updated++;
     if (result === "skipped") skipped++;
+    if (result === "skippedProtected") skippedProtected++;
   }
 
   console.log(
-    `Done. Created: ${created}, updated: ${updated}, skipped: ${skipped}, files: ${files.length}.`
+    `Done. Created: ${created}, updated: ${updated}, skipped: ${skipped}, skippedProtected: ${skippedProtected}, files: ${files.length}.`
   );
 }
 

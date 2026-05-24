@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import Button from "@/app/components/shared/Button";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
@@ -85,26 +86,20 @@ export function ItemDetailGiveRemoveSection({
               </Button>
             </div>
             <div>
-              <label
-                htmlFor="give-quantity"
-                className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/70"
-              >
-                How many
-              </label>
-              <input
+              <ModalNumberField
                 id="give-quantity"
-                type="number"
-                min={1}
-                max={entry.quantity}
-                value={giveQuantity}
-                onChange={(e) => {
-                  const n = Number.parseInt(e.target.value, 10);
+                label="How many"
+                value={String(giveQuantity)}
+                onChange={(v) => {
+                  const n = Number.parseInt(v, 10);
                   if (Number.isNaN(n)) return;
                   onGiveQuantityChange(
                     Math.min(Math.max(1, n), Math.max(1, entry.quantity))
                   );
                 }}
-                className="w-full rounded border border-white/30 bg-paleBlue/5 px-3 py-2 text-sm text-white tabular-nums"
+                disabled={giveSubmitting}
+                min={1}
+                max={entry.quantity}
               />
               <p className="mt-1 text-xs text-white/50">
                 You have {entry.quantity} in this stack.

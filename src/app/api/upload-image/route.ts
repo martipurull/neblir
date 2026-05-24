@@ -1,3 +1,4 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -12,6 +13,8 @@ const ALLOWED_TYPES = [
   "unique_items",
   "games",
   "characters",
+  "items",
+  "maps",
   "recaps",
 ] as const;
 const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -70,9 +73,15 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, recaps",
+        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, recaps",
         400
       );
+    }
+
+    if (type === "items" || type === "maps") {
+      if (!(await userIsSuperAdmin(request.auth.user.id))) {
+        return errorResponse("Forbidden", 403);
+      }
     }
 
     const config = getR2Config();

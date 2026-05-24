@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import type { Path } from "@/app/lib/types/path";
 export interface PathCardProps {
   path: Path;
@@ -31,9 +32,10 @@ export function PathCard({ path, onOpenDescription }: PathCardProps) {
         <p className="text-[0.65rem] font-bold uppercase tracking-wider text-black/55">
           Base feature
         </p>
-        <p className="mt-1.5 text-sm leading-snug text-black">
-          {path.baseFeature}
-        </p>
+        <StoredRichTextHtml
+          content={path.baseFeature}
+          className="mt-1.5 text-sm leading-snug text-black"
+        />
       </div>
     </div>
   );

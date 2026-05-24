@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
+import { sharedTextFieldCompactClassName } from "@/app/components/shared/inputStyles";
 import React, {
   useCallback,
   useEffect,
@@ -246,7 +247,7 @@ export function SelectDropdown({
                   ? `${id}-option-${highlightedIndex}`
                   : undefined
               }
-              className="w-full rounded border border-black/30 px-2 py-1.5 text-sm text-black placeholder:text-black/50 focus:border-customPrimaryHover focus:outline-none focus-visible:ring-1 focus-visible:ring-customPrimaryHover"
+              className={sharedTextFieldCompactClassName}
             />
           </div>
           <ul

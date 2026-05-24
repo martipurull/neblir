@@ -18,21 +18,25 @@ const config: Config = {
         customSecondary: "#F8ECFF",
         customSecondaryHover: "#F5F0F9",
         neblirSafe: {
+          DEFAULT: "#4ade80",
           200: "#bbf7d0",
           400: "#86efac",
           600: "#4ade80",
         },
         neblirWarning: {
+          DEFAULT: "#eab308",
           200: "#fde68a",
           400: "#fcd34d",
           600: "#eab308",
         },
         neblirDanger: {
+          DEFAULT: "#f87171",
           200: "#fecaca",
           400: "#fca5a5",
           600: "#f87171",
         },
         modalBackground: {
+          DEFAULT: "#8b5cf6",
           200: "#4a3d5e",
           400: "#6b21a8",
           600: "#8b5cf6",

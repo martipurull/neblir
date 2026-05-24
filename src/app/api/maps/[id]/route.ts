@@ -1,4 +1,6 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { deleteMap, getMap, updateMap } from "@/app/lib/prisma/map";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { mapUpdateSchema } from "@/app/lib/types/map";
@@ -18,11 +20,11 @@ async function canReadMap(
   return userIsInGame(map.gameId, userId);
 }
 
-async function canWriteMap(
+async function canWriteGameScopedMap(
   map: { gameId: string | null },
   userId: string
 ): Promise<boolean> {
-  if (!map.gameId) return true;
+  if (!map.gameId) return false;
   const game = await getGame(map.gameId);
   return game?.gameMaster === userId;
 }
@@ -70,9 +72,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Map not found", 404);
     }
 
-    const canWriteExisting = await canWriteMap(existing, request.auth.user.id);
-    if (!canWriteExisting) {
-      return errorResponse("You cannot update this map", 403);
+    if (!existing.gameId) {
+      if (!(await userIsSuperAdmin(request.auth.user.id))) {
+        return errorResponse("You cannot update this map", 403);
+      }
+    } else {
+      const canWriteExisting = await canWriteGameScopedMap(
+        existing,
+        request.auth.user.id
+      );
+      if (!canWriteExisting) {
+        return errorResponse("You cannot update this map", 403);
+      }
     }
 
     const requestBody = await request.json();
@@ -97,7 +108,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    const updated = await updateMap(id, parsedBody);
+    const updated = await updateMap(id, {
+      ...parsedBody,
+      protectedFromOfficialImport: !nextGameId,
+    });
+    if (!nextGameId) {
+      await touchStaffCatalogueDrift(["maps"]);
+    }
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     const details = serializeError(error);
@@ -124,12 +141,24 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Map not found", 404);
     }
 
-    const canWrite = await canWriteMap(existing, request.auth.user.id);
-    if (!canWrite) {
-      return errorResponse("You cannot delete this map", 403);
+    if (!existing.gameId) {
+      if (!(await userIsSuperAdmin(request.auth.user.id))) {
+        return errorResponse("You cannot delete this map", 403);
+      }
+    } else {
+      const canWrite = await canWriteGameScopedMap(
+        existing,
+        request.auth.user.id
+      );
+      if (!canWrite) {
+        return errorResponse("You cannot delete this map", 403);
+      }
     }
 
     await deleteMap(id);
+    if (!existing.gameId) {
+      await touchStaffCatalogueDrift(["maps"]);
+    }
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     const details = serializeError(error);

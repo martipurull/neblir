@@ -1,16 +1,18 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import TextInput from "@/app/components/shared/TextInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { coerceNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
+import { NumberField } from "@/app/components/shared/NumberField";
+import TextInput from "@/app/components/shared/TextInput";
 import NumberInput from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import {
@@ -71,7 +73,18 @@ export function GeneralInfoStep() {
     }
   }, [imageUpload.imageKey, setValue]);
 
+  const previousRaceRef = useRef<string | undefined>(undefined);
+
+  // Apply race defaults only when the user changes race — not on remount when
+  // navigating back to this step (which would clobber persisted form values).
   useEffect(() => {
+    const previousRace = previousRaceRef.current;
+    const raceChanged =
+      previousRace !== undefined && previousRace !== selectedRace;
+    previousRaceRef.current = selectedRace;
+
+    if (!raceChanged) return;
+
     const sizeDefaults = SIZE_DEFAULTS_BY_RACE[selectedRace];
     setValue("generalInformation.height", sizeDefaults.height);
     setValue("generalInformation.weight", sizeDefaults.weight);
@@ -95,6 +108,16 @@ export function GeneralInfoStep() {
           "INNATE_MANIPULATION"
         );
       }
+    }
+  }, [selectedRace, selectedSpecialAbilityName, setValue]);
+
+  useEffect(() => {
+    if (selectedRace !== "MANFENN") return;
+    if (
+      selectedSpecialAbilityName !== "INNATE_MANIPULATION" &&
+      selectedSpecialAbilityName !== "DOUBLE_OPPOSABLE_THUMBS"
+    ) {
+      setValue("generalInformation.specialAbilityName", "INNATE_MANIPULATION");
     }
   }, [selectedRace, selectedSpecialAbilityName, setValue]);
 
@@ -233,22 +256,17 @@ export function GeneralInfoStep() {
               >
                 Height (cm)
               </label>
-              <input
-                {...field}
+              <NumberField
+                ref={field.ref}
+                name={field.name}
                 id="generalInformation.height"
-                type="number"
+                value={field.value == null ? "" : String(field.value)}
                 min={1}
-                inputMode="numeric"
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    field.onChange(raw);
-                    return;
-                  }
-                  const parsed = parseInt(raw, 10);
-                  field.onChange(Number.isNaN(parsed) ? raw : parsed);
-                }}
-                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                stepperLabel="Height (cm)"
+                onBlur={field.onBlur}
+                onChange={(raw) =>
+                  field.onChange(coerceNumericFieldValue(raw, "int", 1))
+                }
               />
               <p className="mt-2 ml-1 text-xs text-black/70">
                 {HEIGHT_HELP_BY_RACE[selectedRace]}
@@ -267,22 +285,17 @@ export function GeneralInfoStep() {
               >
                 Weight (kg)
               </label>
-              <input
-                {...field}
+              <NumberField
+                ref={field.ref}
+                name={field.name}
                 id="generalInformation.weight"
-                type="number"
+                value={field.value == null ? "" : String(field.value)}
                 min={1}
-                inputMode="numeric"
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    field.onChange(raw);
-                    return;
-                  }
-                  const parsed = parseInt(raw, 10);
-                  field.onChange(Number.isNaN(parsed) ? raw : parsed);
-                }}
-                className="min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                stepperLabel="Weight (kg)"
+                onBlur={field.onBlur}
+                onChange={(raw) =>
+                  field.onChange(coerceNumericFieldValue(raw, "int", 1))
+                }
               />
               <p className="mt-2 ml-1 text-xs text-black/70">
                 {WEIGHT_HELP_BY_RACE[selectedRace]}
@@ -378,17 +391,19 @@ export function GeneralInfoStep() {
                               )}
                             </span>
                           </span>
-                          <input
-                            type="number"
+                          <NumberField
+                            id={`wallet-qty-${cn}`}
                             min={0}
                             value={entry.quantity}
-                            onChange={(e) =>
+                            stepperLabel={`${CURRENCY_LABELS[cn]} quantity`}
+                            onChange={(raw) =>
                               updateQuantity(
                                 cn,
-                                Math.max(0, parseInt(e.target.value, 10) || 0)
+                                Math.max(0, parseInt(raw, 10) || 0)
                               )
                             }
-                            className="ml-auto w-24 rounded-md border border-black/20 bg-paleBlue px-2 py-1 text-right text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
+                            className="ml-auto !w-24 shrink-0 !min-h-9"
+                            inputClassName="px-2 py-1 text-right text-sm"
                           />
                           <Button
                             type="button"

@@ -24,6 +24,11 @@ export type GeneralInformationRichTextFieldProps = {
   onBlur: () => void;
   /** Tailwind min-height class for the editable region (e.g. min-h-36). */
   minHeightClass?: string;
+  /**
+   * Classes on the TipTap `EditorContent` root (e.g. `max-h-[…] overflow-y-auto min-h-0`)
+   * so long HTML cannot stretch the whole page inside scroll layouts.
+   */
+  editorContentClassName?: string;
 };
 
 export function GeneralInformationRichTextField({
@@ -32,6 +37,7 @@ export function GeneralInformationRichTextField({
   onChange,
   onBlur,
   minHeightClass = "min-h-36",
+  editorContentClassName,
 }: GeneralInformationRichTextFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
@@ -107,11 +113,13 @@ export function GeneralInformationRichTextField({
     [editor, flushToForm, onBlur]
   );
 
+  const contentShell = editorContentClassName?.trim();
+
   if (!editor) {
     return (
       <div
         ref={wrapRef}
-        className={`flex flex-col ${editorShellClassName} animate-pulse text-sm text-black/50 ${minHeightClass}`}
+        className={`flex min-h-0 flex-col ${editorShellClassName} animate-pulse text-sm text-black/50 ${minHeightClass} ${contentShell ?? ""}`.trim()}
       >
         Loading editor…
       </div>
@@ -121,11 +129,14 @@ export function GeneralInformationRichTextField({
   return (
     <div
       ref={wrapRef}
-      className={`flex flex-col ${editorShellClassName}`}
+      className={`flex min-h-0 flex-col ${editorShellClassName}`}
       onBlurCapture={handleContainerBlurCapture}
     >
       <RichTextToolbar editor={editor} />
-      <EditorContent editor={editor} />
+      <EditorContent
+        editor={editor}
+        className={contentShell ? `${contentShell} min-h-0` : "min-h-0"}
+      />
     </div>
   );
 }

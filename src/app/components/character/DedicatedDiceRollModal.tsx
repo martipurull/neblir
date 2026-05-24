@@ -17,6 +17,7 @@ import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { WeaponDamageType } from "@/app/lib/types/item";
 import Button from "@/app/components/shared/Button";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
@@ -497,18 +498,19 @@ export function DedicatedDiceRollModal({
                   />
 
                   {freeAdvancedDiceOption === "custom" ? (
-                    <label className="text-sm text-white">
-                      Custom sides
-                      <input
-                        type="number"
+                    <div className="text-sm text-white">
+                      <span>Custom sides</span>
+                      <NumberField
+                        variant="dark"
+                        id="character-free-roll-custom-sides"
                         min={2}
-                        value={freeCustomSides}
-                        onChange={(e) => {
-                          applyFreeCustomSidesFromInput(e.target.value);
-                        }}
-                        className="mt-1 min-h-11 w-full rounded-md border border-white/30 bg-black/20 px-3 py-2 text-white"
+                        step={1}
+                        value={String(freeCustomSides)}
+                        onChange={applyFreeCustomSidesFromInput}
+                        className="mt-1 min-h-11 w-full"
+                        stepperLabel="Custom dice sides"
                       />
-                    </label>
+                    </div>
                   ) : null}
 
                   <Button

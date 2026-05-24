@@ -1,7 +1,10 @@
-import { createPath, getPaths } from "@/app/lib/prisma/path";
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
+import { createPath, findPathByName, getPaths } from "@/app/lib/prisma/path";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
-import { pathSchema } from "@/app/lib/types/path";
+import { pathCreateSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import logger from "@/logger";
 import { serializeError } from "../shared/errors";
@@ -18,8 +21,12 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    if (!(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
     const requestBody = await request.json();
-    const { data: parsedBody, error } = pathSchema.safeParse(requestBody);
+    const { data: parsedBody, error } = pathCreateSchema.safeParse(requestBody);
     if (error) {
       logger.error({
         method: "POST",
@@ -34,10 +41,25 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const item = await createPath(parsedBody);
+    const existing = await findPathByName(parsedBody.name);
+    if (existing) {
+      return errorResponse("A path with this name already exists", 409);
+    }
 
-    return NextResponse.json(item, { status: 201 });
+    const path = await createPath({
+      ...parsedBody,
+      protectedFromOfficialImport: true,
+    });
+
+    await touchStaffCatalogueDrift(["paths"]);
+    return NextResponse.json(path, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return errorResponse("A path with this name already exists", 409);
+    }
     logger.error({
       method: "POST",
       route: "/api/paths",

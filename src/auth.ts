@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import { createUser, getUserByEmail } from "./app/lib/prisma/user";
+import { parseSuperAdminEmailSet } from "./app/lib/authz/superAdmin";
+import { createUser, getUserByEmail, updateUser } from "./app/lib/prisma/user";
 import type { AdapterUser } from "next-auth/adapters";
 import authConfig from "./auth.config";
 
@@ -17,11 +18,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Missing user email or name");
           }
           await createUser({ email: user.email, name: user.name });
-          token.user = await getUserByEmail(user.email);
         } else {
           console.info("user already exists");
-          token.user = existingUser;
         }
+
+        const superEmails = parseSuperAdminEmailSet();
+        if (superEmails.has(user.email.toLowerCase())) {
+          const dbUser = await getUserByEmail(user.email);
+          if (dbUser && dbUser.role !== "SUPER_ADMIN") {
+            await updateUser(dbUser.id, { role: "SUPER_ADMIN" });
+          }
+        }
+
+        token.user = (await getUserByEmail(user.email)) as AdapterUser;
 
         return token;
       }
@@ -34,9 +43,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return session;
     },
-
-    // authorized: async ({ auth, request }) => {
-    //     return !!auth
-    // },
   },
 });

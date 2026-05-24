@@ -24,8 +24,12 @@ export const userUpdateSchema = userCreateSchema.partial().strict();
 export const usersSchema = z.array(userSchema);
 
 export type User = z.infer<typeof userSchema>;
-export const currentUserSchema = userSchema.pick({
-  name: true,
-  email: true,
-});
+export const currentUserSchema = userSchema
+  .pick({
+    name: true,
+    email: true,
+  })
+  .extend({
+    isSuperAdmin: z.boolean(),
+  });
 export type CurrentUser = z.infer<typeof currentUserSchema>;

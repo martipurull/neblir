@@ -1,6 +1,7 @@
 "use client";
 
 import { BrowseItemDetailModal } from "@/app/components/character/BrowseItemDetailModal";
+import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import ErrorState from "@/app/components/shared/ErrorState";
 import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
 import Button from "@/app/components/shared/Button";
@@ -35,6 +36,7 @@ export default function GameCustomItemsPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [openingItemId, setOpeningItemId] = useState<string | null>(null);
   const [detailLoadError, setDetailLoadError] = useState<string | null>(null);
+  const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
 
   const customItemsSorted = useMemo(() => {
     if (!game?.customItems) return [];
@@ -231,8 +233,31 @@ export default function GameCustomItemsPage() {
         onClose={() => {
           setDetailModalOpen(false);
           setDetailItem(null);
+          setGiveItemModalOpen(false);
         }}
+        onGiveToCharacter={
+          isGameMaster ? () => setGiveItemModalOpen(true) : undefined
+        }
       />
+
+      {isGameMaster && detailItem && (
+        <GiveItemToCharacterModal
+          isOpen={giveItemModalOpen}
+          gameId={game.id}
+          game={game}
+          lockedItem={{
+            sourceType: "CUSTOM_ITEM",
+            itemId: detailItem.id,
+            itemName: detailItem.name,
+          }}
+          onClose={() => setGiveItemModalOpen(false)}
+          onSuccess={() => {
+            setGiveItemModalOpen(false);
+            setDetailModalOpen(false);
+            setDetailItem(null);
+          }}
+        />
+      )}
     </PageSection>
   );
 }

@@ -1,4 +1,6 @@
+import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
@@ -55,6 +57,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    if (!(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
     const { id } = (await params) as { id: string };
     if (!id || typeof id !== "string") {
       logger.error({
@@ -82,7 +88,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updatedItem = await updateItem(id, parsedBody);
+    const updatedItem = await updateItem(id, parsedBody, {
+      officialCatalogueWrite: true,
+    });
+    await touchStaffCatalogueDrift(["items"]);
 
     return NextResponse.json(updatedItem);
   } catch (error) {
@@ -122,6 +131,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Unauthorised", 401);
     }
 
+    if (!(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
     const { id } = (await params) as { id: string };
     if (!id || typeof id !== "string") {
       logger.error({
@@ -134,6 +147,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     await deleteItem(id);
+    await touchStaffCatalogueDrift(["items"]);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

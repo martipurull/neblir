@@ -40,7 +40,7 @@ export default async function HomeLayout({
         </nav>
         <div
           id="app-scroll"
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain [overflow-anchor:none]"
         >
           {children}
         </div>

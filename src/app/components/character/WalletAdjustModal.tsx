@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useState, useEffect } from "react";
 export type WalletAdjustMode = "add" | "subtract";
@@ -46,12 +47,6 @@ export function WalletAdjustModal({
       return;
     }
     setAmount(parsed);
-    setError(null);
-  };
-
-  const handleAdjust = (delta: number) => {
-    const newVal = Math.max(0, amount + delta);
-    setAmount(newVal);
     setError(null);
   };
 
@@ -112,37 +107,17 @@ export function WalletAdjustModal({
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Amount</span>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="modalIconStepper"
-              fullWidth={false}
-              className="disabled:!opacity-40"
-              onClick={() => handleAdjust(-1)}
-              disabled={amount <= 0}
-              aria-label="Decrease amount"
-            >
-              −
-            </Button>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={amount || ""}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              className="h-9 w-20 rounded-md border-2 border-white bg-transparent px-2 text-center text-sm font-bold text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              aria-label="Amount"
-            />
-            <Button
-              type="button"
-              variant="modalIconStepper"
-              fullWidth={false}
-              onClick={() => handleAdjust(1)}
-              aria-label="Increase amount"
-            >
-              +
-            </Button>
-          </div>
+          <NumberField
+            variant="dark"
+            min={0}
+            step={1}
+            value={amount || ""}
+            onChange={handleAmountChange}
+            className="h-9 w-20"
+            inputClassName="text-center text-sm font-bold"
+            stepperLabel="Amount"
+            aria-label="Amount"
+          />
         </div>
 
         {!error &&

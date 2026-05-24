@@ -11,6 +11,8 @@ declare module "next-auth" {
     id: string;
     email: string;
     name: string;
+    /** From DB; use `/api/users/me` for authoritative super-admin checks in the UI. */
+    role?: "USER" | "SUPER_ADMIN";
     characters: CharacterUser[];
   }
 

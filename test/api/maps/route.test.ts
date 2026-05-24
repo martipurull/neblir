@@ -9,6 +9,15 @@ const getMapsMock = vi.fn();
 const createMapMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
+const userIsSuperAdminMock = vi.fn();
+
+vi.mock("@/app/lib/authz/superAdmin", () => ({
+  userIsSuperAdmin: userIsSuperAdminMock,
+}));
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/app/lib/prisma/map", () => ({
   getMaps: getMapsMock,
@@ -30,6 +39,7 @@ function requestWithSearch(search: string, userId = "user-1") {
 describe("/api/maps route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
   });
 
   describe("GET", () => {
@@ -166,6 +176,27 @@ describe("/api/maps route handlers", () => {
         id: "m-1",
         name: "World Map",
       });
+      expect(createMapMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "World Map",
+          imageKey: "maps/world.png",
+          protectedFromOfficialImport: true,
+        })
+      );
+    });
+
+    it("returns 403 for global maps when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/maps/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest({
+          name: "World Map",
+          imageKey: "maps/world.png",
+        })
+      );
+      expect(response.status).toBe(403);
+      expect(createMapMock).not.toHaveBeenCalled();
     });
 
     it("returns 201 for scoped maps created by the GM", async () => {

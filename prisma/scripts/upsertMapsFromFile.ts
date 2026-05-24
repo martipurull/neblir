@@ -4,6 +4,7 @@ import path from "node:path";
 import { parse } from "csv-parse/sync";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import { parseOfficialImportArgv } from "./officialImportCli";
 
 const prisma = new PrismaClient();
 
@@ -72,9 +73,10 @@ function parseCsvRows(raw: string): MapRow[] {
 }
 
 async function main() {
-  const args = process.argv.slice(2).filter((v) => v !== "--");
-  const dryRun = args.includes("--dry-run");
-  const inputPath = args.find((v) => !v.startsWith("--"));
+  const { dryRun, forceOfficialImport, positional } = parseOfficialImportArgv(
+    process.argv.slice(2)
+  );
+  const inputPath = positional[0];
   if (!inputPath) usage();
 
   const resolvedPath = path.resolve(inputPath);
@@ -96,11 +98,19 @@ async function main() {
 
   let created = 0;
   let updated = 0;
+  let skippedProtected = 0;
   for (const row of rows) {
     const existing = await prisma.map.findUnique({
       where: { name: row.name },
-      select: { id: true },
+      select: { id: true, protectedFromOfficialImport: true },
     });
+    if (existing?.protectedFromOfficialImport && !forceOfficialImport) {
+      console.warn(
+        `[skip] Map "${row.name}" is protected from official import (use --force-official-import to overwrite).`
+      );
+      skippedProtected += 1;
+      continue;
+    }
     const data = {
       name: row.name,
       imageKey: row.imageKey,
@@ -120,7 +130,7 @@ async function main() {
   }
 
   console.log(
-    `Done. Upserted ${rows.length} map row(s) (created: ${created}, updated: ${updated}).`
+    `Done. Upserted ${rows.length} map row(s) (created: ${created}, updated: ${updated}, skippedProtected: ${skippedProtected}).`
   );
 }
 
