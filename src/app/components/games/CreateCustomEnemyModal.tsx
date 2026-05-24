@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ModalDamageTypeCheckboxGrid } from "@/app/components/games/shared/ModalDamageTypeCheckboxGrid";

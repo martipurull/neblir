@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { UniqueItemModalOverridesSection } from "@/app/components/games/UniqueItemModalOverridesSection";
 import { UniqueItemModalSourceSection } from "@/app/components/games/UniqueItemModalSourceSection";

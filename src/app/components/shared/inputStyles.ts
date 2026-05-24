@@ -16,9 +16,6 @@ export const sharedNumberFieldShellClass =
 export const sharedNumberFieldInnerClass =
   "h-full min-h-0 w-full appearance-none border-0 bg-paleBlue px-3 py-2 pr-9 text-black outline-none placeholder:text-black/40 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
-/** @deprecated Prefer `sharedNumberFieldShellClass` + `sharedNumberFieldInnerClass` via `NumberField`. */
-export const sharedNumberInputClassName = `${sharedNumberFieldShellClass} ${sharedNumberFieldInnerClass}`;
-
 /** Inline filter / compact row (e.g. inside `SelectDropdown` menu). */
 export const sharedTextFieldCompactClassName =
   "w-full rounded border border-black/30 bg-paleBlue px-2 py-1.5 text-sm text-black placeholder:text-black/50 focus:border-customPrimaryHover focus:outline-none focus-visible:ring-1 focus-visible:ring-customPrimaryHover";

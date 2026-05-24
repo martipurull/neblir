@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/app/components/shared/Button";
-import { ModalFieldLabel } from "./ModalFieldLabel";
+import { ModalFieldLabel } from "../games/shared/ModalFieldLabel";
 import { useCallback, useRef } from "react";
 
 type ImageUploadDropzoneProps = {

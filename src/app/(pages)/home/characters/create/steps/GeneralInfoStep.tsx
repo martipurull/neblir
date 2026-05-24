@@ -7,7 +7,7 @@ import { NumberField } from "@/app/components/shared/NumberField";
 import TextInput from "@/app/components/shared/TextInput";
 import NumberInput from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";

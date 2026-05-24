@@ -1,7 +1,7 @@
 "use client";
 
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";

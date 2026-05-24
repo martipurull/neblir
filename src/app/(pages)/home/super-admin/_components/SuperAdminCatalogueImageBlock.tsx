@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import {
   useItemImageUpload,
   type ItemImageUploadType,

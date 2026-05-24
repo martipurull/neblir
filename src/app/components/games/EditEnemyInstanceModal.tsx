@@ -3,7 +3,7 @@
 import Button from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {

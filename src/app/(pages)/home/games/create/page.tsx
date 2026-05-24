@@ -3,7 +3,7 @@
 import PageSection from "@/app/components/shared/PageSection";
 import PageTitle from "@/app/components/shared/PageTitle";
 import Button from "@/app/components/shared/Button";
-import { ImageUploadDropzone } from "@/app/components/games/shared/ImageUploadDropzone";
+import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
 import {
   defaultCreateGameFormValues,
