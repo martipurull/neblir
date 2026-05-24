@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";

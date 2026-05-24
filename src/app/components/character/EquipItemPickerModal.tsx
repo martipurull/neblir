@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { EquipSlot } from "@/app/lib/types/character";

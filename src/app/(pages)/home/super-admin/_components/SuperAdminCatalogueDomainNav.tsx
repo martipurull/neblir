@@ -31,7 +31,7 @@ const tabClass = (active: boolean) =>
       : "bg-transparent text-black hover:bg-paleBlue/30"
   }`;
 
-export default function SuperAdminCatalogueDomainNav({
+export function SuperAdminCatalogueDomainNav({
   domain,
   active,
 }: SuperAdminCatalogueDomainNavProps) {

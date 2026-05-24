@@ -1,5 +1,5 @@
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
 import { GmSectionTitle } from "./GmSectionTitle";
 

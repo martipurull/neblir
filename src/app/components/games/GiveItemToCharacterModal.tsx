@@ -9,7 +9,7 @@ import { giveItemToCharacter } from "@/lib/api/game";
 import type { ItemWithId } from "@/lib/api/items";
 import { getItems } from "@/lib/api/items";
 import { getGameUniqueItems } from "@/lib/api/uniqueItems";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useCallback, useEffect, useState } from "react";

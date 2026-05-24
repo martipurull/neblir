@@ -1,9 +1,9 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import type { Path } from "@/app/lib/types/path";
 import {
@@ -17,8 +17,8 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 async function pathFetcher(url: string): Promise<Path> {
@@ -36,7 +36,7 @@ function optionalRichHtml(html: string): string | undefined {
   return persisted || undefined;
 }
 
-export default function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
+export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

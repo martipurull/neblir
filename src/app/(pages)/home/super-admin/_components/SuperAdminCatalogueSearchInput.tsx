@@ -10,7 +10,7 @@ type SuperAdminCatalogueSearchInputProps = {
   onChange: (value: string) => void;
 };
 
-export default function SuperAdminCatalogueSearchInput({
+export function SuperAdminCatalogueSearchInput({
   id,
   label,
   placeholder = "Search by name…",

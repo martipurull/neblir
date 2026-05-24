@@ -1,7 +1,7 @@
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import Link from "next/link";
 import { GmSectionTitle } from "./GmSectionTitle";

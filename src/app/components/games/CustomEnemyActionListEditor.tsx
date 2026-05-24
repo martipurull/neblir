@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {

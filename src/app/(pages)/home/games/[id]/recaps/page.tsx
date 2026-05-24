@@ -1,10 +1,10 @@
 "use client";
 
-import RecapCard from "@/app/components/games/RecapCard";
-import ErrorState from "@/app/components/shared/ErrorState";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { RecapCard } from "@/app/components/games/RecapCard";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { useGame } from "@/hooks/use-game";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";

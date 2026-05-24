@@ -1,10 +1,10 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";

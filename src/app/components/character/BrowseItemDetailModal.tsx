@@ -1,9 +1,9 @@
 "use client";
 
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import { useMemo } from "react";

@@ -7,7 +7,7 @@ import { getCharacter } from "@/app/lib/prisma/character";
 import { getFeaturesAvailableForPathCharacter } from "@/app/lib/prisma/feature";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";

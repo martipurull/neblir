@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { LevelUpGeneralSkill } from "@/lib/api/character";
 import { GENERAL_SKILL_OPTIONS } from "./constants";
@@ -11,7 +11,7 @@ type Props = {
   onOpenQuickCheck: () => void;
 };
 
-export default function LevelUpSkillStep({
+export function LevelUpSkillStep({
   form,
   targetLevel,
   onOpenQuickCheck,

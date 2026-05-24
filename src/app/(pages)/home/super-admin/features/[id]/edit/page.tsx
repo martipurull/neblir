@@ -1,5 +1,5 @@
-import PageSection from "@/app/components/shared/PageSection";
-import SuperAdminEditFeatureForm from "../../../_components/SuperAdminEditFeatureForm";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { SuperAdminEditFeatureForm } from "../../../_components/SuperAdminEditFeatureForm";
 
 export default async function SuperAdminEditFeaturePage({
   params,

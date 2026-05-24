@@ -1,11 +1,11 @@
 "use client";
 
 import { MapsList } from "@/app/components/maps/MapsList";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { useMaps } from "@/hooks/use-maps";
 
 export default function MapsPage() {

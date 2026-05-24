@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useState, useEffect } from "react";

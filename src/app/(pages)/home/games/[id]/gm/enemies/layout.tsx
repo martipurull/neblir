@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
 
 /**
  * Next.js App Router: nested client pages under /home can still hit CSR bailout / 404

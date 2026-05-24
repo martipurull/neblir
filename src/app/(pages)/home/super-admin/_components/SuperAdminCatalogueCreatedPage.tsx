@@ -1,9 +1,9 @@
-import PageSection from "@/app/components/shared/PageSection";
+import { PageSection } from "@/app/components/shared/PageSection";
 import type { SuperAdminCatalogueCreatedKind } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminCatalogueCreatedConfirmation } from "./SuperAdminCatalogueCreatedConfirmation";
 import { Suspense } from "react";
 
-export default function SuperAdminCatalogueCreatedPage({
+export function SuperAdminCatalogueCreatedPage({
   kind,
 }: {
   kind: SuperAdminCatalogueCreatedKind;

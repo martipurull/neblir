@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { sharedTextFieldCompactClassName } from "@/app/components/shared/inputStyles";
 import React, {
   useCallback,

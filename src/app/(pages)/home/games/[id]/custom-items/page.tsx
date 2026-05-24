@@ -2,13 +2,13 @@
 
 import { BrowseItemDetailModal } from "@/app/components/character/BrowseItemDetailModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
-import ErrorState from "@/app/components/shared/ErrorState";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getGameCustomItemById } from "@/lib/api/customItems";

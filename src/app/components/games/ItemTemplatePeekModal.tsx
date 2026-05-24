@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 import { useImageUrls } from "@/hooks/use-image-urls";

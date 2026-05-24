@@ -1,8 +1,8 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
 import { EnemyInstanceActionListSection } from "./_components/EnemyInstanceActionListSection";
 import { EnemyInstanceAttackSection } from "./_components/EnemyInstanceAttackSection";
 import { EnemyInstanceDefenceSection } from "./_components/EnemyInstanceDefenceSection";

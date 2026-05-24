@@ -4,7 +4,7 @@ import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { useCallback, useEffect, useState } from "react";
 

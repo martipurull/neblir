@@ -10,8 +10,8 @@ import { LearnedSkillsStep } from "../../create/steps/LearnedSkillsStep";
 import { PathAndFeaturesStep } from "../../create/steps/PathAndFeaturesStep";
 import { useCharacterUpdateController } from "./useCharacterUpdateController";
 import type { CharacterUpdateFormValues } from "./schemas";
-import Button from "@/app/components/shared/Button";
-import DangerConfirmModal from "@/app/components/shared/DangerConfirmModal";
+import { Button } from "@/app/components/shared/Button";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 
 export function CharacterUpdateFormContent() {
   const {

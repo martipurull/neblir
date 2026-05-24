@@ -5,10 +5,10 @@ import {
   GeneralInformationRichTextJsonField,
 } from "@/app/components/character/GeneralInformationRichTextJsonField";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
 import {
@@ -26,8 +26,8 @@ import {
   optionalSuperAdminRichHtml,
   superAdminRichEditorScrollClass,
 } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
@@ -52,11 +52,7 @@ async function referenceFetcher(url: string): Promise<ReferenceEntry> {
   return (await res.json()) as ReferenceEntry;
 }
 
-export default function SuperAdminEditReferenceForm({
-  entryId,
-}: {
-  entryId: string;
-}) {
+export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

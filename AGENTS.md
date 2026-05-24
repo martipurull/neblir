@@ -69,3 +69,16 @@ These rules apply to every task unless the user explicitly overrides them.
 - Do not add a default React import (`import React from "react"` or `import React, { ... } from "react"`) unless the file explicitly uses the `React` namespace (for example `React.FC`, `React.Fragment`, `React.createElement`, `React.Children`).
 - This project relies on the automatic JSX runtime; JSX does not require `React` to be in scope.
 - Import only what you use from `"react"` and other modules (named hooks, types, etc.), and remove unused imports instead of leaving them for “consistency” or tooling noise.
+
+## 9) Prefer Named Exports
+
+- Use **named exports** for application code: components, hooks, utilities, and library modules under `src/`.
+  - Prefer `export function Foo`, `export const Foo`, or `export const Foo = forwardRef(...)` (see `TextField`, `SelectDropdown`).
+  - Import with `import { Foo } from "..."` so symbol names stay stable for refactors and search.
+- **Do not** add new `export default` in app/library code. ESLint enforces this as an **error** (`no-restricted-syntax` on `ExportDefaultDeclaration`).
+- **Exceptions** (framework or tooling contracts that require a default export):
+  - Next.js App Router special files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `global-error.tsx`, `not-found.tsx`, `template.tsx`, `default.tsx`
+  - `manifest.ts` (and other Next metadata route modules that export a default)
+  - `src/auth.config.ts` (Auth.js edge-safe config consumed as a default import)
+- When touching a file that still uses a default export outside those exceptions, convert it to a named export in the same change when practical.
+- Root tooling configs that require a default export (`tailwind.config.ts`, `vitest.config.ts`, `next.config.mjs`, etc.) are excluded in `eslint.config.mjs`; keep their existing export style unless you are already changing them.

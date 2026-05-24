@@ -3,11 +3,11 @@
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
-import Button from "@/app/components/shared/Button";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
-import ErrorState from "@/app/components/shared/ErrorState";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { Button } from "@/app/components/shared/Button";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { useCharacter } from "@/hooks/use-character";
 import { CharacterUpdateFormContent } from "./CharacterUpdateFormContent";
 import {

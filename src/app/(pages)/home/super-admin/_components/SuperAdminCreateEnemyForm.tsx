@@ -1,9 +1,9 @@
 "use client";
 
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -17,8 +17,8 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type EnemyFormValues = {
@@ -32,7 +32,7 @@ type EnemyFormValues = {
   notes: string;
 };
 
-export default function SuperAdminCreateEnemyForm() {
+export function SuperAdminCreateEnemyForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

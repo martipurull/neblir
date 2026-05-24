@@ -20,7 +20,7 @@ type CreateCustomEnemyModalProps = {
   onSuccess?: () => void;
 };
 
-export default function CreateCustomEnemyModal({
+export function CreateCustomEnemyModal({
   isOpen,
   gameId,
   gameName,

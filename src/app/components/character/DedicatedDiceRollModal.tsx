@@ -16,7 +16,7 @@ import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { WeaponDamageType } from "@/app/lib/types/item";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";

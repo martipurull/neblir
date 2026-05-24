@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 
 type ActionRow = EnemyInstanceDetailResponse["actions"][number];

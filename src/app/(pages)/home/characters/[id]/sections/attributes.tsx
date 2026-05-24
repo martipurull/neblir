@@ -1,7 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import {
   applyArmourPenaltyToInnateAttributeDice,
   getArmourAttributePenalty,

@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { LevelUpFormValues } from "./types";
@@ -22,7 +22,7 @@ type Props = {
   onOpenQuickCheck: () => void;
 };
 
-export default function LevelUpAttributesStep({
+export function LevelUpAttributesStep({
   form,
   seriousFlag,
   attributeSwapFromOptions,

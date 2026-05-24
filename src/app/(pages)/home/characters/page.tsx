@@ -1,12 +1,12 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageSubtitle from "@/app/components/shared/PageSubtitle";
-import PageTitle from "@/app/components/shared/PageTitle";
-import ResourceListCard from "@/app/components/shared/ResourceListCard";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
+import { PageTitle } from "@/app/components/shared/PageTitle";
+import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";

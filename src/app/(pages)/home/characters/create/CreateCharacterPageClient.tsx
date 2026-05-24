@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
-import Button from "@/app/components/shared/Button";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { Button } from "@/app/components/shared/Button";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { getDefaultCharacterCreationFormValues } from "./schemas";
@@ -16,7 +16,7 @@ import {
   CREATE_CHARACTER_STEP_DRAFT_KEY,
 } from "./characterCreateDraft";
 
-export default function CreateCharacterPageClient() {
+export function CreateCharacterPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freshStart = searchParams.get("fresh") === "1";

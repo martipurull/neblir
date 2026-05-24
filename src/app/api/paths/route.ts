@@ -6,7 +6,7 @@ import { pathCreateSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { serializeError } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 

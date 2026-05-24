@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 
 type CharacterCreateFooterProps = {
   currentStepIndex: number;

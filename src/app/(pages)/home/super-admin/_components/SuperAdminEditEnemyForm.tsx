@@ -1,11 +1,11 @@
 "use client";
 
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import Button from "@/app/components/shared/Button";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { Button } from "@/app/components/shared/Button";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
 import Link from "next/link";
@@ -18,8 +18,8 @@ import {
   superAdminRichEditorScrollClass,
 } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
@@ -42,11 +42,7 @@ async function enemyFetcher(url: string): Promise<EnemyResponse> {
   return (await res.json()) as EnemyResponse;
 }
 
-export default function SuperAdminEditEnemyForm({
-  enemyId,
-}: {
-  enemyId: string;
-}) {
+export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

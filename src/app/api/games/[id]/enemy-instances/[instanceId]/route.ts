@@ -7,7 +7,7 @@ import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { enemyInstancePatchBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import type { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";

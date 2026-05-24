@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
-import Button from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useCharacters } from "@/hooks/use-characters";
@@ -34,7 +34,7 @@ type AddCharactersToGameModalProps = {
   onSuccess?: () => void;
 };
 
-export default function AddCharactersToGameModal({
+export function AddCharactersToGameModal({
   isOpen,
   gameId,
   gameName,

@@ -5,7 +5,7 @@ import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { mapUpdateSchema } from "@/app/lib/types/map";
 import { auth } from "@/auth";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";

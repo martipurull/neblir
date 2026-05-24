@@ -282,4 +282,4 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
   );
 };
 
-export default ImageLoadingSkeleton;
+export { ImageLoadingSkeleton };

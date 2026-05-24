@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { DetailField } from "./DetailField";
 import type { InventoryEntry, ResolvedItemNonNull } from "./types";
 import { fmtSignedBonus } from "./utils";

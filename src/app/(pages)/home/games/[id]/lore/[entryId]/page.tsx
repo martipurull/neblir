@@ -1,11 +1,11 @@
 "use client";
 
 import { ReferenceEntryHtml } from "@/app/components/reference/ReferenceEntryHtml";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import PageSection from "@/app/components/shared/PageSection";
-import PageTitle from "@/app/components/shared/PageTitle";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { PageTitle } from "@/app/components/shared/PageTitle";
 import { useGame } from "@/hooks/use-game";
 import { getReferenceEntry } from "@/lib/api/referenceEntries";
 import Link from "next/link";

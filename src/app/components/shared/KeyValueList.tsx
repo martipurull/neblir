@@ -21,4 +21,4 @@ const KeyValueList: React.FC<KeyValueListProps> = ({ items }) => {
   );
 };
 
-export default KeyValueList;
+export { KeyValueList };

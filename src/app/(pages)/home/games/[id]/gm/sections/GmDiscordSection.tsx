@@ -1,5 +1,5 @@
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { DiscordIntegration } from "@/app/lib/types/discord";
 import {

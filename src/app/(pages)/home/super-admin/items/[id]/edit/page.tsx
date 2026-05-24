@@ -1,5 +1,5 @@
-import PageSection from "@/app/components/shared/PageSection";
-import SuperAdminCreateItemForm from "../../../_components/SuperAdminCreateItemForm";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { SuperAdminCreateItemForm } from "../../../_components/SuperAdminCreateItemForm";
 
 export default async function SuperAdminEditItemPage({
   params,

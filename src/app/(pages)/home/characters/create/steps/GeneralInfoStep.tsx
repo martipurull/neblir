@@ -1,11 +1,11 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { coerceNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import { NumberField } from "@/app/components/shared/NumberField";
-import TextInput from "@/app/components/shared/TextInput";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { TextInput } from "@/app/components/shared/TextInput";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";

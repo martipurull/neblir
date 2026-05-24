@@ -1,8 +1,8 @@
 "use client";
 
 import type { GameListItem } from "@/app/lib/types/game";
-import Button from "@/app/components/shared/Button";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -112,4 +112,4 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
   );
 };
 
-export default GameListCard;
+export { GameListCard };

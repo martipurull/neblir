@@ -6,12 +6,12 @@ import type {
 } from "@/app/lib/types/reference";
 import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import { useState } from "react";
-import Button from "../shared/Button";
-import ErrorState from "../shared/ErrorState";
-import InfoCard from "../shared/InfoCard";
-import LoadingState from "../shared/LoadingState";
-import PageSection from "../shared/PageSection";
-import PageTitle from "../shared/PageTitle";
+import { Button } from "../shared/Button";
+import { ErrorState } from "../shared/ErrorState";
+import { InfoCard } from "../shared/InfoCard";
+import { LoadingState } from "../shared/LoadingState";
+import { PageSection } from "../shared/PageSection";
+import { PageTitle } from "../shared/PageTitle";
 import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import { ReferenceEntryHtml } from "./ReferenceEntryHtml";
 

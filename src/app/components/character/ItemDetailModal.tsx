@@ -9,7 +9,7 @@ import {
   transferInventoryItem,
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";

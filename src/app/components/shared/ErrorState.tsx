@@ -1,6 +1,6 @@
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React from "react";
-import Button from "./Button";
+import { Button } from "./Button";
 
 interface ErrorStateProps {
   message: string;
@@ -35,4 +35,4 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   );
 };
 
-export default ErrorState;
+export { ErrorState };

@@ -1,4 +1,4 @@
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { signOut } from "@/auth";
 
 export function SignOut() {

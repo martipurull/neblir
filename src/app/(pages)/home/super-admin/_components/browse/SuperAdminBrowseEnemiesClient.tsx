@@ -1,9 +1,9 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
-import ResourceGridCard from "@/app/components/shared/ResourceGridCard";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
+import { ResourceGridCard } from "@/app/components/shared/ResourceGridCard";
 import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,
@@ -13,9 +13,9 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import SuperAdminCatalogueDomainNav from "../SuperAdminCatalogueDomainNav";
-import SuperAdminCatalogueSearchInput from "../SuperAdminCatalogueSearchInput";
-import SuperAdminSectionShell from "../SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "../SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInput";
+import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
 async function enemiesFetcher(url: string): Promise<EnemyResponse[]> {
@@ -26,7 +26,7 @@ async function enemiesFetcher(url: string): Promise<EnemyResponse[]> {
   return (await res.json()) as EnemyResponse[];
 }
 
-export default function SuperAdminBrowseEnemiesClient() {
+export function SuperAdminBrowseEnemiesClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, error, isLoading, mutate } = useSWR<EnemyResponse[]>(
     "/api/enemies",

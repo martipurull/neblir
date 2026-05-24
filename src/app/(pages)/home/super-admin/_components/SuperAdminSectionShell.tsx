@@ -48,4 +48,4 @@ const SuperAdminSectionShell: React.FC<SuperAdminSectionShellProps> = ({
   );
 };
 
-export default SuperAdminSectionShell;
+export { SuperAdminSectionShell };

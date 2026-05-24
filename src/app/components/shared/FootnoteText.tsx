@@ -16,4 +16,4 @@ const FootnoteText: React.FC<FootnoteTextProps> = ({
   );
 };
 
-export default FootnoteText;
+export { FootnoteText };

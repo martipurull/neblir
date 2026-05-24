@@ -1,10 +1,10 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import {
@@ -31,7 +31,7 @@ import {
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
 import type { z } from "zod";
 import Link from "next/link";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -43,10 +43,10 @@ import {
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueImagePreview } from "./SuperAdminCatalogueImagePreview";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminWeaponFieldsSection } from "./SuperAdminWeaponFieldsSection";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 import {
   catalogueItemImageKey,
@@ -151,7 +151,7 @@ async function itemByIdFetcher(url: string): Promise<Item & { id: string }> {
   return (await res.json()) as Item & { id: string };
 }
 
-export default function SuperAdminCreateItemForm({
+export function SuperAdminCreateItemForm({
   editItemId,
 }: {
   editItemId?: string;

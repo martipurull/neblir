@@ -1,6 +1,6 @@
 "use client";
 
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -22,7 +22,7 @@ export type ResourceGridCardProps = {
   minHeightClass?: string;
 };
 
-export default function ResourceGridCard({
+export function ResourceGridCard({
   href,
   title,
   meta,

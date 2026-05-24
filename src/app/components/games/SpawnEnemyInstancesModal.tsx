@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { spawnEnemyInstances } from "@/lib/api/enemyInstances";

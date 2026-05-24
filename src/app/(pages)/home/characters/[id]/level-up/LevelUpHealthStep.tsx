@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { Controller } from "react-hook-form";
 import { rollD10 } from "./character-helpers";
@@ -22,11 +22,7 @@ type Props = {
   healthError: string | undefined;
 };
 
-export default function LevelUpHealthStep({
-  form,
-  healthPreview,
-  healthError,
-}: Props) {
+export function LevelUpHealthStep({ form, healthPreview, healthError }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-black/70">

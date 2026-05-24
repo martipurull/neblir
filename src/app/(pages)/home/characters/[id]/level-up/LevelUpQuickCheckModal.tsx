@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ATTRIBUTE_GROUP_LABELS } from "./constants";
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
   currentSkillsForDisplay: Array<{ label: string; value: number }>;
 };
 
-export default function LevelUpQuickCheckModal({
+export function LevelUpQuickCheckModal({
   open,
   onClose,
   groupedAttributesForDisplay,

@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { Button } from "@/app/components/shared/Button";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
 import Image from "next/image";
 import { useState } from "react";

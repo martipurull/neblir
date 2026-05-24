@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { Button } from "@/app/components/shared/Button";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { emitRollEvent } from "@/app/lib/roll-event-client";

@@ -1,15 +1,15 @@
 "use client";
 
-import ErrorState from "@/app/components/shared/ErrorState";
-import InfoCard from "@/app/components/shared/InfoCard";
-import LoadingState from "@/app/components/shared/LoadingState";
+import { ErrorState } from "@/app/components/shared/ErrorState";
+import { InfoCard } from "@/app/components/shared/InfoCard";
+import { LoadingState } from "@/app/components/shared/LoadingState";
 import { appButtonVariantClassName } from "@/app/components/shared/buttonStyles";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import type { SuperAdminCatalogueCreatedKind } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminSeedJsonDownloadButton } from "./SuperAdminSeedJsonDownloadButton";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 
 export type { SuperAdminCatalogueCreatedKind };
 

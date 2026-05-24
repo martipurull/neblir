@@ -1,5 +1,5 @@
-import PageSection from "@/app/components/shared/PageSection";
-import SuperAdminCreateItemForm from "../_components/SuperAdminCreateItemForm";
+import { PageSection } from "@/app/components/shared/PageSection";
+import { SuperAdminCreateItemForm } from "../_components/SuperAdminCreateItemForm";
 
 export default function SuperAdminItemsPage() {
   return (

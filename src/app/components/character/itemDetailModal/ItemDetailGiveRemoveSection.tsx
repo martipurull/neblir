@@ -1,7 +1,7 @@
 "use client";
 
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { InventoryEntry } from "./types";

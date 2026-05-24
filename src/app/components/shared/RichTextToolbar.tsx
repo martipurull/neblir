@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
 import React from "react";

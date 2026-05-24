@@ -19,7 +19,7 @@ import type { AuthNextRequest } from "@/app/lib/types/api";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { serializeError } from "@/app/api/shared/errors";
 import { errorResponse } from "@/app/api/shared/responses";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { ValidationError } from "@/app/api/shared/errors";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {

@@ -50,6 +50,34 @@ const eslintConfig = [
     },
   },
   {
+    files: ["**/*.{ts,tsx}"],
+    ignores: [
+      "**/page.tsx",
+      "**/layout.tsx",
+      "**/loading.tsx",
+      "**/error.tsx",
+      "**/global-error.tsx",
+      "**/not-found.tsx",
+      "**/template.tsx",
+      "**/default.tsx",
+      "**/manifest.ts",
+      "src/auth.config.ts",
+      "tailwind.config.ts",
+      "vitest.config.ts",
+    ],
+    rules: {
+      // Prefer named exports (AGENTS.md §9).
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "ExportDefaultDeclaration",
+          message:
+            "Prefer named exports. Default exports are only allowed in Next.js route entry files, manifest.ts, and src/auth.config.ts (see AGENTS.md §9).",
+        },
+      ],
+    },
+  },
+  {
     files: [
       "test/**/*.ts",
       "test/**/*.tsx",

@@ -29,7 +29,7 @@ function fieldValueToString(value: unknown): string {
   return String(value);
 }
 
-export default function NumberInput({
+export function NumberInput({
   name,
   label,
   placeholder,

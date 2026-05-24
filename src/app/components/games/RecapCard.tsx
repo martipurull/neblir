@@ -1,4 +1,4 @@
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import type { GameRecap } from "@/app/lib/types/recap";
 
 type RecapCardProps = {
@@ -9,7 +9,7 @@ type RecapCardProps = {
   onDelete?: (recap: GameRecap) => void;
 };
 
-export default function RecapCard({
+export function RecapCard({
   recap,
   onDownload,
   canDelete = false,

@@ -1,13 +1,13 @@
 "use client";
 
 import type { PathName } from "@prisma/client";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import InfoCard from "@/app/components/shared/InfoCard";
+import { InfoCard } from "@/app/components/shared/InfoCard";
 import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
 import { featureCatalogueCreateSchema } from "@/app/lib/types/featureCatalogue";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
-import NumberInput from "@/app/components/shared/NumberInput";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -16,8 +16,8 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
 
@@ -42,7 +42,7 @@ function examplesFromRichHtml(html: string): string[] {
   return persisted ? [persisted] : [];
 }
 
-export default function SuperAdminCreateFeatureForm() {
+export function SuperAdminCreateFeatureForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

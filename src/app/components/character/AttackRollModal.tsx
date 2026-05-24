@@ -1,7 +1,7 @@
 "use client";
 
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
-import Button from "@/app/components/shared/Button";
+import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { useCallback, useEffect, useMemo, useState } from "react";

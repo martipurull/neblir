@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import ImageLoadingSkeleton from "@/app/components/shared/ImageLoadingSkeleton";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 
 interface ResourceListCardProps {
   title: string;
@@ -79,4 +79,4 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   return <article className={baseClassName}>{cardContent}</article>;
 };
 
-export default ResourceListCard;
+export { ResourceListCard };

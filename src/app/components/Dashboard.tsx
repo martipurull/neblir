@@ -1,6 +1,6 @@
 "use client";
 
-import GameInvitesReceivedBlock from "@/app/components/games/GameInvitesReceivedBlock";
+import { GameInvitesReceivedBlock } from "@/app/components/games/GameInvitesReceivedBlock";
 import { useGameInvites } from "@/hooks/use-game-invites";
 import { useGames } from "@/hooks/use-games";
 import { useUser } from "@/hooks/use-user";
@@ -88,4 +88,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export { Dashboard };
