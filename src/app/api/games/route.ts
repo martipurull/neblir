@@ -89,8 +89,12 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse(`User with id ${userId} does not exist`, 400);
     }
     const userGames = await getUserGames(userId);
+    const payload = userGames.map((game) => ({
+      ...game,
+      isGameMaster: game.gameMaster === userId,
+    }));
 
-    return NextResponse.json(userGames, { status: 200 });
+    return NextResponse.json(payload, { status: 200 });
   } catch (error) {
     logger.error({
       method: "GET",

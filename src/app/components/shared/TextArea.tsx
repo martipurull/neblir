@@ -1,20 +1,26 @@
+import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { sharedTextFieldClassName } from "@/app/components/shared/inputStyles";
 import { forwardRef } from "react";
+
+export type TextAreaVariant = "light" | "dark";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
   "className"
 > & {
   className?: string;
+  variant?: TextAreaVariant;
 };
 
-/** Multi-line text control for light app surfaces (`bg-paleBlue`). */
+/** Multi-line text control for light pages (`bg-paleBlue`) and dark game modals. */
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  function TextArea({ className = "", ...props }, ref) {
+  function TextArea({ className = "", variant = "light", ...props }, ref) {
+    const baseClass =
+      variant === "dark" ? modalInputClass : sharedTextFieldClassName;
     return (
       <textarea
         ref={ref}
-        className={`${sharedTextFieldClassName} ${className}`.trim()}
+        className={`${baseClass} ${className}`.trim()}
         {...props}
       />
     );

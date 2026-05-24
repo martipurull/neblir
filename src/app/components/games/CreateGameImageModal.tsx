@@ -4,6 +4,7 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { Button } from "@/app/components/shared/Button";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameImage } from "@/lib/api/gameImages";
 import React, { useMemo, useRef, useState } from "react";
 
@@ -139,11 +140,12 @@ export function CreateGameImageModal({
       </div>
       <div>
         <ModalFieldLabel id="game-image-description" label="Description" />
-        <textarea
+        <TextArea
           id="game-image-description"
+          variant="dark"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className={`${modalInputClass} min-h-[88px]`}
+          className="min-h-[88px]"
           placeholder="Optional short description"
           rows={3}
           disabled={submitting}

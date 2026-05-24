@@ -53,6 +53,7 @@ export async function getGameById(
 type GameUpdateBody = {
   name?: string;
   imageKey?: string | null;
+  premise?: string | null;
   nextSession?: string | null; // ISO date string
   lore?: string | null;
 };

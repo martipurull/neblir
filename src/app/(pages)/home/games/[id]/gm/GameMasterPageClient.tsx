@@ -18,6 +18,8 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
 import {
+  GmCoverImageSection,
+  GmPremiseSection,
   GmInitiativeSection,
   GmDiscordSection,
   GmInvitesSection,
@@ -408,6 +410,23 @@ export function GameMasterPageClient() {
             }}
           />
         )}
+
+        <GmPremiseSection
+          gameId={game.id}
+          premise={game.premise}
+          onUpdated={async (updated) => {
+            await mutate(updated, { revalidate: false });
+          }}
+        />
+
+        <GmCoverImageSection
+          gameId={game.id}
+          gameName={game.name}
+          imageKey={game.imageKey}
+          onUpdated={async (updated) => {
+            await mutate(updated, { revalidate: false });
+          }}
+        />
       </div>
 
       <InviteUsersModal

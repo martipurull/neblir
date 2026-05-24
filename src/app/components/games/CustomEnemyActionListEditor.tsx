@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {
@@ -233,13 +234,14 @@ export function CustomEnemyActionListEditor({
                       id={`${prefix}-notes`}
                       label="Action notes"
                     />
-                    <textarea
+                    <TextArea
                       id={`${prefix}-notes`}
+                      variant="dark"
                       value={row.notes}
                       onChange={(e) =>
                         onChange(row.clientId, "notes", e.target.value)
                       }
-                      className={modalInputClass + " min-h-[48px]"}
+                      className="min-h-[48px]"
                       rows={2}
                       disabled={disabled}
                     />

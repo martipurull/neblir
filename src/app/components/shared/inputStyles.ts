@@ -3,7 +3,9 @@
  * For dark game modals, use `modalInputClass` / `modalNumberInputClass` in
  * `src/app/components/games/shared/modalStyles.ts` instead.
  *
- * Primitives: `TextField`, `TextArea` (`src/app/components/shared/`).
+ * Primitives: `TextField`, `TextArea` (`variant="light"`, default) in
+ * `src/app/components/shared/`. For multi-line controls in game modals, use
+ * `TextArea` with `variant="dark"`.
  */
 export const sharedTextFieldClassName =
   "min-h-11 w-full rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover";

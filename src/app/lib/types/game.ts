@@ -21,6 +21,8 @@ export const gameUpdateSchema = gameBaseSchema
   .extend({
     nextSession: z.coerce.date().nullable().optional(),
     lore: z.string().nullable().optional(),
+    imageKey: z.string().nullable().optional(),
+    premise: z.string().nullable().optional(),
   })
   .partial()
   .strict();
@@ -47,6 +49,8 @@ export const gameListItemSchema = z.object({
   premise: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
   gameMaster: z.string(),
+  nextSession: z.coerce.date().nullable().optional(),
+  isGameMaster: z.boolean().optional(),
   users: z.array(gameListUserSchema),
 });
 export const gameListSchema = z.array(gameListItemSchema);

@@ -4,6 +4,7 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { Button } from "@/app/components/shared/Button";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameRecap } from "@/lib/api/recaps";
 import React, { useMemo, useRef, useState } from "react";
 
@@ -152,11 +153,12 @@ export function CreateGameRecapModal({
       </div>
       <div>
         <ModalFieldLabel id="game-recap-summary" label="Summary" />
-        <textarea
+        <TextArea
           id="game-recap-summary"
+          variant="dark"
           value={summary}
           onChange={(event) => setSummary(event.target.value)}
-          className={`${modalInputClass} min-h-[88px]`}
+          className="min-h-[88px]"
           placeholder="Optional short summary"
           rows={3}
           disabled={submitting}

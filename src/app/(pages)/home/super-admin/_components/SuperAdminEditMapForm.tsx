@@ -9,7 +9,7 @@ import { mapUpdateSchema } from "@/app/lib/types/map";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import useSWR from "swr";
 import {
   optionalSuperAdminRichHtml,
@@ -71,6 +71,12 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
     },
     [form]
   );
+
+  const watchedName = useWatch({ control: form.control, name: "name" });
+  const mapPreviewAlt =
+    (typeof watchedName === "string" && watchedName.trim()) ||
+    data?.name ||
+    "Map";
 
   const onSubmit = form.handleSubmit(async (values) => {
     setErrorMessage(null);
@@ -153,6 +159,8 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
             disabled={submitting}
             initialImageKey={data.imageKey}
             onImageKey={onImageKey}
+            previewVariant="map"
+            previewAlt={mapPreviewAlt}
           />
 
           <div className="mb-6">

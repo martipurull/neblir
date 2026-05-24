@@ -1,5 +1,6 @@
 "use client";
 
+import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -79,6 +80,7 @@ export default function GameDetailPage() {
     nextSessionDate == null || (!isGameMaster && isPastNextSession)
       ? "No date set"
       : nextSessionDate.toLocaleDateString();
+  const hasPremise = Boolean(game.premise?.trim());
 
   return (
     <PageSection>
@@ -103,6 +105,18 @@ export default function GameDetailPage() {
             )}
           </div>
           <PageTitle>{game.name}</PageTitle>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-semibold text-black">Premise</h2>
+          {hasPremise ? (
+            <StoredRichTextHtml
+              content={game.premise}
+              className="mt-2 text-sm text-black/80"
+            />
+          ) : (
+            <p className="mt-2 text-sm italic text-black/50">No premise set.</p>
+          )}
         </div>
 
         {/* Menu tiles */}

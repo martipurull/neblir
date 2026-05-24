@@ -4,6 +4,7 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
 import { GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/generalInformationRichText";
@@ -195,11 +196,12 @@ export function CreateGameLoreEntryModal({
 
       <div>
         <ModalFieldLabel id="game-lore-summary" label="Summary" />
-        <textarea
+        <TextArea
           id="game-lore-summary"
+          variant="dark"
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          className={`${modalInputClass} min-h-[88px]`}
+          className="min-h-[88px]"
           placeholder="Optional short summary"
           disabled={submitting}
           rows={3}

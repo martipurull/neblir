@@ -1,3 +1,5 @@
+export { GmCoverImageSection } from "./GmCoverImageSection";
+export { GmPremiseSection } from "./GmPremiseSection";
 export { GmInitiativeSection } from "./GmInitiativeSection";
 export { GmInvitesSection } from "./GmInvitesSection";
 export { GmCustomEnemiesSection } from "./GmCustomEnemiesSection";
