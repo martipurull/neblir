@@ -25,7 +25,7 @@ type CreateUniqueItemModalProps = {
   onSuccess?: () => void;
 };
 
-export default function CreateUniqueItemModal({
+export function CreateUniqueItemModal({
   isOpen,
   customTemplateGameIds,
   gameIdForSubmit,

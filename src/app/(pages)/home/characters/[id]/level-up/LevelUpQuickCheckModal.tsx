@@ -13,7 +13,7 @@ type Props = {
   currentSkillsForDisplay: Array<{ label: string; value: number }>;
 };
 
-export default function LevelUpQuickCheckModal({
+export function LevelUpQuickCheckModal({
   open,
   onClose,
   groupedAttributesForDisplay,

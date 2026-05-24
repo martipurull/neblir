@@ -25,8 +25,8 @@ import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type RefFormValues = {
@@ -42,7 +42,7 @@ const categoryOptions = [
   { value: "WORLD", label: "World" },
 ];
 
-export default function SuperAdminCreateReferenceForm() {
+export function SuperAdminCreateReferenceForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

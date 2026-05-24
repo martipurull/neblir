@@ -13,9 +13,9 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import SuperAdminCatalogueDomainNav from "../SuperAdminCatalogueDomainNav";
-import SuperAdminCatalogueSearchInput from "../SuperAdminCatalogueSearchInput";
-import SuperAdminSectionShell from "../SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "../SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInput";
+import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
 type ItemRow = Item & { id: string; imageKey?: string | null };
@@ -28,7 +28,7 @@ async function itemsFetcher(url: string): Promise<ItemRow[]> {
   return (await res.json()) as ItemRow[];
 }
 
-export default function SuperAdminBrowseItemsClient() {
+export function SuperAdminBrowseItemsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, error, isLoading, mutate } = useSWR<ItemRow[]>(
     "/api/items",

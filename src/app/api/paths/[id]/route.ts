@@ -5,7 +5,7 @@ import type { AuthNextRequest } from "@/app/lib/types/api";
 import { pathCatalogueUpdateSchema } from "@/app/lib/types/path";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 

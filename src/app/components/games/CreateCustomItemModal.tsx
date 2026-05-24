@@ -23,7 +23,7 @@ type CreateCustomItemModalProps = {
   onSuccess?: () => void;
 };
 
-export default function CreateCustomItemModal({
+export function CreateCustomItemModal({
   isOpen,
   gameId,
   gameName,

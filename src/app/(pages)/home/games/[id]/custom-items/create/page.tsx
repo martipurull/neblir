@@ -1,6 +1,6 @@
 "use client";
 
-import CreateCustomItemModal from "@/app/components/games/CreateCustomItemModal";
+import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";

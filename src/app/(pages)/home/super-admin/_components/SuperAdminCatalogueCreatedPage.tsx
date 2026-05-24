@@ -3,7 +3,7 @@ import type { SuperAdminCatalogueCreatedKind } from "../_utils/superAdminCatalog
 import { SuperAdminCatalogueCreatedConfirmation } from "./SuperAdminCatalogueCreatedConfirmation";
 import { Suspense } from "react";
 
-export default function SuperAdminCatalogueCreatedPage({
+export function SuperAdminCatalogueCreatedPage({
   kind,
 }: {
   kind: SuperAdminCatalogueCreatedKind;

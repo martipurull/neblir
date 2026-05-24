@@ -1,4 +1,4 @@
-import Dashboard from "@/app/components/Dashboard";
+import { Dashboard } from "@/app/components/Dashboard";
 import React from "react";
 
 const HomePage: React.FC = () => {

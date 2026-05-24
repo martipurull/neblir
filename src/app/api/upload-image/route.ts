@@ -3,7 +3,7 @@ import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { errorResponse } from "../shared/responses";
 

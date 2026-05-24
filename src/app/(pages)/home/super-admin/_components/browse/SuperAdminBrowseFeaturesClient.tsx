@@ -13,9 +13,9 @@ import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import SuperAdminCatalogueDomainNav from "../SuperAdminCatalogueDomainNav";
-import SuperAdminCatalogueSearchInput from "../SuperAdminCatalogueSearchInput";
-import SuperAdminSectionShell from "../SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "../SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInput";
+import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { PATH_NAME_SELECT_OPTIONS } from "../pathNameSelectOptions";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
@@ -38,7 +38,7 @@ async function featuresFetcher(url: string): Promise<FeatureRow[]> {
   return (await res.json()) as FeatureRow[];
 }
 
-export default function SuperAdminBrowseFeaturesClient() {
+export function SuperAdminBrowseFeaturesClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pathFilter, setPathFilter] = useState("");
   const { data, error, isLoading, mutate } = useSWR<FeatureRow[]>(

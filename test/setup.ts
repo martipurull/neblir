@@ -9,7 +9,7 @@ vi.mock("@/auth", () => ({
 }));
 
 vi.mock("@/logger", () => ({
-  default: {
+  logger: {
     error: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),

@@ -40,7 +40,7 @@ async function deleteUploadedImageFile(fileKey: string): Promise<void> {
   });
 }
 
-export default function CreateGameImageModal({
+export function CreateGameImageModal({
   isOpen,
   gameId,
   gameName,

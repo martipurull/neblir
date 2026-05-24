@@ -80,4 +80,4 @@ const GameInvitesReceivedBlock: React.FC<GameInvitesReceivedBlockProps> = ({
   );
 };
 
-export default GameInvitesReceivedBlock;
+export { GameInvitesReceivedBlock };

@@ -39,7 +39,7 @@ function slugifyTitle(title: string): string {
   return `${base || fallback}-${Date.now().toString(36)}`;
 }
 
-export default function CreateGameLoreEntryModal({
+export function CreateGameLoreEntryModal({
   isOpen,
   gameId,
   gameName,

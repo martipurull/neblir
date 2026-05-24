@@ -4,7 +4,7 @@ import { getGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { customEnemyFromOfficialBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";

@@ -26,8 +26,8 @@ import {
   optionalSuperAdminRichHtml,
   superAdminRichEditorScrollClass,
 } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
@@ -52,11 +52,7 @@ async function referenceFetcher(url: string): Promise<ReferenceEntry> {
   return (await res.json()) as ReferenceEntry;
 }
 
-export default function SuperAdminEditReferenceForm({
-  entryId,
-}: {
-  entryId: string;
-}) {
+export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

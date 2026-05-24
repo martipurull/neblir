@@ -9,7 +9,7 @@ type RemoveCharacterFromGameButtonProps = {
   className?: string;
 };
 
-export default function RemoveCharacterFromGameButton({
+export function RemoveCharacterFromGameButton({
   gameId,
   characterId,
   onRemoved,

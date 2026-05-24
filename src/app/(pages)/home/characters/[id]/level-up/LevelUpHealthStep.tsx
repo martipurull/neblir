@@ -22,11 +22,7 @@ type Props = {
   healthError: string | undefined;
 };
 
-export default function LevelUpHealthStep({
-  form,
-  healthPreview,
-  healthError,
-}: Props) {
+export function LevelUpHealthStep({ form, healthPreview, healthError }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-black/70">

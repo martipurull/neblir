@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import { Button } from "./shared/Button";
 
-export default function SignIn() {
+export function SignIn() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-10 sm:px-8 sm:py-14">
       <div className="w-full max-w-lg rounded-lg border border-black bg-transparent p-6 shadow-md sm:p-8">

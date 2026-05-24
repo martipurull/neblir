@@ -9,7 +9,7 @@ import { auth } from "@/auth";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { NextResponse } from "next/server";
 import { gameUpdateSchema } from "@/app/lib/types/game";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 

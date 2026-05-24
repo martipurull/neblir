@@ -3,7 +3,7 @@ import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { characterCreationRequestSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
 import { getPath } from "@/app/lib/prisma/path";

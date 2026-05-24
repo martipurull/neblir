@@ -41,7 +41,7 @@ async function deleteUploadedRecapFile(fileKey: string): Promise<void> {
   });
 }
 
-export default function CreateGameRecapModal({
+export function CreateGameRecapModal({
   isOpen,
   gameId,
   gameName,

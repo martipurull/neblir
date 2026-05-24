@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import type { SuperAdminCatalogueCreatedKind } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminSeedJsonDownloadButton } from "./SuperAdminSeedJsonDownloadButton";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 
 export type { SuperAdminCatalogueCreatedKind };
 

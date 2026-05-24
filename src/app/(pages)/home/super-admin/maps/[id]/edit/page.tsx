@@ -1,5 +1,5 @@
 import { PageSection } from "@/app/components/shared/PageSection";
-import SuperAdminEditMapForm from "../../../_components/SuperAdminEditMapForm";
+import { SuperAdminEditMapForm } from "../../../_components/SuperAdminEditMapForm";
 
 export default async function SuperAdminEditMapPage({
   params,

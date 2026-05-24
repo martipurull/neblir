@@ -9,7 +9,7 @@ type RecapCardProps = {
   onDelete?: (recap: GameRecap) => void;
 };
 
-export default function RecapCard({
+export function RecapCard({
   recap,
   onDownload,
   canDelete = false,

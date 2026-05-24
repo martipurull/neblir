@@ -17,7 +17,7 @@ import {
 } from "../shared/errors";
 import { errorResponse } from "../shared/responses";
 import { ValidationError } from "../shared/errors";
-import logger from "@/logger";
+import { logger } from "@/logger";
 
 export const GET = auth(async (request: AuthNextRequest) => {
   try {

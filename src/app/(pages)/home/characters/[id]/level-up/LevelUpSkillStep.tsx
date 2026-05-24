@@ -11,7 +11,7 @@ type Props = {
   onOpenQuickCheck: () => void;
 };
 
-export default function LevelUpSkillStep({
+export function LevelUpSkillStep({
   form,
   targetLevel,
   onOpenQuickCheck,

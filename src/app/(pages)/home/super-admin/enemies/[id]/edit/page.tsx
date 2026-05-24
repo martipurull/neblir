@@ -1,5 +1,5 @@
 import { PageSection } from "@/app/components/shared/PageSection";
-import SuperAdminEditEnemyForm from "../../../_components/SuperAdminEditEnemyForm";
+import { SuperAdminEditEnemyForm } from "../../../_components/SuperAdminEditEnemyForm";
 
 export default async function SuperAdminEditEnemyPage({
   params,

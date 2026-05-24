@@ -1,7 +1,7 @@
 "use client";
 
-import GameInvitesReceivedBlock from "@/app/components/games/GameInvitesReceivedBlock";
-import GameListCard from "@/app/components/games/GameListCard";
+import { GameInvitesReceivedBlock } from "@/app/components/games/GameInvitesReceivedBlock";
+import { GameListCard } from "@/app/components/games/GameListCard";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";

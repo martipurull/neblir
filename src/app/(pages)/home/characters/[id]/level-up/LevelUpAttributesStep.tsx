@@ -22,7 +22,7 @@ type Props = {
   onOpenQuickCheck: () => void;
 };
 
-export default function LevelUpAttributesStep({
+export function LevelUpAttributesStep({
   form,
   seriousFlag,
   attributeSwapFromOptions,

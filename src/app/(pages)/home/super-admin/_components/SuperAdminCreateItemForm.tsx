@@ -43,10 +43,10 @@ import {
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueImagePreview } from "./SuperAdminCatalogueImagePreview";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminWeaponFieldsSection } from "./SuperAdminWeaponFieldsSection";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 import {
   catalogueItemImageKey,
@@ -151,7 +151,7 @@ async function itemByIdFetcher(url: string): Promise<Item & { id: string }> {
   return (await res.json()) as Item & { id: string };
 }
 
-export default function SuperAdminCreateItemForm({
+export function SuperAdminCreateItemForm({
   editItemId,
 }: {
   editItemId?: string;

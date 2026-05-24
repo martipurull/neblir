@@ -1,5 +1,5 @@
 import { PageSection } from "@/app/components/shared/PageSection";
-import SuperAdminBrowsePathsClient from "../../_components/browse/SuperAdminBrowsePathsClient";
+import { SuperAdminBrowsePathsClient } from "../../_components/browse/SuperAdminBrowsePathsClient";
 
 export default function SuperAdminBrowsePathsPage() {
   return (

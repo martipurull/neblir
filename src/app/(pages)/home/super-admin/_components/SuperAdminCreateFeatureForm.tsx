@@ -16,8 +16,8 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
 
@@ -42,7 +42,7 @@ function examplesFromRichHtml(html: string): string[] {
   return persisted ? [persisted] : [];
 }
 
-export default function SuperAdminCreateFeatureForm() {
+export function SuperAdminCreateFeatureForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

@@ -11,11 +11,11 @@ import { Stepper } from "@/app/components/shared/Stepper";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useCharacter } from "@/hooks/use-character";
 import { clearLevelUpDraft } from "./draft-storage";
-import LevelUpAttributesStep from "./LevelUpAttributesStep";
-import LevelUpHealthStep from "./LevelUpHealthStep";
-import LevelUpPathFeaturesStep from "./LevelUpPathFeaturesStep";
-import LevelUpQuickCheckModal from "./LevelUpQuickCheckModal";
-import LevelUpSkillStep from "./LevelUpSkillStep";
+import { LevelUpAttributesStep } from "./LevelUpAttributesStep";
+import { LevelUpHealthStep } from "./LevelUpHealthStep";
+import { LevelUpPathFeaturesStep } from "./LevelUpPathFeaturesStep";
+import { LevelUpQuickCheckModal } from "./LevelUpQuickCheckModal";
+import { LevelUpSkillStep } from "./LevelUpSkillStep";
 import { STEPS } from "./constants";
 import { useCharacterLevelUp } from "./useCharacterLevelUp";
 

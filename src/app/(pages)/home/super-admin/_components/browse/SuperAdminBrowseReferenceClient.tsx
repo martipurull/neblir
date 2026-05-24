@@ -12,9 +12,9 @@ import type { ReferenceCategory } from "@/app/lib/types/reference";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import SuperAdminCatalogueDomainNav from "../SuperAdminCatalogueDomainNav";
-import SuperAdminCatalogueSearchInput from "../SuperAdminCatalogueSearchInput";
-import SuperAdminSectionShell from "../SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "../SuperAdminCatalogueDomainNav";
+import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInput";
+import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
 type ReferenceRow = {
@@ -33,7 +33,7 @@ async function referenceFetcher(url: string): Promise<ReferenceRow[]> {
   return (await res.json()) as ReferenceRow[];
 }
 
-export default function SuperAdminBrowseReferenceClient() {
+export function SuperAdminBrowseReferenceClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, error, isLoading, mutate } = useSWR<ReferenceRow[]>(
     "/api/reference-entries?scope=official",

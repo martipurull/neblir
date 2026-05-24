@@ -66,9 +66,9 @@ const eslintConfig = [
       "vitest.config.ts",
     ],
     rules: {
-      // Prefer named exports (AGENTS.md §9). Warn until default-export migration; then "error".
+      // Prefer named exports (AGENTS.md §9).
       "no-restricted-syntax": [
-        "warn",
+        "error",
         {
           selector: "ExportDefaultDeclaration",
           message:

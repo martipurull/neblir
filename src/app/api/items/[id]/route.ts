@@ -6,7 +6,7 @@ import { itemUpdateSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 

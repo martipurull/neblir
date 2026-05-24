@@ -1,6 +1,6 @@
 "use client";
 
-import RecapCard from "@/app/components/games/RecapCard";
+import { RecapCard } from "@/app/components/games/RecapCard";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";

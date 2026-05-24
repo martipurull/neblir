@@ -1,5 +1,5 @@
 import { PageSection } from "@/app/components/shared/PageSection";
-import SuperAdminBrowseReferenceClient from "../../_components/browse/SuperAdminBrowseReferenceClient";
+import { SuperAdminBrowseReferenceClient } from "../../_components/browse/SuperAdminBrowseReferenceClient";
 
 export default function SuperAdminBrowseReferencePage() {
   return (

@@ -1,5 +1,5 @@
 import { PageSection } from "@/app/components/shared/PageSection";
-import SuperAdminBrowseFeaturesClient from "../../_components/browse/SuperAdminBrowseFeaturesClient";
+import { SuperAdminBrowseFeaturesClient } from "../../_components/browse/SuperAdminBrowseFeaturesClient";
 
 export default function SuperAdminBrowseFeaturesPage() {
   return (

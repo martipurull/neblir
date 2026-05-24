@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/shared/Button";
-import RecapCard from "@/app/components/games/RecapCard";
+import { RecapCard } from "@/app/components/games/RecapCard";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";

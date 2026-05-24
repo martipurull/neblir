@@ -4,7 +4,7 @@ import { prisma } from "@/app/lib/prisma/client";
 import { getGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
-import logger from "@/logger";
+import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 
 function integrationAllowsDelivery(status: string): boolean {

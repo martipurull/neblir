@@ -34,7 +34,7 @@ type AddCharactersToGameModalProps = {
   onSuccess?: () => void;
 };
 
-export default function AddCharactersToGameModal({
+export function AddCharactersToGameModal({
   isOpen,
   gameId,
   gameName,

@@ -17,8 +17,8 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type EnemyFormValues = {
@@ -32,7 +32,7 @@ type EnemyFormValues = {
   notes: string;
 };
 
-export default function SuperAdminCreateEnemyForm() {
+export function SuperAdminCreateEnemyForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

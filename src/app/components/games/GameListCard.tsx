@@ -112,4 +112,4 @@ const GameListCard: React.FC<GameListCardProps> = ({ game, imageUrl }) => {
   );
 };
 
-export default GameListCard;
+export { GameListCard };

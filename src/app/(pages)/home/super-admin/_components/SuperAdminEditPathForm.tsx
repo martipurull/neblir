@@ -17,8 +17,8 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 async function pathFetcher(url: string): Promise<Path> {
@@ -36,7 +36,7 @@ function optionalRichHtml(html: string): string | undefined {
   return persisted || undefined;
 }
 
-export default function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
+export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

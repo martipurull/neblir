@@ -241,4 +241,4 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
   );
 };
 
-export default InviteUsersModal;
+export { InviteUsersModal };

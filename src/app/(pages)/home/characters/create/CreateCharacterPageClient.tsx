@@ -16,7 +16,7 @@ import {
   CREATE_CHARACTER_STEP_DRAFT_KEY,
 } from "./characterCreateDraft";
 
-export default function CreateCharacterPageClient() {
+export function CreateCharacterPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freshStart = searchParams.get("fresh") === "1";

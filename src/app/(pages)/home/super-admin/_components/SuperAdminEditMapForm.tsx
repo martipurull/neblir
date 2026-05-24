@@ -16,8 +16,8 @@ import {
   superAdminRichEditorScrollClass,
 } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
@@ -42,7 +42,7 @@ async function mapFetcher(url: string): Promise<MapRow> {
   return (await res.json()) as MapRow;
 }
 
-export default function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
+export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

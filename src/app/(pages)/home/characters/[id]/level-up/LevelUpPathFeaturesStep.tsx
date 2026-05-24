@@ -32,7 +32,7 @@ type Props = {
   ) => void;
 };
 
-export default function LevelUpPathFeaturesStep({
+export function LevelUpPathFeaturesStep({
   form,
   watchedPathId,
   choices,

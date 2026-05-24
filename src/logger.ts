@@ -14,11 +14,9 @@ const isDevelopment = process.env.NODE_ENV === "development";
  *
  * This logger should be imported and used across the application for consistent structured logging.
  */
-const logger = pino({
+export const logger = pino({
   level: process.env.LOG_LEVEL ?? (isDevelopment ? "debug" : "info"),
   base: {
     pid: false,
   },
 });
-
-export default logger;

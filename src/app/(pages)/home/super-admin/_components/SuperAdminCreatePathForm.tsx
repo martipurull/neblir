@@ -19,8 +19,8 @@ import {
   superAdminCatalogueCreatedHref,
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
-import SuperAdminCatalogueDomainNav from "./SuperAdminCatalogueDomainNav";
-import SuperAdminSectionShell from "./SuperAdminSectionShell";
+import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { buildAvailablePathNameSelectOptions } from "./pathNameSelectOptions";
 
 async function pathsFetcher(url: string): Promise<Path[]> {
@@ -38,7 +38,7 @@ function optionalRichHtml(html: string): string | undefined {
   return persisted || undefined;
 }
 
-export default function SuperAdminCreatePathForm() {
+export function SuperAdminCreatePathForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

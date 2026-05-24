@@ -27,7 +27,7 @@ async function driftFetcher(url: string): Promise<DriftPayload> {
   return (await res.json()) as DriftPayload;
 }
 
-export default function SuperAdminPageClient() {
+export function SuperAdminPageClient() {
   const [bundleExportError, setBundleExportError] = useState<string | null>(
     null
   );

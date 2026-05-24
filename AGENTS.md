@@ -75,7 +75,7 @@ These rules apply to every task unless the user explicitly overrides them.
 - Use **named exports** for application code: components, hooks, utilities, and library modules under `src/`.
   - Prefer `export function Foo`, `export const Foo`, or `export const Foo = forwardRef(...)` (see `TextField`, `SelectDropdown`).
   - Import with `import { Foo } from "..."` so symbol names stay stable for refactors and search.
-- **Do not** add new `export default` in app/library code. ESLint enforces this (`no-restricted-syntax` on `ExportDefaultDeclaration`; currently **`warn`** until the codebase migration finishes, then **`error`**).
+- **Do not** add new `export default` in app/library code. ESLint enforces this as an **error** (`no-restricted-syntax` on `ExportDefaultDeclaration`).
 - **Exceptions** (framework or tooling contracts that require a default export):
   - Next.js App Router special files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `global-error.tsx`, `not-found.tsx`, `template.tsx`, `default.tsx`
   - `manifest.ts` (and other Next metadata route modules that export a default)
