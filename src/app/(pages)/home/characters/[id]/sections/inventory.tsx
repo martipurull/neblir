@@ -188,6 +188,7 @@ function InventoryList({
 interface InventorySectionContentProps {
   character: CharacterDetail;
   mutate: KeyedMutator<CharacterDetail | null>;
+  activeGameId: string | null;
   /** When false, user cannot add items (e.g. over 150% carry weight) */
   canAddItems?: boolean;
 }
@@ -195,6 +196,7 @@ interface InventorySectionContentProps {
 function InventorySectionContent({
   character,
   mutate,
+  activeGameId,
   canAddItems = true,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
@@ -422,7 +424,7 @@ function InventorySectionContent({
           onClose={() => setDetailEntry(null)}
           entry={detailEntry}
           characterId={character.id}
-          gameId={character.games?.[0]?.gameId ?? null}
+          gameId={activeGameId}
           mutate={mutate}
           resolveGiveRecipients={resolveGiveRecipients}
         />
@@ -461,7 +463,8 @@ const CARRY_WEIGHT_TOOLTIP = (
 
 export function getInventorySection(
   character: CharacterDetail,
-  mutate: KeyedMutator<CharacterDetail | null>
+  mutate: KeyedMutator<CharacterDetail | null>,
+  activeGameId: string | null
 ): CharacterSectionSlide {
   const inventory = character.inventory ?? [];
   const totalInventoryWeight = getCarriedWeight(inventory);
@@ -504,6 +507,7 @@ export function getInventorySection(
       <InventorySectionContent
         character={character}
         mutate={mutate}
+        activeGameId={activeGameId}
         canAddItems={!overCarryLimit}
       />
     ),

@@ -7,6 +7,7 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { GmCreateNpcModal } from "./GmCreateNpcModal";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
@@ -15,10 +16,12 @@ type GmNpcsSectionProps = {
 };
 
 export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
+  const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
   const [updatingCharacterId, setUpdatingCharacterId] = useState<string | null>(
     null
   );
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const gmReturnTo = `/home/games/${game.id}/gm`;
 
   const npcRows = useMemo(
     () =>
@@ -141,10 +144,23 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
 
   return (
     <InfoCard border>
-      <GmSectionTitle>NPCs</GmSectionTitle>
-      <p className="mt-1 text-sm text-black/70">
-        NPCs linked to this game, grouped by player visibility.
-      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <GmSectionTitle>NPCs</GmSectionTitle>
+          <p className="mt-1 text-sm text-black/70">
+            NPCs linked to this game, grouped by player visibility.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="solidDark"
+          fullWidth={false}
+          className="shrink-0 text-sm max-sm:w-full"
+          onClick={() => setCreateNpcModalOpen(true)}
+        >
+          Create NPC
+        </Button>
+      </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <section>
@@ -164,6 +180,14 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
       </div>
       {updateError ? (
         <p className="mt-3 text-sm text-neblirDanger-400">{updateError}</p>
+      ) : null}
+      {createNpcModalOpen ? (
+        <GmCreateNpcModal
+          gameId={game.id}
+          gameName={game.name}
+          returnTo={gmReturnTo}
+          onClose={() => setCreateNpcModalOpen(false)}
+        />
       ) : null}
     </InfoCard>
   );

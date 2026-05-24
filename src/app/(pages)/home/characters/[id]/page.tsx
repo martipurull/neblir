@@ -18,6 +18,7 @@ import { useCharacter } from "@/hooks/use-character";
 import { useCharacterStatUpdates } from "@/hooks/use-character-stat-updates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
+import { useActiveGameId } from "@/hooks/use-active-game-id";
 import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
@@ -53,6 +54,12 @@ export default function CharacterDetailPage() {
   const [initiativeOrderInitialGameId, setInitiativeOrderInitialGameId] =
     useState<string | null>(null);
   const [dedicatedDiceRollerOpen, setDedicatedDiceRollerOpen] = useState(false);
+
+  const {
+    activeGameId,
+    setActiveGameId,
+    gameOptions: activeGameOptions,
+  } = useActiveGameId(id, character?.games);
 
   const {
     gameDetails: initiativeGameDetails,
@@ -123,7 +130,7 @@ export default function CharacterDetailPage() {
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
     if (featuresSection) list.push(featuresSection);
-    list.push(getInventorySection(character, mutate));
+    list.push(getInventorySection(character, mutate, activeGameId));
     const walletSection = getWalletSection(
       character,
       imageUrls,
@@ -143,6 +150,7 @@ export default function CharacterDetailPage() {
     reactionTracking.usedReactions,
     initiativeGameDetails,
     initiativeGamesLoading,
+    activeGameId,
   ]);
 
   if (id == null) {
@@ -173,12 +181,13 @@ export default function CharacterDetailPage() {
     );
   }
 
-  const primaryGameId = character.games?.[0]?.gameId ?? null;
   return (
     <div className="flex h-full min-h-0 flex-col">
       <CharacterSummaryHeader
         character={character}
-        primaryGameId={primaryGameId}
+        activeGameId={activeGameId}
+        activeGameOptions={activeGameOptions}
+        onActiveGameChange={setActiveGameId}
         avatarUrl={avatarUrl}
         usedReactions={reactionTracking.usedReactions}
         onUseReaction={reactionTracking.useReaction}
@@ -198,7 +207,7 @@ export default function CharacterDetailPage() {
           isOpen
           onClose={() => setDiceSelection([])}
           character={character}
-          gameId={primaryGameId}
+          gameId={activeGameId}
           selection={[diceSelection[0], diceSelection[1]]}
         />
       )}
@@ -208,7 +217,7 @@ export default function CharacterDetailPage() {
           isOpen={dedicatedDiceRollerOpen}
           onClose={() => setDedicatedDiceRollerOpen(false)}
           character={character}
-          gameId={primaryGameId}
+          gameId={activeGameId}
         />
       )}
 

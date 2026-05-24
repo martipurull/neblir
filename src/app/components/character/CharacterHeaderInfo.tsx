@@ -5,6 +5,7 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
 import Image from "next/image";
 import { useState } from "react";
+import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
 import { DicePairIcon } from "./DicePairIcon";
 
@@ -14,6 +15,9 @@ export interface CharacterHeaderInfoProps {
   level: number;
   pathsLabel: string;
   characterId: string;
+  activeGameOptions: SelectDropdownOption[];
+  activeGameId: string | null;
+  onActiveGameChange: (gameId: string) => void;
   /** Opens the dedicated attribute/skill dice roller */
   onOpenDiceRoller?: () => void;
   className?: string;
@@ -25,6 +29,9 @@ export function CharacterHeaderInfo({
   level,
   pathsLabel,
   characterId,
+  activeGameOptions,
+  activeGameId,
+  onActiveGameChange,
   onOpenDiceRoller,
   className,
 }: CharacterHeaderInfoProps) {
@@ -98,6 +105,9 @@ export function CharacterHeaderInfo({
         isOpen={actionsOpen}
         onClose={() => setActionsOpen(false)}
         characterId={characterId}
+        gameOptions={activeGameOptions}
+        activeGameId={activeGameId}
+        onActiveGameChange={onActiveGameChange}
       />
     </div>
   );

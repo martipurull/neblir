@@ -11,7 +11,8 @@ type CharacterCreationStep =
   | "createCharacter"
   | "createCharacterUser"
   | "createPathCharacter"
-  | "createFeatureCharacters";
+  | "createFeatureCharacters"
+  | "createGameCharacter";
 
 export class CharacterCreationTransactionError extends Error {
   constructor(

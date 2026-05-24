@@ -116,12 +116,16 @@ export function computeCharacterRequestData(
     path: _path,
     wallet: rawWallet,
     initialFeatures: _initialFeatures,
+    gameId: _gameId,
+    gameLinkIsPublic: _gameLinkIsPublic,
     generalInformation,
     ...requestWithoutPathAndWallet
   } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
     path?: { pathId: string; rank: number };
     wallet?: Array<{ currencyName: string; quantity: number }>;
     initialFeatures?: Array<{ featureId: string; grade: number }>;
+    gameId?: string;
+    gameLinkIsPublic?: boolean;
     generalInformation: {
       race: Race;
       specialAbilityName?: SpecialAbilityName;

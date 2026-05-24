@@ -16,10 +16,27 @@ import {
   CREATE_CHARACTER_STEP_DRAFT_KEY,
 } from "./characterCreateDraft";
 
+const CREATE_LINK_QUERY_KEYS = [
+  "gameId",
+  "returnTo",
+  "gameLinkIsPublic",
+] as const;
+
+function buildCreateCharacterPath(searchParams: URLSearchParams): string {
+  const next = new URLSearchParams();
+  for (const key of CREATE_LINK_QUERY_KEYS) {
+    const value = searchParams.get(key);
+    if (value) next.set(key, value);
+  }
+  const qs = next.toString();
+  return qs ? `/home/characters/create?${qs}` : "/home/characters/create";
+}
+
 export function CreateCharacterPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freshStart = searchParams.get("fresh") === "1";
+  const linkGameId = searchParams.get("gameId");
   const form = useForm<CharacterCreationRequest>({
     defaultValues: getDefaultCharacterCreationFormValues(),
     mode: "onTouched",
@@ -36,8 +53,8 @@ export function CreateCharacterPageClient() {
       // ignore
     }
     form.reset(getDefaultCharacterCreationFormValues());
-    router.replace("/home/characters/create");
-  }, [form, freshStart, router]);
+    router.replace(buildCreateCharacterPath(searchParams));
+  }, [form, freshStart, router, searchParams]);
 
   // Restore/persist draft so refresh doesn't lose progress.
   useEffect(() => {
@@ -81,6 +98,11 @@ export function CreateCharacterPageClient() {
       </div>
       <div className="lg:text-center lg:my-4">
         <PageTitle>Create Character</PageTitle>
+        {linkGameId ? (
+          <p className="mt-2 text-sm text-black/70">
+            This character will be linked to your game when you finish.
+          </p>
+        ) : null}
         <p className="mt-2 mb-6 text-sm text-black/70">
           Fill in each step. You can go back to change earlier steps.
         </p>

@@ -42,7 +42,10 @@ type ArmourPartial = { armourCurrentHP?: number };
 
 interface CharacterSummaryHeaderProps {
   character: CharacterDetail;
-  primaryGameId?: string | null;
+  /** Game that receives dice roll events from this page */
+  activeGameId?: string | null;
+  activeGameOptions: { value: string; label: string }[];
+  onActiveGameChange: (gameId: string) => void;
   avatarUrl: string | null;
   /** Current number of reactions used this round; when set, enables reaction tracking UI */
   usedReactions?: number;
@@ -61,7 +64,9 @@ interface CharacterSummaryHeaderProps {
 
 export function CharacterSummaryHeader({
   character,
-  primaryGameId,
+  activeGameId,
+  activeGameOptions,
+  onActiveGameChange,
   avatarUrl,
   usedReactions = 0,
   onUseReaction,
@@ -244,6 +249,9 @@ export function CharacterSummaryHeader({
           level={generalInformation.level}
           pathsLabel={pathsLabel}
           characterId={character.id}
+          activeGameOptions={activeGameOptions}
+          activeGameId={activeGameId ?? null}
+          onActiveGameChange={onActiveGameChange}
           onOpenDiceRoller={onOpenDiceRoller}
         />
 
@@ -522,7 +530,7 @@ export function CharacterSummaryHeader({
                   : gridAttackOptions
           }
           onWeaponUsed={handleWeaponUsed}
-          gameId={primaryGameId}
+          gameId={activeGameId}
           characterId={character.id}
         />
 
@@ -533,7 +541,7 @@ export function CharacterSummaryHeader({
           title="Melee Defence"
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
-          gameId={primaryGameId}
+          gameId={activeGameId}
           characterId={character.id}
         />
         <DefenceRollModal
@@ -543,7 +551,7 @@ export function CharacterSummaryHeader({
           title="Range Defence"
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
-          gameId={primaryGameId}
+          gameId={activeGameId}
           characterId={character.id}
         />
 
@@ -554,7 +562,7 @@ export function CharacterSummaryHeader({
           modifierHint={gridDefenceModifierHint}
           reactionDisabled={!onUseReaction || reactionsDisabled}
           onRollReaction={onUseReaction}
-          gameId={primaryGameId}
+          gameId={activeGameId}
           characterId={character.id}
         />
       </div>

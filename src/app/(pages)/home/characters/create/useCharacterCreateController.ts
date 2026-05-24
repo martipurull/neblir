@@ -48,6 +48,11 @@ export function useCharacterCreateController() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freshStart = searchParams.get("fresh") === "1";
+  const linkGameId = searchParams.get("gameId");
+  const returnTo = searchParams.get("returnTo");
+  const gameLinkIsPublic =
+    searchParams.get("gameLinkIsPublic") === "1" ||
+    searchParams.get("gameLinkIsPublic") === "true";
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -315,6 +320,12 @@ export function useCharacterCreateController() {
               : undefined,
           initialFeatures:
             initialFeatures.length > 0 ? initialFeatures : undefined,
+          ...(linkGameId
+            ? {
+                gameId: linkGameId,
+                gameLinkIsPublic: gameLinkIsPublic || undefined,
+              }
+            : {}),
         };
 
         const character = await createCharacter(body);
@@ -327,7 +338,11 @@ export function useCharacterCreateController() {
           // ignore
         }
 
-        router.push(`/home/characters/${character.id}`);
+        const safeReturnTo =
+          returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+            ? returnTo
+            : null;
+        router.push(safeReturnTo ?? `/home/characters/${character.id}`);
       } catch (e) {
         setSubmitError(
           getUserSafeErrorMessage(e, "Failed to create character")
@@ -336,7 +351,7 @@ export function useCharacterCreateController() {
         setIsSubmitting(false);
       }
     },
-    [initialFeatures, router]
+    [gameLinkIsPublic, initialFeatures, linkGameId, returnTo, router]
   );
 
   const isLastStep = currentStepIndex === STEPS.length - 1;

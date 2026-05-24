@@ -66,6 +66,10 @@ export const characterCreationRequestSchema = z
       pathId: z.string(),
       rank: z.number().min(1),
     }),
+    /** When set, links the new character to this game in the same transaction. */
+    gameId: z.string().min(1).optional(),
+    /** GM-only visibility; non-GMs are forced public. Defaults to false when omitted. */
+    gameLinkIsPublic: z.boolean().optional(),
   })
   .strict();
 

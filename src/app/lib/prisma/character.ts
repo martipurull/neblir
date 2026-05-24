@@ -49,12 +49,14 @@ export async function createCharacterWithRelations({
   pathId,
   pathRank,
   initialFeatures = [],
+  gameLink,
 }: {
   data: Prisma.CharacterCreateInput;
   userId: string;
   pathId: string;
   pathRank: number;
   initialFeatures?: { featureId: string; grade: number }[];
+  gameLink?: { gameId: string; isPublic: boolean };
 }) {
   return prisma.$transaction(async (tx) => {
     let createdCharacter;
@@ -105,6 +107,23 @@ export async function createCharacterWithRelations({
       } catch (error) {
         throw new CharacterCreationTransactionError(
           "createFeatureCharacters",
+          serializeError(error)
+        );
+      }
+    }
+
+    if (gameLink) {
+      try {
+        await tx.gameCharacter.create({
+          data: {
+            gameId: gameLink.gameId,
+            characterId: createdCharacter.id,
+            isPublic: gameLink.isPublic,
+          },
+        });
+      } catch (error) {
+        throw new CharacterCreationTransactionError(
+          "createGameCharacter",
           serializeError(error)
         );
       }

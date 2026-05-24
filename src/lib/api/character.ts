@@ -18,6 +18,8 @@ export type { LevelUpAttributePath, LevelUpGeneralSkill };
 
 export type CharacterCreateBody = CharacterCreationRequest & {
   initialFeatures?: Array<{ featureId: string; grade: number }>;
+  gameId?: string;
+  gameLinkIsPublic?: boolean;
 };
 export type CharacterEditableUpdateBody = CharacterCreationRequest;
 export type CharacterLevelUpBody = {

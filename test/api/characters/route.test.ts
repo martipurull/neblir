@@ -16,6 +16,18 @@ const safeParseMock = vi.fn();
 const computeCharacterRequestDataMock = vi.fn();
 const getPathMock = vi.fn();
 const getAllFeaturesAvailableForPathAndRankMock = vi.fn();
+const resolveGameCharacterLinkForCreateMock = vi.fn();
+
+vi.mock("@/app/lib/gameCharacterLink", () => ({
+  GameCharacterLinkError: class GameCharacterLinkError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+  resolveGameCharacterLinkForCreate: resolveGameCharacterLinkForCreateMock,
+}));
 
 vi.mock("@/app/lib/prisma/user", () => ({
   getUser: getUserMock,
@@ -115,6 +127,60 @@ describe("/api/characters POST", () => {
     const { POST } = await import("@/app/api/characters/route");
     const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
     expect(response.status).toBe(201);
+    expect(resolveGameCharacterLinkForCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when game link validation fails", async () => {
+    const { GameCharacterLinkError } =
+      await import("@/app/lib/gameCharacterLink");
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        gameId: "game-1",
+        gameLinkIsPublic: false,
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    resolveGameCharacterLinkForCreateMock.mockRejectedValue(
+      new GameCharacterLinkError("You are not part of this game", 403)
+    );
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(403);
+    expect(createCharacterWithRelationsMock).not.toHaveBeenCalled();
+  });
+
+  it("links to game in the same create transaction when gameId is provided", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        gameId: "game-1",
+        gameLinkIsPublic: true,
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    resolveGameCharacterLinkForCreateMock.mockResolvedValue({
+      gameId: "game-1",
+      isPublic: true,
+    });
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(201);
+    expect(resolveGameCharacterLinkForCreateMock).toHaveBeenCalledWith(
+      "game-1",
+      "user-1",
+      true
+    );
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameLink: { gameId: "game-1", isPublic: true },
+      })
+    );
   });
 
   it("rejects initialFeatures when grade sum exceeds feature slots (rank=1)", async () => {
