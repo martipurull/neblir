@@ -17,3 +17,11 @@ export function isGmControlledGameCharacter(
   if (ownersAmongGameUsers.length === 0) return true;
   return ownersAmongGameUsers.every((uid: string) => uid === game.gameMaster);
 }
+
+/** Linked characters owned by a non-GM player in this game. */
+export function isPlayerCharacterInGame(
+  gc: GameCharacterRow,
+  game: GameDetail
+): boolean {
+  return !isGmControlledGameCharacter(gc, game);
+}

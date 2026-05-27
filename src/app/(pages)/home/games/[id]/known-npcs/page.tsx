@@ -7,21 +7,23 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
 import { GameLinkedCharactersList } from "@/app/components/games/GameLinkedCharactersList";
-import { isPlayerCharacterInGame } from "@/app/lib/gmUtils";
+import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-export default function GamePlayerCharactersPage() {
+export default function GameKnownNpcsPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
   const { game, loading, error, refetch } = useGame(id);
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  const playerCharacters = useMemo(() => {
+  const knownNpcs = useMemo(() => {
     if (!game?.characters) return [];
-    return game.characters.filter((gc) => isPlayerCharacterInGame(gc, game));
+    return game.characters.filter((gc) =>
+      isGmControlledGameCharacter(gc, game)
+    );
   }, [game]);
 
   const alreadyLinkedCharacterIds = useMemo(
@@ -31,14 +33,14 @@ export default function GamePlayerCharactersPage() {
 
   const imageEntries = useMemo(
     () =>
-      playerCharacters.map((gc) => ({
+      knownNpcs.map((gc) => ({
         id: gc.character.id,
         imageKey: gc.character.avatarKey,
       })),
-    [playerCharacters]
+    [knownNpcs]
   );
   const imageUrls = useImageUrls(imageEntries);
-  const returnTo = game ? `/home/games/${game.id}/characters` : "";
+  const returnTo = game ? `/home/games/${game.id}/known-npcs` : "";
 
   if (loading || (!game && !error)) {
     return (
@@ -64,21 +66,23 @@ export default function GamePlayerCharactersPage() {
     <PageSection>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <PageTitle>Player Characters</PageTitle>
+          <PageTitle>Known NPCs</PageTitle>
           <p className="mt-1 text-sm text-black/70">
             Characters linked to{" "}
-            <span className="font-semibold">{game.name}</span> and owned by
-            players (not the game master).
+            <span className="font-semibold">{game.name}</span> and controlled by
+            the game master.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="solidDark"
-          fullWidth={false}
-          onClick={() => setAddModalOpen(true)}
-        >
-          Add characters
-        </Button>
+        {game.isGameMaster ? (
+          <Button
+            type="button"
+            variant="solidDark"
+            fullWidth={false}
+            onClick={() => setAddModalOpen(true)}
+          >
+            Add characters
+          </Button>
+        ) : null}
       </div>
 
       <AddCharactersToGameModal
@@ -92,9 +96,9 @@ export default function GamePlayerCharactersPage() {
 
       <div className="mt-4">
         <GameLinkedCharactersList
-          characters={playerCharacters}
+          characters={knownNpcs}
           game={game}
-          emptyText="No player characters linked to this game yet."
+          emptyText="No known NPCs for this game yet."
           returnTo={returnTo}
           imageUrls={imageUrls}
           onRemoved={() => {

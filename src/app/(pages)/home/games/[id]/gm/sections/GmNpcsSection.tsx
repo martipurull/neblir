@@ -1,6 +1,6 @@
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
-import { isGmControlledGameCharacter } from "@/app/lib/gmInitiativeUtils";
+import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";

@@ -11,6 +11,10 @@ import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
+import {
+  isGmControlledGameCharacter,
+  isPlayerCharacterInGame,
+} from "@/app/lib/gmUtils";
 import { useMemo } from "react";
 
 export default function GameDetailPage() {
@@ -38,16 +42,14 @@ export default function GameDetailPage() {
     : null;
   const playerCharacterCount = useMemo(() => {
     if (!game?.characters) return 0;
-    return game.characters.filter(
-      (gc) => !gc.character.linkedUserIds?.includes(game.gameMaster)
-    ).length;
+    return game.characters.filter((gc) => isPlayerCharacterInGame(gc, game))
+      .length;
   }, [game]);
 
   const knownNpcCount = useMemo(() => {
-    if (!game?.characters || !game.gameMaster) return 0;
-    return game.characters.filter((gc) =>
-      gc.character.linkedUserIds?.includes(game.gameMaster)
-    ).length;
+    if (!game?.characters) return 0;
+    return game.characters.filter((gc) => isGmControlledGameCharacter(gc, game))
+      .length;
   }, [game]);
 
   if (loading || (!game && !error)) {
@@ -154,7 +156,7 @@ export default function GameDetailPage() {
             </span>
           </Link>
           <Link
-            href={`/home/games/${game.id}/characters#known-npcs`}
+            href={`/home/games/${game.id}/known-npcs`}
             className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >
             <span className="text-sm font-semibold text-black">Known NPCs</span>
