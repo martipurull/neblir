@@ -1,9 +1,8 @@
 "use client";
 
 import { Stepper } from "@/app/components/shared/Stepper";
-import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
-import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext } from "react-hook-form";
+import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { BackstoryStep } from "./steps/BackstoryStep";
 import { GeneralInfoStep } from "./steps/GeneralInfoStep";
 import { AttributesStep } from "./steps/AttributesStep";
@@ -22,12 +21,14 @@ export function CreateCharacterFormContent() {
     submitError,
     initialFeatures,
     setInitialFeatures,
+    canProceedFromCurrentStep,
+    canSubmitCharacter,
     onBack,
     onNext,
-    onSubmit,
+    submitCharacter,
   } = useCharacterCreateController();
 
-  const { handleSubmit, setError } = useFormContext<CharacterCreationRequest>();
+  const { handleSubmit } = useFormContext<CharacterCreationRequest>();
 
   return (
     <>
@@ -40,21 +41,7 @@ export function CreateCharacterFormContent() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          void handleSubmit(async (values) => {
-            const parsed = characterCreationRequestSchema.safeParse(values);
-            if (!parsed.success) {
-              // Reuse the controller's error mapping by delegating validation to Next/submit validation;
-              // but keep current schema mapping for final submission.
-              const issues = parsed.error.issues;
-              for (const issue of issues) {
-                const path = issue.path.join(".") as never;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setError(path as any, { message: issue.message });
-              }
-              return;
-            }
-            await onSubmit(parsed.data);
-          })(e);
+          void handleSubmit(submitCharacter)(e);
         }}
         className="flex flex-col gap-6"
       >
@@ -80,6 +67,8 @@ export function CreateCharacterFormContent() {
           currentStepIndex={currentStepIndex}
           isLastStep={isLastStep}
           isSubmitting={isSubmitting}
+          canProceedFromCurrentStep={canProceedFromCurrentStep}
+          canSubmitCharacter={canSubmitCharacter}
           onBack={onBack}
           onNext={onNext}
         />
