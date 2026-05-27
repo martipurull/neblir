@@ -5,6 +5,14 @@ import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { userIsInGame } from "@/app/lib/prisma/game";
+import {
+  userIsGameMaster,
+  userOwnsCharacter,
+} from "@/app/lib/prisma/gameCharacter";
+import {
+  gameMasterCanUnlinkCharacter,
+  unlinkCharacterFromGame,
+} from "@/app/lib/prisma/gameMembership";
 import { prisma } from "@/app/lib/prisma/client";
 import { Prisma } from "@prisma/client";
 import {
@@ -70,7 +78,6 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Game not found", 404);
     }
-    const isGameMaster = game.gameMaster === userId;
 
     const requestBody = await request.json();
     const parsed = gameCharactersAddSchema.safeParse(requestBody);
@@ -141,7 +148,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           data: {
             gameId,
             characterId,
-            isPublic: isGameMaster ? row.isPublic : true,
+            isPublic: row.isPublic ?? true,
           },
         });
         linkedIds.push(characterId);
@@ -256,31 +263,37 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const characterId = parsed.data.characterId;
-    const owned = await prisma.characterUser.findMany({
-      where: { userId, characterId: { in: [characterId] } },
-      select: { characterId: true },
-    });
-    if (owned.length === 0) {
-      logger.warn({
-        method: "DELETE",
-        route: "/api/games/[id]/characters",
-        message: "Attempt to unlink non-owned character",
-        gameId,
-        userId,
-        characterId,
+    const isGm = await userIsGameMaster(gameId, userId);
+
+    if (isGm) {
+      if (!(await gameMasterCanUnlinkCharacter(gameId, characterId, userId))) {
+        return errorResponse("Character is not linked to this game", 404);
+      }
+    } else {
+      const owned = await prisma.characterUser.findMany({
+        where: { userId, characterId: { in: [characterId] } },
+        select: { characterId: true },
       });
-      return errorResponse("This character is not owned by you", 403);
+      if (owned.length === 0) {
+        logger.warn({
+          method: "DELETE",
+          route: "/api/games/[id]/characters",
+          message: "Attempt to unlink non-owned character",
+          gameId,
+          userId,
+          characterId,
+        });
+        return errorResponse("This character is not owned by you", 403);
+      }
     }
 
-    const result = await prisma.gameCharacter.deleteMany({
-      where: { gameId, characterId },
-    });
+    const result = await unlinkCharacterFromGame(gameId, characterId);
 
     return NextResponse.json(
       {
         success: true,
-        removed: result.count > 0,
-        removedCount: result.count,
+        removed: result.removed,
+        removedCount: result.removedCount,
         characterId,
       },
       { status: 200 }
@@ -323,13 +336,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (!game) {
       return errorResponse("Game not found", 404);
     }
-    if (game.gameMaster !== userId) {
-      return errorResponse(
-        "Only the game master can update NPC visibility",
-        403
-      );
-    }
-
     const requestBody = await request.json();
     const parsed = gameCharacterVisibilityUpdateSchema.safeParse(requestBody);
     if (!parsed.success) {
@@ -341,6 +347,19 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const { characterId, isPublic } = parsed.data;
+    const isGm = game.gameMaster === userId;
+    if (!isGm) {
+      const ownsCharacter = await userOwnsCharacter(characterId, userId);
+      if (!ownsCharacter) {
+        return errorResponse(
+          "You cannot update visibility for this character",
+          403
+        );
+      }
+      if (!(await userIsInGame(gameId, userId))) {
+        return errorResponse("You are not part of this game", 403);
+      }
+    }
     const updated = await prisma.gameCharacter.updateMany({
       where: { gameId, characterId },
       data: { isPublic },

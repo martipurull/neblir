@@ -206,15 +206,49 @@ describe("/api/games/[id] handlers", () => {
       expect(response.status).toBe(401);
     });
 
-    it("returns 204 on success", async () => {
+    it("returns 404 when game is not found", async () => {
+      getGameWithDetailsMock.mockResolvedValue(null);
+      const { DELETE } = await import("@/app/api/games/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(404);
+      expect(deleteGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when user is not game master", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        name: "Game",
+      });
+      const { DELETE } = await import("@/app/api/games/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(undefined, "user-2"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(deleteGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 204 when game master deletes game", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        name: "Game",
+      });
       deleteGameMock.mockResolvedValue(undefined);
       const { DELETE } = await import("@/app/api/games/[id]/route");
       const response = await invokeRoute(
         DELETE,
-        makeAuthedRequest(),
+        makeAuthedRequest(undefined, "gm-1"),
         makeParams({ id: "g-1" })
       );
       expect(response.status).toBe(204);
+      expect(deleteGameMock).toHaveBeenCalledWith("g-1");
     });
   });
 });

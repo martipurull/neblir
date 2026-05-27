@@ -25,3 +25,38 @@ export function isPlayerCharacterInGame(
 ): boolean {
   return !isGmControlledGameCharacter(gc, game);
 }
+
+/**
+ * Linked characters visible in game context: GM sees all; owners see their own;
+ * other members only see public links.
+ */
+export function isVisibleLinkedCharacterInGame(
+  gc: GameCharacterRow,
+  game: GameDetail
+): boolean {
+  if (game.isGameMaster === true) return true;
+  if (gc.character.isOwnedByCurrentUser) return true;
+  return gc.isPublic !== false;
+}
+
+/**
+ * Player characters visible on game hub lists: GM sees all; owners see their own;
+ * other members only see public links.
+ */
+export function isVisiblePlayerCharacterInGame(
+  gc: GameCharacterRow,
+  game: GameDetail
+): boolean {
+  if (!isPlayerCharacterInGame(gc, game)) return false;
+  return isVisibleLinkedCharacterInGame(gc, game);
+}
+
+/** Another character in the same game who may receive an item from `fromCharacterId`. */
+export function isGiveItemRecipientInGame(
+  gc: GameCharacterRow,
+  game: GameDetail,
+  fromCharacterId: string
+): boolean {
+  if (gc.character.id === fromCharacterId) return false;
+  return isVisibleLinkedCharacterInGame(gc, game);
+}

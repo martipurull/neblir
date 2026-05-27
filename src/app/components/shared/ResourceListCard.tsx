@@ -30,53 +30,63 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
     imageUrl && typeof imageUrl === "string" && imageUrl.length > 0;
   const showLoading = imageUrl === undefined;
 
-  const cardContent = (
-    <div className="w-full">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-          {showImage ? (
-            <Image
-              src={imageUrl}
-              alt={imageAlt}
-              width={48}
-              height={48}
-              className="h-12 w-12 object-cover object-top"
-            />
-          ) : showLoading ? (
-            <ImageLoadingSkeleton variant="avatar" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
-              {placeholder ?? "N/A"}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-black">{title}</p>
-          <p className="truncate text-xs text-black">{subtitle}</p>
-        </div>
-        {rightAccessory ? (
-          <div className="shrink-0">{rightAccessory}</div>
-        ) : null}
+  const headerRow = (
+    <div className="flex items-center gap-3">
+      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+        {showImage ? (
+          <Image
+            src={imageUrl}
+            alt={imageAlt}
+            width={48}
+            height={48}
+            className="h-12 w-12 object-cover object-top"
+          />
+        ) : showLoading ? (
+          <ImageLoadingSkeleton variant="avatar" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
+            {placeholder ?? "N/A"}
+          </div>
+        )}
       </div>
-      {body ? <div className="mt-2 text-sm text-black/80">{body}</div> : null}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-black">{title}</p>
+        <p className="truncate text-xs text-black">{subtitle}</p>
+      </div>
+      {rightAccessory ? <div className="shrink-0">{rightAccessory}</div> : null}
     </div>
   );
 
-  const baseClassName =
-    `flex items-center gap-3 rounded-md border border-black px-5 py-4 ${className}`.trim();
+  const shellClassName = `rounded-md border border-black ${className}`.trim();
+  const headerLinkClassName =
+    "block px-5 pt-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30";
+  const headerStaticClassName = "px-5 pt-4";
+  const bodyClassName = "px-5 pb-4 text-sm text-black/80";
 
   if (href) {
     return (
-      <Link
-        href={href}
-        className={`block transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30 ${baseClassName}`}
-      >
-        {cardContent}
-      </Link>
+      <article className={shellClassName}>
+        <Link
+          href={href}
+          className={[headerLinkClassName, body ? "pb-2" : "pb-4"].join(" ")}
+        >
+          {headerRow}
+        </Link>
+        {body ? <div className={bodyClassName}>{body}</div> : null}
+      </article>
     );
   }
 
-  return <article className={baseClassName}>{cardContent}</article>;
+  return (
+    <article className={shellClassName}>
+      <div
+        className={[headerStaticClassName, body ? "pb-2" : "pb-4"].join(" ")}
+      >
+        {headerRow}
+      </div>
+      {body ? <div className={bodyClassName}>{body}</div> : null}
+    </article>
+  );
 };
 
 export { ResourceListCard };

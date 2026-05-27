@@ -2,6 +2,8 @@
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import { getRaceLabel } from "@/app/lib/race";
+import { getReligionLabel } from "@/app/lib/religion";
 import {
   getSpecialAbilityLabel,
   resolveSpecialAbilityForRace,
@@ -22,8 +24,8 @@ export function getGeneralSection(
     },
     { label: "Age", value: String(generalInfo.age) },
     { label: "Profession", value: generalInfo.profession },
-    { label: "Race", value: generalInfo.race },
-    { label: "Religion", value: generalInfo.religion },
+    { label: "Race", value: getRaceLabel(generalInfo.race) },
+    { label: "Religion", value: getReligionLabel(generalInfo.religion) },
     { label: "Birthplace", value: generalInfo.birthplace },
     { label: "Height", value: `${generalInfo.height} cm` },
     { label: "Weight", value: `${generalInfo.weight} kg` },
@@ -32,7 +34,7 @@ export function getGeneralSection(
       value: (
         <span className="inline-flex flex-col items-end gap-1 text-right">
           <span>
-            <span className="text-xs">{generalInfo.race}:</span>{" "}
+            <span className="text-xs">{getRaceLabel(generalInfo.race)}:</span>{" "}
             {getSpecialAbilityLabel(specialAbility.name)}
           </span>
           <span className="max-w-xs text-xs text-black/70">

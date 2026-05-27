@@ -82,3 +82,9 @@ These rules apply to every task unless the user explicitly overrides them.
   - `src/auth.config.ts` (Auth.js edge-safe config consumed as a default import)
 - When touching a file that still uses a default export outside those exceptions, convert it to a named export in the same change when practical.
 - Root tooling configs that require a default export (`tailwind.config.ts`, `vitest.config.ts`, `next.config.mjs`, etc.) are excluded in `eslint.config.mjs`; keep their existing export style unless you are already changing them.
+
+## 10) Prefer Nullish Coalescing Over Logical OR
+
+- Prefer the nullish coalescing operator (`??`) over logical OR (`||`) when providing a fallback for `null` or `undefined`.
+- `??` only substitutes when the left-hand side is `null` or `undefined`; `||` also treats `0`, `""`, and `false` as missing, which can hide valid values.
+- Use `||` only when you intentionally want to fall back for any falsy value.

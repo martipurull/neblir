@@ -4,6 +4,7 @@ import { Button } from "@/app/components/shared/Button";
 import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import type { GameDetail } from "@/app/lib/types/game";
+import Link from "next/link";
 import { useState } from "react";
 
 type GameCharacterRow = NonNullable<GameDetail["characters"]>[number];
@@ -92,32 +93,59 @@ export function GameLinkedCharactersList({
           <p className="text-sm text-black/60">No summary yet.</p>
         );
 
-        const body = char.isOwnedByCurrentUser ? (
-          expanded ? (
-            <div className="space-y-2">
+        const canRemoveFromGame =
+          char.isOwnedByCurrentUser || game.isGameMaster === true;
+        const canViewSheet =
+          char.isOwnedByCurrentUser || game.isGameMaster === true;
+        const showSummaryInBody = !canViewSheet || expanded || !canExpand;
+
+        const removeButton = canRemoveFromGame ? (
+          <RemoveCharacterFromGameButton
+            className={showSummaryInBody ? "pt-2" : undefined}
+            gameId={game.id}
+            characterId={char.id}
+            characterName={title}
+            onRemoved={onRemoved}
+          />
+        ) : null;
+
+        const sheetHref = char.isOwnedByCurrentUser
+          ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
+          : game.isGameMaster
+            ? `/home/games/${game.id}/characters/${char.id}`
+            : null;
+
+        const body = canViewSheet ? (
+          <div className="space-y-2">
+            {sheetHref ? (
+              <Link
+                href={sheetHref}
+                className="text-sm text-black/70 underline-offset-2 hover:underline"
+              >
+                View character sheet
+              </Link>
+            ) : (
               <p className="text-sm text-black/70">View character sheet</p>
-              {summaryBlock}
-              <RemoveCharacterFromGameButton
-                className="pt-2"
-                gameId={game.id}
-                characterId={char.id}
-                onRemoved={onRemoved}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-black/70">View character sheet</p>
-          )
+            )}
+            {showSummaryInBody ? summaryBlock : null}
+            {removeButton}
+          </div>
         ) : (
-          summaryBlock
+          <>
+            {summaryBlock}
+            {removeButton}
+          </>
         );
 
         return (
           <ResourceListCard
             key={gc.id}
             href={
-              char.isOwnedByCurrentUser || game.isGameMaster
+              char.isOwnedByCurrentUser
                 ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
-                : undefined
+                : game.isGameMaster
+                  ? `/home/games/${game.id}/characters/${char.id}`
+                  : undefined
             }
             title={title}
             subtitle={<>LVL {gi?.level ?? "—"}</>}

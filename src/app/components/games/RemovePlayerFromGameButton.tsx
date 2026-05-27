@@ -4,23 +4,22 @@ import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { useState } from "react";
 
-type RemoveCharacterFromGameButtonProps = {
+type RemovePlayerFromGameButtonProps = {
   gameId: string;
-  characterId: string;
-  /** Shown in the confirmation dialog when provided. */
-  characterName?: string;
+  userId: string;
+  userName: string;
   onRemoved?: () => void | Promise<void>;
   /** Wrapper classes (e.g. spacing); `w-fit` is always applied. */
   className?: string;
 };
 
-export function RemoveCharacterFromGameButton({
+export function RemovePlayerFromGameButton({
   gameId,
-  characterId,
-  characterName,
+  userId,
+  userName,
   onRemoved,
   className,
-}: RemoveCharacterFromGameButtonProps) {
+}: RemovePlayerFromGameButtonProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,15 +29,11 @@ export function RemoveCharacterFromGameButton({
     setIsRemoving(true);
     try {
       const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/characters`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ characterId }),
-        }
+        `/api/games/${encodeURIComponent(gameId)}/users/${encodeURIComponent(userId)}`,
+        { method: "DELETE" }
       );
       if (!res.ok) {
-        let msg = "Failed to remove character from game";
+        let msg = "Failed to remove player from game";
         try {
           const payload = (await res.json()) as {
             message?: string;
@@ -69,7 +64,6 @@ export function RemoveCharacterFromGameButton({
   const wrapperClass = ["w-fit max-w-full", className]
     .filter(Boolean)
     .join(" ");
-  const subject = characterName?.trim() ?? "This character";
 
   return (
     <>
@@ -93,12 +87,13 @@ export function RemoveCharacterFromGameButton({
       </div>
       <DangerConfirmModal
         isOpen={confirmOpen}
-        title="Remove character from game?"
+        title="Remove player from game?"
         description={
           <>
-            Unlink <span className="font-semibold">{subject}</span> from this
-            game? They will no longer appear in this game&apos;s character
-            lists. The character sheet is not deleted.
+            Remove <span className="font-semibold">{userName}</span> from this
+            game? All of their characters will be unlinked from the game and
+            their roll history for this game will be cleared. Character sheets
+            are not deleted.
           </>
         }
         confirmLabel="Remove from game"

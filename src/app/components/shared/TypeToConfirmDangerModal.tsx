@@ -1,0 +1,168 @@
+"use client";
+
+import { TextField } from "@/app/components/shared/TextField";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import { useId, useState, type ReactNode } from "react";
+import { Button } from "./Button";
+
+export type TypeToConfirmDangerModalProps = {
+  isOpen: boolean;
+  title: string;
+  description: ReactNode;
+  requiredPhrase: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+  confirmSubmittingLabel?: string;
+  panelClassName?: string;
+  variant?: "default" | "modalBackground";
+};
+
+export function TypeToConfirmDangerModal({
+  isOpen,
+  title,
+  description,
+  requiredPhrase,
+  confirmLabel,
+  cancelLabel = "Cancel",
+  isSubmitting = false,
+  errorMessage = null,
+  onCancel,
+  onConfirm,
+  confirmSubmittingLabel,
+  panelClassName,
+  variant = "default",
+}: TypeToConfirmDangerModalProps) {
+  const inputId = useId();
+  const [confirmationInput, setConfirmationInput] = useState("");
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    setConfirmationInput("");
+  }
+
+  const handleCancel = () => {
+    setConfirmationInput("");
+    onCancel();
+  };
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const phraseMatches = confirmationInput === requiredPhrase;
+  const isModalBg = variant === "modalBackground";
+  const panelSurface = isModalBg
+    ? "border-paleBlue/25 bg-modalBackground-200"
+    : "border-black bg-paleBlue/95 backdrop-blur-sm";
+  const titleClass = isModalBg ? "text-paleBlue" : "text-black";
+  const bodyClass = isModalBg ? "text-paleBlue/85" : "text-black";
+  const errorClass = isModalBg
+    ? "text-neblirDanger-400"
+    : "text-neblirDanger-600";
+  const headerBorder = isModalBg ? "border-paleBlue/25" : "border-black/15";
+  const phraseClass = isModalBg
+    ? "border-paleBlue/25 bg-modalBackground-400/40 text-paleBlue"
+    : "border-black/15 bg-paleBlue text-black";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="type-confirm-danger-title"
+      onClick={isSubmitting ? undefined : handleCancel}
+    >
+      <div
+        className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-lg border p-0 shadow-lg sm:p-0 ${panelSurface} ${panelClassName ?? "max-w-md"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className={`flex shrink-0 items-start justify-between gap-3 border-b px-5 pb-3 pt-5 sm:px-6 sm:pb-4 sm:pt-6 ${headerBorder}`}
+        >
+          <h2
+            id="type-confirm-danger-title"
+            className={`text-lg font-semibold ${titleClass}`}
+          >
+            {title}
+          </h2>
+          <Button
+            type="button"
+            variant={isModalBg ? "modalClosePale" : "modalCloseLight"}
+            fullWidth={false}
+            className={isModalBg ? undefined : "!text-black"}
+            onClick={handleCancel}
+            disabled={isSubmitting}
+            aria-label="Close"
+          >
+            <span className="text-xl leading-none">×</span>
+          </Button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+          <div className={`space-y-3 text-sm ${bodyClass}`}>
+            <div>{description}</div>
+            <p>Type the following exactly to confirm:</p>
+            <p
+              className={`rounded-md border px-3 py-2 font-mono text-xs break-words ${phraseClass}`}
+            >
+              {requiredPhrase}
+            </p>
+            <label htmlFor={inputId} className="sr-only">
+              Confirmation phrase
+            </label>
+            <TextField
+              id={inputId}
+              value={confirmationInput}
+              onChange={(event) => setConfirmationInput(event.target.value)}
+              disabled={isSubmitting}
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={confirmationInput.length > 0 && !phraseMatches}
+            />
+          </div>
+          {errorMessage ? (
+            <p className={`mt-3 break-words text-sm ${errorClass}`}>
+              Error: {getUserSafeErrorMessage(errorMessage)}
+            </p>
+          ) : null}
+        </div>
+
+        <div
+          className={`flex shrink-0 flex-wrap justify-end gap-3 border-t px-5 py-4 sm:px-6 ${headerBorder}`}
+        >
+          <Button
+            type="button"
+            variant={isModalBg ? "modalPaleOutline" : "secondary"}
+            fullWidth={false}
+            onClick={handleCancel}
+            disabled={isSubmitting}
+            className="!px-3 !py-2"
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            variant="danger"
+            fullWidth={false}
+            onClick={() => {
+              void onConfirm();
+            }}
+            className="!px-3 !py-2"
+            disabled={isSubmitting || !phraseMatches}
+          >
+            {isSubmitting
+              ? (confirmSubmittingLabel ?? "Deleting...")
+              : confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function getDeleteGameConfirmationPhrase(gameName: string): string {
+  return `I want to delete ${gameName}`;
+}

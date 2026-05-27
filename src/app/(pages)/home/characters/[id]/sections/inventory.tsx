@@ -18,6 +18,7 @@ import {
   getEffectiveMaxCarryWeight,
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
+import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import {
   isItemInventoryOperational,
   itemStatusEquipColumnDamageLabel,
@@ -43,6 +44,7 @@ function InventoryList({
   onUnequip,
   unequippingId,
   equippingId,
+  readOnly = false,
 }: {
   title: string;
   entries: InventoryEntry[];
@@ -52,6 +54,7 @@ function InventoryList({
   onUnequip: (entry: InventoryEntry) => void;
   unequippingId: string | null;
   equippingId: string | null;
+  readOnly?: boolean;
 }) {
   if (entries.length === 0) return null;
   const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
@@ -94,23 +97,44 @@ function InventoryList({
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
-              <Button
-                type="button"
-                variant="lightRowHit"
-                fullWidth={false}
-                onClick={() => onSelectDetail(entry)}
-              >
-                <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                  <span className="break-words text-sm text-black">{name}</span>
-                  {(entry.equipSlots?.length ?? 0) > 0 && (
-                    <span className="shrink-0 text-xs text-black">
-                      (
-                      {entry.equipSlots!.map((s) => s.toLowerCase()).join(", ")}
-                      )
-                    </span>
-                  )}
+              {readOnly ? (
+                <div className="min-w-0 break-words text-sm text-black">
+                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                    <span>{name}</span>
+                    {(entry.equipSlots?.length ?? 0) > 0 && (
+                      <span className="shrink-0 text-xs text-black">
+                        (
+                        {entry
+                          .equipSlots!.map((s) => s.toLowerCase())
+                          .join(", ")}
+                        )
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="lightRowHit"
+                  fullWidth={false}
+                  onClick={() => onSelectDetail(entry)}
+                >
+                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                    <span className="break-words text-sm text-black">
+                      {name}
+                    </span>
+                    {(entry.equipSlots?.length ?? 0) > 0 && (
+                      <span className="shrink-0 text-xs text-black">
+                        (
+                        {entry
+                          .equipSlots!.map((s) => s.toLowerCase())
+                          .join(", ")}
+                        )
+                      </span>
+                    )}
+                  </div>
+                </Button>
+              )}
               <span className="text-right text-sm tabular-nums text-black">
                 {entry.quantity ?? 1}
               </span>
@@ -128,7 +152,9 @@ function InventoryList({
                 </span>
               ) : (
                 <div className="flex justify-end">
-                  {showUnequip ? (
+                  {readOnly ? (
+                    <span className="text-xs text-black/50">—</span>
+                  ) : showUnequip ? (
                     <Button
                       type="button"
                       variant="lightPillAction"
@@ -187,10 +213,11 @@ function InventoryList({
 
 interface InventorySectionContentProps {
   character: CharacterDetail;
-  mutate: KeyedMutator<CharacterDetail | null>;
+  mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
   /** When false, user cannot add items (e.g. over 150% carry weight) */
   canAddItems?: boolean;
+  readOnly?: boolean;
 }
 
 function InventorySectionContent({
@@ -198,6 +225,7 @@ function InventorySectionContent({
   mutate,
   activeGameId,
   canAddItems = true,
+  readOnly = false,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
@@ -242,6 +270,7 @@ function InventorySectionContent({
   const handleAutoEquip = async (
     entry: NonNullable<CharacterDetail["inventory"]>[number]
   ) => {
+    if (!mutate) return;
     setEquippingId(entry.id);
     setEquipError(null);
     try {
@@ -261,7 +290,7 @@ function InventorySectionContent({
   const handleUnequip = async (
     entry: NonNullable<CharacterDetail["inventory"]>[number]
   ) => {
-    if (!entry.equipSlots?.length) return;
+    if (!entry.equipSlots?.length || !mutate) return;
     setUnequippingId(entry.id);
     try {
       await updateCharacterInventoryEntry(character.id, entry.id, {
@@ -308,9 +337,10 @@ function InventorySectionContent({
 
       const byId = new Map<string, string>();
       for (const game of games) {
+        if (!game) continue;
         for (const gc of game.characters ?? []) {
           const c = gc.character;
-          if (c.id === selfId) continue;
+          if (!isGiveItemRecipientInGame(gc, game, selfId)) continue;
           if (restrictSet != null && !restrictSet.has(c.id)) continue;
           const label =
             [c.name, c.surname ?? ""]
@@ -330,33 +360,35 @@ function InventorySectionContent({
 
   return (
     <div className="space-y-0">
-      <div className="mb-2 flex flex-col gap-1.5 pb-2">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="lightToolbarCompact"
-            fullWidth={false}
-            onClick={() => setBrowseModalOpen(true)}
-            disabled={!canAddItems}
-          >
-            Browse items
-          </Button>
-          <Button
-            type="button"
-            variant="lightToolbarCompact"
-            fullWidth={false}
-            onClick={openCreateUnique}
-            disabled={!canAddItems}
-          >
-            Create unique item
-          </Button>
+      {!readOnly && (
+        <div className="mb-2 flex flex-col gap-1.5 pb-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="lightToolbarCompact"
+              fullWidth={false}
+              onClick={() => setBrowseModalOpen(true)}
+              disabled={!canAddItems}
+            >
+              Browse items
+            </Button>
+            <Button
+              type="button"
+              variant="lightToolbarCompact"
+              fullWidth={false}
+              onClick={openCreateUnique}
+              disabled={!canAddItems}
+            >
+              Create unique item
+            </Button>
+          </div>
+          {!canAddItems && (
+            <p className="text-xs text-neblirDanger-600">
+              At 150%+ carry weight you cannot add items. Store some first.
+            </p>
+          )}
         </div>
-        {!canAddItems && (
-          <p className="text-xs text-neblirDanger-600">
-            At 150%+ carry weight you cannot add items. Store some first.
-          </p>
-        )}
-      </div>
+      )}
       {inventory.length === 0 ? (
         <p className="py-4 text-center text-sm text-black">No items</p>
       ) : (
@@ -366,14 +398,19 @@ function InventorySectionContent({
             variant="carried"
             entries={carriedInventory}
             onSelectDetail={setDetailEntry}
-            onSelectEquip={(e) => {
-              void handleAutoEquip(e);
-            }}
+            onSelectEquip={
+              readOnly
+                ? null
+                : (e) => {
+                    void handleAutoEquip(e);
+                  }
+            }
             onUnequip={(entry) => {
               void handleUnequip(entry);
             }}
             unequippingId={unequippingId}
             equippingId={equippingId}
+            readOnly={readOnly}
           />
           <InventoryList
             title="Stored"
@@ -386,11 +423,12 @@ function InventorySectionContent({
             }}
             unequippingId={unequippingId}
             equippingId={equippingId}
+            readOnly={readOnly}
           />
         </>
       )}
 
-      {browseModalOpen && (
+      {browseModalOpen && !readOnly && mutate && (
         <AddItemToInventoryModal
           isOpen={browseModalOpen}
           onClose={() => setBrowseModalOpen(false)}
@@ -399,7 +437,7 @@ function InventorySectionContent({
         />
       )}
 
-      {createUniqueOpen && (
+      {createUniqueOpen && !readOnly && mutate && (
         <CreateUniqueItemModal
           isOpen={createUniqueOpen}
           customTemplateGameIds={characterGames}
@@ -418,7 +456,7 @@ function InventorySectionContent({
         />
       )}
 
-      {detailEntry && (
+      {detailEntry && !readOnly && mutate && (
         <ItemDetailModal
           isOpen={!!detailEntry}
           onClose={() => setDetailEntry(null)}
@@ -430,11 +468,13 @@ function InventorySectionContent({
         />
       )}
 
-      <EquipErrorModal
-        isOpen={equipError != null}
-        message={equipError ?? ""}
-        onClose={() => setEquipError(null)}
-      />
+      {!readOnly && (
+        <EquipErrorModal
+          isOpen={equipError != null}
+          message={equipError ?? ""}
+          onClose={() => setEquipError(null)}
+        />
+      )}
     </div>
   );
 }
@@ -463,9 +503,14 @@ const CARRY_WEIGHT_TOOLTIP = (
 
 export function getInventorySection(
   character: CharacterDetail,
-  mutate: KeyedMutator<CharacterDetail | null>,
-  activeGameId: string | null
+  activeGameId: string | null,
+  options?: {
+    mutate?: KeyedMutator<CharacterDetail | null>;
+    readOnly?: boolean;
+  }
 ): CharacterSectionSlide {
+  const readOnly = options?.readOnly === true;
+  const mutate = options?.mutate;
   const inventory = character.inventory ?? [];
   const totalInventoryWeight = getCarriedWeight(inventory);
   const maxCarryWeight = getEffectiveMaxCarryWeight(
@@ -509,6 +554,7 @@ export function getInventorySection(
         mutate={mutate}
         activeGameId={activeGameId}
         canAddItems={!overCarryLimit}
+        readOnly={readOnly}
       />
     ),
   };

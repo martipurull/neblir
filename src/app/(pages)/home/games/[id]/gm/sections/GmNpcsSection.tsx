@@ -1,3 +1,5 @@
+import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
+import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
@@ -13,10 +15,18 @@ import { GmSectionTitle } from "./GmSectionTitle";
 type GmNpcsSectionProps = {
   game: GameDetail;
   onSetVisibility: (characterId: string, isPublic: boolean) => Promise<void>;
+  onCharacterRemoved: () => void | Promise<void>;
+  onCharactersAdded?: () => void | Promise<void>;
 };
 
-export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
+export function GmNpcsSection({
+  game,
+  onSetVisibility,
+  onCharacterRemoved,
+  onCharactersAdded,
+}: GmNpcsSectionProps) {
   const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
+  const [addNpcModalOpen, setAddNpcModalOpen] = useState(false);
   const [updatingCharacterId, setUpdatingCharacterId] = useState<string | null>(
     null
   );
@@ -29,6 +39,11 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
         isGmControlledGameCharacter(gc, game)
       ),
     [game]
+  );
+
+  const alreadyLinkedCharacterIds = useMemo(
+    () => (game.characters ?? []).map((gc) => gc.character.id),
+    [game.characters]
   );
 
   const publicNpcs = npcRows.filter((gc) => gc.isPublic ?? true);
@@ -60,81 +75,89 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
           return (
             <li
               key={gc.id}
-              className="flex flex-col gap-2 rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2 sm:flex-row sm:items-center sm:gap-3"
+              className="flex flex-col gap-2 rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2"
             >
-              <Link
-                href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${game.id}/gm`)}`}
-                className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:basis-2/3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                    {npcImageUrls[char.id] ? (
-                      <Image
-                        src={npcImageUrls[char.id] as string}
-                        alt={`${name} avatar`}
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 object-cover object-top"
-                      />
-                    ) : npcImageUrls[char.id] === undefined ? (
-                      <ImageLoadingSkeleton
-                        variant="avatar"
-                        className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                        {name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <Link
+                  href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${game.id}/gm`)}`}
+                  className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:basis-2/3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+                      {npcImageUrls[char.id] ? (
+                        <Image
+                          src={npcImageUrls[char.id] as string}
+                          alt={`${name} avatar`}
+                          width={44}
+                          height={44}
+                          className="h-11 w-11 object-cover object-top"
+                        />
+                      ) : npcImageUrls[char.id] === undefined ? (
+                        <ImageLoadingSkeleton
+                          variant="avatar"
+                          className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
+                          {name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
+                        {name}
+                      </p>
+                      <p className="text-sm text-black/65">
+                        Level {char.generalInformation?.level ?? "—"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
-                      {name}
-                    </p>
-                    <p className="text-sm text-black/65">
-                      Level {char.generalInformation?.level ?? "—"}
-                    </p>
+                </Link>
+                <div className="w-full sm:basis-1/3">
+                  <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+                    <span
+                      className={[
+                        "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                        visibility === "Public"
+                          ? "border-neblirSafe-400/50 bg-neblirSafe-200/30 text-black"
+                          : "border-neblirDanger-300/50 bg-neblirDanger-100/40 text-black",
+                      ].join(" ")}
+                    >
+                      {visibility}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="solidDark"
+                      className="text-xs max-sm:w-full"
+                      fullWidth={false}
+                      disabled={isBusy}
+                      onClick={() => {
+                        setUpdateError(null);
+                        setUpdatingCharacterId(char.id);
+                        void onSetVisibility(char.id, targetVisibility)
+                          .catch((error) => {
+                            setUpdateError(
+                              error instanceof Error
+                                ? error.message
+                                : "Failed to update visibility."
+                            );
+                          })
+                          .finally(() => {
+                            setUpdatingCharacterId(null);
+                          });
+                      }}
+                    >
+                      {isBusy ? "Updating..." : toggleLabel}
+                    </Button>
                   </div>
-                </div>
-              </Link>
-              <div className="w-full sm:basis-1/3">
-                <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
-                  <span
-                    className={[
-                      "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                      visibility === "Public"
-                        ? "border-neblirSafe-400/50 bg-neblirSafe-200/30 text-black"
-                        : "border-neblirDanger-300/50 bg-neblirDanger-100/40 text-black",
-                    ].join(" ")}
-                  >
-                    {visibility}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="solidDark"
-                    className="text-xs max-sm:w-full"
-                    fullWidth={false}
-                    disabled={isBusy}
-                    onClick={() => {
-                      setUpdateError(null);
-                      setUpdatingCharacterId(char.id);
-                      void onSetVisibility(char.id, targetVisibility)
-                        .catch((error) => {
-                          setUpdateError(
-                            error instanceof Error
-                              ? error.message
-                              : "Failed to update visibility."
-                          );
-                        })
-                        .finally(() => {
-                          setUpdatingCharacterId(null);
-                        });
-                    }}
-                  >
-                    {isBusy ? "Updating..." : toggleLabel}
-                  </Button>
                 </div>
               </div>
+              <RemoveCharacterFromGameButton
+                gameId={game.id}
+                characterId={char.id}
+                characterName={name}
+                onRemoved={onCharacterRemoved}
+              />
             </li>
           );
         })}
@@ -151,15 +174,26 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
             NPCs linked to this game, grouped by player visibility.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="solidDark"
-          fullWidth={false}
-          className="shrink-0 text-sm max-sm:w-full"
-          onClick={() => setCreateNpcModalOpen(true)}
-        >
-          Create NPC
-        </Button>
+        <div className="flex shrink-0 flex-wrap gap-2 max-sm:w-full">
+          <Button
+            type="button"
+            variant="solidDark"
+            fullWidth={false}
+            className="text-sm max-sm:flex-1"
+            onClick={() => setAddNpcModalOpen(true)}
+          >
+            Add NPC
+          </Button>
+          <Button
+            type="button"
+            variant="solidDark"
+            fullWidth={false}
+            className="text-sm max-sm:flex-1"
+            onClick={() => setCreateNpcModalOpen(true)}
+          >
+            Create NPC
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -181,6 +215,22 @@ export function GmNpcsSection({ game, onSetVisibility }: GmNpcsSectionProps) {
       {updateError ? (
         <p className="mt-3 text-sm text-neblirDanger-400">{updateError}</p>
       ) : null}
+      <AddCharactersToGameModal
+        isOpen={addNpcModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        alreadyLinkedCharacterIds={alreadyLinkedCharacterIds}
+        title={`Add NPCs to ${game.name}`}
+        subtitle="Select one or more of your existing characters to link as NPCs for this game."
+        searchPlaceholder="Search your characters..."
+        emptySelectableMessage="All of your characters are already linked to this game."
+        defaultIsPublic={false}
+        visibilityCheckboxLabel="Known to players"
+        onClose={() => setAddNpcModalOpen(false)}
+        onSuccess={() => {
+          void onCharactersAdded?.();
+        }}
+      />
       {createNpcModalOpen ? (
         <GmCreateNpcModal
           gameId={game.id}

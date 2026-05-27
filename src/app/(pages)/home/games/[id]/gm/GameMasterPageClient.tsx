@@ -23,6 +23,7 @@ import {
   GmInitiativeSection,
   GmDiscordSection,
   GmInvitesSection,
+  GmPlayersSection,
   GmItemsSection,
   GmCustomEnemiesSection,
   GmLoreSection,
@@ -30,6 +31,7 @@ import {
   GmRecapsSection,
   GmNpcsSection,
   GmDiceRollerSection,
+  GmDangerZoneSection,
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
@@ -87,7 +89,6 @@ export function GameMasterPageClient() {
   const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
     null
   );
-  const [invitesOpen, setInvitesOpen] = useState(false);
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
@@ -303,6 +304,19 @@ export function GameMasterPageClient() {
             await setGameCharacterVisibility(game.id, characterId, isPublic);
             await mutate();
           }}
+          onCharacterRemoved={async () => {
+            await mutate();
+          }}
+          onCharactersAdded={async () => {
+            await mutate();
+          }}
+        />
+
+        <GmPlayersSection
+          game={game}
+          onPlayerRemoved={async () => {
+            await mutate();
+          }}
         />
 
         <GmDiceRollerSection gameId={game.id} />
@@ -394,8 +408,6 @@ export function GameMasterPageClient() {
         />
 
         <GmInvitesSection
-          open={invitesOpen}
-          onToggle={() => setInvitesOpen((o) => !o)}
           onInviteUsers={() => setInviteModalOpen(true)}
           pendingInvites={pendingInvites}
         />
@@ -427,6 +439,8 @@ export function GameMasterPageClient() {
             await mutate(updated, { revalidate: false });
           }}
         />
+
+        <GmDangerZoneSection gameId={game.id} gameName={game.name} />
       </div>
 
       <InviteUsersModal

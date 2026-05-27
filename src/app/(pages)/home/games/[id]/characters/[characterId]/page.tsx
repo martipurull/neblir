@@ -4,18 +4,23 @@ import { CharacterDetailView } from "@/app/components/character/CharacterDetailV
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
-import { useCharacter } from "@/hooks/use-character";
+import { useGameCharacterView } from "@/hooks/use-game-character-view";
 import { useParams } from "next/navigation";
 
-export default function CharacterDetailPage() {
+export default function GameCharacterViewPage() {
   const params = useParams();
-  const id = typeof params.id === "string" ? params.id : null;
-  const { character, loading, error, refetch, mutate } = useCharacter(id);
+  const gameId = typeof params.id === "string" ? params.id : null;
+  const characterId =
+    typeof params.characterId === "string" ? params.characterId : null;
+  const { character, loading, error, refetch } = useGameCharacterView(
+    gameId,
+    characterId
+  );
 
-  if (id == null) {
+  if (gameId == null || characterId == null) {
     return (
       <PageSection>
-        <p className="text-sm text-neblirDanger-600">Invalid character.</p>
+        <p className="text-sm text-neblirDanger-600">Invalid character link.</p>
       </PageSection>
     );
   }
@@ -40,5 +45,7 @@ export default function CharacterDetailPage() {
     );
   }
 
-  return <CharacterDetailView character={character} mutate={mutate} />;
+  return (
+    <CharacterDetailView character={character} readOnly fixedGameId={gameId} />
+  );
 }

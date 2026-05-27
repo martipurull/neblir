@@ -7,7 +7,7 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
 import { GameLinkedCharactersList } from "@/app/components/games/GameLinkedCharactersList";
-import { isPlayerCharacterInGame } from "@/app/lib/gmUtils";
+import { isVisiblePlayerCharacterInGame } from "@/app/lib/gmUtils";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
@@ -21,7 +21,9 @@ export default function GamePlayerCharactersPage() {
 
   const playerCharacters = useMemo(() => {
     if (!game?.characters) return [];
-    return game.characters.filter((gc) => isPlayerCharacterInGame(gc, game));
+    return game.characters.filter((gc) =>
+      isVisiblePlayerCharacterInGame(gc, game)
+    );
   }, [game]);
 
   const alreadyLinkedCharacterIds = useMemo(

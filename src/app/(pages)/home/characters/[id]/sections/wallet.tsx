@@ -143,10 +143,55 @@ export function getWalletSection(
   character: CharacterDetail,
   imageUrls: Record<string, string | null | undefined>,
   characterId: string,
-  mutate: KeyedMutator<CharacterDetail | null>
+  mutate: KeyedMutator<CharacterDetail | null>,
+  readOnly?: boolean
 ): CharacterSectionSlide | null {
   const wallet = character.wallet;
   if (!wallet || wallet.length === 0) return null;
+
+  if (readOnly) {
+    return {
+      id: "wallet",
+      title: "Wallet",
+      children: (
+        <ul className="divide-y divide-black rounded border border-black">
+          {wallet.map((entry) => {
+            const currencyImageUrl = imageUrls[entry.currencyName];
+            return (
+              <li
+                key={entry.currencyName}
+                className="flex items-center gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
+              >
+                <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/30">
+                  {currencyImageUrl ? (
+                    <Image
+                      src={currencyImageUrl}
+                      alt=""
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 object-cover object-center"
+                    />
+                  ) : currencyImageUrl === undefined ? (
+                    <ImageLoadingSkeleton variant="currency" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
+                      {entry.currencyName.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-medium tabular-nums text-black">
+                  {entry.quantity}
+                </span>
+                <span className="min-w-0 truncate text-sm text-black">
+                  {entry.currencyName}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ),
+    };
+  }
 
   return {
     id: "wallet",

@@ -7,6 +7,10 @@ import {
   type GameListItem,
 } from "@/app/lib/types/game";
 import {
+  characterDetailSchema,
+  type CharacterDetail,
+} from "@/app/lib/types/character";
+import {
   connectDiscordStartResponseSchema,
   discordGuildChannelsResponseSchema,
   saveDiscordIntegrationBodySchema,
@@ -302,6 +306,24 @@ export async function updateGame(
   return parsed.data;
 }
 
+export async function deleteGame(id: string): Promise<void> {
+  const response = await fetch(`/api/games/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to delete game")
+    );
+  }
+}
+
 export async function emitGameRollEvent(
   gameId: string,
   payload: RollEventPayload
@@ -480,8 +502,52 @@ export async function setGameCharacterVisibility(
       getUserSafeApiError(
         response.status,
         bodyPayload,
-        "Failed to update NPC visibility"
+        "Failed to update character visibility"
       )
     );
   }
+}
+
+export async function getGameCharacterForGmView(
+  gameId: string,
+  characterId: string,
+  signal?: AbortSignal
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to fetch character"
+      )
+    );
+  }
+
+  const json = (await response.json()) as Record<string, unknown>;
+  const { access: _access, ...characterJson } = json;
+  const parsed = characterDetailSchema.safeParse(characterJson);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Character response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }

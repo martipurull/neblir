@@ -34,7 +34,9 @@ export async function resolveGameCharacterLinkForCreate(
   }
 
   const isGameMaster = game.gameMaster === userId;
-  const isPublic = isGameMaster ? (gameLinkIsPublic ?? false) : true;
+  const isPublic = isGameMaster
+    ? (gameLinkIsPublic ?? false)
+    : (gameLinkIsPublic ?? true);
 
   return { gameId, isPublic };
 }

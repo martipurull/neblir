@@ -160,6 +160,19 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid game ID", 400);
     }
 
+    const userId = request.auth.user.id;
+    if (!userId) {
+      return errorResponse("User ID not found", 400);
+    }
+
+    const game = await getGameWithDetails(id);
+    if (!game) {
+      return errorResponse("Game not found", 404);
+    }
+    if (game.gameMaster !== userId) {
+      return errorResponse("Only the game master can delete this game", 403);
+    }
+
     await deleteGame(id);
 
     return new NextResponse(null, { status: 204 });

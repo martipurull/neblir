@@ -115,8 +115,8 @@ enum PathName {
 
 enum Race {
   KINIAN
-  HUMAN
   FENNE
+  HUMAN
   MANFENN
 }
 
@@ -127,14 +127,17 @@ enum SpecialAbilityName {
 }
 
 enum Religion {
-  TRITHEOLOGY
-  PANTRITHEOLOGY
-  CHRISLAM
-  HUMANISM
-  CHOSEN_FAITH
-  FORE_CAST
-  ATHEIST
   AGNOSTIC
+  ATHEIST
+  CHOSEN_FAITH
+  CHRISLAM
+  FORE_CAST
+  HUMANISM
+  PANTRITHEOLOGY
+  PTSD
+  SELLISM
+  TRITHEOLOGY
+  OTHER
 }
 
 enum Status {

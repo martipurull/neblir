@@ -64,11 +64,19 @@ describe("resolveGameCharacterLinkForCreate", () => {
     ).resolves.toEqual({ gameId: "game-1", isPublic: true });
   });
 
-  it("forces public visibility for non-GM members", async () => {
+  it("honours private visibility when a player opts out of public", async () => {
     userIsInGameMock.mockResolvedValue(true);
     findUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
     await expect(
       resolveGameCharacterLinkForCreate("game-1", "player-1", false)
+    ).resolves.toEqual({ gameId: "game-1", isPublic: false });
+  });
+
+  it("defaults player links to public when visibility is omitted", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    findUniqueMock.mockResolvedValue({ gameMaster: "gm-1" });
+    await expect(
+      resolveGameCharacterLinkForCreate("game-1", "player-1")
     ).resolves.toEqual({ gameId: "game-1", isPublic: true });
   });
 });

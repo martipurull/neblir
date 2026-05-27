@@ -5,6 +5,9 @@ import {
   getSpecialAbilityLabel,
 } from "@/app/lib/specialAbility";
 
+export { RELIGIONS } from "@/app/lib/religion";
+export { RACES } from "@/app/lib/race";
+
 /** Default values for character creation form (matches API schema). */
 export function getDefaultCharacterCreationFormValues(): CharacterCreationRequest {
   const level = 1;
@@ -75,24 +78,6 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
     wallet: [],
   };
 }
-
-export const RACES: { value: Race; label: string }[] = [
-  { value: "KINIAN", label: "Kinian" },
-  { value: "FENNE", label: "Fenne" },
-  { value: "HUMAN", label: "Human" },
-  { value: "MANFENN", label: "Manfenn" },
-];
-
-export const RELIGIONS: { value: Religion; label: string }[] = [
-  { value: "TRITHEOLOGY", label: "Tritheology" },
-  { value: "PANTRITHEOLOGY", label: "Pantritheology" },
-  { value: "CHRISLAM", label: "Chrislam" },
-  { value: "HUMANISM", label: "Humanism" },
-  { value: "CHOSEN_FAITH", label: "Chosen Faith" },
-  { value: "FORE_CAST", label: "Fore Cast" },
-  { value: "ATHEIST", label: "Atheist" },
-  { value: "AGNOSTIC", label: "Agnostic" },
-];
 
 export const MANFENN_SPECIAL_ABILITY_OPTIONS =
   MANFENN_SPECIAL_ABILITY_CHOICES.map((value) => ({
