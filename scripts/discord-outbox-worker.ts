@@ -64,6 +64,7 @@ async function reclaimStaleProcessing() {
 /** Discord messages cannot use real text colours; emoji + **bold** stand in for red/green. */
 function formatDieForDiscord(n: number): string {
   if (n >= 8 && n <= 10) return `🟢 ${n}`;
+  if (n === 1) return `🔴 ${n}`;
   return String(n);
 }
 
@@ -89,6 +90,7 @@ function getGeneralRollTag(metadata: unknown): string {
   const label1 = cleanMetadataLabel(data.label1);
   const label2 = cleanMetadataLabel(data.label2);
   if (label1 && label2) return `${label1} + ${label2}`;
+  if (label1) return label1;
 
   const note = cleanMetadataLabel(data.note);
   if (note) return note.toUpperCase();
@@ -105,6 +107,11 @@ function getAttackDamageTag(metadata: unknown): string {
   return `ATTACK_DAMAGE (${damageType.toUpperCase()})`;
 }
 
+function isPrivateRoll(metadata: unknown): boolean {
+  if (!metadata || typeof metadata !== "object") return false;
+  return (metadata as { isPrivate?: unknown }).isPrivate === true;
+}
+
 function formatRollMessage(event: {
   rollType: string;
   diceExpression: string | null;
@@ -114,6 +121,7 @@ function formatRollMessage(event: {
   rollerUser: { name: string };
   character: { generalInformation: { name: string; surname: string } } | null;
 }) {
+  const isPrivate = isPrivateRoll(event.metadata);
   const charName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
     : "GM";
@@ -130,7 +138,9 @@ function formatRollMessage(event: {
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
   return (
-    `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n` +
+    (isPrivate
+      ? `🎲 **${event.rollerUser.name}** ► **SECRET ROLL**\n`
+      : `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n`) +
     `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
   );
 }

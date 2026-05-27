@@ -75,8 +75,7 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
   const watchedName = useWatch({ control: form.control, name: "name" });
   const mapPreviewAlt =
     (typeof watchedName === "string" && watchedName.trim()) ||
-    data?.name ||
-    "Map";
+    (data?.name ?? "Map");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setErrorMessage(null);

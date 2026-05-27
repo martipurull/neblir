@@ -49,6 +49,8 @@ export default function CharacterDetailPage() {
   );
 
   const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);
+  const [singleAttributeRollSelection, setSingleAttributeRollSelection] =
+    useState<[DiceSelectionItem] | null>(null);
   const [initiativeRollOpen, setInitiativeRollOpen] = useState(false);
   const [initiativeOrderOpen, setInitiativeOrderOpen] = useState(false);
   const [initiativeOrderInitialGameId, setInitiativeOrderInitialGameId] =
@@ -67,7 +69,13 @@ export default function CharacterDetailPage() {
     refetch: refetchInitiativeGames,
   } = useCharacterGameDetails(id, character?.games);
 
+  const activeGameDetail = useMemo(() => {
+    if (!activeGameId) return null;
+    return initiativeGameDetails.find((g) => g.id === activeGameId) ?? null;
+  }, [initiativeGameDetails, activeGameId]);
+
   const handleDiceSelect = useCallback((item: DiceSelectionItem) => {
+    setSingleAttributeRollSelection(null);
     setDiceSelection((prev) => {
       const idx = prev.findIndex((s) => isSameDiceSelection(s, item));
       if (idx >= 0) {
@@ -83,6 +91,11 @@ export default function CharacterDetailPage() {
       }
       return [...prev, item];
     });
+  }, []);
+
+  const handleSingleAttributeRoll = useCallback((item: DiceSelectionItem) => {
+    if (item.type !== "attribute") return;
+    setSingleAttributeRollSelection([item]);
   }, []);
 
   const imageEntries = useMemo(
@@ -108,7 +121,12 @@ export default function CharacterDetailPage() {
   const sections: CharacterSectionSlide[] = useMemo(() => {
     if (!character) return [];
     const list: CharacterSectionSlide[] = [
-      getAttributesSection(character, diceSelection, handleDiceSelect),
+      getAttributesSection(
+        character,
+        diceSelection,
+        handleDiceSelect,
+        handleSingleAttributeRoll
+      ),
       getSkillsSection(character, diceSelection, handleDiceSelect),
       getCombatSection(character, {
         onClearReactions: reactionTracking.clearReactions,
@@ -144,6 +162,7 @@ export default function CharacterDetailPage() {
     character,
     diceSelection,
     handleDiceSelect,
+    handleSingleAttributeRoll,
     imageUrls,
     mutate,
     reactionTracking.clearReactions,
@@ -202,15 +221,25 @@ export default function CharacterDetailPage() {
         className="min-h-0 flex-1"
       />
 
-      {character && diceSelection.length === 2 && (
-        <DiceRollModal
-          isOpen
-          onClose={() => setDiceSelection([])}
-          character={character}
-          gameId={activeGameId}
-          selection={[diceSelection[0], diceSelection[1]]}
-        />
-      )}
+      {character &&
+        (diceSelection.length === 2 || singleAttributeRollSelection) && (
+          <DiceRollModal
+            isOpen
+            onClose={() => {
+              setDiceSelection([]);
+              setSingleAttributeRollSelection(null);
+            }}
+            character={character}
+            gameId={activeGameId}
+            selection={
+              singleAttributeRollSelection ??
+              ([diceSelection[0], diceSelection[1]] as [
+                DiceSelectionItem,
+                DiceSelectionItem,
+              ])
+            }
+          />
+        )}
 
       {character && (
         <DedicatedDiceRollModal
@@ -218,6 +247,7 @@ export default function CharacterDetailPage() {
           onClose={() => setDedicatedDiceRollerOpen(false)}
           character={character}
           gameId={activeGameId}
+          allowPrivateRoll={activeGameDetail?.isGameMaster === true}
         />
       )}
 

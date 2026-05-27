@@ -36,7 +36,7 @@ export function GmCoverImageSection({
     setImageKey(saved);
   }, [imageKey, setImageKey]);
 
-  const previewKey = localImageKey || imageKey || "";
+  const previewKey = localImageKey ?? imageKey ?? "";
   const imageEntries = useMemo(
     () => (previewKey ? [{ id: gameId, imageKey: previewKey }] : []),
     [gameId, previewKey]
@@ -46,7 +46,7 @@ export function GmCoverImageSection({
 
   const persistCover = useCallback(
     async (nextKey: string | null) => {
-      const normalized = nextKey?.trim() || null;
+      const normalized = nextKey?.trim() ?? null;
       const saved = savedKeyRef.current.trim() || null;
       if (normalized === saved) return;
 

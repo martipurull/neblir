@@ -46,6 +46,15 @@ export function listAllDiceSelectionItems(
   return out;
 }
 
+/** Attribute sub-stats only (no general skills). */
+export function listAttributeDiceSelectionItems(
+  character: CharacterDetail
+): DiceSelectionItem[] {
+  return listAllDiceSelectionItems(character).filter(
+    (item) => item.type === "attribute"
+  );
+}
+
 export function isValidDiceRollPair(
   a: DiceSelectionItem,
   b: DiceSelectionItem

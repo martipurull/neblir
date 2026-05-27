@@ -27,7 +27,8 @@ function formatLabel(key: string) {
 export function getAttributesSection(
   character: CharacterDetail,
   diceSelection?: DiceSelectionItem[],
-  onDiceSelect?: (item: DiceSelectionItem) => void
+  onDiceSelect?: (item: DiceSelectionItem) => void,
+  onSingleAttributeRoll?: (item: DiceSelectionItem) => void
 ): CharacterSectionSlide {
   const equipBonuses = getEquippedItemStatBonusDetails(character);
   const attrs = character.innateAttributes;
@@ -86,6 +87,10 @@ export function getAttributesSection(
                   const isSelected = selection.some((s) =>
                     isSameDiceSelection(s, item)
                   );
+                  const showSingleRollCta =
+                    isSelected &&
+                    selection.length === 1 &&
+                    !!onSingleAttributeRoll;
                   const isDisabled = hasTwo && !isSelected;
                   const handleClick = () => {
                     if (onDiceSelect) onDiceSelect(item);
@@ -139,6 +144,30 @@ export function getAttributesSection(
                           {formatLabel(key)}
                         </span>
                         <span className="flex min-w-0 shrink-0 items-center gap-2">
+                          {showSingleRollCta && (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              className="rounded border border-customPrimary/30 bg-paleBlue/35 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-customPrimary hover:bg-paleBlue/60"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onSingleAttributeRoll?.(item);
+                              }}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.key !== "Enter" &&
+                                  event.key !== " "
+                                ) {
+                                  return;
+                                }
+                                event.preventDefault();
+                                event.stopPropagation();
+                                onSingleAttributeRoll?.(item);
+                              }}
+                            >
+                              Roll
+                            </span>
+                          )}
                           {showArmourPenalty && (
                             <span
                               className="rounded border border-neblirDanger-400 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neblirDanger-600"
