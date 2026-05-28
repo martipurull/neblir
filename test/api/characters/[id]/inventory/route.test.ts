@@ -101,7 +101,34 @@ describe("/api/characters/[id]/inventory handlers", () => {
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "char-1",
       "GLOBAL_ITEM",
-      "item-1"
+      "item-1",
+      { quantity: 1 }
+    );
+  });
+
+  it("POST passes quantity when provided", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { sourceType: "GLOBAL_ITEM", itemId: "item-1", quantity: 5 },
+      error: undefined,
+    });
+    addOrIncrementItemCharacterMock.mockResolvedValue({ id: "ic-1" });
+    const { POST } = await import("@/app/api/characters/[id]/inventory/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { sourceType: "GLOBAL_ITEM", itemId: "item-1", quantity: 5 },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      "GLOBAL_ITEM",
+      "item-1",
+      { quantity: 5 }
     );
   });
 });

@@ -465,6 +465,13 @@ function InventorySectionContent({
           gameId={activeGameId}
           mutate={mutate}
           resolveGiveRecipients={resolveGiveRecipients}
+          equipControl={{
+            carriedInventory,
+            onEquip: handleAutoEquip,
+            onUnequip: handleUnequip,
+            equippingId,
+            unequippingId,
+          }}
         />
       )}
 

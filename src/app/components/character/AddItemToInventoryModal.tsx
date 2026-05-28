@@ -9,6 +9,7 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import { Button } from "@/app/components/shared/Button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
+import { BrowseRowAddControls } from "./BrowseRowAddControls";
 
 export interface AddItemToInventoryModalProps {
   isOpen: boolean;
@@ -38,6 +39,9 @@ export function AddItemToInventoryModal({
   mutate,
 }: AddItemToInventoryModalProps) {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const listScrollRef = useRef<HTMLDivElement | null>(null);
+  const listScrollTopRef = useRef(0);
+  const openSessionStartedRef = useRef(false);
   const [browseRows, setBrowseRows] = useState<BrowseInventoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,23 +115,35 @@ export function AddItemToInventoryModal({
   }, [character.games]);
 
   useEffect(() => {
-    if (isOpen) {
-      setSearchQuery("");
-      setAddingKey(null);
-      setSelectedRow(null);
-      setError(null);
-      void fetchItems();
+    if (!isOpen) {
+      openSessionStartedRef.current = false;
+      return;
     }
+    if (openSessionStartedRef.current) return;
+    openSessionStartedRef.current = true;
+    setSearchQuery("");
+    setAddingKey(null);
+    setSelectedRow(null);
+    setError(null);
+    void fetchItems();
   }, [isOpen, fetchItems]);
 
   useEffect(() => {
     if (!isOpen) return;
-    // Delay to ensure the input is mounted before focusing.
     const timer = window.setTimeout(() => {
       searchInputRef.current?.focus();
     }, 0);
     return () => window.clearTimeout(timer);
   }, [isOpen]);
+
+  const restoreListScroll = useCallback(() => {
+    const top = listScrollTopRef.current;
+    requestAnimationFrame(() => {
+      if (listScrollRef.current) {
+        listScrollRef.current.scrollTop = top;
+      }
+    });
+  }, []);
 
   const filteredRows = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -148,56 +164,42 @@ export function AddItemToInventoryModal({
     );
   }, [browseRows, searchQuery]);
 
-  const handleAddFromDetail = useCallback(
-    async (item: ItemBrowseDetailFields) => {
-      if (!selectedRow) return;
-      setAddingKey(selectedRow.key);
-      try {
-        if (selectedRow.source === "GLOBAL") {
-          await addItemToCharacterInventory(character.id, {
-            sourceType: "GLOBAL_ITEM",
-            itemId: item.id,
-          });
-        } else {
-          await addItemToCharacterInventory(character.id, {
-            sourceType: "CUSTOM_ITEM",
-            itemId: item.id,
-          });
-        }
-        await mutate();
-        setSelectedRow(null);
-      } catch (e) {
-        setError(getUserSafeErrorMessage(e, "Failed to add item"));
-      } finally {
-        setAddingKey(null);
-      }
-    },
-    [character.id, mutate, selectedRow]
-  );
-
-  const handleAdd = useCallback(
-    async (row: BrowseInventoryRow) => {
+  const addRowToInventory = useCallback(
+    async (row: BrowseInventoryRow, quantity: number) => {
+      listScrollTopRef.current = listScrollRef.current?.scrollTop ?? 0;
       setAddingKey(row.key);
+      setError(null);
       try {
         if (row.source === "GLOBAL") {
           await addItemToCharacterInventory(character.id, {
             sourceType: "GLOBAL_ITEM",
             itemId: row.item.id,
+            quantity,
           });
         } else {
           await addItemToCharacterInventory(character.id, {
             sourceType: "CUSTOM_ITEM",
             itemId: row.item.id,
+            quantity,
           });
         }
         await mutate();
+        restoreListScroll();
       } catch (e) {
         setError(getUserSafeErrorMessage(e, "Failed to add item"));
       } finally {
         setAddingKey(null);
       }
     },
-    [character.id, mutate]
+    [character.id, mutate, restoreListScroll]
+  );
+
+  const handleAddFromDetail = useCallback(
+    async (item: ItemBrowseDetailFields, quantity: number) => {
+      if (!selectedRow) return;
+      await addRowToInventory(selectedRow, quantity);
+    },
+    [addRowToInventory, selectedRow]
   );
 
   if (!isOpen) return null;
@@ -248,7 +250,10 @@ export function AddItemToInventoryModal({
           />
         </div>
 
-        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={listScrollRef}
+          className="mt-3 min-h-0 flex-1 overflow-y-auto"
+        >
           {loading ? (
             <p className="py-6 text-center text-sm text-white/80">
               Loading items…
@@ -298,20 +303,12 @@ export function AddItemToInventoryModal({
                           : "—"}
                       </p>
                     </Button>
-                    <div className="shrink-0">
-                      <Button
-                        type="button"
-                        variant="semanticSafeOutline"
-                        fullWidth={false}
-                        onClick={() => {
-                          void handleAdd(row);
-                        }}
-                        disabled={isAdding}
-                        className="!px-2 !py-1 !text-xs"
-                      >
-                        {isAdding ? "Adding…" : "Add"}
-                      </Button>
-                    </div>
+                    <BrowseRowAddControls
+                      itemName={row.item.name}
+                      isAdding={isAdding}
+                      disabled={addingKey != null && !isAdding}
+                      onAdd={(quantity) => addRowToInventory(row, quantity)}
+                    />
                   </li>
                 );
               })}

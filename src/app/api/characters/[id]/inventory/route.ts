@@ -121,7 +121,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    await addOrIncrementItemCharacter(id, data.sourceType, data.itemId);
+    await addOrIncrementItemCharacter(id, data.sourceType, data.itemId, {
+      quantity: data.quantity ?? 1,
+    });
 
     return NextResponse.json("Item added to inventory", { status: 201 });
   } catch (error) {

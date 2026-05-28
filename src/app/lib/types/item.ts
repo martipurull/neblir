@@ -327,6 +327,7 @@ export type UniqueItemUpdate = z.infer<typeof uniqueItemUpdateSchema>;
 export const addToInventorySchema = z.object({
   sourceType: itemSourceTypeSchema,
   itemId: z.string(),
+  quantity: z.number().int().min(1).max(999).optional().default(1),
 });
 export type AddToInventory = z.infer<typeof addToInventorySchema>;
 

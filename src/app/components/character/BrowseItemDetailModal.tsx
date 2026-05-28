@@ -1,18 +1,74 @@
 "use client";
 
+import { formatEquipSlotRequirementLines } from "@/app/lib/equipSlotDisplay";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Button } from "@/app/components/shared/Button";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+
+const MAX_ADD_QUANTITY = 999;
+
+function parseAddQuantity(raw: string): number {
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, MAX_ADD_QUANTITY);
+}
+
+function BrowseItemDetailAddFooter({
+  item,
+  isAdding,
+  onAddToInventory,
+}: {
+  item: ItemBrowseDetailFields;
+  isAdding: boolean;
+  onAddToInventory: (
+    item: ItemBrowseDetailFields,
+    quantity: number
+  ) => void | Promise<void>;
+}) {
+  const [addQuantity, setAddQuantity] = useState("1");
+
+  return (
+    <>
+      <ModalNumberField
+        id={`browse-item-add-quantity-${item.id}`}
+        label="Quantity"
+        value={addQuantity}
+        onChange={setAddQuantity}
+        disabled={isAdding}
+        required={false}
+        min={1}
+        max={MAX_ADD_QUANTITY}
+        step={1}
+      />
+      <Button
+        type="button"
+        variant="semanticSafeOutline"
+        onClick={() => {
+          void onAddToInventory(item, parseAddQuantity(addQuantity));
+        }}
+        disabled={isAdding}
+        className="w-full"
+      >
+        {isAdding ? "Adding…" : "Add to inventory"}
+      </Button>
+    </>
+  );
+}
+
 export interface BrowseItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: ItemBrowseDetailFields | null;
-  /** When provided, shows an "Add to inventory" button that calls this then closes the modal */
-  onAddToInventory?: (item: ItemBrowseDetailFields) => void | Promise<void>;
+  /** When provided, shows quantity + add controls (modal stays open after add). */
+  onAddToInventory?: (
+    item: ItemBrowseDetailFields,
+    quantity: number
+  ) => void | Promise<void>;
   /** When adding from this modal, pass true to show loading state */
   isAdding?: boolean;
   /** GM flow: opens give-to-character UI for this item */
@@ -46,6 +102,9 @@ export function BrowseItemDetailModal({
   if (!isOpen || !item) return null;
 
   const isWeapon = item.type === "WEAPON";
+  const equipRequirementLines = item.equippable
+    ? formatEquipSlotRequirementLines(item)
+    : [];
 
   return (
     <ModalShell
@@ -70,17 +129,12 @@ export function BrowseItemDetailModal({
               </Button>
             ) : null}
             {onAddToInventory ? (
-              <Button
-                type="button"
-                variant="semanticSafeOutline"
-                onClick={() => {
-                  void onAddToInventory(item);
-                }}
-                disabled={isAdding}
-                className="w-full"
-              >
-                {isAdding ? "Adding…" : "Add to inventory"}
-              </Button>
+              <BrowseItemDetailAddFooter
+                key={item.id}
+                item={item}
+                isAdding={isAdding}
+                onAddToInventory={onAddToInventory}
+              />
             ) : null}
           </div>
         ) : undefined
@@ -157,15 +211,14 @@ export function BrowseItemDetailModal({
             <span className="text-white/60 uppercase tracking-wider">
               Equippable
             </span>
-            <p className="mt-0.5 text-white">
-              Yes
-              {item.equipSlotTypes?.length
-                ? ` · ${item.equipSlotTypes.join(", ")}`
-                : ""}
-              {item.equipSlotCost != null
-                ? ` (${item.equipSlotCost} slot)`
-                : ""}
-            </p>
+            <p className="mt-0.5 text-white">Yes</p>
+            {equipRequirementLines.length > 0 && (
+              <ul className="mt-1 list-none space-y-1 text-sm text-white/90">
+                {equipRequirementLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

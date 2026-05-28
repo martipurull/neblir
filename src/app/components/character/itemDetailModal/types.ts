@@ -6,6 +6,14 @@ export type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
 export type ResolvedItemNonNull = NonNullable<InventoryEntry["item"]>;
 
+export type ItemDetailEquipControl = {
+  carriedInventory: InventoryEntry[];
+  onEquip: (entry: InventoryEntry) => void | Promise<void>;
+  onUnequip: (entry: InventoryEntry) => void | Promise<void>;
+  equippingId: string | null;
+  unequippingId: string | null;
+};
+
 export interface ItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,4 +25,6 @@ export interface ItemDetailModalProps {
   resolveGiveRecipients?: (
     entry: InventoryEntry
   ) => Promise<SelectDropdownOption[]>;
+  /** When set, shows equip / unequip controls (carried items only). */
+  equipControl?: ItemDetailEquipControl;
 }

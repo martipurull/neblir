@@ -1,6 +1,10 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import {
+  formatEquipSlotRequirementLines,
+  formatEquippedSlotsSummary,
+} from "@/app/lib/equipSlotDisplay";
 import { DetailField } from "./DetailField";
 import type { InventoryEntry, ResolvedItemNonNull } from "./types";
 import { fmtSignedBonus } from "./utils";
@@ -29,6 +33,8 @@ export function ItemDetailSummaryGrid({
   onOpenDamageRoll,
 }: ItemDetailSummaryGridProps) {
   const hasWeaponDamage = weaponDamage != null;
+  const equipRequirementLines =
+    item?.equippable === true ? formatEquipSlotRequirementLines(item) : [];
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -44,10 +50,17 @@ export function ItemDetailSummaryGrid({
         <>
           <DetailField label="Location">{displayLocation}</DetailField>
           <DetailField label="Equipped">
-            {(entry.equipSlots?.length ?? 0) > 0
-              ? `${entry.equipSlots!.join(", ")} slot(s)`
-              : "No"}
+            {formatEquippedSlotsSummary(entry.equipSlots)}
           </DetailField>
+          {equipRequirementLines.length > 0 && (
+            <DetailField label="Slot use" className="col-span-2">
+              <ul className="list-none space-y-1">
+                {equipRequirementLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </DetailField>
+          )}
         </>
       ) : (
         <DetailField label="Location" className="col-span-2">
