@@ -178,7 +178,10 @@ export function CharacterDetailView({
       getGeneralSection(character),
       getHealthSection(character),
     ];
-    const pathsSection = getPathsSection(character);
+    const pathsSection = getPathsSection(character, {
+      readOnly,
+      mutate: readOnly ? undefined : mutate,
+    });
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
     if (featuresSection) list.push(featuresSection);

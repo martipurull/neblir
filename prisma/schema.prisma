@@ -671,6 +671,8 @@ model Item {
   skillMod             Int?
   isSpeedAltered       Boolean                    @default(false)
   protectedFromOfficialImport Boolean @default(false)
+
+  soldierFavouriteWeaponPathCharacters PathCharacter[] @relation("SoldierFavouriteWeapon")
 }
 
 model CustomItem {
@@ -795,17 +797,20 @@ model Path {
 }
 
 model PathCharacter {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  pathId      String @db.ObjectId
-  characterId String @db.ObjectId
-  rank        Int
+  id                    String  @id @default(auto()) @map("_id") @db.ObjectId
+  pathId                String  @db.ObjectId
+  characterId           String  @db.ObjectId
+  rank                  Int
+  favouriteWeaponItemId String? @db.ObjectId
 
-  path      Path      @relation(fields: [pathId], references: [id])
-  character Character @relation(fields: [characterId], references: [id])
+  path            Path      @relation(fields: [pathId], references: [id])
+  character       Character @relation(fields: [characterId], references: [id])
+  favouriteWeapon Item?     @relation("SoldierFavouriteWeapon", fields: [favouriteWeaponItemId], references: [id])
 
   @@unique([pathId, characterId])
   @@index([pathId])
   @@index([characterId])
+  @@index([favouriteWeaponItemId])
 }
 
 model PathFeature {

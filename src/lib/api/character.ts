@@ -7,6 +7,7 @@ import {
 } from "@/app/lib/types/character";
 import { walletSchema } from "@/app/lib/types/item";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import type { SoldierFavouriteWeaponUpdate } from "@/app/lib/types/path";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 import type {
   LevelUpAttributePath,
@@ -347,6 +348,47 @@ export async function updateCharacterNotes(
   const parsed = characterDetailSchema.safeParse(json);
   if (!parsed.success) {
     throw new Error("Character response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function updateCharacterFavouriteWeapon(
+  id: string,
+  body: SoldierFavouriteWeaponUpdate
+): Promise<CharacterDetail> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(id)}/favourite-weapon`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update favourite weapon"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = characterDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    try {
+      return await getCharacterById(id);
+    } catch {
+      throw new Error("Character response did not match expected shape");
+    }
   }
   return parsed.data;
 }

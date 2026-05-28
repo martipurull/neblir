@@ -3,9 +3,14 @@
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import { PathsList } from "@/app/components/character/PathsList";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { KeyedMutator } from "swr";
 
 export function getPathsSection(
-  character: CharacterDetail
+  character: CharacterDetail,
+  options?: {
+    readOnly?: boolean;
+    mutate?: KeyedMutator<CharacterDetail | null>;
+  }
 ): CharacterSectionSlide | null {
   const paths = character.paths;
   if (!paths || paths.length === 0) return null;
@@ -13,6 +18,13 @@ export function getPathsSection(
   return {
     id: "paths",
     title: "Paths",
-    children: <PathsList paths={paths} />,
+    children: (
+      <PathsList
+        paths={paths}
+        characterId={character.id}
+        readOnly={options?.readOnly}
+        mutate={options?.mutate}
+      />
+    ),
   };
 }

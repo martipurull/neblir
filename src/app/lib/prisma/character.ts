@@ -1,4 +1,6 @@
 import { normalizeNotesFromDb } from "@/app/lib/characterNotes";
+import { mapPrismaItemToApi } from "@/app/lib/itemModifierPrisma";
+import type { SoldierFavouriteWeapon } from "@/app/lib/types/path";
 import { prisma } from "./client";
 import type { Prisma } from "@prisma/client";
 import { hydrateItemCharacters } from "./itemCharacter";
@@ -11,6 +13,21 @@ import {
 
 export async function createCharacter(data: Prisma.CharacterCreateInput) {
   return prisma.character.create({ data });
+}
+
+function mapSoldierFavouriteWeaponForPath(
+  item: ReturnType<typeof mapPrismaItemToApi> | null | undefined
+): SoldierFavouriteWeapon | null {
+  if (item?.type !== "WEAPON") {
+    return null;
+  }
+  return {
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    imageKey: item.imageKey,
+    type: "WEAPON",
+  };
 }
 
 export async function getCharactersByUserId(userId: string) {
@@ -144,7 +161,7 @@ export async function getCharacter(id: string) {
           game: { select: { id: true, name: true } },
         },
       },
-      paths: { include: { path: true } },
+      paths: { include: { path: true, favouriteWeapon: true } },
       features: { include: { feature: true } },
     },
   });
@@ -161,7 +178,15 @@ export async function getCharacter(id: string) {
       quantity: entry.quantity,
     })),
     inventory: hydratedInventory ?? [],
-    paths: character.paths.map((pc) => ({ ...pc.path, rank: pc.rank })),
+    paths: character.paths.map((pc) => ({
+      ...pc.path,
+      rank: pc.rank,
+      pathCharacterId: pc.id,
+      favouriteWeaponItemId: pc.favouriteWeaponItemId,
+      favouriteWeapon: mapSoldierFavouriteWeaponForPath(
+        pc.favouriteWeapon ? mapPrismaItemToApi(pc.favouriteWeapon) : null
+      ),
+    })),
     notes: normalizeNotesFromDb(character.notes ?? []),
   };
 }
@@ -241,7 +266,7 @@ export async function levelUpCharacterWithRelations({
       data: characterUpdateData,
       include: {
         inventory: true,
-        paths: { include: { path: true } },
+        paths: { include: { path: true, favouriteWeapon: true } },
         features: { include: { feature: true } },
       },
     });

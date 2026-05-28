@@ -88,3 +88,12 @@ These rules apply to every task unless the user explicitly overrides them.
 - Prefer the nullish coalescing operator (`??`) over logical OR (`||`) when providing a fallback for `null` or `undefined`.
 - `??` only substitutes when the left-hand side is `null` or `undefined`; `||` also treats `0`, `""`, and `false` as missing, which can hide valid values.
 - Use `||` only when you intentionally want to fall back for any falsy value.
+
+## 11) React Hooks Must Run Unconditionally
+
+- Call hooks (`useState`, `useEffect`, `useMemo`, `useCallback`, custom hooks, etc.) at the **top level** of a component or custom hook—never inside `if`, loops, or after an early `return`.
+- React requires the **same hooks in the same order on every render**; a conditional return _before_ hooks breaks that contract and triggers rules-of-hooks errors.
+- When a component should render nothing for some props (for example path-specific UI), use one of these patterns:
+  - Compute a boolean (for example `const isSoldier = path.name === PathName.SOLDIER`), run all hooks unconditionally, gate side effects inside `useEffect` with that boolean, then `if (!isSoldier) return null` **after** the hooks.
+  - Extract the conditional UI into a child component that is only mounted when needed.
+  - Move stateful logic into a custom hook called unconditionally at the top level.
