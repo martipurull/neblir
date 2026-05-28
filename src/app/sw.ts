@@ -7,6 +7,7 @@ import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import {
   Serwist,
   NetworkFirst,
+  NetworkOnly,
   CacheableResponsePlugin,
   ExpirationPlugin,
 } from "serwist";
@@ -20,6 +21,12 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const neblirApiCaching = [
+  {
+    method: "GET" as const,
+    matcher: ({ url }: { url: URL }) => url.pathname === "/api/image-url",
+    // Signed image URL responses should never be served from service-worker cache.
+    handler: new NetworkOnly(),
+  },
   {
     method: "GET" as const,
     matcher: ({ url }: { url: URL }) =>
