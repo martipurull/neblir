@@ -14,6 +14,7 @@ import {
   ATTRIBUTE_OPTIONS,
   LEVEL_UP_FORM_DEFAULTS,
   SKILL_LABEL_BY_KEY,
+  STEPS,
 } from "./constants";
 import {
   clearLevelUpDraft,
@@ -481,6 +482,30 @@ export function useCharacterLevelUp(id: string, character: CharacterDetail) {
     }
   };
 
+  const goToStep = (targetStepIndex: number) => {
+    const clampedTarget = Math.max(
+      0,
+      Math.min(STEPS.length - 1, targetStepIndex)
+    );
+    if (clampedTarget === currentStepIndex) return;
+    if (!validateStep(currentStepIndex)) return;
+
+    if (clampedTarget > currentStepIndex) {
+      for (
+        let stepIndex = currentStepIndex + 1;
+        stepIndex < clampedTarget;
+        stepIndex++
+      ) {
+        if (!validateStep(stepIndex)) {
+          setCurrentStepIndex(stepIndex);
+          return;
+        }
+      }
+    }
+
+    setCurrentStepIndex(clampedTarget);
+  };
+
   const onSubmit = form.handleSubmit(async (values) => {
     let firstInvalid: number | null = null;
     for (const step of [0, 1, 2, 3]) {
@@ -536,8 +561,7 @@ export function useCharacterLevelUp(id: string, character: CharacterDetail) {
   return {
     form,
     currentStepIndex,
-    setCurrentStepIndex,
-    validateStep,
+    goToStep,
     onSubmit,
     submitError,
     submitSuccess,

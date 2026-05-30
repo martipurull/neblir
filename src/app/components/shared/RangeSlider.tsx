@@ -23,6 +23,8 @@ export type RangeSliderProps = {
   disableOutOfRangeTicks?: boolean;
   /** Show red styling (e.g. over-allocation). */
   error?: boolean;
+  /** When false, omit the inline label (use an external label instead). */
+  showLabel?: boolean;
   /** Optional wrapper class for layout. */
   className?: string;
 };
@@ -45,6 +47,7 @@ export function RangeSlider({
   showTicks = true,
   disableOutOfRangeTicks = true,
   error = false,
+  showLabel = true,
   className = "",
 }: RangeSliderProps) {
   const clampedValue = Math.min(allowedMax, Math.max(allowedMin, value));
@@ -53,21 +56,25 @@ export function RangeSlider({
   const t = visualSpan <= 0 ? 0 : (clampedValue - visualMin) / visualSpan;
   const thumbEdgeStop = `calc(${THUMB_R_PX}px + (100% - ${THUMB_PX}px) * ${t})`;
 
+  const valueBadgeClassName = error
+    ? "min-w-9 rounded border-2 border-neblirDanger-600 px-3 py-1 text-center text-base font-bold text-neblirDanger-600"
+    : showLabel
+      ? "min-w-7 rounded border border-black/20 px-2 py-0.5 text-center text-xs font-semibold text-black"
+      : "min-w-9 rounded border-2 border-customPrimary/40 px-3 py-1 text-center text-base font-bold text-customPrimary";
+
   return (
     <div
       className={`rounded-md border border-black/10 bg-black/0 p-2 ${className}`.trim()}
     >
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-black">{displayLabel}</span>
-        <span
-          className={`min-w-7 rounded border px-2 py-0.5 text-center text-xs font-semibold ${
-            error
-              ? "border-neblirDanger-600 text-neblirDanger-600"
-              : "border-black/20 text-black"
-          }`}
-        >
-          {clampedValue}
-        </span>
+      <div
+        className={`mb-1 flex items-center gap-2 ${
+          showLabel ? "justify-between" : "justify-end"
+        }`}
+      >
+        {showLabel ? (
+          <span className="text-sm font-medium text-black">{displayLabel}</span>
+        ) : null}
+        <span className={valueBadgeClassName}>{clampedValue}</span>
       </div>
 
       <div className="px-2">

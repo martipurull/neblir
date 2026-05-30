@@ -11,7 +11,7 @@
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint . && npm run knip",
-    "lint:fix": "eslint . --fix",
+    "lint:fix": "eslint . --fix && npm run knip:fix",
     "knip": "knip --exports",
     "knip:fix": "knip --exports --fix",
     "knip:all": "knip",

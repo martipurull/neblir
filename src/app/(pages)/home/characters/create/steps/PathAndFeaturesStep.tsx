@@ -1,6 +1,7 @@
 "use client";
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import { getCharacterFeatureSlots } from "../characterCreationStepValidation";
 import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
@@ -33,10 +34,11 @@ export function PathAndFeaturesStep({
   onInitialFeaturesChange,
   initialFeatures,
 }: PathAndFeaturesStepProps) {
-  const { control, watch, setValue } =
+  const { control, watch, setValue, clearErrors, formState } =
     useFormContext<CharacterCreationRequest>();
   const level = watch("generalInformation.level") ?? 1;
   const pathId = watch("path.pathId");
+  const pathError = formState.errors.path?.pathId?.message ?? null;
   const [paths, setPaths] = useState<PathOption[]>([]);
   const [features, setFeatures] = useState<FeatureOption[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<
@@ -133,9 +135,16 @@ export function PathAndFeaturesStep({
     };
   }, [pathId, level]);
 
-  const featureSlots = Math.max(0, 2 * (level - 1));
+  const featureSlots = getCharacterFeatureSlots(level);
   const selectedGradeSum = selectedFeatures.reduce((s, e) => s + e.grade, 0);
   const slotsLeft = featureSlots - selectedGradeSum;
+  const isOverAllocated = selectedGradeSum > featureSlots;
+
+  useEffect(() => {
+    if (pathId && !isOverAllocated) {
+      clearErrors("path.pathId");
+    }
+  }, [pathId, isOverAllocated, clearErrors]);
 
   // Ensure hydrated selections remain valid for the current path/rank.
   useEffect(() => {
@@ -221,6 +230,11 @@ export function PathAndFeaturesStep({
 
       <div className="mb-6 space-y-3">
         <div className="mx-auto max-w-2xl">
+          {pathError && !pathId?.trim() && (
+            <p className="mb-3 text-sm text-neblirDanger-600" role="alert">
+              {pathError}
+            </p>
+          )}
           <Controller
             name="path.pathId"
             control={control}
@@ -235,6 +249,7 @@ export function PathAndFeaturesStep({
                 onChange={(value) => {
                   field.onChange(value);
                   setValue("path.rank", level);
+                  clearErrors("path.pathId");
                 }}
               />
             )}
@@ -279,10 +294,22 @@ export function PathAndFeaturesStep({
       {pathId && level > 1 && (
         <div className="space-y-2">
           <div className="sticky top-2 z-10 flex justify-end">
-            <div className="rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-sm font-semibold text-black shadow-sm backdrop-blur">
+            <div
+              className={`rounded-md border px-3 py-2 text-sm font-semibold shadow-sm backdrop-blur ${
+                isOverAllocated
+                  ? "border-neblirDanger-600 bg-neblirDanger-50/70 text-neblirDanger-700"
+                  : "border-black/20 bg-paleBlue text-black"
+              }`}
+            >
               Slots used: {selectedGradeSum} / {featureSlots}
             </div>
           </div>
+          {isOverAllocated && (
+            <p className="text-sm text-neblirDanger-600">
+              You’ve exceeded your feature slot limit. Reduce feature grades
+              before continuing.
+            </p>
+          )}
           {loadingFeatures && (
             <p className="text-sm text-black/60">Loading features…</p>
           )}

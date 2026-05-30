@@ -42,11 +42,10 @@ function skillCost(val: number): number {
 }
 
 export function LearnedSkillsStep() {
-  const { control } = useFormContext<CharacterCreationRequest>();
+  const { control, formState } = useFormContext<CharacterCreationRequest>();
   const level = useWatch({ control, name: "generalInformation.level" }) ?? 1;
   const specialSkills =
     useWatch({ control, name: "learnedSkills.specialSkills" }) ?? [];
-  const { formState } = useFormContext<CharacterCreationRequest>();
   const stepError =
     (
       formState.errors.learnedSkills?.generalSkills as unknown as
@@ -69,10 +68,16 @@ export function LearnedSkillsStep() {
   const isOverAllocated = used > maxPoints;
 
   const allowedMaxForSkill = useMemo(() => {
-    // Precompute allowed max slider value (0..5) for each skill based on total pool.
+    // When over budget, cap each slider at its stored value so we show true
+    // allocations and only allow lowering — same pattern as AttributesStep.
     const result = new Map<string, number>();
     for (const { key } of GENERAL_SKILL_ENTRIES) {
       const current = (generalSkills as Record<string, number>)[key] ?? 0;
+      if (isOverAllocated) {
+        result.set(String(key), current);
+        continue;
+      }
+
       const baseUsed = used - skillCost(current);
       let best = 0;
       for (let candidate = 5; candidate >= 0; candidate--) {
@@ -84,7 +89,7 @@ export function LearnedSkillsStep() {
       result.set(String(key), best);
     }
     return result;
-  }, [generalSkills, used, maxPoints]);
+  }, [generalSkills, isOverAllocated, used, maxPoints]);
 
   return (
     <div className="relative space-y-4">
@@ -105,14 +110,9 @@ export function LearnedSkillsStep() {
         grade 5 count as 6 points.
       </p>
       {isOverAllocated && (
-        <p className="text-sm text-neblirDanger-600">
-          You’ve exceeded your skill point limit. Reduce one or more skills, or
-          clear a special skill you just added.
-        </p>
-      )}
-      {stepError && (
         <p className="text-sm text-neblirDanger-600" role="alert">
-          {stepError}
+          {stepError ??
+            "You've exceeded your skill point limit. Reduce one or more skills, or clear a special skill you just added."}
         </p>
       )}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

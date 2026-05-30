@@ -5,21 +5,63 @@ import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 
 const CHARACTER_CREATION_STEP_COUNT = 6;
 
+export type CharacterCreationInitialFeature = {
+  featureId: string;
+  grade: number;
+};
+
+export type CharacterCreationValidationContext = {
+  initialFeatures?: CharacterCreationInitialFeature[];
+};
+
+export function getCharacterFeatureSlots(level: number): number {
+  return Math.max(0, 2 * (level - 1));
+}
+
+export function isCharacterFeatureSelectionValid(
+  level: number,
+  initialFeatures: CharacterCreationInitialFeature[] = []
+): boolean {
+  const featureSlots = getCharacterFeatureSlots(level);
+  const selectedFeatureGradeSum = initialFeatures.reduce(
+    (sum, entry) => sum + entry.grade,
+    0
+  );
+  return selectedFeatureGradeSum <= featureSlots;
+}
+
 function setZodErrors(
   setError: UseFormSetError<CharacterCreationRequest>,
-  error: z.ZodError
+  error: z.ZodError,
+  prefix?: string
 ) {
   for (const issue of error.issues) {
-    const path = issue.path.join(".") as keyof CharacterCreationRequest &
-      string;
+    const path = prefix
+      ? [prefix, ...issue.path.map(String)].join(".")
+      : (issue.path.join(".") as keyof CharacterCreationRequest & string);
     if (path) setError(path as never, { message: issue.message });
   }
+}
+
+function applyCharacterFeatureSelectionValidationError(
+  level: number,
+  initialFeatures: CharacterCreationInitialFeature[],
+  setError: UseFormSetError<CharacterCreationRequest>
+): boolean {
+  if (isCharacterFeatureSelectionValid(level, initialFeatures)) return true;
+
+  const featureSlots = getCharacterFeatureSlots(level);
+  setError("path.pathId" as never, {
+    message: `Selected feature grades exceed available slots (${featureSlots}). Remove feature grades before continuing.`,
+  });
+  return false;
 }
 
 export function applyCharacterCreationStepValidationErrors(
   stepIndex: number,
   values: CharacterCreationRequest,
-  setError: UseFormSetError<CharacterCreationRequest>
+  setError: UseFormSetError<CharacterCreationRequest>,
+  context?: CharacterCreationValidationContext
 ): boolean {
   if (stepIndex === 0) return true;
 
@@ -87,14 +129,14 @@ export function applyCharacterCreationStepValidationErrors(
 
     if (rolledPhysical < minRolled || rolledPhysical > maxRolled) {
       setError("health.rolledPhysicalHealth" as never, {
-        message: `Physical HP looks too low for level ${level}. Please roll physical HP (min ${minRolled}, max ${maxRolled}).`,
+        message: `Physical rolled HP must be between ${minRolled} and ${maxRolled} for level ${level}.`,
       });
       return false;
     }
 
     if (rolledMental < minRolled || rolledMental > maxRolled) {
       setError("health.rolledMentalHealth" as never, {
-        message: `Mental HP looks too low for level ${level}. Please roll mental HP (min ${minRolled}, max ${maxRolled}).`,
+        message: `Mental rolled HP must be between ${minRolled} and ${maxRolled} for level ${level}.`,
       });
       return false;
     }
@@ -132,10 +174,15 @@ export function applyCharacterCreationStepValidationErrors(
       values.path
     );
     if (!pathRes.success) {
-      setZodErrors(setError, pathRes.error);
+      setZodErrors(setError, pathRes.error, "path");
       return false;
     }
-    return true;
+    const level = values.generalInformation?.level ?? 1;
+    return applyCharacterFeatureSelectionValidationError(
+      level,
+      context?.initialFeatures ?? [],
+      setError
+    );
   }
 
   return true;
@@ -143,7 +190,8 @@ export function applyCharacterCreationStepValidationErrors(
 
 export function isCharacterCreationStepValid(
   stepIndex: number,
-  values: CharacterCreationRequest
+  values: CharacterCreationRequest,
+  context?: CharacterCreationValidationContext
 ): boolean {
   if (stepIndex === 0) return true;
 
@@ -218,21 +266,27 @@ export function isCharacterCreationStepValid(
     const pathRes = characterCreationRequestSchema.shape.path.safeParse(
       values.path
     );
-    return pathRes.success;
+    if (!pathRes.success) return false;
+    const level = values.generalInformation?.level ?? 1;
+    return isCharacterFeatureSelectionValid(
+      level,
+      context?.initialFeatures ?? []
+    );
   }
 
   return true;
 }
 
 export function getFirstInvalidCharacterCreationStep(
-  values: CharacterCreationRequest
+  values: CharacterCreationRequest,
+  context?: CharacterCreationValidationContext
 ): number | null {
   for (
     let stepIndex = 0;
     stepIndex < CHARACTER_CREATION_STEP_COUNT;
     stepIndex++
   ) {
-    if (!isCharacterCreationStepValid(stepIndex, values)) {
+    if (!isCharacterCreationStepValid(stepIndex, values, context)) {
       return stepIndex;
     }
   }
@@ -240,7 +294,8 @@ export function getFirstInvalidCharacterCreationStep(
 }
 
 export function isCharacterCreationFormSubmittable(
-  values: CharacterCreationRequest
+  values: CharacterCreationRequest,
+  context?: CharacterCreationValidationContext
 ): boolean {
-  return getFirstInvalidCharacterCreationStep(values) === null;
+  return getFirstInvalidCharacterCreationStep(values, context) === null;
 }

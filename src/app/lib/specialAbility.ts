@@ -29,7 +29,7 @@ const RACE_FIXED_SPECIAL_ABILITY: Partial<Record<Race, SpecialAbilityName>> = {
   FENNE: "DOUBLE_OPPOSABLE_THUMBS",
 };
 
-export const MANFENN_SPECIAL_ABILITY_CHOICES: SpecialAbilityName[] = [
+const MANFENN_SPECIAL_ABILITY_CHOICES: SpecialAbilityName[] = [
   "INNATE_MANIPULATION",
   "DOUBLE_OPPOSABLE_THUMBS",
 ];

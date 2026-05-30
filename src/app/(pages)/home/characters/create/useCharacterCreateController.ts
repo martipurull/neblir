@@ -56,18 +56,28 @@ export function useCharacterCreateController() {
     useFormContext<CharacterCreationRequest>();
   const watchedValues = useWatch({ control }) as CharacterCreationRequest;
 
+  const validationContext = useMemo(
+    () => ({ initialFeatures }),
+    [initialFeatures]
+  );
+
   const canProceedFromCurrentStep = useMemo(
     () =>
       isCharacterCreationStepValid(
         currentStepIndex,
-        watchedValues ?? getValues()
+        watchedValues ?? getValues(),
+        validationContext
       ),
-    [currentStepIndex, getValues, watchedValues]
+    [currentStepIndex, getValues, validationContext, watchedValues]
   );
 
   const canSubmitCharacter = useMemo(
-    () => isCharacterCreationFormSubmittable(watchedValues ?? getValues()),
-    [getValues, watchedValues]
+    () =>
+      isCharacterCreationFormSubmittable(
+        watchedValues ?? getValues(),
+        validationContext
+      ),
+    [getValues, validationContext, watchedValues]
   );
 
   // Restore step index when resuming a draft (page refresh). Skip on ?fresh=1 so we
@@ -157,42 +167,91 @@ export function useCharacterCreateController() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const validateCurrentStep = useCallback((): boolean => {
-    clearErrors();
-    return applyCharacterCreationStepValidationErrors(
-      currentStepIndex,
-      getValues(),
-      setError
-    );
-  }, [clearErrors, currentStepIndex, getValues, setError]);
+  const validateStepAt = useCallback(
+    (stepIndex: number): boolean => {
+      clearErrors();
+      return applyCharacterCreationStepValidationErrors(
+        stepIndex,
+        getValues(),
+        setError,
+        validationContext
+      );
+    },
+    [clearErrors, getValues, setError, validationContext]
+  );
 
   const validateAllSteps = useCallback((): number | null => {
     clearErrors();
     const values = getValues();
-    const firstInvalidStep = getFirstInvalidCharacterCreationStep(values);
+    const firstInvalidStep = getFirstInvalidCharacterCreationStep(
+      values,
+      validationContext
+    );
     if (firstInvalidStep === null) return null;
 
     applyCharacterCreationStepValidationErrors(
       firstInvalidStep,
       values,
-      setError
+      setError,
+      validationContext
     );
     return firstInvalidStep;
-  }, [clearErrors, getValues, setError]);
+  }, [clearErrors, getValues, setError, validationContext]);
 
   const onNext = useCallback(() => {
-    if (!validateCurrentStep()) {
+    if (!validateStepAt(currentStepIndex)) {
       scrollToTop();
       return;
     }
     setCurrentStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
-  }, [validateCurrentStep]);
+  }, [currentStepIndex, validateStepAt]);
+
+  const goToStep = useCallback(
+    (targetStepIndex: number) => {
+      const clampedTarget = Math.max(
+        0,
+        Math.min(STEPS.length - 1, targetStepIndex)
+      );
+      if (clampedTarget === currentStepIndex) return;
+
+      if (!validateStepAt(currentStepIndex)) {
+        scrollToTop();
+        return;
+      }
+
+      setSubmitError(null);
+      const values = getValues();
+
+      if (clampedTarget > currentStepIndex) {
+        for (
+          let stepIndex = currentStepIndex + 1;
+          stepIndex < clampedTarget;
+          stepIndex++
+        ) {
+          if (
+            !isCharacterCreationStepValid(stepIndex, values, validationContext)
+          ) {
+            applyCharacterCreationStepValidationErrors(
+              stepIndex,
+              values,
+              setError,
+              validationContext
+            );
+            setCurrentStepIndex(stepIndex);
+            scrollToTop();
+            return;
+          }
+        }
+      }
+
+      setCurrentStepIndex(clampedTarget);
+    },
+    [currentStepIndex, getValues, setError, validationContext, validateStepAt]
+  );
 
   const onBack = useCallback(() => {
-    setCurrentStepIndex((i) => Math.max(0, i - 1));
-    setSubmitError(null);
-    scrollToTop();
-  }, []);
+    goToStep(currentStepIndex - 1);
+  }, [currentStepIndex, goToStep]);
 
   React.useEffect(() => {
     scrollToTop();
@@ -281,6 +340,7 @@ export function useCharacterCreateController() {
     setInitialFeatures,
     canProceedFromCurrentStep,
     canSubmitCharacter,
+    goToStep,
     onBack,
     onNext,
     submitCharacter,

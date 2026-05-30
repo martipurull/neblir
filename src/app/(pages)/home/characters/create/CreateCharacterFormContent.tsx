@@ -23,6 +23,7 @@ export function CreateCharacterFormContent() {
     setInitialFeatures,
     canProceedFromCurrentStep,
     canSubmitCharacter,
+    goToStep,
     onBack,
     onNext,
     submitCharacter,
@@ -35,6 +36,7 @@ export function CreateCharacterFormContent() {
       <Stepper
         steps={steps}
         currentStepIndex={currentStepIndex}
+        onStepClick={goToStep}
         className="mb-8"
       />
 

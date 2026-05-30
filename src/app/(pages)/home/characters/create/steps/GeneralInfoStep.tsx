@@ -53,6 +53,18 @@ export function GeneralInfoStep() {
   const currencyImageUrls = useImageUrls(currencyImageEntries);
 
   const formAvatarKey = watch("generalInformation.avatarKey") ?? "";
+  const characterName = watch("generalInformation.name")?.trim() ?? "";
+  const avatarImageEntries = useMemo(
+    () =>
+      formAvatarKey
+        ? [{ id: "character-avatar-preview", imageKey: formAvatarKey }]
+        : [],
+    [formAvatarKey]
+  );
+  const avatarImageUrls = useImageUrls(avatarImageEntries);
+  const avatarPreviewUrl = formAvatarKey
+    ? (avatarImageUrls["character-avatar-preview"] ?? null)
+    : null;
   const selectedRace = watch("generalInformation.race");
   const selectedSpecialAbilityName = watch(
     "generalInformation.specialAbilityName"
@@ -124,33 +136,51 @@ export function GeneralInfoStep() {
   return (
     <div className="grid grid-cols-1 gap-x-4 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
       <div className="mb-6 sm:col-span-2 lg:col-span-3">
-        <Controller
-          name="generalInformation.level"
-          control={control}
-          render={({ field }) => {
-            const value = typeof field.value === "number" ? field.value : 1;
-            return (
-              <RangeSlider
-                id="generalInformation.level"
-                label="Character level"
-                value={value}
-                onChange={(v) => field.onChange(v)}
-                allowedMin={1}
-                allowedMax={10}
-                visualMin={1}
-                visualMax={10}
-                step={1}
-                showTicks
-              />
-            );
-          }}
-        />
+        <label
+          htmlFor="generalInformation.level"
+          className="block font-bold text-black"
+        >
+          Character level
+        </label>
+        <p className="mt-1 mb-3 text-sm text-black/70">
+          Sets HP rolls, skill points, and path features for your character.
+        </p>
+        <div className="rounded-md border-2 border-customPrimary/45 bg-paleBlue/30 p-4 shadow-sm">
+          <Controller
+            name="generalInformation.level"
+            control={control}
+            render={({ field }) => {
+              const value = typeof field.value === "number" ? field.value : 1;
+              return (
+                <RangeSlider
+                  id="generalInformation.level"
+                  label=""
+                  showLabel={false}
+                  value={value}
+                  onChange={(v) => field.onChange(v)}
+                  allowedMin={1}
+                  allowedMax={10}
+                  visualMin={1}
+                  visualMax={10}
+                  step={1}
+                  showTicks
+                  className="border-0 bg-transparent p-0"
+                />
+              );
+            }}
+          />
+        </div>
       </div>
       <div className="mb-6 sm:col-span-2 lg:col-span-3">
         <ImageUploadDropzone
           id="character-avatar"
           label="Character image"
           imageKey={formAvatarKey || imageUpload.imageKey}
+          previewLayout="characterAvatar"
+          previewImageUrl={avatarPreviewUrl}
+          previewImageAlt={
+            characterName ? `${characterName} avatar` : "Character avatar"
+          }
           onFileChange={(file) => {
             void imageUpload.handleFile(file);
             // If the user explicitly removes the image, clear the form value too.

@@ -108,13 +108,6 @@ export function itemStatusEquipColumnDamageLabel(
   return null;
 }
 
-/** Source type stored on UniqueItem (template or standalone). */
-const uniqueItemSourceTypeSchema = z.enum([
-  "GLOBAL_ITEM",
-  "CUSTOM_ITEM",
-  "STANDALONE",
-]);
-
 const areaEffectSchema = z.object({
   defenceReactionCost: z.number(),
   defenceRoll: z.string(),
@@ -404,51 +397,4 @@ export const uniqueItemCreateResponseSchema = z.object({
 });
 export type UniqueItemCreateResponse = z.infer<
   typeof uniqueItemCreateResponseSchema
->;
-
-/** Unique item returned by GET /api/unique-items/[id] (raw + resolved/template forms). */
-export const uniqueItemResolvedResponseSchema = z.object({
-  id: z.string(),
-  ownerUserId: z.string(),
-  gameId: z.string().nullish(),
-  sourceType: uniqueItemSourceTypeSchema,
-  itemId: z.string().nullish(),
-  attackRollOverride: z.array(weaponAttackRollTypeSchema).default([]),
-  attackMeleeBonusOverride: z.number().nullish(),
-  attackRangeBonusOverride: z.number().nullish(),
-  attackThrowBonusOverride: z.number().nullish(),
-  defenceMeleeBonusOverride: z.number().nullish(),
-  defenceRangeBonusOverride: z.number().nullish(),
-  gridAttackBonusOverride: z.number().nullish(),
-  gridDefenceBonusOverride: z.number().nullish(),
-  effectiveRangeOverride: z.number().int().nullish(),
-  maxRangeOverride: z.number().int().nullish(),
-  confCostOverride: z.number().nullish(),
-  costInfoOverride: z.string().nullish(),
-  damageOverride: itemDamageResponseSchema.nullish(),
-  descriptionOverride: z.string().nullish(),
-  imageKeyOverride: z.string().nullish(),
-  nameOverride: z.string().nullish(),
-  usageOverride: z.string().nullish(),
-  weightOverride: z.number().nullish(),
-  notesOverride: z.string().nullish(),
-  specialTag: z.string().nullish(),
-  equippableOverride: z.boolean().nullish(),
-  equipSlotTypesOverride: z.unknown().nullish(),
-  equipSlotCostOverride: z.number().nullish(),
-  maxUsesOverride: z.number().int().positive().nullish(),
-  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
-  attributeModOverride: z.number().int().nullish(),
-  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
-  skillModOverride: z.number().int().nullish(),
-  isSpeedAlteredOverride: z.boolean().nullish(),
-  templateItem: z
-    .union([itemResponseSchema, customItemResponseSchema])
-    .nullish(),
-  resolvedItem: z
-    .union([itemResponseSchema, customItemResponseSchema])
-    .nullish(),
-});
-export type UniqueItemResolvedResponse = z.infer<
-  typeof uniqueItemResolvedResponseSchema
 >;
