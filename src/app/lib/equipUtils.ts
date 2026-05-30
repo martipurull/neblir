@@ -7,6 +7,14 @@ import {
 /** Header equip cells map 1:1 to API equip slots */
 export type DisplayEquipSlot = EquipSlot;
 
+const WEAR_RELIEF_EQUIP_SLOTS = [
+  "BODY",
+  "HEAD",
+  "FOOT",
+] as const satisfies readonly EquipSlot[];
+
+const WEAR_RELIEF_SLOT_SET = new Set<string>(WEAR_RELIEF_EQUIP_SLOTS);
+
 /** Order used when an item has no equipSlotTypes (fits any slot). */
 export const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
   "HAND",
@@ -54,6 +62,33 @@ export function getEquippedInstanceCount(
   return Math.min(
     ...uniqueTypes.map((t) => slots.filter((s) => s === t).length)
   );
+}
+
+/**
+ * How many equipped copies on BODY, HEAD, and/or FOOT count as worn for carry
+ * weight (half weight per copy). Uses the same instance counting as equip
+ * (not slot-cost division), so grade-3 body armour with one BODY tag still
+ * counts as one worn suit.
+ */
+export function getWearReliefEquippedInstanceCount(
+  equipSlots: string[] | undefined,
+  equipSlotTypes: string[] | undefined | null
+): number {
+  const slots = equipSlots ?? [];
+  const occupiedRelief = slots.filter((s) => WEAR_RELIEF_SLOT_SET.has(s));
+  if (occupiedRelief.length === 0) return 0;
+
+  const types = equipSlotTypes?.filter(Boolean) ?? [];
+  const reliefTypesInTemplate = types.filter((t) =>
+    WEAR_RELIEF_SLOT_SET.has(t)
+  );
+
+  if (reliefTypesInTemplate.length > 0) {
+    return getEquippedInstanceCount(slots, reliefTypesInTemplate);
+  }
+
+  const reliefTypesPresent = [...new Set(occupiedRelief)] as EquipSlot[];
+  return getEquippedInstanceCount(slots, reliefTypesPresent);
 }
 
 /**

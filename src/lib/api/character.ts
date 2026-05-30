@@ -42,6 +42,7 @@ export async function getCharacterById(
   const response = await fetch(`/api/characters/${encodeURIComponent(id)}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     signal,
   });
 

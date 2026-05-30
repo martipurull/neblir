@@ -16,6 +16,7 @@ import {
   getCarriedWeight,
   getCarryWeightInventoryPillClassName,
   getEffectiveMaxCarryWeight,
+  getWornGearCarryWeightSavings,
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
@@ -25,7 +26,7 @@ import {
 } from "@/app/lib/types/item";
 import { getGameById } from "@/lib/api/game";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
-import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -215,8 +216,6 @@ interface InventorySectionContentProps {
   character: CharacterDetail;
   mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
-  /** When false, user cannot add items (e.g. over 150% carry weight) */
-  canAddItems?: boolean;
   readOnly?: boolean;
 }
 
@@ -224,7 +223,6 @@ function InventorySectionContent({
   character,
   mutate,
   activeGameId,
-  canAddItems = true,
   readOnly = false,
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
@@ -267,6 +265,15 @@ function InventorySectionContent({
     [inventory]
   );
 
+  const canAddItems = useMemo(() => {
+    const carriedWeight = getCarriedWeight(inventory);
+    const maxCarryWeight = getEffectiveMaxCarryWeight(
+      character.combatInformation?.maxCarryWeight,
+      inventory
+    );
+    return !isOverCarryLimit(carriedWeight, maxCarryWeight);
+  }, [character.combatInformation?.maxCarryWeight, inventory]);
+
   const handleAutoEquip = async (
     entry: NonNullable<CharacterDetail["inventory"]>[number]
   ) => {
@@ -274,10 +281,12 @@ function InventorySectionContent({
     setEquippingId(entry.id);
     setEquipError(null);
     try {
-      await updateCharacterInventoryEntry(character.id, entry.id, {
-        action: "equip",
-      });
-      await mutate();
+      await patchCharacterInventoryEntryAndMutate(
+        mutate,
+        character.id,
+        entry.id,
+        { action: "equip" }
+      );
     } catch (e) {
       setEquipError(
         getUserSafeErrorMessage(e, "Could not equip this item. Try again.")
@@ -293,10 +302,12 @@ function InventorySectionContent({
     if (!entry.equipSlots?.length || !mutate) return;
     setUnequippingId(entry.id);
     try {
-      await updateCharacterInventoryEntry(character.id, entry.id, {
-        action: "unequipAll",
-      });
-      await mutate();
+      await patchCharacterInventoryEntryAndMutate(
+        mutate,
+        character.id,
+        entry.id,
+        { action: "unequipAll" }
+      );
     } finally {
       setUnequippingId(null);
     }
@@ -489,6 +500,12 @@ function InventorySectionContent({
 const CARRY_WEIGHT_TOOLTIP = (
   <span className="block text-left text-xs font-normal normal-case text-white">
     <strong className="block mb-1.5">Weight & Speed</strong>
+    <span className="block mb-1.5">
+      The first number is <strong className="font-semibold">carried</strong>{" "}
+      weight; the second is your <strong className="font-semibold">max</strong>{" "}
+      (backpacks raise max only). Worn body, head, or foot gear counts at half
+      weight toward carried load.
+    </span>
     <span className="block space-y-1">
       <span className="block">≤50% = normal speed</span>
       <span className="block">51–75% = −1 speed</span>
@@ -508,6 +525,60 @@ const CARRY_WEIGHT_TOOLTIP = (
   </span>
 );
 
+function InventoryCarryWeightTitleSupplement({
+  character,
+}: {
+  character: CharacterDetail;
+}) {
+  const inventory = character.inventory ?? [];
+  const totalInventoryWeight = getCarriedWeight(inventory);
+  const maxCarryWeight = getEffectiveMaxCarryWeight(
+    character.combatInformation?.maxCarryWeight,
+    inventory
+  );
+  const wornSavings = getWornGearCarryWeightSavings(inventory);
+
+  if (maxCarryWeight != null) {
+    return (
+      <span className="group relative inline-block">
+        <span
+          className={getCarryWeightInventoryPillClassName(
+            totalInventoryWeight,
+            maxCarryWeight
+          )}
+          aria-label={`Carried weight ${formatWeightKgForDisplay(totalInventoryWeight)} kilograms of ${formatWeightKgForDisplay(maxCarryWeight)} kilograms maximum`}
+        >
+          {formatWeightKgForDisplay(totalInventoryWeight)} /{" "}
+          {formatWeightKgForDisplay(maxCarryWeight)} kg
+        </span>
+        <span
+          className="pointer-events-none absolute top-full right-0 z-10 mt-1 hidden max-h-[40vh] w-72 overflow-y-auto rounded border border-white/30 bg-modalBackground-200 px-2.5 py-2 shadow-lg group-hover:block"
+          role="tooltip"
+        >
+          {CARRY_WEIGHT_TOOLTIP}
+          {wornSavings > 0 ? (
+            <span className="mt-2 block text-neblirSafe-400">
+              Worn body/head/foot gear is saving{" "}
+              {formatWeightKgForDisplay(wornSavings)} kg on your carried load
+              right now.
+            </span>
+          ) : null}
+        </span>
+      </span>
+    );
+  }
+
+  if (totalInventoryWeight > 0) {
+    return (
+      <span className="rounded border border-black bg-transparent px-2 py-0.5 text-sm tabular-nums text-black">
+        {formatWeightKgForDisplay(totalInventoryWeight)} kg
+      </span>
+    );
+  }
+
+  return null;
+}
+
 export function getInventorySection(
   character: CharacterDetail,
   activeGameId: string | null,
@@ -518,49 +589,18 @@ export function getInventorySection(
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
   const mutate = options?.mutate;
-  const inventory = character.inventory ?? [];
-  const totalInventoryWeight = getCarriedWeight(inventory);
-  const maxCarryWeight = getEffectiveMaxCarryWeight(
-    character.combatInformation?.maxCarryWeight,
-    inventory
-  );
-  const overCarryLimit = isOverCarryLimit(totalInventoryWeight, maxCarryWeight);
-
-  const titleSupplement =
-    maxCarryWeight != null ? (
-      <span className="group relative inline-block">
-        <span
-          className={getCarryWeightInventoryPillClassName(
-            totalInventoryWeight,
-            maxCarryWeight
-          )}
-        >
-          {formatWeightKgForDisplay(totalInventoryWeight)} /{" "}
-          {formatWeightKgForDisplay(maxCarryWeight)} kg
-        </span>
-        <span
-          className="pointer-events-none absolute top-full right-0 z-10 mt-1 hidden max-h-[40vh] w-72 overflow-y-auto rounded border border-white/30 bg-modalBackground-200 px-2.5 py-2 shadow-lg group-hover:block"
-          role="tooltip"
-        >
-          {CARRY_WEIGHT_TOOLTIP}
-        </span>
-      </span>
-    ) : totalInventoryWeight > 0 ? (
-      <span className="rounded border border-black bg-transparent px-2 py-0.5 text-sm tabular-nums text-black">
-        {formatWeightKgForDisplay(totalInventoryWeight)} kg
-      </span>
-    ) : undefined;
 
   return {
     id: "inventory",
     title: "Inventory",
-    titleSupplement,
+    titleSupplement: (
+      <InventoryCarryWeightTitleSupplement character={character} />
+    ),
     children: (
       <InventorySectionContent
         character={character}
         mutate={mutate}
         activeGameId={activeGameId}
-        canAddItems={!overCarryLimit}
         readOnly={readOnly}
       />
     ),
