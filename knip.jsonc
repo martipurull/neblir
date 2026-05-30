@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // Next.js, Vitest, and PostCSS plugins are auto-enabled from package.json.
+  // Extra entry points for tooling the Next plugin does not cover.
+  "entry": ["src/app/sw.ts", "src/auth.config.ts"],
+  "project": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "scripts/**/*.ts"],
+  // Framework/runtime deps Knip cannot trace from application imports alone.
+  "ignoreDependencies": [
+    "@swc/helpers",
+    "googleapis",
+    "postcss-load-config",
+    "@testing-library/react",
+    "@types/csv-parse",
+    "eslint-plugin-react-hooks"
+  ],
+  "ignoreIssues": {
+    "test/types/**": ["exports", "types"]
+  },
+  // Enforce unused exports in CI; surface other findings without blocking merges yet.
+  "rules": {
+    "files": "warn",
+    "dependencies": "warn",
+    "devDependencies": "warn",
+    "unlisted": "warn",
+    "binaries": "warn",
+    "unresolved": "warn"
+  }
+}

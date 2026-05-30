@@ -1,4 +1,4 @@
-export const CATALOGUE_EXPORT_DOMAIN_ORDER = [
+const CATALOGUE_EXPORT_DOMAIN_ORDER = [
   "items",
   "enemies",
   "paths",

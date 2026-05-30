@@ -13,12 +13,6 @@ function triggerFileDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export async function downloadGameCustomEnemiesCsv(
-  gameId: string
-): Promise<void> {
-  return downloadGameCustomEnemies(gameId, "csv");
-}
-
 export async function downloadGameCustomEnemies(
   gameId: string,
   format: CustomEnemyTransferFormat
@@ -41,13 +35,6 @@ export async function downloadGameCustomEnemies(
   const match = cd?.match(/filename="([^"]+)"/);
   const filename = match?.[1] ?? `custom-enemies-${gameId}.${format}`;
   triggerFileDownload(blob, filename);
-}
-
-export async function downloadCustomEnemyCsv(
-  gameId: string,
-  customEnemyId: string
-): Promise<void> {
-  return downloadCustomEnemy(gameId, customEnemyId, "csv");
 }
 
 export async function downloadCustomEnemy(
@@ -101,13 +88,6 @@ export async function importCustomEnemiesFile(
     throw new Error(json.message ?? `Import failed (${response.status})`);
   }
   return json;
-}
-
-export async function importCustomEnemiesCsv(
-  gameId: string,
-  file: File
-): Promise<ImportCustomEnemiesResult> {
-  return importCustomEnemiesFile(gameId, file);
 }
 
 export async function copyCustomEnemyToGame(

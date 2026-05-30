@@ -74,13 +74,7 @@ const resolvedItemSchema = z
   })
   .passthrough();
 
-export const equipSlotSchema = z.enum([
-  "HAND",
-  "FOOT",
-  "BODY",
-  "HEAD",
-  "BRAIN",
-]);
+const equipSlotSchema = z.enum(["HAND", "FOOT", "BODY", "HEAD", "BRAIN"]);
 export type EquipSlot = z.infer<typeof equipSlotSchema>;
 
 export const itemCharacterSchema = z.object({
@@ -97,8 +91,6 @@ export const itemCharacterSchema = z.object({
   itemLocation: z.string().optional(),
   item: resolvedItemSchema.nullable(),
 });
-
-export const inventorySchema = z.array(itemCharacterSchema);
 
 export const generalInformationSchema = z.object({
   name: z.string(),
@@ -281,7 +273,7 @@ export type CharacterCreateResponse = z.infer<
   typeof characterCreateResponseSchema
 >;
 
-export const characterListItemSchema = z.object({
+const characterListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   surname: z.string(),

@@ -10,10 +10,6 @@ export const modalNumberFieldShellClass =
 export const modalNumberFieldInnerClass =
   "h-full min-h-0 w-full appearance-none border-0 bg-transparent px-3 py-2 pr-9 text-sm text-white outline-none placeholder:text-white/40 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
-/** @deprecated Prefer `modalNumberFieldShellClass` + `modalNumberFieldInnerClass` via `NumberField`. */
-export const modalNumberInputClass =
-  modalNumberFieldShellClass + " " + modalNumberFieldInnerClass;
-
 /** Select/dropdown: same as modalInputClass with comfortable min-height and option styling */
 export const modalSelectClass =
   modalInputClass +

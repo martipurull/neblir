@@ -30,7 +30,7 @@ export function isPlayerCharacterInGame(
  * Linked characters visible in game context: GM sees all; owners see their own;
  * other members only see public links.
  */
-export function isVisibleLinkedCharacterInGame(
+function isVisibleLinkedCharacterInGame(
   gc: GameCharacterRow,
   game: GameDetail
 ): boolean {

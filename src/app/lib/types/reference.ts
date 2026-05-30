@@ -8,7 +8,7 @@ export const referenceCategorySchema = z.enum([
 ]);
 export type ReferenceCategory = z.infer<typeof referenceCategorySchema>;
 
-export const referenceAccessSchema = z.enum(["PLAYER", "GAME_MASTER"]);
+const referenceAccessSchema = z.enum(["PLAYER", "GAME_MASTER"]);
 export type ReferenceAccess = z.infer<typeof referenceAccessSchema>;
 
 const nullableStringSchema = z.string().nullable().optional();

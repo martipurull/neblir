@@ -1,5 +1,4 @@
 import { combatInformationSchema } from "@/app/lib/types/character";
-import type { z } from "zod";
 
 export const combatInformationUpdateRequestSchema = combatInformationSchema
   .pick({
@@ -7,15 +6,3 @@ export const combatInformationUpdateRequestSchema = combatInformationSchema
     armourCurrentHP: true,
   })
   .partial();
-
-export const combatInformationUpdateSchema = combatInformationSchema
-  .pick({
-    armourMod: true,
-    armourMaxHP: true,
-    armourCurrentHP: true,
-  })
-  .partial();
-
-export type CombatInformationUpdate = z.infer<
-  typeof combatInformationUpdateSchema
->;

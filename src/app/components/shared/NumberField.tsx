@@ -12,7 +12,7 @@ import {
 } from "@/app/components/shared/inputStyles";
 import { forwardRef } from "react";
 
-export type NumberFieldVariant = "light" | "dark";
+type NumberFieldVariant = "light" | "dark";
 
 export type NumberFieldProps = Omit<
   React.ComponentPropsWithoutRef<"input">,

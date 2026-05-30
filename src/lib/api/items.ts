@@ -1,7 +1,6 @@
 import {
   type ItemResponse,
   type ItemStatus,
-  itemResponseSchema,
   itemListResponseSchema,
 } from "@/app/lib/types/item";
 import {
@@ -47,39 +46,6 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   return parsed.data as ItemWithId[];
 }
 
-export async function getItemById(
-  id: string,
-  signal?: AbortSignal
-): Promise<ItemWithId> {
-  const response = await fetch(`/api/items/${encodeURIComponent(id)}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    signal,
-  });
-
-  if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
-    try {
-      body = (await response.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
-    }
-    throw new Error(
-      getUserSafeApiError(response.status, body, "Failed to fetch item")
-    );
-  }
-
-  const json = await response.json();
-  const parsed = itemResponseSchema.safeParse(json);
-  if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
-    throw new Error(`Item response did not match expected shape: ${details}`);
-  }
-  return parsed.data as ItemWithId;
-}
-
 export type AddToInventoryBody = {
   sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
   itemId: string;
@@ -116,7 +82,7 @@ export async function addItemToCharacterInventory(
   }
 }
 
-export type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
+type EquipSlot = "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
 
 export type UpdateInventoryEntryBody =
   | { action: "equip"; slot?: EquipSlot }

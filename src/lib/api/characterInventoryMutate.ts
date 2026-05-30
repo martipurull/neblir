@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/items";
 import type { KeyedMutator } from "swr";
 
-export function mergeInventoryEntryIntoCharacter(
+function mergeInventoryEntryIntoCharacter(
   character: CharacterDetail,
   updated: InventoryEntry
 ): CharacterDetail {

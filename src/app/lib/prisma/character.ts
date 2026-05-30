@@ -11,10 +11,6 @@ import {
   serializeError,
 } from "../../api/shared/errors";
 
-export async function createCharacter(data: Prisma.CharacterCreateInput) {
-  return prisma.character.create({ data });
-}
-
 function mapSoldierFavouriteWeaponForPath(
   item: ReturnType<typeof mapPrismaItemToApi> | null | undefined
 ): SoldierFavouriteWeapon | null {

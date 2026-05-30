@@ -2,7 +2,7 @@ import { modalInputClass } from "@/app/components/games/shared/modalStyles";
 import { sharedTextFieldClassName } from "@/app/components/shared/inputStyles";
 import { forwardRef } from "react";
 
-export type TextAreaVariant = "light" | "dark";
+type TextAreaVariant = "light" | "dark";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const rollTypeSchema = z.enum([
+const rollTypeSchema = z.enum([
   "GENERAL_ROLL",
   "ATTACK",
   "ATTACK_DAMAGE",

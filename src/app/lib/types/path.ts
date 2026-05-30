@@ -5,7 +5,7 @@ import { itemResponseSchema } from "./item";
 export const pathName = z.nativeEnum(PathName);
 
 /** Catalogue weapon shown on a Soldier path (display-only reminder). */
-export const soldierFavouriteWeaponSchema = itemResponseSchema
+const soldierFavouriteWeaponSchema = itemResponseSchema
   .pick({
     id: true,
     name: true,
@@ -48,8 +48,6 @@ export const featureSchema = z.object({
   }),
 });
 
-export const featureUpdateSchema = featureSchema.partial().strict();
-
 export const pathCreateSchema = z
   .object({
     name: pathName,
@@ -72,8 +70,6 @@ export const pathSchema = z.object({
   favouriteWeaponItemId: z.string().nullish().optional(),
   favouriteWeapon: soldierFavouriteWeaponSchema.nullish().optional(),
 });
-
-export const pathUpdateSchema = pathSchema.partial().strict();
 
 /** PATCH /api/paths/[id] (super-admin official catalogue). */
 export const pathCatalogueUpdateSchema = pathCreateSchema.partial().strict();

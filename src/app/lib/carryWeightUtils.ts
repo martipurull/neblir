@@ -111,7 +111,7 @@ export function formatWeightKgForDisplay(value: number): string {
 }
 
 /** Carry weight ratio (carried / max). Returns 0 if max is 0 or missing. */
-export function getCarryWeightRatio(
+function getCarryWeightRatio(
   carriedWeight: number,
   maxCarryWeight: number | null | undefined
 ): number {
@@ -188,7 +188,7 @@ export function getCarryWeightStatCellStyles(
  * - 100–150%: half speed (floored)
  * - >150%: 0
  */
-export function getCarryWeightSpeedEffect(
+function getCarryWeightSpeedEffect(
   baseSpeed: number,
   carriedWeight: number,
   maxCarryWeight: number | null | undefined
@@ -219,7 +219,7 @@ export function getCarryWeightSpeedEffect(
 }
 
 /** Armour grade = armourMod (1–5). Speed penalty: grade 2,3 → -1; 4 → -2; 5 → -3 */
-export function getArmourSpeedPenalty(armourMod: number): number {
+function getArmourSpeedPenalty(armourMod: number): number {
   if (armourMod >= 5) return 3;
   if (armourMod >= 4) return 2;
   if (armourMod >= 2) return 1;

@@ -9,17 +9,8 @@ function requireEnv(name: string): string {
 }
 
 /** Bot-only calls (channel list, guild name) — do not require OAuth client secret on the server. */
-export function getDiscordBotToken(): string {
+function getDiscordBotToken(): string {
   return requireEnv("DISCORD_BOT_TOKEN");
-}
-
-export function getDiscordOAuthConfig() {
-  return {
-    clientId: requireEnv("DISCORD_CLIENT_ID"),
-    clientSecret: requireEnv("DISCORD_CLIENT_SECRET"),
-    redirectUri: requireEnv("DISCORD_REDIRECT_URI"),
-    botToken: getDiscordBotToken(),
-  };
 }
 
 /** Discord API ChannelType — we only surface types you can target for roll messages. */
@@ -30,7 +21,7 @@ const ROLL_TARGET_CHANNEL_TYPES = new Set([
   13, // GUILD_STAGE_VOICE (stage text chat)
 ]);
 
-export type DiscordGuildChannelRow = {
+type DiscordGuildChannelRow = {
   id: string;
   name: string;
   /** Discord API `type` (e.g. 0 text, 2 voice). */

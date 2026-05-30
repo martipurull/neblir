@@ -35,7 +35,7 @@ export const enemyActionSchema = z.object({
 
 const nullToUndefined = (v: unknown) => (v === null ? undefined : v);
 
-export const enemyBaseSchema = z.object({
+const enemyBaseSchema = z.object({
   name: z.string().trim().min(1),
   description: z
     .string()
@@ -90,16 +90,13 @@ export const enemyBaseSchema = z.object({
 });
 
 export const enemyCreateSchema = enemyBaseSchema;
-export type EnemyCreate = z.infer<typeof enemyCreateSchema>;
 
 /** PATCH /api/enemies/[id] (super-admin official catalogue). */
 export const enemyCatalogueUpdateSchema = enemyCreateSchema.partial().strict();
-export type EnemyCatalogueUpdate = z.infer<typeof enemyCatalogueUpdateSchema>;
 
 export const customEnemyCreateSchema = enemyBaseSchema.extend({
   gameId: z.string(),
 });
-export type CustomEnemyCreate = z.infer<typeof customEnemyCreateSchema>;
 
 /** POST /api/games/[id]/custom-enemies — body; `gameId` comes from the URL. */
 export const customEnemyCreateBodySchema = customEnemyCreateSchema.omit({
@@ -109,19 +106,12 @@ export const customEnemyCreateBodySchema = customEnemyCreateSchema.omit({
 export const customEnemyUpdateSchema = customEnemyCreateSchema
   .omit({ gameId: true })
   .partial();
-export type CustomEnemyUpdate = z.infer<typeof customEnemyUpdateSchema>;
 
-export const enemyResponseSchema = enemyBaseSchema.extend({
+const enemyResponseSchema = enemyBaseSchema.extend({
   id: z.string(),
 });
 export const enemyListResponseSchema = z.array(enemyResponseSchema);
 export type EnemyResponse = z.infer<typeof enemyResponseSchema>;
-
-export const customEnemyResponseSchema = enemyResponseSchema.extend({
-  gameId: z.string(),
-});
-export const customEnemyListResponseSchema = z.array(customEnemyResponseSchema);
-export type CustomEnemyResponse = z.infer<typeof customEnemyResponseSchema>;
 
 /** POST /api/games/[id]/custom-enemies/copy */
 export const customEnemyCopyBodySchema = z.object({

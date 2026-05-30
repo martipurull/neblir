@@ -6,7 +6,7 @@ export type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
 
 export type ResolvedItemNonNull = NonNullable<InventoryEntry["item"]>;
 
-export type ItemDetailEquipControl = {
+type ItemDetailEquipControl = {
   carriedInventory: InventoryEntry[];
   onEquip: (entry: InventoryEntry) => void | Promise<void>;
   onUnequip: (entry: InventoryEntry) => void | Promise<void>;

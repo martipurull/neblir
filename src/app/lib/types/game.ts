@@ -9,13 +9,6 @@ const gameBaseSchema = z.object({
   imageKey: z.string().optional(),
 });
 
-// Full schema for reading (with relations)
-export const gameSchema = gameBaseSchema.extend({
-  gameMaster: z.string(),
-  users: z.array(z.lazy(() => gameUserSchema)).optional(),
-  characters: z.array(z.lazy(() => gameCharacterSchema)).optional(),
-});
-
 export const gameCreateSchema = gameBaseSchema.strict();
 export const gameUpdateSchema = gameBaseSchema
   .extend({
@@ -27,8 +20,6 @@ export const gameUpdateSchema = gameBaseSchema
   .partial()
   .strict();
 
-export type Game = z.infer<typeof gameSchema>;
-
 export const gameUserSchema = z.object({
   id: z.string(),
   gameId: z.string(),
@@ -36,14 +27,14 @@ export const gameUserSchema = z.object({
 });
 
 /** GameUser as returned from GET /api/games (with linked user for display). */
-export const gameListUserSchema = gameUserSchema.extend({
+const gameListUserSchema = gameUserSchema.extend({
   user: z.object({
     id: z.string(),
     name: z.string(),
   }),
 });
 
-export const gameListItemSchema = z.object({
+const gameListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   premise: z.string().nullable().optional(),
@@ -67,7 +58,7 @@ export const gameCreateResponseSchema = z.object({
 });
 export type GameCreateResponse = z.infer<typeof gameCreateResponseSchema>;
 
-export const gameCharacterSchema = z.object({
+const gameCharacterSchema = z.object({
   id: z.string(),
   gameId: z.string(),
   characterId: z.string(),
@@ -138,7 +129,7 @@ const gameDetailGeneralInformationSchema = z.object({
 });
 
 /** Character summary as included in game detail. */
-export const gameDetailCharacterSchema = gameCharacterSchema.extend({
+const gameDetailCharacterSchema = gameCharacterSchema.extend({
   character: z.object({
     id: z.string(),
     name: z.string(),
@@ -154,7 +145,7 @@ export const gameDetailCharacterSchema = gameCharacterSchema.extend({
 });
 
 /** Custom item summary for game detail. */
-export const gameDetailCustomItemSchema = z.object({
+const gameDetailCustomItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string(),
@@ -162,7 +153,7 @@ export const gameDetailCustomItemSchema = z.object({
   imageKey: z.string().nullable().optional(),
 });
 
-export const gameDetailCustomEnemySchema = z.object({
+const gameDetailCustomEnemySchema = z.object({
   id: z.string(),
   name: z.string(),
   initiativeModifier: z.number(),
@@ -172,7 +163,7 @@ export const gameDetailCustomEnemySchema = z.object({
   speed: z.number().optional(),
 });
 
-export const gameDetailEnemyInstanceSchema = z.object({
+const gameDetailEnemyInstanceSchema = z.object({
   id: z.string(),
   sourceCustomEnemyId: z.string().nullable().optional(),
   sourceOfficialEnemyId: z.string().nullable().optional(),
@@ -190,7 +181,7 @@ export const gameDetailEnemyInstanceSchema = z.object({
 });
 
 /** Initiative line as returned from GET/PATCH/POST/DELETE game detail responses (sorted). */
-export const gameDetailInitiativeEntrySchema = z.object({
+const gameDetailInitiativeEntrySchema = z.object({
   combatantType: z.enum(["CHARACTER", "ENEMY"]),
   combatantId: z.string(),
   combatantName: z.string(),

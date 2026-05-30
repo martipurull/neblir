@@ -3,7 +3,7 @@ import type { UseFormSetError } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 
-export const CHARACTER_CREATION_STEP_COUNT = 6;
+const CHARACTER_CREATION_STEP_COUNT = 6;
 
 function setZodErrors(
   setError: UseFormSetError<CharacterCreationRequest>,

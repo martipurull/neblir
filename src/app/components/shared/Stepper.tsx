@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-export interface StepperStep {
+interface StepperStep {
   id: string;
   label: string;
 }

@@ -20,7 +20,7 @@ import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useEffect } from "react";
 
-export const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
+const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
   { value: "", label: "None" },
   ...weaponDamageTypeSchema.options.map((v) => ({
     value: v,

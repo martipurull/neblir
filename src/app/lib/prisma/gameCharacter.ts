@@ -1,19 +1,4 @@
-import type { Prisma } from "@prisma/client";
 import { prisma } from "./client";
-
-export async function createGameCharacter(
-  data: Prisma.GameCharacterUncheckedCreateInput
-) {
-  return prisma.gameCharacter.create({ data });
-}
-
-export async function getCharacterGames(characterId: string) {
-  return prisma.gameCharacter.findMany({ where: { characterId } });
-}
-
-export async function deleteGameCharacter(id: string) {
-  return prisma.gameCharacter.delete({ where: { id } });
-}
 
 export async function characterIsInGame(
   gameId: string,
@@ -60,7 +45,7 @@ export async function userOwnsCharacter(
 }
 
 /** Game ids where both characters are linked. */
-export async function getSharedGameIdsBetweenCharacters(
+async function getSharedGameIdsBetweenCharacters(
   characterIdA: string,
   characterIdB: string
 ): Promise<string[]> {
@@ -80,7 +65,7 @@ export async function getSharedGameIdsBetweenCharacters(
 /**
  * Whether the viewer may see / interact with a character link in a game (e.g. give item).
  */
-export async function viewerCanSeeCharacterInGame(
+async function viewerCanSeeCharacterInGame(
   gameId: string,
   characterId: string,
   viewerUserId: string

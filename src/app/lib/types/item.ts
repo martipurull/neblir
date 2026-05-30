@@ -4,13 +4,7 @@ import {
   itemGeneralSkillSchema,
 } from "@/app/lib/itemModifierEnums";
 
-export const currencyNameSchema = z.enum([
-  "CONF",
-  "NORD",
-  "NAS",
-  "HUMF",
-  "MRARK",
-]);
+const currencyNameSchema = z.enum(["CONF", "NORD", "NAS", "HUMF", "MRARK"]);
 
 const currencySchema = z.object({
   currencyName: currencyNameSchema,
@@ -34,13 +28,10 @@ export const walletSchema = z
     }
   });
 
-export type Wallet = z.infer<typeof walletSchema>;
-
 export const walletAdjustmentSchema = z.object({
   currencyName: currencyNameSchema,
   amount: z.number().int().positive(),
 });
-export type WalletAdjustment = z.infer<typeof walletAdjustmentSchema>;
 
 export const weaponAttackRollTypeSchema = z.enum([
   "RANGE",
@@ -66,7 +57,6 @@ export const weaponDamageTypeSchema = z.enum([
 export type WeaponDamageType = z.infer<typeof weaponDamageTypeSchema>;
 
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
-export type ItemAreaType = z.infer<typeof itemAreaTypeSchema>;
 
 /** Slot types an item can be equipped to */
 export const equipSlotTypeSchema = z.enum([
@@ -84,14 +74,12 @@ export const equipSlotCostSchema = z.union([
   z.literal(1),
   z.literal(2),
 ]);
-export type EquipSlotCost = z.infer<typeof equipSlotCostSchema>;
 
 export const itemSourceTypeSchema = z.enum([
   "GLOBAL_ITEM",
   "CUSTOM_ITEM",
   "UNIQUE_ITEM",
 ]);
-export type ItemSourceType = z.infer<typeof itemSourceTypeSchema>;
 
 export const itemStatusSchema = z.enum([
   "FUNCTIONAL",
@@ -121,12 +109,11 @@ export function itemStatusEquipColumnDamageLabel(
 }
 
 /** Source type stored on UniqueItem (template or standalone). */
-export const uniqueItemSourceTypeSchema = z.enum([
+const uniqueItemSourceTypeSchema = z.enum([
   "GLOBAL_ITEM",
   "CUSTOM_ITEM",
   "STANDALONE",
 ]);
-export type UniqueItemSourceType = z.infer<typeof uniqueItemSourceTypeSchema>;
 
 const areaEffectSchema = z.object({
   defenceReactionCost: z.number(),
@@ -190,14 +177,12 @@ const baseItemSchema = z.object({
   isSpeedAltered: z.boolean().optional(),
 });
 
-export const generalItemSchema = baseItemSchema.extend({
+const generalItemSchema = baseItemSchema.extend({
   type: z.literal("GENERAL_ITEM"),
   usage: z.string(),
 });
 
-export type GeneralItem = z.infer<typeof generalItemSchema>;
-
-export const weaponSchema = baseItemSchema.extend({
+const weaponSchema = baseItemSchema.extend({
   type: z.literal("WEAPON"),
   usage: z.string().optional(),
   attackRoll: z.array(weaponAttackRollTypeSchema),
@@ -206,8 +191,6 @@ export const weaponSchema = baseItemSchema.extend({
   attackThrowBonus: z.number().optional(),
   damage: itemDamageSchema,
 });
-
-export type Weapon = z.infer<typeof weaponSchema>;
 
 export const itemSchema = z.discriminatedUnion("type", [
   generalItemSchema,
@@ -329,7 +312,6 @@ export const addToInventorySchema = z.object({
   itemId: z.string(),
   quantity: z.number().int().min(1).max(999).optional().default(1),
 });
-export type AddToInventory = z.infer<typeof addToInventorySchema>;
 
 // ---- API response schemas ----
 
@@ -408,16 +390,13 @@ export const customItemListResponseSchema = z.array(customItemResponseSchema);
 export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
 
 /** Unique item list row returned by GET /api/games/[id]/unique-items */
-export const uniqueItemListItemResponseSchema = z.object({
+const uniqueItemListItemResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
 });
 export const uniqueItemListResponseSchema = z.array(
   uniqueItemListItemResponseSchema
 );
-export type UniqueItemListItemResponse = z.infer<
-  typeof uniqueItemListItemResponseSchema
->;
 
 /** Minimal response expected from unique item creation endpoints. */
 export const uniqueItemCreateResponseSchema = z.object({

@@ -1,9 +1,5 @@
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import type { Race, Religion } from "@prisma/client";
-import {
-  MANFENN_SPECIAL_ABILITY_CHOICES,
-  getSpecialAbilityLabel,
-} from "@/app/lib/specialAbility";
 
 export { RELIGIONS } from "@/app/lib/religion";
 export { RACES } from "@/app/lib/race";
@@ -78,12 +74,6 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
     wallet: [],
   };
 }
-
-export const MANFENN_SPECIAL_ABILITY_OPTIONS =
-  MANFENN_SPECIAL_ABILITY_CHOICES.map((value) => ({
-    value,
-    label: getSpecialAbilityLabel(value),
-  }));
 
 export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
 

@@ -78,21 +78,3 @@ export const PRISMA_TO_GENERAL_SKILL_API = Object.fromEntries(
     api,
   ])
 ) as Record<ItemGeneralSkill, LevelUpGeneralSkill>;
-
-/** BSON / raw Mongo value for an attribute path (Prisma @map equals API path). */
-export function itemAttributePathToDbValue(path: LevelUpAttributePath): string {
-  return path;
-}
-
-/** BSON / raw Mongo value for a general skill (Prisma @map equals API key). */
-export function itemGeneralSkillToDbValue(skill: LevelUpGeneralSkill): string {
-  return skill;
-}
-
-export function prismaItemAttributePathToDbValue(v: ItemAttributePath): string {
-  return PRISMA_TO_ATTRIBUTE_PATH_API[v];
-}
-
-export function prismaItemGeneralSkillToDbValue(v: ItemGeneralSkill): string {
-  return PRISMA_TO_GENERAL_SKILL_API[v];
-}

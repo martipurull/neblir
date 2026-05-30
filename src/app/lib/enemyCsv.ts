@@ -5,7 +5,7 @@ import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 import type { ItemWeaponDamageType } from "@prisma/client";
 
 /** Column order for export and recommended import templates. */
-export const CUSTOM_ENEMY_CSV_COLUMNS = [
+const CUSTOM_ENEMY_CSV_COLUMNS = [
   "name",
   "description",
   "imageKey",
@@ -106,7 +106,7 @@ function enemyActionsCsvCell(field: "actions" | "additionalActions") {
     });
 }
 
-export const customEnemyCsvRowSchema = z.object({
+const customEnemyCsvRowSchema = z.object({
   name: z.string().trim().min(1),
   description: z.string().optional(),
   imageKey: z.string().optional(),

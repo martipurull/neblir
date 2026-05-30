@@ -9,14 +9,13 @@ import { walletSchema } from "@/app/lib/types/item";
 import { specialAbilityNameSchemaValues } from "@/app/lib/specialAbility";
 import { z } from "zod";
 
-export const characterCreationGeneralInformationSchema =
-  generalInformationSchema
-    .omit({ specialAbility: true })
-    .extend({
-      name: z.string().trim().min(1, "Name is required"),
-      specialAbilityName: z.enum(specialAbilityNameSchemaValues).optional(),
-    })
-    .strict();
+const characterCreationGeneralInformationSchema = generalInformationSchema
+  .omit({ specialAbility: true })
+  .extend({
+    name: z.string().trim().min(1, "Name is required"),
+    specialAbilityName: z.enum(specialAbilityNameSchemaValues).optional(),
+  })
+  .strict();
 
 export const characterCreationRequestSchema = z
   .object({

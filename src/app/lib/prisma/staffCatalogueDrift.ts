@@ -1,7 +1,7 @@
 import { prisma } from "./client";
 
 /** Stable id for the single drift document (override via env if needed). */
-export const STAFF_CATALOGUE_DRIFT_SINGLETON_ID =
+const STAFF_CATALOGUE_DRIFT_SINGLETON_ID =
   process.env.STAFF_CATALOGUE_DRIFT_ID ?? "649c1f000000000000000001";
 
 export type StaffCatalogueDriftStateDTO = {

@@ -28,4 +28,3 @@ export const adjustInitiativeBodySchema = z.object({
 });
 
 export type SubmitInitiativeBody = z.infer<typeof submitInitiativeBodySchema>;
-export type AdjustInitiativeBody = z.infer<typeof adjustInitiativeBodySchema>;

@@ -22,7 +22,7 @@ export function getR2Config() {
   };
 }
 
-export const ALLOWED_UPLOAD_PREFIXES = [
+const ALLOWED_UPLOAD_PREFIXES = [
   "custom_items-",
   "custom_enemies-",
   "unique_items-",

@@ -12,12 +12,6 @@ import {
 import { prisma } from "./client";
 import { buildStandaloneResolvedItem } from "./uniqueItem";
 
-export async function createItemCharacter(
-  data: Prisma.ItemCharacterUncheckedCreateInput
-) {
-  return prisma.itemCharacter.create({ data });
-}
-
 export async function addOrIncrementItemCharacter(
   characterId: string,
   sourceType: ItemSourceType,
@@ -286,8 +280,4 @@ export async function updateItemCharacter(
 
 export async function deleteItemCharacter(id: string) {
   return prisma.itemCharacter.delete({ where: { id } });
-}
-
-export async function deleteCharacterInventory(characterId: string) {
-  return prisma.itemCharacter.deleteMany({ where: { characterId } });
 }
