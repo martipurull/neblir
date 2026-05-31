@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
+import { TextField } from "@/app/components/shared/TextField";
 import { spawnEnemyInstances } from "@/lib/api/enemyInstances";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useEffect, useState } from "react";
@@ -101,12 +102,13 @@ export function SpawnEnemyInstancesModal({
           <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
             Name prefix (optional)
           </span>
-          <input
+          <TextField
             type="text"
+            variant="dark"
             value={nameOverride}
             onChange={(e) => setNameOverride(e.target.value)}
             placeholder={source.defaultName}
-            className="mt-1 w-full rounded border border-white/25 bg-black/30 px-2 py-1.5 text-white placeholder:text-white/40"
+            className="mt-1"
           />
         </label>
       </div>

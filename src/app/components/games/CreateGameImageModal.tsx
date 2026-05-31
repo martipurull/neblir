@@ -2,7 +2,7 @@
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { Button } from "@/app/components/shared/Button";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameImage } from "@/lib/api/gameImages";
@@ -128,12 +128,12 @@ export function CreateGameImageModal({
     >
       <div>
         <FieldLabel id="game-image-title" label="Title" required />
-        <input
+        <TextField
           id="game-image-title"
           type="text"
+          variant="dark"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className={darkTextFieldClassName}
           placeholder="e.g. Citadel Exterior"
           disabled={submitting}
         />

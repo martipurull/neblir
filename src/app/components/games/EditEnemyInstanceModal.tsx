@@ -6,10 +6,8 @@ import { GameModalRichTextField } from "@/app/components/games/shared/GameModalR
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import {
-  darkTextFieldClassName,
-  darkSelectClassName,
-} from "@/app/components/shared/darkInputStyles";
+import { darkSelectClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import { updateEnemyInstance } from "@/lib/api/enemyInstances";
@@ -178,12 +176,12 @@ export function EditEnemyInstanceModal({
 
         <div>
           <FieldLabel id="edit-enemy-instance-name" label="Name" required />
-          <input
+          <TextField
             id="edit-enemy-instance-name"
             type="text"
+            variant="dark"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={darkTextFieldClassName}
             disabled={busy}
           />
         </div>

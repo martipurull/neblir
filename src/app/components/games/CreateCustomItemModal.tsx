@@ -6,7 +6,7 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
@@ -55,12 +55,12 @@ export function CreateCustomItemModal({
         <div className="space-y-3">
           <div>
             <FieldLabel id="custom-item-name" label="Name" required />
-            <input
+            <TextField
               id="custom-item-name"
               type="text"
+              variant="dark"
               value={f.name}
               onChange={(e) => f.setName(e.target.value)}
-              className={darkTextFieldClassName}
               placeholder="e.g. Combat knife"
               disabled={f.submitting}
             />
@@ -124,12 +124,12 @@ export function CreateCustomItemModal({
           />
           <div>
             <FieldLabel id="custom-item-cost-info" label="Cost info" />
-            <input
+            <TextField
               id="custom-item-cost-info"
               type="text"
+              variant="dark"
               value={f.costInfo}
               onChange={(e) => f.setCostInfo(e.target.value)}
-              className={darkTextFieldClassName}
               placeholder="e.g. Not for sale"
               disabled={f.submitting}
             />

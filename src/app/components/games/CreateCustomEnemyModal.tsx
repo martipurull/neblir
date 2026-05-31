@@ -6,7 +6,7 @@ import { GameModalRichTextField } from "@/app/components/games/shared/GameModalR
 import { ModalDamageTypeCheckboxGrid } from "@/app/components/games/shared/ModalDamageTypeCheckboxGrid";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { CustomEnemyActionListEditor } from "@/app/components/games/CustomEnemyActionListEditor";
 import { useCreateCustomEnemyModal } from "@/app/components/games/useCreateCustomEnemyModal";
 
@@ -62,12 +62,12 @@ export function CreateCustomEnemyModal({
       <section className="space-y-3">
         <div>
           <FieldLabel id="custom-enemy-name" label="Name" required />
-          <input
+          <TextField
             id="custom-enemy-name"
             type="text"
+            variant="dark"
             value={f.name}
             onChange={(e) => f.setName(e.target.value)}
-            className={darkTextFieldClassName}
             disabled={f.submitting}
           />
         </div>

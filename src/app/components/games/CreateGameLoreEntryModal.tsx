@@ -1,7 +1,7 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
@@ -183,12 +183,12 @@ export function CreateGameLoreEntryModal({
     >
       <div>
         <FieldLabel id="game-lore-title" label="Title" required />
-        <input
+        <TextField
           id="game-lore-title"
           type="text"
+          variant="dark"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className={darkTextFieldClassName}
           placeholder="e.g. The Fall of Arithem"
           disabled={submitting}
         />
@@ -210,12 +210,12 @@ export function CreateGameLoreEntryModal({
 
       <div>
         <FieldLabel id="game-lore-tags" label="Tags" />
-        <input
+        <TextField
           id="game-lore-tags"
           type="text"
+          variant="dark"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
-          className={darkTextFieldClassName}
           placeholder="e.g. history, factions, city"
           disabled={submitting}
         />

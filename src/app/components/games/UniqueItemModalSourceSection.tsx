@@ -4,7 +4,7 @@ import { Button } from "@/app/components/shared/Button";
 import { ItemTemplatePeekModal } from "@/app/components/games/ItemTemplatePeekModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
@@ -65,12 +65,12 @@ export function UniqueItemModalSourceSection({ f }: Props) {
             </p>
             <div>
               <FieldLabel id="standalone-unique-name" label="Name" required />
-              <input
+              <TextField
                 id="standalone-unique-name"
                 type="text"
+                variant="dark"
                 value={f.nameOverride}
                 onChange={(e) => f.setNameOverride(e.target.value)}
-                className={darkTextFieldClassName}
                 placeholder='e.g. "Mysterious bracelet"'
                 disabled={f.submitting}
               />

@@ -9,6 +9,7 @@ import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import type { WeaponDamageType } from "@/app/lib/types/item";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
+import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
@@ -338,11 +339,12 @@ export function EnemyInstanceDiceRollerModal({
 
             <label className="text-sm text-white">
               Note (optional)
-              <input
+              <TextField
                 type="text"
+                variant="dark"
                 value={freeNote}
                 onChange={(e) => setFreeNote(e.target.value)}
-                className="mt-1 min-h-11 w-full rounded-md border border-white/30 bg-black/20 px-3 py-2 text-white"
+                className="mt-1"
                 placeholder="e.g. Perception"
               />
             </label>

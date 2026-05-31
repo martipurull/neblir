@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { NumberField } from "@/app/components/shared/NumberField";
+import { TextField } from "@/app/components/shared/TextField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
@@ -146,12 +147,11 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
 
       <label className="mt-3 flex flex-col gap-1 text-sm font-semibold text-black">
         Note (optional)
-        <input
+        <TextField
           type="text"
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder="e.g. Secret Roll"
-          className="min-h-11 rounded-md border border-black/20 bg-paleBlue px-3 py-2 text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimaryHover"
         />
       </label>
 

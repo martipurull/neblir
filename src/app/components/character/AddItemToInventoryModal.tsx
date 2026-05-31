@@ -7,6 +7,7 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { Button } from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowseItemDetailModal } from "@/app/components/items/BrowseItemDetailModal";
 import { BrowseRowAddControls } from "./BrowseRowAddControls";
@@ -238,14 +239,14 @@ export function AddItemToInventoryModal({
           <label htmlFor="add-item-search" className="sr-only">
             Search items
           </label>
-          <input
+          <TextField
             ref={searchInputRef}
             id="add-item-search"
             type="search"
+            variant="dark"
             placeholder="Search by name, description, or game…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-md border-2 border-white bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
             autoComplete="off"
           />
         </div>

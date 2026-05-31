@@ -2,7 +2,7 @@
 
 import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import { Button } from "@/app/components/shared/Button";
-import { darkCompactNumberInputClassName } from "@/app/components/shared/darkInputStyles";
+import { NumberField } from "@/app/components/shared/NumberField";
 import { useState } from "react";
 
 const MAX_ADD_QUANTITY = 10;
@@ -74,17 +74,16 @@ export function BrowseRowAddControls({
           >
             −
           </Button>
-          <input
-            type="number"
-            inputMode="numeric"
+          <NumberField
+            variant="dark"
+            density="compact"
             min={1}
             max={MAX_ADD_QUANTITY}
             step={1}
             value={qty}
             disabled={busy}
             aria-label={`Quantity of ${itemName} to add`}
-            className={darkCompactNumberInputClassName}
-            onChange={(e) => setQty(e.target.value)}
+            onChange={setQty}
             onBlur={() => {
               setQty(String(parseAddQuantity(qty)));
             }}

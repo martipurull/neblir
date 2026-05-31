@@ -1,7 +1,7 @@
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { UniqueItemEquippableOverrideFields } from "@/app/components/games/shared/UniqueItemEquippableOverrideFields";
 import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
@@ -28,12 +28,12 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
         {!standalone && (
           <div>
             <FieldLabel id="unique-name-override" label="Name override" />
-            <input
+            <TextField
               id="unique-name-override"
               type="text"
+              variant="dark"
               value={f.nameOverride}
               onChange={(e) => f.setNameOverride(e.target.value)}
-              className={darkTextFieldClassName}
               placeholder="Override display name"
               disabled={f.submitting}
             />
@@ -65,12 +65,12 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
         />
         <div>
           <FieldLabel id="unique-special-tag" label="Special tag" />
-          <input
+          <TextField
             id="unique-special-tag"
             type="text"
+            variant="dark"
             value={f.specialTag}
             onChange={(e) => f.setSpecialTag(e.target.value)}
-            className={darkTextFieldClassName}
             placeholder="e.g. AMPLIFIED, PROTOTYPE"
             disabled={f.submitting}
           />
@@ -107,12 +107,12 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
             id="unique-cost-info-override"
             label="Cost info override"
           />
-          <input
+          <TextField
             id="unique-cost-info-override"
             type="text"
+            variant="dark"
             value={f.costInfoOverride}
             onChange={(e) => f.setCostInfoOverride(e.target.value)}
-            className={darkTextFieldClassName}
             disabled={f.submitting}
           />
         </div>

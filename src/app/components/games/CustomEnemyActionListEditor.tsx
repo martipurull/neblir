@@ -14,7 +14,7 @@ import {
   normalizeStoredHtmlForEditor,
   serializeEditorToStoredHtml,
 } from "@/app/lib/tiptap/richText";
-import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import type { CustomEnemyActionDraft } from "@/app/components/games/useCreateCustomEnemyModal";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -149,14 +149,14 @@ export function CustomEnemyActionListEditor({
                       label="Action name"
                       required
                     />
-                    <input
+                    <TextField
                       id={`${prefix}-name`}
                       type="text"
+                      variant="dark"
                       value={row.name}
                       onChange={(e) =>
                         onChange(row.clientId, "name", e.target.value)
                       }
-                      className={darkTextFieldClassName}
                       disabled={disabled}
                       placeholder="e.g. Bite"
                     />
