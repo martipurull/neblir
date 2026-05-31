@@ -19,7 +19,7 @@ export function getCarriedInventory<T extends { itemLocation?: string | null }>(
 }
 
 /** Same label as inventory lists: custom name, then template name. */
-export function getInventoryEntryDisplayName(entry: {
+function getInventoryEntryDisplayName(entry: {
   customName?: string | null;
   item?: { name?: string | null } | null;
 }): string {
@@ -29,7 +29,7 @@ export function getInventoryEntryDisplayName(entry: {
 }
 
 /** Alphabetical order aligned with AddItemToInventoryModal browse list. */
-export function compareInventoryEntriesAlphabetically<
+function compareInventoryEntriesAlphabetically<
   T extends {
     id: string;
     customName?: string | null;

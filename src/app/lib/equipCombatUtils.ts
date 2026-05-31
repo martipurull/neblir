@@ -382,14 +382,14 @@ export function getGridDefenceDice(character: CharacterDetail): number {
   return base + getEquippedBrainGridBonusesDisplay(character).gridDefenceBonus;
 }
 
-export function inventoryEntryOccupiesBodyOrHead(entry: {
+function inventoryEntryOccupiesBodyOrHead(entry: {
   equipSlots?: string[];
 }): boolean {
   return (entry.equipSlots ?? []).some((s) => s === "BODY" || s === "HEAD");
 }
 
 /** Body/head armour piece (defence dice), for “one suit at a time” rules. */
-export function itemProvidesArmourDefenceBonus(
+function itemProvidesArmourDefenceBonus(
   item:
     | {
         defenceMeleeBonus?: number | null;
@@ -455,7 +455,7 @@ export function equipViolatesSingleArmourRule(args: {
 }
 
 /** Armour defence bonuses from BODY/HEAD-equipped items (carried only) */
-export function getArmourBonusesFromInventory(
+function getArmourBonusesFromInventory(
   inventory: InventoryEntry[] | undefined
 ): { melee: number; range: number } {
   const result = { melee: 0, range: 0 };

@@ -7,6 +7,8 @@ type CharacterCreateFooterProps = {
   currentStepIndex: number;
   isLastStep: boolean;
   isSubmitting: boolean;
+  canProceedFromCurrentStep: boolean;
+  canSubmitCharacter: boolean;
   onBack: () => void;
   onNext: () => void;
 };
@@ -21,6 +23,8 @@ export function CharacterCreateFooter({
   currentStepIndex,
   isLastStep,
   isSubmitting,
+  canProceedFromCurrentStep,
+  canSubmitCharacter,
   onBack,
   onNext,
 }: CharacterCreateFooterProps) {
@@ -58,6 +62,7 @@ export function CharacterCreateFooter({
           fullWidth={false}
           className="flex-1"
           suppressHydrationWarning
+          disabled={!canProceedFromCurrentStep}
           onClick={(e) => {
             blurAfterStepAction(e);
             onNext();
@@ -78,6 +83,7 @@ export function CharacterCreateFooter({
           <Button
             type="submit"
             text={isSubmitting ? "Creating…" : "Create character"}
+            disabled={isSubmitting || !canSubmitCharacter}
           />
         </div>
       )}

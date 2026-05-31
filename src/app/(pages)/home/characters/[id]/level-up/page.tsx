@@ -30,8 +30,7 @@ function CharacterLevelUpLoaded({
   const {
     form,
     currentStepIndex,
-    setCurrentStepIndex,
-    validateStep,
+    goToStep,
     onSubmit,
     submitError,
     submitSuccess,
@@ -93,7 +92,7 @@ function CharacterLevelUpLoaded({
       <Stepper
         steps={STEPS}
         currentStepIndex={currentStepIndex}
-        onStepClick={(step) => setCurrentStepIndex(step)}
+        onStepClick={goToStep}
         className="mb-8"
       />
 
@@ -169,7 +168,7 @@ function CharacterLevelUpLoaded({
               variant="secondary"
               fullWidth={false}
               className="flex-1"
-              onClick={() => setCurrentStepIndex((i) => Math.max(0, i - 1))}
+              onClick={() => goToStep(currentStepIndex - 1)}
             >
               Back
             </Button>
@@ -182,11 +181,7 @@ function CharacterLevelUpLoaded({
               variant="primary"
               fullWidth={false}
               className="flex-1"
-              onClick={() => {
-                if (validateStep(currentStepIndex)) {
-                  setCurrentStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
-                }
-              }}
+              onClick={() => goToStep(currentStepIndex + 1)}
             >
               Next
             </Button>

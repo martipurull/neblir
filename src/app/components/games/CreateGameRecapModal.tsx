@@ -1,9 +1,10 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
+import { TextField } from "@/app/components/shared/TextField";
 import { Button } from "@/app/components/shared/Button";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameRecap } from "@/lib/api/recaps";
 import React, { useMemo, useRef, useState } from "react";
 
@@ -139,31 +140,32 @@ export function CreateGameRecapModal({
       submitDisabled={submitDisabled}
     >
       <div>
-        <ModalFieldLabel id="game-recap-title" label="Title" required />
-        <input
+        <FieldLabel id="game-recap-title" label="Title" required />
+        <TextField
           id="game-recap-title"
           type="text"
+          variant="dark"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className={modalInputClass}
           placeholder="e.g. Session 14 - The Red Vault"
           disabled={submitting}
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-recap-summary" label="Summary" />
-        <textarea
+        <FieldLabel id="game-recap-summary" label="Summary" />
+        <TextArea
           id="game-recap-summary"
+          variant="dark"
           value={summary}
           onChange={(event) => setSummary(event.target.value)}
-          className={`${modalInputClass} min-h-[88px]`}
+          className="min-h-[88px]"
           placeholder="Optional short summary"
           rows={3}
           disabled={submitting}
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-recap-file" label="PDF file" required />
+        <FieldLabel id="game-recap-file" label="PDF file" required />
         <div
           role="button"
           tabIndex={0}

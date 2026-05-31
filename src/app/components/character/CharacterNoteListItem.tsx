@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { CharacterNoteHtml } from "@/app/components/character/CharacterNoteHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { formatNoteTimestamp } from "@/app/lib/characterNotes";
 import type { CharacterNoteEntry } from "@/app/lib/types/character";
@@ -66,7 +66,7 @@ export function CharacterNoteListItem({
           onClick={() => onEdit(index)}
         >
           <div className="max-h-32 min-h-0 overflow-hidden">
-            <CharacterNoteHtml content={entry.content} />
+            <StoredRichTextHtml content={entry.content} legacyNoteContent />
           </div>
           <div className="mt-2 w-full text-right text-[10px] leading-tight text-black/45">
             <div>Created {formatNoteTimestamp(entry.createdAt)}</div>

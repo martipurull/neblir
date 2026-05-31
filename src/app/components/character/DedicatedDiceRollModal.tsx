@@ -6,6 +6,7 @@ import {
   filterSecondStatChoices,
   isValidDiceRollPair,
   listAllDiceSelectionItems,
+  listAttributeDiceSelectionItems,
 } from "@/app/lib/dice-selection-catalog";
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
 import {
@@ -17,7 +18,9 @@ import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { WeaponDamageType } from "@/app/lib/types/item";
 import { Button } from "@/app/components/shared/Button";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import { NumberField } from "@/app/components/shared/NumberField";
+import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useGeneralDiceRollerState } from "@/hooks/use-general-dice-roller";
@@ -29,7 +32,26 @@ function rollD10() {
   return Math.floor(Math.random() * 10) + 1;
 }
 
-function ResultBlock({ values }: { values: number[] }) {
+function d10ResultSpanClass(value: number): string {
+  const isSuccess = value >= 8;
+  const isTen = value === 10;
+  const isOne = value === 1;
+  const colorClass = isSuccess
+    ? "text-neblirSafe-600"
+    : isOne
+      ? "text-neblirDanger-400"
+      : "text-white";
+  const boldClass = isTen ? "font-bold" : "";
+  return [colorClass, boldClass].filter(Boolean).join(" ");
+}
+
+function ResultBlock({
+  values,
+  highlightMode = "plain",
+}: {
+  values: number[];
+  highlightMode?: "d10" | "plain";
+}) {
   return (
     <div className="rounded border border-white/30 bg-black/20 p-3">
       <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/80">
@@ -37,7 +59,12 @@ function ResultBlock({ values }: { values: number[] }) {
       </p>
       <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
         {values.map((value, i) => (
-          <span key={i}>
+          <span
+            key={i}
+            className={
+              highlightMode === "d10" ? d10ResultSpanClass(value) : undefined
+            }
+          >
             {value}
             {i < values.length - 1 ? ", " : ""}
           </span>
@@ -55,6 +82,8 @@ export interface DedicatedDiceRollModalProps {
   onClose: () => void;
   character: CharacterDetail;
   gameId?: string | null;
+  /** Enables showing the "Private roll" checkbox (e.g. when user is GM of active game). */
+  allowPrivateRoll?: boolean;
 }
 
 export function DedicatedDiceRollModal({
@@ -62,11 +91,13 @@ export function DedicatedDiceRollModal({
   onClose,
   character,
   gameId,
+  allowPrivateRoll = false,
 }: DedicatedDiceRollModalProps) {
   const [tab, setTab] = useState<TabId>("stats");
   const [firstValue, setFirstValue] = useState("");
   const [secondValue, setSecondValue] = useState("");
   const [extraDice, setExtraDice] = useState(0);
+  const [isPrivateRoll, setIsPrivateRoll] = useState(false);
   const [statsResult, setStatsResult] = useState<number[] | null>(null);
   const [damageDiceCount, setDamageDiceCount] = useState(1);
   const [damageDiceType, setDamageDiceType] = useState(6);
@@ -98,6 +129,10 @@ export function DedicatedDiceRollModal({
     () => listAllDiceSelectionItems(character),
     [character]
   );
+  const attributeItems = useMemo(
+    () => listAttributeDiceSelectionItems(character),
+    [character]
+  );
   const firstOption = useMemo(
     () => decodeDiceSelectionItem(firstValue),
     [firstValue]
@@ -107,8 +142,8 @@ export function DedicatedDiceRollModal({
     [secondValue]
   );
   const firstDropdownOptions = useMemo(
-    () => diceItemsToDropdownOptions(character, allItems),
-    [character, allItems]
+    () => diceItemsToDropdownOptions(character, attributeItems),
+    [character, attributeItems]
   );
   const secondChoices = useMemo(() => {
     if (!firstOption) return [];
@@ -126,6 +161,7 @@ export function DedicatedDiceRollModal({
       setFirstValue("");
       setSecondValue("");
       setExtraDice(0);
+      setIsPrivateRoll(false);
       setStatsResult(null);
       setDamageDiceCount(1);
       setDamageDiceType(6);
@@ -135,19 +171,28 @@ export function DedicatedDiceRollModal({
     });
   }, [isOpen, resetFreeDice]);
 
-  const pairReady =
+  const pairReady = Boolean(
     firstOption &&
     secondOption &&
-    isValidDiceRollPair(firstOption, secondOption);
-  const v1 = pairReady ? getDiceValue(character, firstOption) : 0;
-  const v2 = pairReady ? getDiceValue(character, secondOption) : 0;
-  const label1 = pairReady ? getDiceLabel(character, firstOption) : "";
-  const label2 = pairReady ? getDiceLabel(character, secondOption) : "";
-  const baseDice = pairReady ? v1 + v2 : 0;
+    isValidDiceRollPair(firstOption, secondOption)
+  );
+  const singleAttributeReady =
+    firstOption?.type === "attribute" && secondOption == null;
+  const statsReady = pairReady || singleAttributeReady;
+  const v1 = firstOption ? getDiceValue(character, firstOption) : 0;
+  const v2 =
+    pairReady && secondOption ? getDiceValue(character, secondOption) : 0;
+  const label1 = firstOption ? getDiceLabel(character, firstOption) : "";
+  const label2 =
+    pairReady && secondOption ? getDiceLabel(character, secondOption) : "";
+  const baseDice = pairReady ? v1 + v2 : singleAttributeReady ? v1 : 0;
   const totalDice = Math.max(0, baseDice + extraDice);
   const validationHint = useMemo(() => {
-    if (!firstValue || !secondValue) {
-      return "Select a first stat, then a second stat (two attributes, or one attribute and one skill - not two skills).";
+    if (!firstValue) {
+      return "Select an attribute, then optionally a second attribute or skill.";
+    }
+    if (!secondValue) {
+      return null;
     }
     if (
       firstOption &&
@@ -160,25 +205,31 @@ export function DedicatedDiceRollModal({
   }, [firstValue, secondValue, firstOption, secondOption]);
 
   const handleStatsRoll = useCallback(() => {
-    if (!pairReady || !firstOption || !secondOption || totalDice <= 0) return;
+    if (!statsReady || !firstOption || totalDice <= 0) return;
     const results = Array.from({ length: totalDice }, () => rollD10()).sort(
       (a, b) => b - a
     );
     setStatsResult(results);
+    const metadata = pairReady
+      ? { label1, label2, baseDice, extraDice }
+      : { label1, baseDice, extraDice };
     void emitRollEvent(gameId, {
       characterId: character.id,
+      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
       rollType: "GENERAL_ROLL",
       diceExpression: `${totalDice}d10`,
       results,
-      metadata: { label1, label2, baseDice, extraDice },
+      metadata,
     });
   }, [
+    statsReady,
     pairReady,
     firstOption,
-    secondOption,
     totalDice,
     gameId,
     character.id,
+    allowPrivateRoll,
+    isPrivateRoll,
     label1,
     label2,
     baseDice,
@@ -193,13 +244,22 @@ export function DedicatedDiceRollModal({
     setDamageResult(results);
     void emitRollEvent(gameId, {
       characterId: character.id,
+      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${damageDiceCount}d${damageDiceType}`,
       results,
       total: results.reduce((sum, value) => sum + value, 0),
       metadata: { source: "dedicatedDiceRollModal", damageType },
     });
-  }, [damageDiceCount, damageDiceType, gameId, character.id, damageType]);
+  }, [
+    damageDiceCount,
+    damageDiceType,
+    gameId,
+    character.id,
+    damageType,
+    allowPrivateRoll,
+    isPrivateRoll,
+  ]);
 
   const handleFreeRoll = useCallback(() => {
     const roll = tryExecuteFreeRoll();
@@ -207,13 +267,21 @@ export function DedicatedDiceRollModal({
     const note = freeNote.trim();
     void emitRollEvent(gameId, {
       characterId: character.id,
+      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
       rollType: "GENERAL_ROLL",
       diceExpression: roll.diceExpression,
       results: roll.results,
       total: roll.total,
       metadata: note ? { note } : undefined,
     });
-  }, [tryExecuteFreeRoll, freeNote, gameId, character.id]);
+  }, [
+    tryExecuteFreeRoll,
+    freeNote,
+    gameId,
+    character.id,
+    allowPrivateRoll,
+    isPrivateRoll,
+  ]);
 
   if (!isOpen) return null;
 
@@ -263,13 +331,28 @@ export function DedicatedDiceRollModal({
           </Button>
         </div>
 
+        {allowPrivateRoll && gameId ? (
+          <div className="rounded border border-white/15 bg-black/10 p-3">
+            <Checkbox
+              checked={isPrivateRoll}
+              onChange={(checked) => setIsPrivateRoll(checked)}
+              tone="inverse"
+              label={
+                <span className="text-white/90">
+                  Private roll (hide character and roll details on Discord)
+                </span>
+              }
+            />
+          </div>
+        ) : null}
+
         {tab === "stats" && (
           <div className="space-y-4">
             <SelectDropdown
               id="dedicated-roll-stat-1"
-              label="First stat"
+              label="Attribute"
               showLabel={false}
-              placeholder="Choose first stat..."
+              placeholder="Choose attribute..."
               value={firstValue}
               options={firstDropdownOptions}
               onChange={(v) => {
@@ -291,9 +374,9 @@ export function DedicatedDiceRollModal({
             />
             <SelectDropdown
               id="dedicated-roll-stat-2"
-              label="Second stat"
+              label="Second stat (optional)"
               showLabel={false}
-              placeholder="Choose second stat..."
+              placeholder="Choose second attribute or skill (optional)..."
               value={secondValue}
               options={secondDropdownOptions}
               disabled={!firstOption}
@@ -302,9 +385,11 @@ export function DedicatedDiceRollModal({
                 setStatsResult(null);
               }}
             />
-            {pairReady ? (
+            {statsReady ? (
               <p className="text-sm text-white/90">
-                {label1} ({v1}) + {label2} ({v2}) = {baseDice} dice
+                {pairReady
+                  ? `${label1} (${v1}) + ${label2} (${v2}) = ${baseDice} dice`
+                  : `${label1} (${v1}) = ${baseDice} dice`}
               </p>
             ) : null}
             {validationHint ? (
@@ -338,11 +423,13 @@ export function DedicatedDiceRollModal({
               type="button"
               variant="modalBlockPrimary"
               onClick={handleStatsRoll}
-              disabled={!pairReady || totalDice === 0}
+              disabled={!statsReady || totalDice === 0}
             >
               Roll stats
             </Button>
-            {statsResult ? <ResultBlock values={statsResult} /> : null}
+            {statsResult ? (
+              <ResultBlock values={statsResult} highlightMode="d10" />
+            ) : null}
           </div>
         )}
 
@@ -535,11 +622,12 @@ export function DedicatedDiceRollModal({
             </div>
             <label className="text-sm text-white">
               Note (optional)
-              <input
+              <TextField
                 type="text"
+                variant="dark"
                 value={freeNote}
                 onChange={(e) => setFreeNote(e.target.value)}
-                className="mt-1 min-h-11 w-full rounded-md border border-white/30 bg-black/20 px-3 py-2 text-white"
+                className="mt-1"
                 placeholder="e.g. Secret Roll"
               />
             </label>

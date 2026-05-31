@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { Button } from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useCharacters } from "@/hooks/use-characters";
@@ -32,6 +33,15 @@ type AddCharactersToGameModalProps = {
   alreadyLinkedCharacterIds: string[];
   onClose: () => void;
   onSuccess?: () => void;
+  /** Modal title; defaults to adding characters. */
+  title?: string;
+  /** Intro copy under the title. */
+  subtitle?: string;
+  searchPlaceholder?: string;
+  emptySelectableMessage?: string;
+  /** Initial visibility for newly selected rows. */
+  defaultIsPublic?: boolean;
+  visibilityCheckboxLabel?: string;
 };
 
 export function AddCharactersToGameModal({
@@ -41,6 +51,12 @@ export function AddCharactersToGameModal({
   alreadyLinkedCharacterIds,
   onClose,
   onSuccess,
+  title,
+  subtitle,
+  searchPlaceholder = "Search your characters...",
+  emptySelectableMessage = "All of your characters are already linked to this game.",
+  defaultIsPublic = true,
+  visibilityCheckboxLabel = "Known to players",
 }: AddCharactersToGameModalProps) {
   const { characters, loading, error, refetch } = useCharacters();
   const [query, setQuery] = useState("");
@@ -87,7 +103,7 @@ export function AddCharactersToGameModal({
     setSelectedConfigs((prev) => {
       const next = { ...prev };
       if (next[id]) delete next[id];
-      else next[id] = { isPublic: true };
+      else next[id] = { isPublic: defaultIsPublic };
       return next;
     });
   };
@@ -183,9 +199,12 @@ export function AddCharactersToGameModal({
     <ModalShell
       isOpen
       onClose={closeAndReset}
-      title={`Add characters to ${gameName}`}
+      title={title ?? `Add characters to ${gameName}`}
       titleId="add-characters-title"
-      subtitle="Select one or more of your characters to link to this game."
+      subtitle={
+        subtitle ??
+        "Select one or more of your characters to link to this game."
+      }
       closeDisabled={submitting}
       footer={
         <div className="flex flex-wrap justify-end gap-3">
@@ -214,11 +233,12 @@ export function AddCharactersToGameModal({
     >
       <>
         <div className="flex gap-2">
-          <input
+          <TextField
+            variant="dark"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search your characters..."
-            className="min-w-0 flex-1 rounded border-2 border-white bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+            placeholder={searchPlaceholder}
+            className="min-w-0 flex-1"
             aria-label="Search characters"
             disabled={submitting}
           />
@@ -303,7 +323,7 @@ export function AddCharactersToGameModal({
                               tone="inverse"
                               label={
                                 <span className="text-xs">
-                                  Known to players
+                                  {visibilityCheckboxLabel}
                                 </span>
                               }
                               className="shrink-0"
@@ -320,9 +340,7 @@ export function AddCharactersToGameModal({
         </div>
 
         {selectableCount === 0 && !loading && !error && (
-          <p className="mt-3 text-sm text-white/80">
-            All of your characters are already linked to this game.
-          </p>
+          <p className="mt-3 text-sm text-white/80">{emptySelectableMessage}</p>
         )}
 
         {submitResult && (

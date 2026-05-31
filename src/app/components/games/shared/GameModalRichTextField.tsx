@@ -1,12 +1,12 @@
 "use client";
 
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
-  GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
+  RICH_TEXT_EXTENSIONS,
   normalizeStoredHtmlForEditor,
   serializeEditorToStoredHtml,
-} from "@/app/lib/tiptap/generalInformationRichText";
+} from "@/app/lib/tiptap/richText";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useEffect } from "react";
 
@@ -39,7 +39,7 @@ export function GameModalRichTextField({
   syncKey,
 }: GameModalRichTextFieldProps) {
   const editor = useEditor({
-    extensions: GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
+    extensions: RICH_TEXT_EXTENSIONS,
     content: normalizeStoredHtmlForEditor(value),
     editable: !disabled,
     immediatelyRender: false,
@@ -68,10 +68,10 @@ export function GameModalRichTextField({
 
   return (
     <div>
-      <ModalFieldLabel id={id} label={label} required={required} />
+      <FieldLabel id={id} label={label} required={required} />
       <div
         id={id}
-        className="character-note-html rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[11rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
+        className="rich-text-content rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[11rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
       >
         {editor ? (
           <>

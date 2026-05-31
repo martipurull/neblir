@@ -1,12 +1,6 @@
 import type { Currency } from "../types/item";
 import { prisma } from "./client";
 
-export async function getCharacterWallet(characterId: string) {
-  return prisma.characterCurrency.findMany({
-    where: { characterId },
-  });
-}
-
 export async function replaceCharacterWallet(
   characterId: string,
   wallet: Currency[]
@@ -31,12 +25,6 @@ export async function replaceCharacterWallet(
     return tx.characterCurrency.findMany({
       where: { characterId },
     });
-  });
-}
-
-export async function deleteCharacterWallet(characterId: string) {
-  return prisma.characterCurrency.deleteMany({
-    where: { characterId },
   });
 }
 

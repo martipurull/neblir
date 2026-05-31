@@ -1,16 +1,14 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { mapCreateSchema } from "@/app/lib/types/map";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
@@ -54,7 +52,7 @@ export function SuperAdminCreateMapForm() {
     const payload = {
       name: values.name.trim(),
       imageKey,
-      description: optionalSuperAdminRichHtml(values.description) ?? null,
+      description: optionalStoredRichHtml(values.description) ?? null,
     };
     const parsed = mapCreateSchema.safeParse(payload);
     if (!parsed.success) {
@@ -127,7 +125,7 @@ export function SuperAdminCreateMapForm() {
             name="description"
             control={form.control}
             render={({ field }) => (
-              <GeneralInformationRichTextField
+              <RichTextField
                 id="map-description"
                 value={field.value}
                 onChange={field.onChange}

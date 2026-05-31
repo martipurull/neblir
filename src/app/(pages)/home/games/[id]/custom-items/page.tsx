@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowseItemDetailModal } from "@/app/components/character/BrowseItemDetailModal";
+import { BrowseItemDetailModal } from "@/app/components/items/BrowseItemDetailModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
@@ -9,6 +9,7 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { TextField } from "@/app/components/shared/TextField";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getGameCustomItemById } from "@/lib/api/customItems";
@@ -143,13 +144,13 @@ export default function GameCustomItemsPage() {
             <label htmlFor="custom-items-search" className="sr-only">
               Search custom items
             </label>
-            <input
+            <TextField
               id="custom-items-search"
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, type, or description"
-              className="w-full rounded-md border border-black/15 bg-paleBlue px-3 py-2 text-sm text-black placeholder:text-black/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-black sm:max-w-sm"
+              className="text-sm sm:max-w-sm"
             />
           </div>
         )}

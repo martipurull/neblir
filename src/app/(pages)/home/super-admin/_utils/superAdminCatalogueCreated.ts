@@ -22,7 +22,7 @@ export function superAdminCatalogueCreatedHref(
   return `/home/super-admin/${segment}/created?id=${encodeURIComponent(id)}`;
 }
 
-export const CATALOGUE_CREATED_PAGE_SEGMENT: Record<
+const CATALOGUE_CREATED_PAGE_SEGMENT: Record<
   SuperAdminCatalogueCreatedKind,
   string
 > = {

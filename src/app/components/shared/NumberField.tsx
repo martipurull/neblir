@@ -2,17 +2,20 @@
 
 import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import {
-  modalNumberFieldInnerClass,
-  modalNumberFieldShellClass,
-} from "@/app/components/games/shared/modalStyles";
+  darkCompactNumberInputClassName,
+  darkNumberFieldInnerClass,
+  darkNumberFieldShellClass,
+} from "@/app/components/shared/darkInputStyles";
 import { NumberFieldStepperRail } from "@/app/components/shared/NumberFieldStepperRail";
 import {
+  sharedCompactNumberInputClassName,
   sharedNumberFieldInnerClass,
   sharedNumberFieldShellClass,
 } from "@/app/components/shared/inputStyles";
 import { forwardRef } from "react";
 
-export type NumberFieldVariant = "light" | "dark";
+type NumberFieldVariant = "light" | "dark";
+type NumberFieldDensity = "default" | "compact";
 
 export type NumberFieldProps = Omit<
   React.ComponentPropsWithoutRef<"input">,
@@ -22,8 +25,16 @@ export type NumberFieldProps = Omit<
   onChange: (value: string) => void;
   min?: number;
   max?: number;
-  step?: number;
+  /** Passed to the native `input` (`step="any"` allows free decimal typing). */
+  step?: number | "any";
+  /** ± rail increment. Defaults to 1 so steppers bump integers unless overridden. */
+  stepperStep?: number;
   variant?: NumberFieldVariant;
+  /**
+   * `compact`: border-only input without ± rail (e.g. qty between external buttons).
+   * Dark compact uses `darkCompactNumberInputClassName`.
+   */
+  density?: NumberFieldDensity;
   /** Layout/sizing on the bordered shell (width, margin, min-height). */
   className?: string;
   /** Typography/padding on the inner input (text-align, font, px/py overrides). */
@@ -39,12 +50,14 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       value,
       onChange,
       variant = "light",
+      density = "default",
       className = "",
       inputClassName = "",
       disabled = false,
       min,
       max,
       step = 1,
+      stepperStep = 1,
       placeholder,
       id,
       stepperLabel,
@@ -55,13 +68,45 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     ref
   ) {
     const displayValue = value === "" || value == null ? "" : String(value);
+    const inputMode =
+      step === "any" || !Number.isInteger(step) ? "decimal" : "numeric";
+
+    if (density === "compact") {
+      const compactClass =
+        variant === "dark"
+          ? darkCompactNumberInputClassName
+          : sharedCompactNumberInputClassName;
+      const mergedClass = [compactClass, inputClassName, className]
+        .filter(Boolean)
+        .join(" ");
+      return (
+        <input
+          {...rest}
+          ref={ref}
+          id={id}
+          type="number"
+          inputMode={inputMode}
+          value={displayValue}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          className={mergedClass}
+          disabled={disabled}
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          step={step}
+          aria-label={ariaLabel}
+        />
+      );
+    }
+
     const shellClass =
       variant === "dark"
-        ? modalNumberFieldShellClass
+        ? darkNumberFieldShellClass
         : sharedNumberFieldShellClass;
     const innerClass =
       variant === "dark"
-        ? modalNumberFieldInnerClass
+        ? darkNumberFieldInnerClass
         : sharedNumberFieldInnerClass;
     const shellClassName = [shellClass, className].filter(Boolean).join(" ");
     const mergedInnerClass = [innerClass, inputClassName]
@@ -70,7 +115,9 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     const railLabel = stepperLabel ?? ariaLabel ?? id ?? "Number";
 
     const bump = (direction: 1 | -1) => {
-      onChange(bumpNumericFieldValue(displayValue, direction, min, max, step));
+      onChange(
+        bumpNumericFieldValue(displayValue, direction, min, max, stepperStep)
+      );
     };
 
     return (
@@ -80,7 +127,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           ref={ref}
           id={id}
           type="number"
-          inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
+          inputMode={inputMode}
           value={displayValue}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}

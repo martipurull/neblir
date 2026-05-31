@@ -12,25 +12,23 @@ import {
 import { prisma } from "./client";
 import { buildStandaloneResolvedItem } from "./uniqueItem";
 
-export async function createItemCharacter(
-  data: Prisma.ItemCharacterUncheckedCreateInput
-) {
-  return prisma.itemCharacter.create({ data });
-}
-
 export async function addOrIncrementItemCharacter(
   characterId: string,
   sourceType: ItemSourceType,
   itemId: string,
-  options?: { initialCurrentUsesMax?: number | null }
+  options?: {
+    initialCurrentUsesMax?: number | null;
+    quantity?: number;
+  }
 ) {
+  const quantity = options?.quantity ?? 1;
   const existing = await prisma.itemCharacter.findFirst({
     where: { characterId, sourceType, itemId },
   });
   if (existing) {
     return prisma.itemCharacter.update({
       where: { id: existing.id },
-      data: { quantity: { increment: 1 } },
+      data: { quantity: { increment: quantity } },
     });
   }
   const maxUses =
@@ -42,7 +40,7 @@ export async function addOrIncrementItemCharacter(
       characterId,
       sourceType,
       itemId,
-      quantity: 1,
+      quantity,
       currentUses: maxUses ?? 0,
       itemLocation: ITEM_LOCATION_CARRIED,
     },
@@ -282,8 +280,4 @@ export async function updateItemCharacter(
 
 export async function deleteItemCharacter(id: string) {
   return prisma.itemCharacter.delete({ where: { id } });
-}
-
-export async function deleteCharacterInventory(characterId: string) {
-  return prisma.itemCharacter.deleteMany({ where: { characterId } });
 }

@@ -112,6 +112,8 @@ export type AppButtonVariant =
   | "modalFooterGhostFull"
   /** Small ± on dark modal with 1px border (damage roll extra dice). */
   | "modalIconStepperFlatSm"
+  /** Extra-compact ± for inline browse rows (e.g. add-to-inventory qty). */
+  | "modalIconStepperCompact"
   /** Large modal ± (item uses). */
   | "modalIconStepperLg"
   /** Subtle bordered block on dark panels (leave / take item). */
@@ -120,6 +122,16 @@ export type AppButtonVariant =
   | "modalClosePaleBordered"
   /** Full-width tappable row in dark modal lists. */
   | "modalListRowHit"
+  /** Full-width bordered action block on dark modals (nav links, toggles). */
+  | "modalActionBlock"
+  /** Selectable browse list row — idle (e.g. enemy picker). */
+  | "modalBrowseListRow"
+  /** Selectable browse list row — selected. */
+  | "modalBrowseListRowSelected"
+  /** Borderless dropzone browse trigger on light surfaces. */
+  | "imageUploadBrowseTriggerLight"
+  /** Borderless dropzone browse trigger on dark modals. */
+  | "imageUploadBrowseTriggerDark"
   /** Compact primary CTA without `min-h-11` (GM sections, initiative). */
   | "primarySm"
   /** Extra-small primary (invites, discord). */
@@ -334,6 +346,9 @@ const modalFooterGhostFull =
 const modalIconStepperFlatSm =
   "flex h-8 w-8 items-center justify-center rounded border border-white bg-transparent text-white transition-colors hover:bg-paleBlue/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40";
 
+const modalIconStepperCompact =
+  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-white/30 bg-transparent text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50 disabled:pointer-events-none disabled:opacity-40";
+
 const modalIconStepperLg =
   "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 border-white bg-transparent text-lg font-bold text-white transition-colors hover:bg-paleBlue/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent";
 
@@ -345,6 +360,21 @@ const modalClosePaleBordered =
 
 const modalListRowHit =
   "min-w-0 flex-1 rounded text-left transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent";
+
+const modalActionBlock =
+  "w-full rounded-md border-2 border-white/40 bg-modalBackground-200 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-modalBackground-400 disabled:cursor-not-allowed disabled:opacity-60";
+
+const modalBrowseListRow =
+  "flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm text-white/90 transition-colors hover:bg-paleBlue/10 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50";
+
+const modalBrowseListRowSelected =
+  "flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm bg-paleBlue/20 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50";
+
+const imageUploadBrowseTriggerLight =
+  "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-black/70 hover:text-black disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
+
+const imageUploadBrowseTriggerDark =
+  "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-white/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40";
 
 const primarySm =
   "rounded-md bg-customPrimary px-4 py-2 text-sm font-medium text-customSecondary transition-colors hover:bg-customPrimaryHover focus:outline-none focus-visible:ring-2 focus-visible:ring-customPrimary/50 disabled:opacity-50";
@@ -409,6 +439,9 @@ const lightRemoveLinkOnModal =
 const lightReferenceDisclosure =
   "flex w-full items-center justify-between gap-3 rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
 
+/** Layout helper for Next.js `Link` styled as {@link modalActionBlock}. */
+export const linkAsModalActionBlockClassName = "block w-full text-center";
+
 export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primary,
   secondary,
@@ -471,10 +504,16 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   carouselDotInactive,
   modalFooterGhostFull,
   modalIconStepperFlatSm,
+  modalIconStepperCompact,
   modalIconStepperLg,
   modalSubtleWhiteBorderBlock,
   modalClosePaleBordered,
   modalListRowHit,
+  modalActionBlock,
+  modalBrowseListRow,
+  modalBrowseListRowSelected,
+  imageUploadBrowseTriggerLight,
+  imageUploadBrowseTriggerDark,
   primarySm,
   primaryXs,
   secondaryOutlineXs,

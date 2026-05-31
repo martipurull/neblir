@@ -1,5 +1,8 @@
+export { GmCoverImageSection } from "./GmCoverImageSection";
+export { GmPremiseSection } from "./GmPremiseSection";
 export { GmInitiativeSection } from "./GmInitiativeSection";
 export { GmInvitesSection } from "./GmInvitesSection";
+export { GmPlayersSection } from "./GmPlayersSection";
 export { GmCustomEnemiesSection } from "./GmCustomEnemiesSection";
 export { GmItemsSection } from "./GmItemsSection";
 export { GmDiscordSection } from "./GmDiscordSection";
@@ -7,6 +10,5 @@ export { GmLoreSection } from "./GmLoreSection";
 export { GmRecapsSection } from "./GmRecapsSection";
 export { GmImagesSection } from "./GmImagesSection";
 export { GmNpcsSection } from "./GmNpcsSection";
-export { GmPlaceholderSection } from "./GmPlaceholderSection";
 export { GmDiceRollerSection } from "./GmDiceRollerSection";
-export { GmSectionTitle, gmSectionTitleClassName } from "./GmSectionTitle";
+export { GmDangerZoneSection } from "./GmDangerZoneSection";

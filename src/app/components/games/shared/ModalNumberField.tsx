@@ -1,7 +1,7 @@
 "use client";
 
 import { NumberField } from "@/app/components/shared/NumberField";
-import { ModalFieldLabel } from "./ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 
 export type ModalNumberFieldProps = {
   id: string;
@@ -9,7 +9,7 @@ export type ModalNumberFieldProps = {
   value: string;
   onChange: (value: string) => void;
   disabled: boolean;
-  /** Passed to ModalFieldLabel. Defaults to true (required marker). */
+  /** Passed to FieldLabel. Defaults to true (required marker). */
   required?: boolean;
   placeholder?: string;
   min?: number;
@@ -19,7 +19,7 @@ export type ModalNumberFieldProps = {
   inputClassName?: string;
 };
 
-/** Controlled number input for game modals (dark theme, ModalFieldLabel). */
+/** Controlled number input for game modals (dark theme, FieldLabel). */
 export function ModalNumberField({
   id,
   label,
@@ -35,7 +35,7 @@ export function ModalNumberField({
 }: ModalNumberFieldProps) {
   return (
     <div>
-      <ModalFieldLabel id={id} label={label} required={required} />
+      <FieldLabel id={id} label={label} required={required} />
       <NumberField
         id={id}
         value={value}

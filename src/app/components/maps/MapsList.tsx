@@ -1,6 +1,6 @@
 "use client";
 
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { GameMap } from "@/app/lib/types/map";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";

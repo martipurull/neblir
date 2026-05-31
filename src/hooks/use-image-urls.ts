@@ -7,6 +7,8 @@ type ImageEntry = {
 };
 
 type ImageUrlMap = Record<string, string | null>;
+const MAX_IMAGE_URL_RETRIES = 3;
+const RETRY_DELAY_MS = 500;
 
 export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
   const [imageUrls, setImageUrls] = useState<ImageUrlMap>({});
@@ -18,11 +20,9 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
     const entriesToFetch = entries.filter((entry) => {
       if (!entry.imageKey) return false;
       if (imageUrls[entry.id] === undefined) return true;
-      // Currency icon fetches can intermittently fail; retry a couple of times.
       if (
         imageUrls[entry.id] === null &&
-        entry.imageKey.startsWith("currency-") &&
-        (retryCountByIdRef.current[entry.id] ?? 0) < 2
+        (retryCountByIdRef.current[entry.id] ?? 0) < MAX_IMAGE_URL_RETRIES
       ) {
         return true;
       }
@@ -36,8 +36,13 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
     const resolveImageUrls = async () => {
       const resolvedEntries = await Promise.all(
         entriesToFetch.map(async (entry) => {
-          retryCountByIdRef.current[entry.id] =
-            (retryCountByIdRef.current[entry.id] ?? 0) + 1;
+          const nextAttempt = (retryCountByIdRef.current[entry.id] ?? 0) + 1;
+          retryCountByIdRef.current[entry.id] = nextAttempt;
+          if (nextAttempt > 1) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, (nextAttempt - 1) * RETRY_DELAY_MS)
+            );
+          }
           try {
             const url = await getImageUrl(entry.imageKey as string);
             return [entry.id, url] as const;

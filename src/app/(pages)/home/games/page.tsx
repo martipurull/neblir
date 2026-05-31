@@ -69,7 +69,7 @@ const GamesPage: React.FC = () => {
         )}
 
         {!loading && !error && games.length > 0 && (
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {games.map((game) => (
               <GameListCard
                 key={game.id}

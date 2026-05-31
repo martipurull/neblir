@@ -9,13 +9,13 @@ import { walletSchema } from "@/app/lib/types/item";
 import { specialAbilityNameSchemaValues } from "@/app/lib/specialAbility";
 import { z } from "zod";
 
-export const characterCreationGeneralInformationSchema =
-  generalInformationSchema
-    .omit({ specialAbility: true })
-    .extend({
-      specialAbilityName: z.enum(specialAbilityNameSchemaValues).optional(),
-    })
-    .strict();
+const characterCreationGeneralInformationSchema = generalInformationSchema
+  .omit({ specialAbility: true })
+  .extend({
+    name: z.string().trim().min(1, "Name is required"),
+    specialAbilityName: z.enum(specialAbilityNameSchemaValues).optional(),
+  })
+  .strict();
 
 export const characterCreationRequestSchema = z
   .object({
@@ -63,9 +63,13 @@ export const characterCreationRequestSchema = z
       )
       .optional(),
     path: z.strictObject({
-      pathId: z.string(),
+      pathId: z.string().trim().min(1, "Please select a path"),
       rank: z.number().min(1),
     }),
+    /** When set, links the new character to this game in the same transaction. */
+    gameId: z.string().min(1).optional(),
+    /** GM-only visibility; non-GMs are forced public. Defaults to false when omitted. */
+    gameLinkIsPublic: z.boolean().optional(),
   })
   .strict();
 

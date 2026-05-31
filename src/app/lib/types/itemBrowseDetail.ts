@@ -4,7 +4,7 @@ import type {
 } from "@/app/lib/levelUpPaths";
 import type { ItemWithId } from "@/lib/api/items";
 
-export type ItemBrowseDamage = {
+type ItemBrowseDamage = {
   damageType: Array<
     | "BULLET"
     | "BLADE"

@@ -7,8 +7,16 @@ import {
 /** Header equip cells map 1:1 to API equip slots */
 export type DisplayEquipSlot = EquipSlot;
 
+const WEAR_RELIEF_EQUIP_SLOTS = [
+  "BODY",
+  "HEAD",
+  "FOOT",
+] as const satisfies readonly EquipSlot[];
+
+const WEAR_RELIEF_SLOT_SET = new Set<string>(WEAR_RELIEF_EQUIP_SLOTS);
+
 /** Order used when an item has no equipSlotTypes (fits any slot). */
-export const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
+const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
   "HAND",
   "FOOT",
   "BODY",
@@ -54,6 +62,33 @@ export function getEquippedInstanceCount(
   return Math.min(
     ...uniqueTypes.map((t) => slots.filter((s) => s === t).length)
   );
+}
+
+/**
+ * How many equipped copies on BODY, HEAD, and/or FOOT count as worn for carry
+ * weight (half weight per copy). Uses the same instance counting as equip
+ * (not slot-cost division), so grade-3 body armour with one BODY tag still
+ * counts as one worn suit.
+ */
+export function getWearReliefEquippedInstanceCount(
+  equipSlots: string[] | undefined,
+  equipSlotTypes: string[] | undefined | null
+): number {
+  const slots = equipSlots ?? [];
+  const occupiedRelief = slots.filter((s) => WEAR_RELIEF_SLOT_SET.has(s));
+  if (occupiedRelief.length === 0) return 0;
+
+  const types = equipSlotTypes?.filter(Boolean) ?? [];
+  const reliefTypesInTemplate = types.filter((t) =>
+    WEAR_RELIEF_SLOT_SET.has(t)
+  );
+
+  if (reliefTypesInTemplate.length > 0) {
+    return getEquippedInstanceCount(slots, reliefTypesInTemplate);
+  }
+
+  const reliefTypesPresent = [...new Set(occupiedRelief)] as EquipSlot[];
+  return getEquippedInstanceCount(slots, reliefTypesPresent);
 }
 
 /**
@@ -168,11 +203,6 @@ export const HEADER_EQUIP_SLOTS_ROW2: {
 /** Capacity per API slot (HAND, FOOT, BODY, HEAD, BRAIN each have this) */
 export const API_SLOT_CAPACITY = 2;
 
-/** Capacity per display slot (same as API — each cell is one slot) */
-export function getSlotCapacity(_displaySlot: DisplayEquipSlot): number {
-  return API_SLOT_CAPACITY;
-}
-
 /** API slot(s) represented by a header equip cell */
 export function getApiSlotsForDisplay(
   displaySlot: DisplayEquipSlot
@@ -198,7 +228,7 @@ export function itemCanEquipInSlot(
 }
 
 /** Get used capacity in a single API slot */
-export function getUsedCapacityInApiSlot(
+function getUsedCapacityInApiSlot(
   inventory: {
     status?: ItemStatus;
     equipSlots?: string[];
@@ -226,22 +256,4 @@ export function getUsedCapacityInApiSlot(
     sum += count * cost;
   }
   return sum;
-}
-
-/** Get total used capacity for a header display slot */
-export function getUsedCapacityForDisplaySlot(
-  inventory: {
-    equipSlots?: string[];
-    item?: {
-      equipSlotCost?: number | null;
-      equipSlotTypes?: string[] | null;
-    } | null;
-  }[],
-  displaySlot: DisplayEquipSlot
-): number {
-  const apiSlots = getApiSlotsForDisplay(displaySlot);
-  return apiSlots.reduce(
-    (sum, s) => sum + getUsedCapacityInApiSlot(inventory, s),
-    0
-  );
 }

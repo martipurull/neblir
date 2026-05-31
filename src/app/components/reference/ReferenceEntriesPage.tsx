@@ -12,7 +12,7 @@ import { InfoCard } from "../shared/InfoCard";
 import { LoadingState } from "../shared/LoadingState";
 import { PageSection } from "../shared/PageSection";
 import { PageTitle } from "../shared/PageTitle";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { ReferenceEntryHtml } from "./ReferenceEntryHtml";
 
 interface ReferenceEntriesPageProps {
@@ -133,7 +133,7 @@ export function ReferenceEntriesPage({
                             : "Player"}
                         </span>
                       ) : null}
-                      {entry.summary ? (
+                      {entry.summary && !isExpanded ? (
                         <StoredRichTextHtml
                           content={entry.summary}
                           className="mt-1 block text-sm text-black/70"

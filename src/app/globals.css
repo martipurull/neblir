@@ -29,59 +29,59 @@
   }
 }
 
-/* TipTap / generateHTML output for character notes — matches slide typography */
+/* TipTap / generateHTML prose styling for app rich text output */
 @layer components {
-  .character-note-html p {
+  .rich-text-content p {
     margin-bottom: 0.35rem;
   }
-  .character-note-html p:last-child {
+  .rich-text-content p:last-child {
     margin-bottom: 0;
   }
-  .character-note-html ul,
-  .character-note-html ol {
+  .rich-text-content ul,
+  .rich-text-content ol {
     margin: 0.25rem 0 0.4rem;
     padding-left: 1.15rem;
   }
-  .character-note-html ul {
+  .rich-text-content ul {
     list-style-type: disc;
   }
-  .character-note-html ol {
+  .rich-text-content ol {
     list-style-type: decimal;
   }
-  .character-note-html li {
+  .rich-text-content li {
     margin-bottom: 0.15rem;
   }
-  .character-note-html li p {
+  .rich-text-content li p {
     margin-bottom: 0.15rem;
   }
-  .character-note-html strong {
+  .rich-text-content strong {
     font-weight: 600;
   }
-  .character-note-html em {
+  .rich-text-content em {
     font-style: italic;
   }
-  .character-note-html h1,
-  .character-note-html h2,
-  .character-note-html h3 {
+  .rich-text-content h1,
+  .rich-text-content h2,
+  .rich-text-content h3 {
     font-weight: 600;
     margin: 0.4rem 0 0.2rem;
     font-size: 0.875rem;
     line-height: 1.25;
   }
-  .character-note-html blockquote {
+  .rich-text-content blockquote {
     border-left: 2px solid rgb(0 0 0 / 0.35);
     padding-left: 0.65rem;
     margin: 0.35rem 0;
   }
-  .character-note-html code {
+  .rich-text-content code {
     font-size: 0.8125em;
   }
-  .character-note-html pre {
+  .rich-text-content pre {
     margin: 0.35rem 0;
     overflow-x: auto;
     font-size: 0.8125em;
   }
-  .character-note-html hr {
+  .rich-text-content hr {
     margin: 0.5rem 0;
     border: 0;
     border-top: 1px solid rgb(0 0 0 / 0.25);

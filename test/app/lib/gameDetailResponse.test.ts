@@ -23,6 +23,12 @@ function makeGameWithCharacters() {
         userId: "player-1",
         user: { id: "player-1", name: "Player" },
       },
+      {
+        id: "gu-p2",
+        gameId: "g-1",
+        userId: "player-2",
+        user: { id: "player-2", name: "Other" },
+      },
     ],
     characters: [
       {
@@ -40,6 +46,40 @@ function makeGameWithCharacters() {
           },
           combatInformation: { initiativeMod: 2 },
           users: [{ userId: "player-1" }],
+        },
+      },
+      {
+        id: "gc-other-private",
+        gameId: "g-1",
+        characterId: "char-other-private",
+        isPublic: false,
+        character: {
+          id: "char-other-private",
+          generalInformation: {
+            name: "Secret",
+            surname: "PC",
+            level: 5,
+            avatarKey: null,
+          },
+          combatInformation: { initiativeMod: 1 },
+          users: [{ userId: "player-2" }],
+        },
+      },
+      {
+        id: "gc-other-public",
+        gameId: "g-1",
+        characterId: "char-other-public",
+        isPublic: true,
+        character: {
+          id: "char-other-public",
+          generalInformation: {
+            name: "Open",
+            surname: "PC",
+            level: 2,
+            avatarKey: null,
+          },
+          combatInformation: { initiativeMod: 0 },
+          users: [{ userId: "player-2" }],
         },
       },
       {
@@ -107,20 +147,36 @@ describe("shapeGameForResponse visibility filtering", () => {
     );
     expect(shaped?.characters?.map((c) => c.character.id).sort()).toEqual([
       "char-legacy",
+      "char-other-private",
+      "char-other-public",
       "char-owned",
       "char-private",
       "char-public",
     ]);
   });
 
-  it("filters out private non-owned NPCs for non-GM", () => {
+  it("filters out private non-owned characters for non-GM", () => {
     const shaped = shapeGameForResponse(
       makeGameWithCharacters() as any,
       "player-1"
     );
     expect(shaped?.characters?.map((c) => c.character.id).sort()).toEqual([
       "char-legacy",
+      "char-other-public",
       "char-owned",
+      "char-public",
+    ]);
+  });
+
+  it("hides another player's private PC from a different player", () => {
+    const shaped = shapeGameForResponse(
+      makeGameWithCharacters() as any,
+      "player-2"
+    );
+    expect(shaped?.characters?.map((c) => c.character.id).sort()).toEqual([
+      "char-legacy",
+      "char-other-private",
+      "char-other-public",
       "char-public",
     ]);
   });

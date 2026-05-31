@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
+import { RollResultQuickModal } from "@/app/components/shared/RollResultQuickModal";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 
@@ -19,10 +20,17 @@ interface HealthStepProps {
   clampOnBlur?: boolean;
 }
 
+type HpRollModalState = {
+  kind: "physical" | "mental";
+  dice: number[];
+  total: number;
+};
+
 export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
   const {
     control,
     setValue,
+    clearErrors,
     formState: { errors },
   } = useFormContext<CharacterCreationRequest>();
   const level = useWatch({ control, name: "generalInformation.level" }) ?? 1;
@@ -72,16 +80,38 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
   const maxPhysicalHealth = innatePhysicalHealth + rolledPhysicalHealth;
   const maxMentalHealth = innateMentalHealth + rolledMentalHealth;
 
-  // (No local UI state needed; health values come from the form.)
-
   const speedMPer6 =
     10 + (dexterity?.agility ?? 0) + (strength?.athletics ?? 0);
   const initiativeMod =
     (personality?.mentality ?? 0) + (dexterity?.agility ?? 0);
   const extraDice = Math.max(0, level - 1);
 
-  const physicalErr = errors.health?.rolledPhysicalHealth?.message;
-  const mentalErr = errors.health?.rolledMentalHealth?.message;
+  const commitRolledPhysical = (value: number) => {
+    setValue("health.rolledPhysicalHealth", value, { shouldDirty: true });
+    if (value >= minRolled && value <= maxRolled) {
+      clearErrors("health.rolledPhysicalHealth");
+    }
+  };
+
+  const commitRolledMental = (value: number) => {
+    setValue("health.rolledMentalHealth", value, { shouldDirty: true });
+    if (value >= minRolled && value <= maxRolled) {
+      clearErrors("health.rolledMentalHealth");
+    }
+  };
+
+  const isPhysicalOutOfRange =
+    rolledPhysicalHealth < minRolled || rolledPhysicalHealth > maxRolled;
+  const isMentalOutOfRange =
+    rolledMentalHealth < minRolled || rolledMentalHealth > maxRolled;
+  const isHealthOutOfRange = isPhysicalOutOfRange || isMentalOutOfRange;
+
+  const physicalErr = isPhysicalOutOfRange
+    ? errors.health?.rolledPhysicalHealth?.message
+    : undefined;
+  const mentalErr = isMentalOutOfRange
+    ? errors.health?.rolledMentalHealth?.message
+    : undefined;
 
   const PhysicalBar = ({
     innate,
@@ -123,27 +153,8 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
       </div>
     );
   };
-  const isPhysicalOutOfRange =
-    rolledPhysicalHealth < minRolled || rolledPhysicalHealth > maxRolled;
-  const isMentalOutOfRange =
-    rolledMentalHealth < minRolled || rolledMentalHealth > maxRolled;
 
-  type RollModalState = {
-    open: boolean;
-    dice: number[];
-    total: number;
-  };
-
-  const [physicalRollModal, setPhysicalRollModal] = useState<RollModalState>({
-    open: false,
-    dice: [],
-    total: 10,
-  });
-  const [mentalRollModal, setMentalRollModal] = useState<RollModalState>({
-    open: false,
-    dice: [],
-    total: 10,
-  });
+  const [hpRollModal, setHpRollModal] = useState<HpRollModalState | null>(null);
 
   const rollWithDice = (diceCount: number) => {
     const dice: number[] = [];
@@ -154,6 +165,12 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
 
   return (
     <div className="space-y-5">
+      {isHealthOutOfRange && (
+        <p className="text-sm text-neblirDanger-600">
+          Rolled health is out of range for level {level}. Adjust physical
+          and/or mental HP (min {minRolled}, max {maxRolled}) before continuing.
+        </p>
+      )}
       <div className="rounded border border-black/20 bg-black/5 p-3">
         <p className="font-bold text-black">Derived stats</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -183,10 +200,8 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
-                setValue("health.rolledPhysicalHealth", total, {
-                  shouldDirty: true,
-                });
-                setPhysicalRollModal({ open: true, dice, total });
+                commitRolledPhysical(total);
+                setHpRollModal({ kind: "physical", dice, total });
               }}
               className="px-3 py-1 text-sm"
             >
@@ -212,9 +227,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   const safe = clampOnBlur
                     ? clampRolled(next, minRolled, maxRolled)
                     : next;
-                  setValue("health.rolledPhysicalHealth", safe, {
-                    shouldDirty: true,
-                  });
+                  commitRolledPhysical(safe);
                   setPhysicalInput(String(safe));
                 }}
                 className="!w-24 !min-h-9"
@@ -252,10 +265,8 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
               onClick={() => {
                 const diceCount = Math.max(0, level - 1);
                 const { dice, total } = rollWithDice(diceCount);
-                setValue("health.rolledMentalHealth", total, {
-                  shouldDirty: true,
-                });
-                setMentalRollModal({ open: true, dice, total });
+                commitRolledMental(total);
+                setHpRollModal({ kind: "mental", dice, total });
               }}
               className="px-3 py-1 text-sm"
             >
@@ -281,9 +292,7 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
                   const safe = clampOnBlur
                     ? clampRolled(next, minRolled, maxRolled)
                     : next;
-                  setValue("health.rolledMentalHealth", safe, {
-                    shouldDirty: true,
-                  });
+                  commitRolledMental(safe);
                   setMentalInput(String(safe));
                 }}
                 className="!w-24 !min-h-9"
@@ -308,75 +317,18 @@ export function HealthStep({ clampOnBlur = true }: HealthStepProps) {
         </div>
       </div>
 
-      {(physicalRollModal.open || mentalRollModal.open) && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="health-hp-roll-title"
-          onClick={() => {
-            setPhysicalRollModal((p) => ({ ...p, open: false }));
-            setMentalRollModal((m) => ({ ...m, open: false }));
-          }}
-        >
-          <div
-            className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded border border-black/20 bg-modalBackground-200 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/15 px-4 py-3">
-              <div>
-                <p
-                  id="health-hp-roll-title"
-                  className="text-sm font-semibold text-black"
-                >
-                  {physicalRollModal.open
-                    ? "Physical HP roll"
-                    : "Mental HP roll"}
-                </p>
-                <p className="mt-1 text-xs text-black/60">
-                  Rolls: {extraDice}d10 + 10
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="modalCloseLight"
-                fullWidth={false}
-                aria-label="Close roll results"
-                onClick={() => {
-                  setPhysicalRollModal((p) => ({ ...p, open: false }));
-                  setMentalRollModal((m) => ({ ...m, open: false }));
-                }}
-              >
-                ×
-              </Button>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <div className="rounded border border-black/10 bg-modalBackground-200 p-3">
-                {(() => {
-                  const state = physicalRollModal.open
-                    ? physicalRollModal
-                    : mentalRollModal;
-                  return (
-                    <>
-                      <p className="text-sm font-medium text-customSecondary">
-                        Dice ({state.dice.length}):{" "}
-                        {state.dice.length > 0 ? state.dice.join(", ") : "none"}
-                      </p>
-                      <p className="mt-1 text-sm text-customSecondary/70">
-                        Total:{" "}
-                        <span className="font-semibold text-customSecondary">
-                          {state.total}
-                        </span>
-                      </p>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <RollResultQuickModal
+        isOpen={hpRollModal !== null}
+        onClose={() => setHpRollModal(null)}
+        title={
+          hpRollModal?.kind === "mental" ? "Mental HP roll" : "Physical HP roll"
+        }
+        subtitle={`Rolls: ${extraDice}d10 + 10`}
+        results={hpRollModal?.dice ?? []}
+        highlightMode="plain"
+        totalLabel="Total"
+        total={hpRollModal?.total}
+      />
     </div>
   );
 }

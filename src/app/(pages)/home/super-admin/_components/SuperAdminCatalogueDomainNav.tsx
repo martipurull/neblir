@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export type SuperAdminCatalogueDomain =
+type SuperAdminCatalogueDomain =
   | "items"
   | "paths"
   | "features"

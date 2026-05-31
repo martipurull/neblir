@@ -1,12 +1,9 @@
 "use client";
 
-import type { z } from "zod";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { UseFormSetError } from "react-hook-form";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
-import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { createCharacter } from "@/lib/api/character";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { InitialFeatureEntry } from "./steps/PathAndFeaturesStep";
@@ -15,17 +12,12 @@ import {
   CREATE_CHARACTER_FEATURES_DRAFT_KEY,
   CREATE_CHARACTER_STEP_DRAFT_KEY,
 } from "./characterCreateDraft";
-
-function setZodErrors(
-  setError: UseFormSetError<CharacterCreationRequest>,
-  error: z.ZodError
-) {
-  for (const issue of error.issues) {
-    const path = issue.path.join(".") as keyof CharacterCreationRequest &
-      string;
-    if (path) setError(path as never, { message: issue.message });
-  }
-}
+import {
+  applyCharacterCreationStepValidationErrors,
+  getFirstInvalidCharacterCreationStep,
+  isCharacterCreationFormSubmittable,
+  isCharacterCreationStepValid,
+} from "./characterCreationStepValidation";
 
 function isInitialFeatureEntry(value: unknown): value is InitialFeatureEntry {
   if (typeof value !== "object" || value === null) return false;
@@ -48,6 +40,11 @@ export function useCharacterCreateController() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freshStart = searchParams.get("fresh") === "1";
+  const linkGameId = searchParams.get("gameId");
+  const returnTo = searchParams.get("returnTo");
+  const gameLinkIsPublic =
+    searchParams.get("gameLinkIsPublic") === "1" ||
+    searchParams.get("gameLinkIsPublic") === "true";
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -55,8 +52,33 @@ export function useCharacterCreateController() {
     []
   );
 
-  const { getValues, setError, clearErrors } =
+  const { control, getValues, setError, clearErrors } =
     useFormContext<CharacterCreationRequest>();
+  const watchedValues = useWatch({ control }) as CharacterCreationRequest;
+
+  const validationContext = useMemo(
+    () => ({ initialFeatures }),
+    [initialFeatures]
+  );
+
+  const canProceedFromCurrentStep = useMemo(
+    () =>
+      isCharacterCreationStepValid(
+        currentStepIndex,
+        watchedValues ?? getValues(),
+        validationContext
+      ),
+    [currentStepIndex, getValues, validationContext, watchedValues]
+  );
+
+  const canSubmitCharacter = useMemo(
+    () =>
+      isCharacterCreationFormSubmittable(
+        watchedValues ?? getValues(),
+        validationContext
+      ),
+    [getValues, validationContext, watchedValues]
+  );
 
   // Restore step index when resuming a draft (page refresh). Skip on ?fresh=1 so we
   // do not jump ahead before CreateCharacterPageClient clears localStorage.
@@ -145,148 +167,91 @@ export function useCharacterCreateController() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const validateCurrentStep = useCallback((): boolean => {
+  const validateStepAt = useCallback(
+    (stepIndex: number): boolean => {
+      clearErrors();
+      return applyCharacterCreationStepValidationErrors(
+        stepIndex,
+        getValues(),
+        setError,
+        validationContext
+      );
+    },
+    [clearErrors, getValues, setError, validationContext]
+  );
+
+  const validateAllSteps = useCallback((): number | null => {
     clearErrors();
     const values = getValues();
+    const firstInvalidStep = getFirstInvalidCharacterCreationStep(
+      values,
+      validationContext
+    );
+    if (firstInvalidStep === null) return null;
 
-    if (currentStepIndex === 0) return true;
-
-    if (currentStepIndex === 1) {
-      const res =
-        characterCreationRequestSchema.shape.generalInformation.safeParse(
-          values.generalInformation
-        );
-      if (!res.success) {
-        setZodErrors(setError, res.error);
-        return false;
-      }
-
-      const walletRes = characterCreationRequestSchema.shape.wallet.safeParse(
-        values.wallet
-      );
-      if (!walletRes.success) {
-        setZodErrors(setError, walletRes.error);
-        return false;
-      }
-      return true;
-    }
-
-    if (currentStepIndex === 2) {
-      const res =
-        characterCreationRequestSchema.shape.innateAttributes.safeParse(
-          values.innateAttributes
-        );
-      if (!res.success) {
-        setZodErrors(setError, res.error);
-        return false;
-      }
-
-      const groups = Object.values(values.innateAttributes ?? {});
-      const sum = groups.reduce((acc, g) => {
-        const groupSum = Object.values(g as Record<string, number>).reduce(
-          (a, v) => a + v,
-          0
-        );
-        return acc + groupSum;
-      }, 0);
-
-      if (sum > 36) {
-        setError("innateAttributes" as never, {
-          message: "Innate attributes sum cannot exceed 36.",
-        });
-        return false;
-      }
-      return true;
-    }
-
-    if (currentStepIndex === 3) {
-      const level = values.generalInformation?.level ?? 1;
-      const healthRes = characterCreationRequestSchema.shape.health.safeParse(
-        values.health
-      );
-      if (!healthRes.success) {
-        setZodErrors(setError, healthRes.error);
-        return false;
-      }
-
-      const maxRolled = 10 * level;
-      // Rolling rule:
-      // Level 1 = 10
-      // Level N = 10 + (N-1)d10, so the minimum is when all d10 are 1s:
-      // minRolled = 10 + (N-1)*1 = N + 9
-      const minRolled = 10 + Math.max(0, level - 1);
-      const rolledPhysical = values.health?.rolledPhysicalHealth ?? 10;
-      const rolledMental = values.health?.rolledMentalHealth ?? 10;
-
-      if (rolledPhysical < minRolled || rolledPhysical > maxRolled) {
-        setError("health.rolledPhysicalHealth" as never, {
-          message: `Physical HP looks too low for level ${level}. Please roll physical HP (min ${minRolled}, max ${maxRolled}).`,
-        });
-        return false;
-      }
-
-      if (rolledMental < minRolled || rolledMental > maxRolled) {
-        setError("health.rolledMentalHealth" as never, {
-          message: `Mental HP looks too low for level ${level}. Please roll mental HP (min ${minRolled}, max ${maxRolled}).`,
-        });
-        return false;
-      }
-
-      return true;
-    }
-
-    if (currentStepIndex === 4) {
-      const res = characterCreationRequestSchema.shape.learnedSkills.safeParse(
-        values.learnedSkills
-      );
-      if (!res.success) {
-        setZodErrors(setError, res.error);
-        return false;
-      }
-
-      const level = values.generalInformation?.level ?? 1;
-      const filledSpecial =
-        values.learnedSkills?.specialSkills?.filter((s) => s?.trim()).length ??
-        0;
-
-      const learnedSkillsMax = 13 + level + (3 - filledSpecial);
-      const sum = Object.values(
-        values.learnedSkills?.generalSkills ?? {}
-      ).reduce((acc, v) => acc + (v === 5 ? 6 : v), 0);
-
-      if (sum > learnedSkillsMax) {
-        setError("learnedSkills.generalSkills" as never, {
-          message: `Learned skills exceed maximum (${learnedSkillsMax}).`,
-        });
-        return false;
-      }
-      return true;
-    }
-
-    if (currentStepIndex === 5) {
-      if (!values.path?.pathId?.trim()) {
-        setError("path.pathId" as never, { message: "Please select a path" });
-        return false;
-      }
-      return true;
-    }
-
-    return true;
-  }, [clearErrors, currentStepIndex, getValues, setError]);
+    applyCharacterCreationStepValidationErrors(
+      firstInvalidStep,
+      values,
+      setError,
+      validationContext
+    );
+    return firstInvalidStep;
+  }, [clearErrors, getValues, setError, validationContext]);
 
   const onNext = useCallback(() => {
-    if (!validateCurrentStep()) {
+    if (!validateStepAt(currentStepIndex)) {
       scrollToTop();
       return;
     }
     setCurrentStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
-  }, [validateCurrentStep]);
+  }, [currentStepIndex, validateStepAt]);
+
+  const goToStep = useCallback(
+    (targetStepIndex: number) => {
+      const clampedTarget = Math.max(
+        0,
+        Math.min(STEPS.length - 1, targetStepIndex)
+      );
+      if (clampedTarget === currentStepIndex) return;
+
+      if (!validateStepAt(currentStepIndex)) {
+        scrollToTop();
+        return;
+      }
+
+      setSubmitError(null);
+      const values = getValues();
+
+      if (clampedTarget > currentStepIndex) {
+        for (
+          let stepIndex = currentStepIndex + 1;
+          stepIndex < clampedTarget;
+          stepIndex++
+        ) {
+          if (
+            !isCharacterCreationStepValid(stepIndex, values, validationContext)
+          ) {
+            applyCharacterCreationStepValidationErrors(
+              stepIndex,
+              values,
+              setError,
+              validationContext
+            );
+            setCurrentStepIndex(stepIndex);
+            scrollToTop();
+            return;
+          }
+        }
+      }
+
+      setCurrentStepIndex(clampedTarget);
+    },
+    [currentStepIndex, getValues, setError, validationContext, validateStepAt]
+  );
 
   const onBack = useCallback(() => {
-    setCurrentStepIndex((i) => Math.max(0, i - 1));
-    setSubmitError(null);
-    scrollToTop();
-  }, []);
+    goToStep(currentStepIndex - 1);
+  }, [currentStepIndex, goToStep]);
 
   React.useEffect(() => {
     scrollToTop();
@@ -296,9 +261,16 @@ export function useCharacterCreateController() {
     });
   }, [currentStepIndex]);
 
-  const onSubmit = useCallback(
+  const submitCharacter = useCallback(
     async (values: CharacterCreationRequest) => {
       setSubmitError(null);
+      const firstInvalidStep = validateAllSteps();
+      if (firstInvalidStep !== null) {
+        setCurrentStepIndex(firstInvalidStep);
+        scrollToTop();
+        return;
+      }
+
       setIsSubmitting(true);
       try {
         const body = {
@@ -315,6 +287,12 @@ export function useCharacterCreateController() {
               : undefined,
           initialFeatures:
             initialFeatures.length > 0 ? initialFeatures : undefined,
+          ...(linkGameId
+            ? {
+                gameId: linkGameId,
+                gameLinkIsPublic: gameLinkIsPublic || undefined,
+              }
+            : {}),
         };
 
         const character = await createCharacter(body);
@@ -327,7 +305,11 @@ export function useCharacterCreateController() {
           // ignore
         }
 
-        router.push(`/home/characters/${character.id}`);
+        const safeReturnTo =
+          returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+            ? returnTo
+            : null;
+        router.push(safeReturnTo ?? `/home/characters/${character.id}`);
       } catch (e) {
         setSubmitError(
           getUserSafeErrorMessage(e, "Failed to create character")
@@ -336,7 +318,14 @@ export function useCharacterCreateController() {
         setIsSubmitting(false);
       }
     },
-    [initialFeatures, router]
+    [
+      gameLinkIsPublic,
+      initialFeatures,
+      linkGameId,
+      returnTo,
+      router,
+      validateAllSteps,
+    ]
   );
 
   const isLastStep = currentStepIndex === STEPS.length - 1;
@@ -349,8 +338,11 @@ export function useCharacterCreateController() {
     submitError,
     initialFeatures,
     setInitialFeatures,
+    canProceedFromCurrentStep,
+    canSubmitCharacter,
+    goToStep,
     onBack,
     onNext,
-    onSubmit,
+    submitCharacter,
   };
 }

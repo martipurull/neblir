@@ -1,7 +1,7 @@
 import { LEVEL_UP_FORM_DEFAULTS, STEPS } from "./constants";
 import type { FeatureChoice, LevelUpFormValues } from "./types";
 
-export const LEVEL_UP_DRAFT_VERSION = 1;
+const LEVEL_UP_DRAFT_VERSION = 1;
 
 function levelUpDraftStorageKey(characterId: string) {
   return `neblir:level-up-draft:v${LEVEL_UP_DRAFT_VERSION}:${characterId}`;

@@ -10,7 +10,10 @@ export interface NumberInputProps {
   placeholder?: string;
   min?: number;
   max?: number;
-  step?: number;
+  /** Passed to the native `input` (`step="any"` allows free decimal typing). */
+  step?: number | "any";
+  /** ± rail increment. Defaults to 1. */
+  stepperStep?: number;
   /** Defaults to "int". */
   parseAs?: "int" | "float";
   disabled?: boolean;
@@ -36,6 +39,7 @@ export function NumberInput({
   min,
   max,
   step = 1,
+  stepperStep = 1,
   parseAs = "int",
   disabled = false,
   className = "",
@@ -79,6 +83,7 @@ export function NumberInput({
               min={min}
               max={max}
               step={step}
+              stepperStep={stepperStep}
               variant="light"
               stepperLabel={label}
               inputClassName={inputClassName}

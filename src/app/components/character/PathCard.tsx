@@ -1,15 +1,17 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/app/components/shared/Button";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { Path } from "@/app/lib/types/path";
 export interface PathCardProps {
   path: Path;
   /** Pass when the path has a description; opens the description modal */
   onOpenDescription?: () => void;
+  children?: ReactNode;
 }
 
-export function PathCard({ path, onOpenDescription }: PathCardProps) {
+export function PathCard({ path, onOpenDescription, children }: PathCardProps) {
   return (
     <div className="rounded-lg border-2 border-black bg-transparent p-3 shadow-sm">
       <div>
@@ -37,6 +39,7 @@ export function PathCard({ path, onOpenDescription }: PathCardProps) {
           className="mt-1.5 text-sm leading-snug text-black"
         />
       </div>
+      {children}
     </div>
   );
 }

@@ -50,7 +50,7 @@ const attributeChangeSchema = z.object({
   to: attributePropertyEnum,
 });
 
-export const healthUpdateSchema = z
+const healthUpdateSchema = z
   .object({
     rolledPhysicalHealth: z.number(), // New value for rolled physical health
     rolledMentalHealth: z.number(), // New value for rolled mental health

@@ -1,6 +1,10 @@
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
+import { getWearReliefEquippedInstanceCount } from "@/app/lib/equipUtils";
 import type { ItemStatus } from "@/app/lib/types/item";
 import { isItemInventoryOperational } from "@/app/lib/types/item";
+
+/** Carried weight multiplier for items worn on body, head, or feet. */
+export const WORN_GEAR_CARRY_WEIGHT_FACTOR = 0.5;
 
 const BACKPACK_BONUSES: Record<string, number> = {
   "backpack (small)": 0.1,
@@ -12,8 +16,31 @@ type InventoryEntry = {
   itemLocation?: string | null;
   quantity?: number;
   equipSlots?: string[];
-  item?: { weight?: number | null; name?: string | null } | null;
+  item?: {
+    weight?: number | null;
+    name?: string | null;
+    equipSlotTypes?: string[] | null;
+  } | null;
 };
+
+/** Effective carried kg for one inventory row (worn body/head/foot gear at half weight). */
+export function getInventoryEntryCarriedWeight(entry: InventoryEntry): number {
+  const unitWeight = entry.item?.weight ?? 0;
+  if (unitWeight <= 0) return 0;
+
+  const quantity = entry.quantity ?? 1;
+  const wornCount = Math.min(
+    quantity,
+    getWearReliefEquippedInstanceCount(
+      entry.equipSlots,
+      entry.item?.equipSlotTypes
+    )
+  );
+  const fullWeightCount = quantity - wornCount;
+  return (
+    unitWeight * (wornCount * WORN_GEAR_CARRY_WEIGHT_FACTOR + fullWeightCount)
+  );
+}
 
 /**
  * Bonus to max carry weight from equipped backpacks (UI only).
@@ -48,15 +75,32 @@ export function getEffectiveMaxCarryWeight(
   return Math.floor(baseMaxCarryWeight * (1 + bonus));
 }
 
-/** Total weight of carried items (quantity × weight per entry) */
+/**
+ * Total weight of carried items. Items equipped on body, head, or feet count at
+ * {@link WORN_GEAR_CARRY_WEIGHT_FACTOR} per worn copy; other carried items at full weight.
+ */
 export function getCarriedWeight(
   inventory: InventoryEntry[] | undefined
 ): number {
   const carried = getCarriedInventory(inventory ?? []);
   return carried.reduce(
-    (sum, entry) => sum + (entry.item?.weight ?? 0) * (entry.quantity ?? 1),
+    (sum, entry) => sum + getInventoryEntryCarriedWeight(entry),
     0
   );
+}
+
+/** Kg saved on carried load from worn body/head/foot gear (for UI tooltip). */
+export function getWornGearCarryWeightSavings(
+  inventory: InventoryEntry[] | undefined
+): number {
+  const carried = getCarriedInventory(inventory ?? []);
+  let gross = 0;
+  let net = 0;
+  for (const entry of carried) {
+    gross += (entry.item?.weight ?? 0) * (entry.quantity ?? 1);
+    net += getInventoryEntryCarriedWeight(entry);
+  }
+  return Math.max(0, gross - net);
 }
 
 /** UI: kg with at most one decimal (avoids long float noise from per-item weights). */
@@ -67,7 +111,7 @@ export function formatWeightKgForDisplay(value: number): string {
 }
 
 /** Carry weight ratio (carried / max). Returns 0 if max is 0 or missing. */
-export function getCarryWeightRatio(
+function getCarryWeightRatio(
   carriedWeight: number,
   maxCarryWeight: number | null | undefined
 ): number {
@@ -144,7 +188,7 @@ export function getCarryWeightStatCellStyles(
  * - 100–150%: half speed (floored)
  * - >150%: 0
  */
-export function getCarryWeightSpeedEffect(
+function getCarryWeightSpeedEffect(
   baseSpeed: number,
   carriedWeight: number,
   maxCarryWeight: number | null | undefined
@@ -175,7 +219,7 @@ export function getCarryWeightSpeedEffect(
 }
 
 /** Armour grade = armourMod (1–5). Speed penalty: grade 2,3 → -1; 4 → -2; 5 → -3 */
-export function getArmourSpeedPenalty(armourMod: number): number {
+function getArmourSpeedPenalty(armourMod: number): number {
   if (armourMod >= 5) return 3;
   if (armourMod >= 4) return 2;
   if (armourMod >= 2) return 1;

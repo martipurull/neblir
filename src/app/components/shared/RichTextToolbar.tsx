@@ -1,15 +1,23 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import {
+  richTextToolbarClassName,
+  type RichTextFieldVariant,
+} from "@/app/components/shared/richTextFieldStyles";
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
 import React from "react";
 
 type RichTextToolbarProps = {
   editor: Editor | null;
+  variant?: RichTextFieldVariant;
 };
 
-export function RichTextToolbar({ editor }: RichTextToolbarProps) {
+export function RichTextToolbar({
+  editor,
+  variant = "light",
+}: RichTextToolbarProps) {
   const tool = useEditorState({
     editor,
     selector: ({ editor: ed, transactionNumber }) => {
@@ -65,7 +73,7 @@ export function RichTextToolbar({ editor }: RichTextToolbarProps) {
     <div
       role="toolbar"
       aria-label="Formatting"
-      className="mb-2 flex flex-wrap gap-2 border-b border-black/15 pb-2"
+      className={richTextToolbarClassName(variant)}
     >
       {toolBtn(
         "Bold",

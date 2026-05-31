@@ -1,6 +1,6 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
@@ -9,12 +9,10 @@ import { mapUpdateSchema } from "@/app/lib/types/map";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import useSWR from "swr";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
@@ -72,6 +70,11 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
     [form]
   );
 
+  const watchedName = useWatch({ control: form.control, name: "name" });
+  const mapPreviewAlt =
+    (typeof watchedName === "string" && watchedName.trim()) ||
+    (data?.name ?? "Map");
+
   const onSubmit = form.handleSubmit(async (values) => {
     setErrorMessage(null);
     const imageKey = values.imageKey.trim();
@@ -83,7 +86,7 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
     const payload = {
       name: values.name.trim(),
       imageKey,
-      description: optionalSuperAdminRichHtml(values.description) ?? null,
+      description: optionalStoredRichHtml(values.description) ?? null,
     };
     const parsed = mapUpdateSchema.safeParse(payload);
     if (!parsed.success) {
@@ -153,6 +156,8 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
             disabled={submitting}
             initialImageKey={data.imageKey}
             onImageKey={onImageKey}
+            previewVariant="map"
+            previewAlt={mapPreviewAlt}
           />
 
           <div className="mb-6">
@@ -166,7 +171,7 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
               name="description"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="map-description"
                   value={field.value}
                   onChange={field.onChange}

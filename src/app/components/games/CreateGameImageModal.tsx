@@ -1,9 +1,10 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
+import { TextField } from "@/app/components/shared/TextField";
 import { Button } from "@/app/components/shared/Button";
+import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameImage } from "@/lib/api/gameImages";
 import React, { useMemo, useRef, useState } from "react";
 
@@ -126,31 +127,32 @@ export function CreateGameImageModal({
       submitDisabled={submitDisabled}
     >
       <div>
-        <ModalFieldLabel id="game-image-title" label="Title" required />
-        <input
+        <FieldLabel id="game-image-title" label="Title" required />
+        <TextField
           id="game-image-title"
           type="text"
+          variant="dark"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className={modalInputClass}
           placeholder="e.g. Citadel Exterior"
           disabled={submitting}
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-image-description" label="Description" />
-        <textarea
+        <FieldLabel id="game-image-description" label="Description" />
+        <TextArea
           id="game-image-description"
+          variant="dark"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className={`${modalInputClass} min-h-[88px]`}
+          className="min-h-[88px]"
           placeholder="Optional short description"
           rows={3}
           disabled={submitting}
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-image-file" label="Image file" required />
+        <FieldLabel id="game-image-file" label="Image file" required />
         <div
           role="button"
           tabIndex={0}

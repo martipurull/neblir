@@ -6,12 +6,12 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import {
   ATTRIBUTE_OPTIONS,
   GENERAL_SKILL_OPTIONS,
 } from "@/app/(pages)/home/characters/[id]/level-up/constants";
-import { EQUIP_SLOTS } from "@/app/components/games/shared/itemModalConstants";
+import { EQUIP_SLOTS } from "@/app/lib/constants/itemCatalogue";
 import {
   itemAttributePathSchema,
   itemGeneralSkillSchema,
@@ -28,7 +28,7 @@ import {
   itemSchema,
   itemUpdateSchema,
 } from "@/app/lib/types/item";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import type { z } from "zod";
 import Link from "next/link";
 import { NumberInput } from "@/app/components/shared/NumberInput";
@@ -553,7 +553,7 @@ export function SuperAdminCreateItemForm({
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="item-description"
                   value={field.value}
                   onChange={field.onChange}
@@ -568,9 +568,8 @@ export function SuperAdminCreateItemForm({
           <NumberInput
             name="confCost"
             label="Conf cost"
-            parseAs="float"
+            parseAs="int"
             min={0}
-            step={0.01}
           />
           <SuperAdminLabeledField
             id="item-cost-info"
@@ -583,7 +582,7 @@ export function SuperAdminCreateItemForm({
             label="Weight"
             parseAs="float"
             min={0}
-            step={0.01}
+            step="any"
           />
 
           <div className="mb-6">
@@ -603,7 +602,7 @@ export function SuperAdminCreateItemForm({
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="item-usage"
                   value={field.value}
                   onChange={field.onChange}
@@ -627,7 +626,7 @@ export function SuperAdminCreateItemForm({
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="item-notes"
                   value={field.value}
                   onChange={field.onChange}

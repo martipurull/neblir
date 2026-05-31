@@ -5,15 +5,11 @@ import type {
   FeatureCatalogueUpdate,
 } from "@/app/lib/types/featureCatalogue";
 
-export async function createFeature(data: Prisma.FeatureUncheckedCreateInput) {
-  return prisma.feature.create({ data });
-}
-
 /**
  * Rebuilds `PathFeature` join rows so they match `Feature.applicablePaths`.
  * Resolves each `PathName` to a `Path` document by enum `name`.
  */
-export async function syncPathFeatureLinks(
+async function syncPathFeatureLinks(
   featureId: string,
   applicablePaths: PathName[]
 ): Promise<void> {

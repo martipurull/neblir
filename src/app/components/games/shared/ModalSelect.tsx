@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 import { useRef, useEffect, useState, useMemo } from "react";
 export type ModalSelectOption = { value: string; label: string };
 
@@ -13,9 +14,6 @@ export type ModalSelectProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
 };
-
-const filterInputClass =
-  "w-full rounded border border-white/40 bg-paleBlue/10 px-2 py-1.5 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-1 focus:ring-white";
 
 export function ModalSelect({
   id,
@@ -101,15 +99,16 @@ export function ModalSelect({
       {open && (
         <div className="absolute z-10 mt-1 w-full rounded border-2 border-white/50 bg-modalBackground-200 shadow-lg overflow-hidden">
           <div className="sticky top-0 border-b border-white/30 bg-modalBackground-200 p-1.5">
-            <input
+            <TextField
               ref={filterInputRef}
               type="text"
+              variant="dark"
+              density="compact"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Type to filter…"
               aria-label="Filter options"
-              className={filterInputClass}
             />
           </div>
           <ul

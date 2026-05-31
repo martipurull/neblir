@@ -19,6 +19,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
+import { ItemDetailEquipSection } from "./itemDetailModal/ItemDetailEquipSection";
 import { ItemDetailGiveRemoveSection } from "./itemDetailModal/ItemDetailGiveRemoveSection";
 import { ItemDetailLocationSection } from "./itemDetailModal/ItemDetailLocationSection";
 import { ItemDetailSummaryGrid } from "./itemDetailModal/ItemDetailSummaryGrid";
@@ -42,6 +43,7 @@ export function ItemDetailModal({
   gameId,
   mutate,
   resolveGiveRecipients,
+  equipControl,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -320,6 +322,18 @@ export function ItemDetailModal({
             isSettingLocation={isSettingLocation}
             locationError={locationError}
           />
+
+          {equipControl && (
+            <ItemDetailEquipSection
+              entry={entry}
+              carried={carried}
+              carriedInventory={equipControl.carriedInventory}
+              equippingId={equipControl.equippingId}
+              unequippingId={equipControl.unequippingId}
+              onEquip={() => void equipControl.onEquip(entry)}
+              onUnequip={() => void equipControl.onUnequip(entry)}
+            />
+          )}
 
           {showExtraWeaponGrid && item && (
             <ItemDetailExtraWeaponGrid item={item} />

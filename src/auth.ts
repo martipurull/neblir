@@ -4,7 +4,7 @@ import { createUser, getUserByEmail, updateUser } from "./app/lib/prisma/user";
 import type { AdapterUser } from "next-auth/adapters";
 import authConfig from "./auth.config";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signOut, auth } = NextAuth({
   ...authConfig,
   session: { strategy: "jwt" },
   callbacks: {

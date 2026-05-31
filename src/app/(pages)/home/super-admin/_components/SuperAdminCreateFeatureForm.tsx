@@ -4,9 +4,9 @@ import type { PathName } from "@prisma/client";
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { InfoCard } from "@/app/components/shared/InfoCard";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { featureCatalogueCreateSchema } from "@/app/lib/types/featureCatalogue";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -161,7 +161,7 @@ export function SuperAdminCreateFeatureForm() {
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="feature-description"
                   value={field.value}
                   onChange={field.onChange}
@@ -189,7 +189,7 @@ export function SuperAdminCreateFeatureForm() {
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="feature-examples"
                   value={field.value}
                   onChange={field.onChange}

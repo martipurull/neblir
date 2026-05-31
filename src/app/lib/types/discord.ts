@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const discordIntegrationStatusSchema = z.enum([
+const discordIntegrationStatusSchema = z.enum([
   "ACTIVE",
   "DISABLED",
   "DEGRADED",
@@ -18,7 +18,7 @@ export const connectDiscordStartResponseSchema = z.object({
   url: z.string().url(),
 });
 
-export const discordChannelSchema = z.object({
+const discordChannelSchema = z.object({
   id: z.string(),
   name: z.string(),
   channelType: z.number(),
@@ -38,4 +38,3 @@ export const saveDiscordIntegrationBodySchema = z
   .strict();
 
 export type DiscordIntegration = z.infer<typeof discordIntegrationSchema>;
-export type DiscordChannel = z.infer<typeof discordChannelSchema>;

@@ -1,7 +1,11 @@
 import type { ItemSourceType, Prisma } from "@prisma/client";
 import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
-import { characterIsInGame, charactersShareAnyGame } from "./gameCharacter";
+import {
+  characterIsInGame,
+  charactersShareAnyGame,
+  viewerCanGiveItemToRecipient,
+} from "./gameCharacter";
 import { getMaxUsesForItem } from "./itemCharacter";
 
 export class InventoryTransferConflictError extends Error {
@@ -43,7 +47,8 @@ export async function validateInventoryTransferParties(
   fromCharacterId: string,
   toCharacterId: string,
   sourceType: ItemSourceType,
-  itemId: string
+  itemId: string,
+  viewerUserId?: string
 ): Promise<{ message: string; status: number } | null> {
   if (fromCharacterId === toCharacterId) {
     return {
@@ -79,6 +84,20 @@ export async function validateInventoryTransferParties(
         status: 403,
       };
     }
+    if (
+      viewerUserId &&
+      !(await viewerCanGiveItemToRecipient(
+        viewerUserId,
+        fromCharacterId,
+        toCharacterId,
+        { restrictGameId: custom.gameId }
+      ))
+    ) {
+      return {
+        message: "You cannot give items to that character",
+        status: 403,
+      };
+    }
     return null;
   }
 
@@ -102,6 +121,20 @@ export async function validateInventoryTransferParties(
           status: 403,
         };
       }
+      if (
+        viewerUserId &&
+        !(await viewerCanGiveItemToRecipient(
+          viewerUserId,
+          fromCharacterId,
+          toCharacterId,
+          { restrictGameId: unique.gameId }
+        ))
+      ) {
+        return {
+          message: "You cannot give items to that character",
+          status: 403,
+        };
+      }
     } else {
       const share = await charactersShareAnyGame(
         fromCharacterId,
@@ -114,6 +147,19 @@ export async function validateInventoryTransferParties(
           status: 403,
         };
       }
+      if (
+        viewerUserId &&
+        !(await viewerCanGiveItemToRecipient(
+          viewerUserId,
+          fromCharacterId,
+          toCharacterId
+        ))
+      ) {
+        return {
+          message: "You cannot give items to that character",
+          status: 403,
+        };
+      }
     }
     return null;
   }
@@ -123,6 +169,19 @@ export async function validateInventoryTransferParties(
     return {
       message:
         "Recipient must be in a game that this character is registered for",
+      status: 403,
+    };
+  }
+  if (
+    viewerUserId &&
+    !(await viewerCanGiveItemToRecipient(
+      viewerUserId,
+      fromCharacterId,
+      toCharacterId
+    ))
+  ) {
+    return {
+      message: "You cannot give items to that character",
       status: 403,
     };
   }

@@ -2,13 +2,25 @@
 
 import { PathDescriptionModal } from "@/app/components/character/PathDescriptionModal";
 import { PathCard } from "@/app/components/character/PathCard";
+import { SoldierFavouriteWeaponSection } from "@/app/components/character/SoldierFavouriteWeaponSection";
+import type { CharacterDetail } from "@/app/lib/types/character";
 import type { Path } from "@/app/lib/types/path";
+import type { KeyedMutator } from "swr";
 import { useState } from "react";
+
 export interface PathsListProps {
   paths: Path[];
+  characterId: string;
+  readOnly?: boolean;
+  mutate?: KeyedMutator<CharacterDetail | null>;
 }
 
-export function PathsList({ paths }: PathsListProps) {
+export function PathsList({
+  paths,
+  characterId,
+  readOnly = false,
+  mutate,
+}: PathsListProps) {
   const [descriptionForId, setDescriptionForId] = useState<string | null>(null);
   const activePath =
     descriptionForId != null
@@ -27,7 +39,14 @@ export function PathsList({ paths }: PathsListProps) {
                   ? () => setDescriptionForId(path.id)
                   : undefined
               }
-            />
+            >
+              <SoldierFavouriteWeaponSection
+                path={path}
+                characterId={characterId}
+                readOnly={readOnly}
+                mutate={mutate}
+              />
+            </PathCard>
           </li>
         ))}
       </ul>

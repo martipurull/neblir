@@ -1,4 +1,4 @@
-export type EnemyAction = {
+type EnemyAction = {
   name: string;
   description?: string;
   numberOfDiceToHit?: number;
@@ -8,7 +8,7 @@ export type EnemyAction = {
   notes?: string;
 };
 
-export type EnemyInstanceStatus = "ACTIVE" | "DEFEATED" | "DEAD";
+type EnemyInstanceStatus = "ACTIVE" | "DEFEATED" | "DEAD";
 
 export type EnemyInstancePatch = {
   name?: string;

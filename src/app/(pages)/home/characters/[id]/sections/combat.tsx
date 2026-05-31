@@ -23,6 +23,7 @@ interface CombatSectionOptions {
     onOpenRoll: () => void;
     onOpenOrder: () => void;
   };
+  readOnly?: boolean;
 }
 
 export function getCombatSection(
@@ -57,6 +58,7 @@ export function getCombatSection(
   const gameLinkCount = character.games?.length ?? 0;
   const { gameDetails, gamesLoading, onOpenRoll, onOpenOrder } =
     options.initiative;
+  const readOnly = options.readOnly === true;
   const hasOpenInitiativeSlot = gameDetails.some(
     (g) =>
       !(g.initiativeOrder ?? []).some(
@@ -136,7 +138,7 @@ export function getCombatSection(
   return {
     id: "combat",
     title: "Combat",
-    titleSupplement: (
+    titleSupplement: readOnly ? undefined : (
       <span
         className={
           options.usedReactions === 0
@@ -163,36 +165,45 @@ export function getCombatSection(
     ),
     children: (
       <ul className="divide-y divide-black">
-        <li className="flex flex-col gap-2.5 py-2.5 first:pt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">
-            <span className="h-3 w-px bg-black" aria-hidden />
-            Initiative
-          </span>
-          <div className="flex min-w-0 flex-wrap justify-end gap-2">
-            <Button
-              type="button"
-              variant="semanticWarningOutline"
-              fullWidth={false}
-              disabled={!canRollInitiative}
-              title={rollTitle}
-              onClick={onOpenRoll}
-              className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
-            >
-              Roll Initiative ({modLabel})
-            </Button>
-            <Button
-              type="button"
-              variant="semanticSafeOutline"
-              fullWidth={false}
-              disabled={!canShowInitiativeOrder}
-              title={orderTitle}
-              onClick={onOpenOrder}
-              className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
-            >
-              Show Initiative Order
-            </Button>
-          </div>
-        </li>
+        {!readOnly && (
+          <li className="flex flex-col gap-2.5 py-2.5 first:pt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">
+              <span className="h-3 w-px bg-black" aria-hidden />
+              Initiative
+            </span>
+            <div className="flex min-w-0 flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="semanticWarningOutline"
+                fullWidth={false}
+                disabled={!canRollInitiative}
+                title={rollTitle}
+                onClick={onOpenRoll}
+                className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
+              >
+                Roll Initiative ({modLabel})
+              </Button>
+              <Button
+                type="button"
+                variant="semanticSafeOutline"
+                fullWidth={false}
+                disabled={!canShowInitiativeOrder}
+                title={orderTitle}
+                onClick={onOpenOrder}
+                className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
+              >
+                Show Initiative Order
+              </Button>
+            </div>
+          </li>
+        )}
+        {readOnly && (
+          <KeyValueRow
+            label="Initiative modifier"
+            value={modLabel}
+            className="py-2.5 first:pt-0"
+          />
+        )}
         <KeyValueRow
           multilineValue
           className="!items-center py-2.5 first:pt-0"

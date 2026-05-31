@@ -2,13 +2,13 @@
 
 import {
   contentJsonForApi,
-  GeneralInformationRichTextJsonField,
-} from "@/app/components/character/GeneralInformationRichTextJsonField";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+  RichTextJsonField,
+} from "@/app/components/shared/RichTextJsonField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
+import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
 import {
   referenceEntryCreateSchema,
   type ReferenceCategory,
@@ -17,10 +17,8 @@ import type { JSONContent } from "@tiptap/core";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
@@ -53,7 +51,7 @@ export function SuperAdminCreateReferenceForm() {
       slug: "",
       title: "",
       summary: "",
-      contentJson: EMPTY_NOTE_DOC,
+      contentJson: EMPTY_RICH_TEXT_DOC,
     },
   });
 
@@ -64,7 +62,7 @@ export function SuperAdminCreateReferenceForm() {
       category: values.category,
       slug: values.slug.trim(),
       title: values.title.trim(),
-      summary: optionalSuperAdminRichHtml(values.summary) ?? null,
+      summary: optionalStoredRichHtml(values.summary) ?? null,
       contentJson: contentJsonForApi(values.contentJson),
       gameId: null,
     };
@@ -166,7 +164,7 @@ export function SuperAdminCreateReferenceForm() {
               name="summary"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="ref-summary"
                   value={field.value}
                   onChange={field.onChange}
@@ -195,7 +193,7 @@ export function SuperAdminCreateReferenceForm() {
               name="contentJson"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextJsonField
+                <RichTextJsonField
                   id="ref-content"
                   value={field.value}
                   onChange={field.onChange}

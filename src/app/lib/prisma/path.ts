@@ -20,7 +20,3 @@ export async function getPaths() {
 export async function updatePath(id: string, data: Prisma.PathUpdateInput) {
   return prisma.path.update({ where: { id }, data });
 }
-
-export async function deletePath(id: string) {
-  return prisma.path.delete({ where: { id } });
-}

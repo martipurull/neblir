@@ -21,10 +21,10 @@ import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
 import React, { useCallback, useMemo, useState } from "react";
-import { AttackRollModal } from "./AttackRollModal";
+import { AttackRollModal } from "@/app/components/combat/AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
-import { GridDefenceRollModal } from "./GridDefenceRollModal";
-import { DefenceRollModal } from "./DefenceRollModal";
+import { GridDefenceRollModal } from "@/app/components/combat/GridDefenceRollModal";
+import { DefenceRollModal } from "@/app/components/combat/DefenceRollModal";
 import { EquipItemPickerModal } from "./EquipItemPickerModal";
 import { StatCell } from "./StatCell";
 import { StatEditModal } from "./StatEditModal";
@@ -42,7 +42,10 @@ type ArmourPartial = { armourCurrentHP?: number };
 
 interface CharacterSummaryHeaderProps {
   character: CharacterDetail;
-  primaryGameId?: string | null;
+  /** Game that receives dice roll events from this page */
+  activeGameId?: string | null;
+  activeGameOptions: { value: string; label: string }[];
+  onActiveGameChange: (gameId: string) => void;
   avatarUrl: string | null;
   /** Current number of reactions used this round; when set, enables reaction tracking UI */
   usedReactions?: number;
@@ -56,12 +59,16 @@ interface CharacterSummaryHeaderProps {
   mutate?: KeyedMutator<CharacterDetail | null>;
   /** Opens the dedicated dice roller (attribute + skill picker) */
   onOpenDiceRoller?: () => void;
+  /** View-only sheet: no rolls, equipping, or stat edits */
+  readOnly?: boolean;
   className?: string;
 }
 
 export function CharacterSummaryHeader({
   character,
-  primaryGameId,
+  activeGameId,
+  activeGameOptions,
+  onActiveGameChange,
   avatarUrl,
   usedReactions = 0,
   onUseReaction,
@@ -69,6 +76,7 @@ export function CharacterSummaryHeader({
   onArmourUpdate,
   mutate,
   onOpenDiceRoller,
+  readOnly = false,
   className,
 }: CharacterSummaryHeaderProps) {
   const {
@@ -244,7 +252,22 @@ export function CharacterSummaryHeader({
           level={generalInformation.level}
           pathsLabel={pathsLabel}
           characterId={character.id}
+          activeGameOptions={activeGameOptions}
+          gameLinks={(character.games ?? []).map((g) => ({
+            gameId: g.gameId,
+            isPublic: g.isPublic,
+          }))}
+          activeGameId={activeGameId ?? null}
+          onActiveGameChange={onActiveGameChange}
+          onVisibilityUpdated={
+            mutate
+              ? async () => {
+                  await mutate();
+                }
+              : undefined
+          }
           onOpenDiceRoller={onOpenDiceRoller}
+          showCharacterActions={!readOnly}
         />
 
         <div className="mt-3 w-full">
@@ -350,19 +373,25 @@ export function CharacterSummaryHeader({
                   label="Melee Atk"
                   value={formatAttackMod(attackModArrays.melee)}
                   compact
-                  onClick={() => setAttackRollModal("melee")}
+                  onClick={
+                    readOnly ? undefined : () => setAttackRollModal("melee")
+                  }
                 />
                 <StatCell
                   label="Range Atk"
                   value={formatAttackMod(attackModArrays.range)}
                   compact
-                  onClick={() => setAttackRollModal("range")}
+                  onClick={
+                    readOnly ? undefined : () => setAttackRollModal("range")
+                  }
                 />
                 <StatCell
                   label="Throw Atk"
                   value={formatAttackMod(attackModArrays.throw)}
                   compact
-                  onClick={() => setAttackRollModal("throw")}
+                  onClick={
+                    readOnly ? undefined : () => setAttackRollModal("throw")
+                  }
                 />
                 <StatCell
                   label="Melee Def"
@@ -401,9 +430,9 @@ export function CharacterSummaryHeader({
                   value={showGridAttack ? fmt(gridAttackDisplayMod) : "—"}
                   compact
                   onClick={
-                    showGridAttack
-                      ? () => setAttackRollModal("grid")
-                      : undefined
+                    readOnly || !showGridAttack
+                      ? undefined
+                      : () => setAttackRollModal("grid")
                   }
                 />
                 <StatCell
@@ -411,7 +440,7 @@ export function CharacterSummaryHeader({
                   value={fmt(gridDefenceDice)}
                   compact
                   onClick={
-                    reactionsDisabled
+                    readOnly || reactionsDisabled
                       ? undefined
                       : () => setGridDefenceRollOpen(true)
                   }
@@ -502,61 +531,70 @@ export function CharacterSummaryHeader({
             }}
           />
         )}
-        <AttackRollModal
-          isOpen={attackRollModal !== null}
-          onClose={() => setAttackRollModal(null)}
-          attackType={attackRollModal ?? "melee"}
-          modifierHint={
-            attackRollModal === "grid" ? gridAttackModifierHint : undefined
-          }
-          damageHint={
-            attackRollModal === "grid" ? gridAttackDamageHint : undefined
-          }
-          options={
-            attackRollModal === "melee"
-              ? attackModArrays.melee
-              : attackRollModal === "range"
-                ? attackModArrays.range
-                : attackRollModal === "throw"
-                  ? attackModArrays.throw
-                  : gridAttackOptions
-          }
-          onWeaponUsed={handleWeaponUsed}
-          gameId={primaryGameId}
-          characterId={character.id}
-        />
+        {!readOnly && (
+          <AttackRollModal
+            isOpen={attackRollModal !== null}
+            onClose={() => setAttackRollModal(null)}
+            attackType={attackRollModal ?? "melee"}
+            modifierHint={
+              attackRollModal === "grid" ? gridAttackModifierHint : undefined
+            }
+            damageHint={
+              attackRollModal === "grid" ? gridAttackDamageHint : undefined
+            }
+            options={
+              attackRollModal === "melee"
+                ? attackModArrays.melee
+                : attackRollModal === "range"
+                  ? attackModArrays.range
+                  : attackRollModal === "throw"
+                    ? attackModArrays.throw
+                    : gridAttackOptions
+            }
+            onWeaponUsed={handleWeaponUsed}
+            gameId={activeGameId}
+            characterId={character.id}
+          />
+        )}
 
-        <DefenceRollModal
-          isOpen={meleeDefenceRollOpen}
-          onClose={() => setMeleeDefenceRollOpen(false)}
-          defenceDice={effectiveMods.meleeDefenceMod}
-          title="Melee Defence"
-          reactionDisabled={!onUseReaction || reactionsDisabled}
-          onRollReaction={onUseReaction}
-          gameId={primaryGameId}
-          characterId={character.id}
-        />
-        <DefenceRollModal
-          isOpen={rangeDefenceRollOpen}
-          onClose={() => setRangeDefenceRollOpen(false)}
-          defenceDice={effectiveMods.rangeDefenceMod}
-          title="Range Defence"
-          reactionDisabled={!onUseReaction || reactionsDisabled}
-          onRollReaction={onUseReaction}
-          gameId={primaryGameId}
-          characterId={character.id}
-        />
+        {!readOnly && (
+          <DefenceRollModal
+            isOpen={meleeDefenceRollOpen}
+            onClose={() => setMeleeDefenceRollOpen(false)}
+            defenceDice={effectiveMods.meleeDefenceMod}
+            title="Melee Defence"
+            reactionDisabled={!onUseReaction || reactionsDisabled}
+            onRollReaction={onUseReaction}
+            gameId={activeGameId}
+            characterId={character.id}
+          />
+        )}
 
-        <GridDefenceRollModal
-          isOpen={gridDefenceRollOpen}
-          onClose={() => setGridDefenceRollOpen(false)}
-          defenceDice={gridDefenceDice}
-          modifierHint={gridDefenceModifierHint}
-          reactionDisabled={!onUseReaction || reactionsDisabled}
-          onRollReaction={onUseReaction}
-          gameId={primaryGameId}
-          characterId={character.id}
-        />
+        {!readOnly && (
+          <DefenceRollModal
+            isOpen={rangeDefenceRollOpen}
+            onClose={() => setRangeDefenceRollOpen(false)}
+            defenceDice={effectiveMods.rangeDefenceMod}
+            title="Range Defence"
+            reactionDisabled={!onUseReaction || reactionsDisabled}
+            onRollReaction={onUseReaction}
+            gameId={activeGameId}
+            characterId={character.id}
+          />
+        )}
+
+        {!readOnly && (
+          <GridDefenceRollModal
+            isOpen={gridDefenceRollOpen}
+            onClose={() => setGridDefenceRollOpen(false)}
+            defenceDice={gridDefenceDice}
+            modifierHint={gridDefenceModifierHint}
+            reactionDisabled={!onUseReaction || reactionsDisabled}
+            onRollReaction={onUseReaction}
+            gameId={activeGameId}
+            characterId={character.id}
+          />
+        )}
       </div>
     </header>
   );

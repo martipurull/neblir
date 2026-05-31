@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { sharedTextFieldCompactClassName } from "@/app/components/shared/inputStyles";
+import { TextField } from "@/app/components/shared/TextField";
 import React, {
   useCallback,
   useEffect,
@@ -233,9 +233,10 @@ export function SelectDropdown({
       {open && (
         <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg">
           <div className="sticky top-0 border-b border-black/20 bg-paleBlue p-1.5">
-            <input
+            <TextField
               ref={filterInputRef}
               type="text"
+              density="compact"
               value={filterQuery}
               onChange={handleFilterInputChange}
               onKeyDown={handleFilterKeyDown}
@@ -247,7 +248,6 @@ export function SelectDropdown({
                   ? `${id}-option-${highlightedIndex}`
                   : undefined
               }
-              className={sharedTextFieldCompactClassName}
             />
           </div>
           <ul

@@ -11,7 +11,7 @@ import {
   itemCanEquipInSlot,
 } from "@/app/lib/equipUtils";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
-import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useMemo, useState } from "react";
@@ -115,10 +115,12 @@ export function EquipItemPickerModal({
     setSubmittingId(entry.id);
     setEquipError(null);
     try {
-      await updateCharacterInventoryEntry(character.id, entry.id, {
-        action: "equip",
-      });
-      await mutate();
+      await patchCharacterInventoryEntryAndMutate(
+        mutate,
+        character.id,
+        entry.id,
+        { action: "equip" }
+      );
       onClose();
     } catch (e) {
       setEquipError({
@@ -137,11 +139,12 @@ export function EquipItemPickerModal({
     setSubmittingId(entry.id);
     setEquipError(null);
     try {
-      await updateCharacterInventoryEntry(character.id, entry.id, {
-        action: "unequip",
-        slot: apiSlot,
-      });
-      await mutate();
+      await patchCharacterInventoryEntryAndMutate(
+        mutate,
+        character.id,
+        entry.id,
+        { action: "unequip", slot: apiSlot }
+      );
       onClose();
     } catch (e) {
       setEquipError({

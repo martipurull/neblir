@@ -2,15 +2,15 @@
 
 import {
   contentJsonForApi,
-  GeneralInformationRichTextJsonField,
-} from "@/app/components/character/GeneralInformationRichTextJsonField";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+  RichTextJsonField,
+} from "@/app/components/shared/RichTextJsonField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
+import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
 import {
   referenceEntryUpdateSchema,
   type ReferenceCategory,
@@ -22,10 +22,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import useSWR from "swr";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
@@ -68,7 +66,7 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
       slug: "",
       title: "",
       summary: "",
-      contentJson: EMPTY_NOTE_DOC,
+      contentJson: EMPTY_RICH_TEXT_DOC,
     },
   });
 
@@ -82,7 +80,8 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
       slug: data.slug,
       title: data.title,
       summary: data.summary ?? "",
-      contentJson: (data.contentJson as JSONContent | null) ?? EMPTY_NOTE_DOC,
+      contentJson:
+        (data.contentJson as JSONContent | null) ?? EMPTY_RICH_TEXT_DOC,
     });
   }, [data, form]);
 
@@ -93,7 +92,7 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
       category: values.category,
       slug: values.slug.trim(),
       title: values.title.trim(),
-      summary: optionalSuperAdminRichHtml(values.summary) ?? null,
+      summary: optionalStoredRichHtml(values.summary) ?? null,
       contentJson: contentJsonForApi(values.contentJson),
       gameId: null,
     };
@@ -194,7 +193,7 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
                 name="summary"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextField
+                  <RichTextField
                     id="ref-summary"
                     value={field.value}
                     onChange={field.onChange}
@@ -217,7 +216,7 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
                 name="contentJson"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextJsonField
+                  <RichTextJsonField
                     id="ref-content"
                     value={field.value}
                     onChange={field.onChange}

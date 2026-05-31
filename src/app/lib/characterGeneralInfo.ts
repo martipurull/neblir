@@ -37,9 +37,7 @@ export const SIZE_DEFAULTS_BY_RACE: Record<
   MANFENN: { height: 160, weight: 60 },
 };
 
-export function getSpecialAbilityValuesForRace(
-  race: Race
-): SpecialAbilityName[] {
+function getSpecialAbilityValuesForRace(race: Race): SpecialAbilityName[] {
   if (race === "MANFENN") {
     return ["INNATE_MANIPULATION", "DOUBLE_OPPOSABLE_THUMBS"];
   }

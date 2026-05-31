@@ -1,10 +1,12 @@
 "use client";
 
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { Button } from "@/app/components/shared/Button";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import {
   defaultCreateGameFormValues,
   createGameFormSchema,
@@ -14,11 +16,22 @@ import { createGame } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from "react-hook-form";
 import type { UseFormSetError } from "react-hook-form";
 import type { z } from "zod";
-import { TextArea } from "@/app/components/shared/TextArea";
 import { TextInput } from "@/app/components/shared/TextInput";
+
+function optionalPremiseHtml(html: string): string | undefined {
+  const trimmed = html.trim();
+  if (!trimmed) return undefined;
+  const persisted = serializeEditorToStoredHtml(trimmed);
+  return persisted || undefined;
+}
 
 function setZodErrorsOnForm(
   setError: UseFormSetError<CreateGameFormValues>,
@@ -36,7 +49,7 @@ function CreateGameFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const imageUpload = useItemImageUpload("games");
+  const imageUpload = useImageUpload("games");
   const {
     imageKey,
     pendingImageKey,
@@ -47,15 +60,16 @@ function CreateGameFormContent() {
     handleDragOver,
   } = imageUpload;
 
-  const { setError, clearErrors, handleSubmit, register } =
+  const { setError, clearErrors, handleSubmit, control } =
     useFormContext<CreateGameFormValues>();
 
   const onSubmit = async (values: CreateGameFormValues) => {
     clearErrors();
+    const premise = optionalPremiseHtml(values.game.premise ?? "");
     const toValidate = {
       game: {
         name: values.game.name,
-        premise: values.game.premise?.trim() ?? undefined,
+        premise,
         imageKey: imageKey || undefined,
       },
     };
@@ -71,8 +85,8 @@ function CreateGameFormContent() {
       const body: Parameters<typeof createGame>[0] = {
         name: result.data.game.name.trim(),
       };
-      if (result.data.game.premise?.trim()) {
-        body.premise = result.data.game.premise.trim();
+      if (result.data.game.premise) {
+        body.premise = result.data.game.premise;
       }
       if (result.data.game.imageKey) {
         body.imageKey = result.data.game.imageKey;
@@ -103,15 +117,29 @@ function CreateGameFormContent() {
         placeholder="e.g. The Lost Expedition"
       />
       <div className="mb-6">
-        <label htmlFor="game.premise" className="block font-bold text-black">
+        <label
+          htmlFor="game.premise"
+          className="mb-1 block font-bold text-black"
+        >
           Premise
         </label>
-        <TextArea
-          id="game.premise"
-          {...register("game.premise")}
-          placeholder="Brief description or premise of the game"
-          rows={4}
-          className="mt-1 min-h-24"
+        <p className="mb-2 text-xs text-black/70">
+          Optional overview of the game. Use the toolbar for headings, lists,
+          and emphasis.
+        </p>
+        <Controller
+          name="game.premise"
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <RichTextField
+              id="game.premise"
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              minHeightClass="min-h-24"
+            />
+          )}
         />
       </div>
       <ImageUploadDropzone

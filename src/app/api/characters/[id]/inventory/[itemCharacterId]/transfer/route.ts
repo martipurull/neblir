@@ -98,7 +98,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       fromCharacterId,
       toCharacterId,
       entry.sourceType,
-      entry.itemId
+      entry.itemId,
+      request.auth.user.id
     );
     if (partyError) {
       return errorResponse(partyError.message, partyError.status);

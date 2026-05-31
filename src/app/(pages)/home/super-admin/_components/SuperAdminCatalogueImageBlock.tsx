@@ -1,11 +1,9 @@
 "use client";
 
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import {
-  useItemImageUpload,
-  type ItemImageUploadType,
-} from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload, type ImageUploadKind } from "@/hooks/use-image-upload";
 import { useEffect } from "react";
+import { SuperAdminCatalogueImagePreview } from "./SuperAdminCatalogueImagePreview";
 
 /** Isolated image upload so TipTap siblings do not re-render on upload state changes. */
 export function SuperAdminCatalogueImageBlock({
@@ -15,15 +13,19 @@ export function SuperAdminCatalogueImageBlock({
   disabled = false,
   initialImageKey = "",
   onImageKey,
+  previewVariant,
+  previewAlt = "Catalogue image",
 }: {
-  uploadType: ItemImageUploadType;
+  uploadType: ImageUploadKind;
   id: string;
   label: string;
   disabled?: boolean;
   initialImageKey?: string;
   onImageKey: (key: string) => void;
+  previewVariant?: "map";
+  previewAlt?: string;
 }) {
-  const imageUpload = useItemImageUpload(uploadType, initialImageKey);
+  const imageUpload = useImageUpload(uploadType, initialImageKey);
 
   useEffect(() => {
     onImageKey(imageUpload.imageKey);
@@ -31,6 +33,13 @@ export function SuperAdminCatalogueImageBlock({
 
   return (
     <div className="mb-6">
+      {previewVariant === "map" && imageUpload.imageKey ? (
+        <SuperAdminCatalogueImagePreview
+          variant="map"
+          imageKey={imageUpload.imageKey}
+          alt={previewAlt}
+        />
+      ) : null}
       <ImageUploadDropzone
         id={id}
         label={label}

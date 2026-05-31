@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import {
   getUserSafeApiError,
@@ -155,15 +156,16 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
     >
       <>
         <div className="flex gap-2">
-          <input
+          <TextField
             type="email"
+            variant="dark"
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
             onKeyDown={(e) =>
               e.key === "Enter" && (e.preventDefault(), addEmail())
             }
             placeholder="email@example.com"
-            className="min-w-0 flex-1 rounded border-2 border-white bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+            className="min-w-0 flex-1"
             aria-label="Email address"
             disabled={submitting}
           />

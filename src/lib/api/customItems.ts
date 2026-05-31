@@ -8,7 +8,7 @@ import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
 
-export function mapCustomItemJsonToBrowseDetail(
+function mapCustomItemJsonToBrowseDetail(
   data: CustomItemResponse
 ): ItemBrowseDetailFields {
   return {

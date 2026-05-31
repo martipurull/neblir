@@ -50,6 +50,10 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const payload = parsed.data;
+    const persistedMetadata =
+      payload.isPrivate === true
+        ? { ...(payload.metadata ?? {}), isPrivate: true }
+        : payload.metadata;
     if (payload.characterId) {
       const inThisGame = await characterIsInGame(gameId, payload.characterId);
       if (!inThisGame) {
@@ -80,9 +84,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         results: payload.results,
         total: payload.total,
         metadata:
-          payload.metadata === undefined
+          persistedMetadata === undefined
             ? undefined
-            : (payload.metadata as Prisma.InputJsonValue),
+            : (persistedMetadata as Prisma.InputJsonValue),
       },
     });
 

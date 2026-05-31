@@ -20,7 +20,7 @@ export type GiveItemOption = {
   label: string;
 };
 
-export type GiveItemLockedItem = {
+type GiveItemLockedItem = {
   sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
   itemId: string;
   itemName: string;

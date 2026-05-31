@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { TextArea } from "@/app/components/shared/TextArea";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {
   ModalSelect,
@@ -9,17 +10,17 @@ import {
 } from "@/app/components/games/shared/ModalSelect";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
-  GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
+  RICH_TEXT_EXTENSIONS,
   normalizeStoredHtmlForEditor,
   serializeEditorToStoredHtml,
-} from "@/app/lib/tiptap/generalInformationRichText";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+} from "@/app/lib/tiptap/richText";
+import { TextField } from "@/app/components/shared/TextField";
 import type { CustomEnemyActionDraft } from "@/app/components/games/useCreateCustomEnemyModal";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useEffect } from "react";
 
-export const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
+const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
   { value: "", label: "None" },
   ...weaponDamageTypeSchema.options.map((v) => ({
     value: v,
@@ -58,7 +59,7 @@ function ActionDescriptionRichText({
   onChange,
 }: ActionDescriptionRichTextProps) {
   const editor = useEditor({
-    extensions: GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
+    extensions: RICH_TEXT_EXTENSIONS,
     content: normalizeStoredHtmlForEditor(value),
     editable: !disabled,
     immediatelyRender: false,
@@ -81,7 +82,7 @@ function ActionDescriptionRichText({
   return (
     <div
       id={id}
-      className="character-note-html rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[7rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
+      className="rich-text-content rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[7rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
     >
       {editor ? (
         <>
@@ -143,25 +144,25 @@ export function CustomEnemyActionListEditor({
                 </div>
                 <div className="space-y-2">
                   <div>
-                    <ModalFieldLabel
+                    <FieldLabel
                       id={`${prefix}-name`}
                       label="Action name"
                       required
                     />
-                    <input
+                    <TextField
                       id={`${prefix}-name`}
                       type="text"
+                      variant="dark"
                       value={row.name}
                       onChange={(e) =>
                         onChange(row.clientId, "name", e.target.value)
                       }
-                      className={modalInputClass}
                       disabled={disabled}
                       placeholder="e.g. Bite"
                     />
                   </div>
                   <div>
-                    <ModalFieldLabel
+                    <FieldLabel
                       id={`${prefix}-description`}
                       label="Description"
                     />
@@ -229,17 +230,15 @@ export function CustomEnemyActionListEditor({
                     onChange={(v) => onChange(row.clientId, "damageType", v)}
                   />
                   <div>
-                    <ModalFieldLabel
+                    <FieldLabel id={`${prefix}-notes`} label="Action notes" />
+                    <TextArea
                       id={`${prefix}-notes`}
-                      label="Action notes"
-                    />
-                    <textarea
-                      id={`${prefix}-notes`}
+                      variant="dark"
                       value={row.notes}
                       onChange={(e) =>
                         onChange(row.clientId, "notes", e.target.value)
                       }
-                      className={modalInputClass + " min-h-[48px]"}
+                      className="min-h-[48px]"
                       rows={2}
                       disabled={disabled}
                     />

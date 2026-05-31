@@ -1,5 +1,4 @@
 import { healthSchema } from "@/app/lib/types/character";
-import type { z } from "zod";
 
 export const healthUpdateSchema = healthSchema
   .pick({
@@ -11,5 +10,3 @@ export const healthUpdateSchema = healthSchema
     status: true,
   })
   .partial();
-
-export type HealthUpdateBody = z.infer<typeof healthUpdateSchema>;

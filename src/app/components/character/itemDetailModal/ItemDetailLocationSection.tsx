@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { TextField } from "@/app/components/shared/TextField";
 type ItemDetailLocationSectionProps = {
   carried: boolean;
   leaveLocationInput: string;
@@ -27,12 +28,13 @@ export function ItemDetailLocationSection({
       </span>
       {carried ? (
         <div className="flex flex-col gap-2">
-          <input
+          <TextField
             type="text"
+            variant="dark"
             value={leaveLocationInput}
             onChange={(e) => onLeaveInputChange(e.target.value)}
             placeholder="e.g. Safe house, Car trunk"
-            className="rounded border border-white/30 bg-paleBlue/5 px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="text-sm"
             aria-label="Where you left the item"
           />
           <Button

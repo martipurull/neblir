@@ -40,7 +40,7 @@ export function EnemyInstanceActionListSection({
               <p className="font-medium text-black">{a.name}</p>
               {a.description ? (
                 <div
-                  className="character-note-html mt-1 text-sm text-black/85"
+                  className="rich-text-content mt-1 text-sm text-black/85"
                   dangerouslySetInnerHTML={{ __html: a.description }}
                 />
               ) : null}

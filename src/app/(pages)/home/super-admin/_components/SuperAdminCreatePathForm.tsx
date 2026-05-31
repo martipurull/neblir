@@ -5,10 +5,10 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import type { Path } from "@/app/lib/types/path";
 import { pathCreateSchema, type PathCreate } from "@/app/lib/types/path";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import type { PathName } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -223,7 +223,7 @@ export function SuperAdminCreatePathForm() {
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="path-description"
                   value={field.value ?? ""}
                   onChange={field.onChange}
@@ -250,7 +250,7 @@ export function SuperAdminCreatePathForm() {
               control={form.control}
               defaultValue=""
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="path-base-feature"
                   value={field.value}
                   onChange={field.onChange}

@@ -4,7 +4,7 @@ import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import { getDiceLabel } from "@/app/lib/dice-roll-utils";
 
 /** Stable string for SelectDropdown / forms */
-export function encodeDiceSelectionItem(item: DiceSelectionItem): string {
+function encodeDiceSelectionItem(item: DiceSelectionItem): string {
   return JSON.stringify(item);
 }
 
@@ -44,6 +44,15 @@ export function listAllDiceSelectionItems(
     }
   }
   return out;
+}
+
+/** Attribute sub-stats only (no general skills). */
+export function listAttributeDiceSelectionItems(
+  character: CharacterDetail
+): DiceSelectionItem[] {
+  return listAllDiceSelectionItems(character).filter(
+    (item) => item.type === "attribute"
+  );
 }
 
 export function isValidDiceRollPair(

@@ -5,7 +5,7 @@ import { NumberInput } from "@/app/components/shared/NumberInput";
 import {
   ATTACK_ROLL_TYPES,
   DAMAGE_TYPES,
-} from "@/app/components/games/shared/itemModalConstants";
+} from "@/app/lib/constants/itemCatalogue";
 import type {
   Control,
   FieldValues,

@@ -7,7 +7,7 @@ const characterUserSchema = z.object({
   userId: z.string(),
 });
 
-export const userSchema = z.object({
+const userSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
@@ -21,9 +21,6 @@ export const userCreateSchema = userSchema
 
 export const userUpdateSchema = userCreateSchema.partial().strict();
 
-export const usersSchema = z.array(userSchema);
-
-export type User = z.infer<typeof userSchema>;
 export const currentUserSchema = userSchema
   .pick({
     name: true,

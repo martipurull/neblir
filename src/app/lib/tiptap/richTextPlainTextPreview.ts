@@ -1,7 +1,7 @@
-import { storedRichTextToDisplayHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { storedRichTextToDisplayHtml } from "@/app/lib/tiptap/richText";
 
 /** Strip HTML to a single line of plain text (browser or lightweight SSR fallback). */
-export function stripHtmlToPlainText(html: string): string {
+function stripHtmlToPlainText(html: string): string {
   if (!html) return "";
   if (typeof document !== "undefined") {
     const el = document.createElement("div");

@@ -4,7 +4,7 @@ import {
 } from "@/app/lib/types/character";
 
 /** One DB row: JSON envelope so we keep Prisma `notes String[]`. */
-export function encodeNoteEntryForDb(entry: CharacterNoteEntry): string {
+function encodeNoteEntryForDb(entry: CharacterNoteEntry): string {
   return JSON.stringify({
     content: entry.content,
     createdAt: entry.createdAt,
@@ -16,7 +16,7 @@ export function encodeNoteEntryForDb(entry: CharacterNoteEntry): string {
  * Parse a single DB string into an entry. Legacy values are plain TipTap JSON or plain text
  * (no envelope); they get placeholder timestamps until the next save.
  */
-export function parseNoteStringFromDb(raw: string): CharacterNoteEntry {
+function parseNoteStringFromDb(raw: string): CharacterNoteEntry {
   try {
     const o = JSON.parse(raw) as unknown;
     const parsed = characterNoteEntrySchema.safeParse(o);

@@ -9,6 +9,10 @@ import {
   createCharacterWithRelations,
   getCharactersByUserId,
 } from "@/app/lib/prisma/character";
+import {
+  GameCharacterLinkError,
+  resolveGameCharacterLinkForCreate,
+} from "@/app/lib/gameCharacterLink";
 import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
 import { getPath } from "@/app/lib/prisma/path";
 import {
@@ -189,12 +193,30 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
+    const { gameId, gameLinkIsPublic } = parseResult.data;
+    let gameLink: { gameId: string; isPublic: boolean } | undefined;
+    if (gameId) {
+      try {
+        gameLink = await resolveGameCharacterLinkForCreate(
+          gameId,
+          user.id,
+          gameLinkIsPublic
+        );
+      } catch (error) {
+        if (error instanceof GameCharacterLinkError) {
+          return errorResponse(error.message, error.status);
+        }
+        throw error;
+      }
+    }
+
     const character = await createCharacterWithRelations({
       data: characterCreateData,
       userId: user.id,
       pathId,
       pathRank,
       initialFeatures,
+      gameLink,
     });
 
     return NextResponse.json(character, { status: 201 });

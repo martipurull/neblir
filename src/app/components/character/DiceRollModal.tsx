@@ -13,7 +13,7 @@ export interface DiceRollModalProps {
   onClose: () => void;
   character: CharacterDetail;
   gameId?: string | null;
-  selection: [DiceSelectionItem, DiceSelectionItem];
+  selection: [DiceSelectionItem] | [DiceSelectionItem, DiceSelectionItem];
 }
 
 function rollD10(): number {
@@ -30,10 +30,14 @@ export function DiceRollModal({
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
 
-  const v1 = getDiceValue(character, selection[0]);
-  const v2 = getDiceValue(character, selection[1]);
-  const label1 = getDiceLabel(character, selection[0]);
-  const label2 = getDiceLabel(character, selection[1]);
+  const firstSelection = selection[0];
+  const secondSelection = selection[1];
+  const v1 = getDiceValue(character, firstSelection);
+  const v2 = secondSelection ? getDiceValue(character, secondSelection) : 0;
+  const label1 = getDiceLabel(character, firstSelection);
+  const label2 = secondSelection
+    ? getDiceLabel(character, secondSelection)
+    : "";
   const baseDice = v1 + v2;
   const totalDice = Math.max(0, baseDice + extraDice);
 
@@ -50,14 +54,25 @@ export function DiceRollModal({
     const results = Array.from({ length: count }, () => rollD10());
     results.sort((a, b) => b - a);
     setRollResult(results);
+    const metadata = secondSelection
+      ? { label1, label2, baseDice, extraDice }
+      : { label1, baseDice, extraDice };
     void emitRollEvent(gameId, {
       characterId: character.id,
       rollType: "GENERAL_ROLL",
       diceExpression: `${count}d10`,
       results,
-      metadata: { label1, label2, baseDice, extraDice },
+      metadata,
     });
-  }, [baseDice, extraDice, gameId, character.id, label1, label2]);
+  }, [
+    baseDice,
+    extraDice,
+    gameId,
+    character.id,
+    label1,
+    label2,
+    secondSelection,
+  ]);
 
   if (!isOpen) return null;
 
@@ -93,7 +108,9 @@ export function DiceRollModal({
     >
       <div className="space-y-4">
         <p className="text-sm text-white/90">
-          {label1} ({v1}) + {label2} ({v2}) = {baseDice} dice
+          {secondSelection
+            ? `${label1} (${v1}) + ${label2} (${v2}) = ${baseDice} dice`
+            : `${label1} (${v1}) = ${baseDice} dice`}
         </p>
 
         <div className="flex items-center justify-between gap-4">

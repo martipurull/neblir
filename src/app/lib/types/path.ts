@@ -1,7 +1,36 @@
 import { PathName } from "@prisma/client";
 import { z } from "zod";
+import { itemResponseSchema } from "./item";
 
 export const pathName = z.nativeEnum(PathName);
+
+/** Catalogue weapon shown on a Soldier path (display-only reminder). */
+const soldierFavouriteWeaponSchema = itemResponseSchema
+  .pick({
+    id: true,
+    name: true,
+    description: true,
+    imageKey: true,
+    type: true,
+  })
+  .extend({
+    type: z.literal("WEAPON"),
+  });
+
+export type SoldierFavouriteWeapon = z.infer<
+  typeof soldierFavouriteWeaponSchema
+>;
+
+export const soldierFavouriteWeaponUpdateSchema = z
+  .object({
+    pathId: z.string().min(1),
+    favouriteWeaponItemId: z.string().min(1).nullable(),
+  })
+  .strict();
+
+export type SoldierFavouriteWeaponUpdate = z.infer<
+  typeof soldierFavouriteWeaponUpdateSchema
+>;
 
 export const featureSchema = z.object({
   id: z.string(),
@@ -18,8 +47,6 @@ export const featureSchema = z.object({
     applicablePaths: z.array(pathName),
   }),
 });
-
-export const featureUpdateSchema = featureSchema.partial().strict();
 
 export const pathCreateSchema = z
   .object({
@@ -38,9 +65,11 @@ export const pathSchema = z.object({
   baseFeature: z.string(),
   /** Present when path is loaded on a character (PathCharacter.rank). */
   rank: z.number().optional(),
+  /** PathCharacter row id (for Soldier favourite-weapon updates). */
+  pathCharacterId: z.string().optional(),
+  favouriteWeaponItemId: z.string().nullish().optional(),
+  favouriteWeapon: soldierFavouriteWeaponSchema.nullish().optional(),
 });
-
-export const pathUpdateSchema = pathSchema.partial().strict();
 
 /** PATCH /api/paths/[id] (super-admin official catalogue). */
 export const pathCatalogueUpdateSchema = pathCreateSchema.partial().strict();

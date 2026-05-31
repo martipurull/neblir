@@ -5,7 +5,11 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
 import Image from "next/image";
 import { useState } from "react";
-import { CharacterNameActionsModal } from "./CharacterNameActionsModal";
+import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import {
+  CharacterNameActionsModal,
+  type CharacterGameLinkForActions,
+} from "./CharacterNameActionsModal";
 import { DicePairIcon } from "./DicePairIcon";
 
 export interface CharacterHeaderInfoProps {
@@ -14,8 +18,15 @@ export interface CharacterHeaderInfoProps {
   level: number;
   pathsLabel: string;
   characterId: string;
+  activeGameOptions: SelectDropdownOption[];
+  gameLinks?: CharacterGameLinkForActions[];
+  activeGameId: string | null;
+  onActiveGameChange: (gameId: string) => void;
+  onVisibilityUpdated?: () => void | Promise<void>;
   /** Opens the dedicated attribute/skill dice roller */
   onOpenDiceRoller?: () => void;
+  /** When false, hides level-up / update actions */
+  showCharacterActions?: boolean;
   className?: string;
 }
 
@@ -25,7 +36,13 @@ export function CharacterHeaderInfo({
   level,
   pathsLabel,
   characterId,
+  activeGameOptions,
+  gameLinks = [],
+  activeGameId,
+  onActiveGameChange,
+  onVisibilityUpdated,
   onOpenDiceRoller,
+  showCharacterActions = true,
   className,
 }: CharacterHeaderInfoProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -80,25 +97,34 @@ export function CharacterHeaderInfo({
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="lightHeaderIconAffordance"
-          fullWidth={false}
-          aria-label={`Character actions for ${name}`}
-          aria-haspopup="dialog"
-          aria-expanded={actionsOpen}
-          onClick={() => setActionsOpen(true)}
-          className="min-h-11 min-w-11"
-        >
-          <UpArrowIcon className="h-8 w-8" />
-        </Button>
+        {showCharacterActions ? (
+          <Button
+            type="button"
+            variant="lightHeaderIconAffordance"
+            fullWidth={false}
+            aria-label={`Character actions for ${name}`}
+            aria-haspopup="dialog"
+            aria-expanded={actionsOpen}
+            onClick={() => setActionsOpen(true)}
+            className="min-h-11 min-w-11"
+          >
+            <UpArrowIcon className="h-8 w-8" />
+          </Button>
+        ) : null}
       </div>
 
-      <CharacterNameActionsModal
-        isOpen={actionsOpen}
-        onClose={() => setActionsOpen(false)}
-        characterId={characterId}
-      />
+      {showCharacterActions && (
+        <CharacterNameActionsModal
+          isOpen={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          characterId={characterId}
+          gameOptions={activeGameOptions}
+          gameLinks={gameLinks}
+          activeGameId={activeGameId}
+          onActiveGameChange={onActiveGameChange}
+          onVisibilityUpdated={onVisibilityUpdated}
+        />
+      )}
     </div>
   );
 }

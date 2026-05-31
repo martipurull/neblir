@@ -4,9 +4,7 @@ import {
   type AppButtonVariant,
 } from "./buttonStyles";
 
-export type { AppButtonVariant };
-
-export type ButtonProps = React.ComponentPropsWithoutRef<"button"> & {
+type ButtonProps = React.ComponentPropsWithoutRef<"button"> & {
   variant?: AppButtonVariant;
   /** Kept for call sites that only pass a label string. */
   text?: string;

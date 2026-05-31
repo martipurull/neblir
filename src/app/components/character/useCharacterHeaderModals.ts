@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AttackType } from "./AttackRollModal";
+import type { AttackType } from "@/app/components/combat/AttackRollModal";
 import type { StatEditType } from "./StatEditModal";
 
 type UseCharacterHeaderModalsResult = {

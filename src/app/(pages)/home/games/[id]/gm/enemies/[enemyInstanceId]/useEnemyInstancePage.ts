@@ -1,6 +1,6 @@
 "use client";
 
-import type { AttackType } from "@/app/components/character/AttackRollModal";
+import type { AttackType } from "@/app/components/combat/AttackRollModal";
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { GameDetail } from "@/app/lib/types/game";
@@ -19,7 +19,7 @@ import {
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { RollHighlightMode } from "@/app/components/games/RollResultQuickModal";
+import type { RollHighlightMode } from "@/app/components/shared/RollResultQuickModal";
 import {
   enemyHpBarTone,
   mergeEnemyInstancePatch,

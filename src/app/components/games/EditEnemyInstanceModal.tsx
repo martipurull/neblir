@@ -4,13 +4,11 @@ import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import {
-  modalInputClass,
-  modalSelectClass,
-} from "@/app/components/games/shared/modalStyles";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { darkSelectClassName } from "@/app/components/shared/darkInputStyles";
+import { TextField } from "@/app/components/shared/TextField";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import { updateEnemyInstance } from "@/lib/api/enemyInstances";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -46,7 +44,7 @@ export function EditEnemyInstanceModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const imageUpload = useItemImageUpload("custom_enemies");
+  const imageUpload = useImageUpload("custom_enemies");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -177,17 +175,13 @@ export function EditEnemyInstanceModal({
         </p>
 
         <div>
-          <ModalFieldLabel
-            id="edit-enemy-instance-name"
-            label="Name"
-            required
-          />
-          <input
+          <FieldLabel id="edit-enemy-instance-name" label="Name" required />
+          <TextField
             id="edit-enemy-instance-name"
             type="text"
+            variant="dark"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={modalInputClass}
             disabled={busy}
           />
         </div>
@@ -258,14 +252,10 @@ export function EditEnemyInstanceModal({
         />
 
         <div>
-          <ModalFieldLabel
-            id="edit-enemy-instance-status"
-            label="Status"
-            required
-          />
+          <FieldLabel id="edit-enemy-instance-status" label="Status" required />
           <select
             id="edit-enemy-instance-status"
-            className={modalSelectClass}
+            className={darkSelectClassName}
             value={status}
             onChange={(e) => setStatus(e.target.value as EnemyInstanceStatus)}
             disabled={busy}
