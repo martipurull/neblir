@@ -3,6 +3,11 @@
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import { Button } from "@/app/components/shared/Button";
+import {
+  appButtonVariantClassName,
+  linkAsModalActionBlockClassName,
+} from "@/app/components/shared/buttonStyles";
 import { setGameCharacterVisibility } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import Link from "next/link";
@@ -88,8 +93,7 @@ export function CharacterNameActionsModal({
 
   if (!isOpen) return null;
 
-  const base =
-    "block w-full rounded-md border-2 border-white/40 bg-modalBackground-200 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-modalBackground-400 disabled:cursor-not-allowed disabled:opacity-60";
+  const actionBlockLinkClass = `${linkAsModalActionBlockClassName} ${appButtonVariantClassName.modalActionBlock}`;
 
   const showVisibilityToggle =
     activeGameId != null && gameLinks.some((g) => g.gameId === activeGameId);
@@ -104,14 +108,14 @@ export function CharacterNameActionsModal({
       <div className="flex flex-col gap-2">
         <Link
           href={`/home/characters/${characterId}/update`}
-          className={base}
+          className={actionBlockLinkClass}
           onClick={onClose}
         >
           Update Character
         </Link>
         <Link
           href={`/home/characters/${characterId}/level-up`}
-          className={base}
+          className={actionBlockLinkClass}
           onClick={onClose}
         >
           Level Up
@@ -157,18 +161,19 @@ export function CharacterNameActionsModal({
                   ? "Other players in this game can see this character in lists and known NPCs."
                   : "Only you and the game master see this character in the game."}
               </p>
-              <button
+              <Button
                 type="button"
-                className={`${base} mt-3`}
+                variant="modalActionBlock"
                 disabled={visibilityBusy}
                 onClick={handleToggleVisibility}
+                className="mt-3"
               >
                 {visibilityBusy
                   ? "Updating..."
                   : activeIsPublic
                     ? "Make private"
                     : "Make public"}
-              </button>
+              </Button>
               {visibilityError ? (
                 <p className="mt-2 text-sm text-neblirDanger-400">
                   {visibilityError}

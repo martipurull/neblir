@@ -133,7 +133,7 @@ export function ReferenceEntriesPage({
                             : "Player"}
                         </span>
                       ) : null}
-                      {entry.summary ? (
+                      {entry.summary && !isExpanded ? (
                         <StoredRichTextHtml
                           content={entry.summary}
                           className="mt-1 block text-sm text-black/70"

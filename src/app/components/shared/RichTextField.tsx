@@ -2,6 +2,12 @@
 
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
+  richTextFieldLoadingClassName,
+  richTextFieldShellClassName,
+  richTextProseMirrorClassName,
+  type RichTextFieldVariant,
+} from "@/app/components/shared/richTextFieldStyles";
+import {
   RICH_TEXT_EXTENSIONS,
   normalizeStoredHtmlForEditor,
   serializeEditorToStoredHtml,
@@ -16,18 +22,20 @@ import {
   type FocusEvent,
 } from "react";
 
-const editorShellClassName =
-  "rounded-md border border-black/20 bg-paleBlue/40 px-2 py-2 focus-within:ring-2 focus-within:ring-customPrimaryHover";
-
-/** Reuses global TipTap list/heading styles (see `globals.css` `.rich-text-content`). */
-const proseMirrorClassName =
-  "rich-text-content max-w-none px-2 py-1 text-sm text-black outline-none focus:outline-none [&_a]:text-customPrimary [&_a]:underline";
-
 export type RichTextFieldProps = {
   id: string;
   value: string | null | undefined;
   onChange: (html: string) => void;
   onBlur: () => void;
+  /** Light pages (`bg-paleBlue`) or dark modals (`modalBackground`). */
+  variant?: RichTextFieldVariant;
+  /**
+   * Converts persisted `value` to HTML for TipTap (defaults to
+   * {@link normalizeStoredHtmlForEditor}).
+   */
+  normalizeStoredForEditor?: (stored: string | null | undefined) => string;
+  /** Focus the editable region when the editor becomes ready (e.g. modal open). */
+  autoFocus?: boolean;
   /** Tailwind min-height class for the editable region (e.g. min-h-36). */
   minHeightClass?: string;
   /**
@@ -42,12 +50,18 @@ export function RichTextField({
   value,
   onChange,
   onBlur,
+  variant = "light",
+  normalizeStoredForEditor = normalizeStoredHtmlForEditor,
+  autoFocus = false,
   minHeightClass = "min-h-36",
   editorContentClassName,
 }: RichTextFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const debounceMs = 400;
+  const shellClassName = richTextFieldShellClassName(variant);
+  const proseMirrorClassName = richTextProseMirrorClassName(variant);
+  const loadingClassName = richTextFieldLoadingClassName(variant);
 
   useLayoutEffect(() => {
     onChangeRef.current = onChange;
@@ -61,7 +75,7 @@ export function RichTextField({
 
   const editor = useEditor({
     extensions: RICH_TEXT_EXTENSIONS,
-    content: normalizeStoredHtmlForEditor(value),
+    content: normalizeStoredForEditor(value),
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -94,10 +108,19 @@ export function RichTextField({
     if (wrapRef.current?.contains(document.activeElement)) return;
     const target = value?.trim() ? value.trim() : "";
     if (serializeEditorToStoredHtml(editor.getHTML()) === target) return;
-    editor.commands.setContent(normalizeStoredHtmlForEditor(value), {
+    editor.commands.setContent(normalizeStoredForEditor(value), {
       emitUpdate: false,
     });
-  }, [value, editor]);
+  }, [value, editor, normalizeStoredForEditor]);
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed || !autoFocus) return;
+    const frame = requestAnimationFrame(() => {
+      if (editor.isDestroyed) return;
+      editor.commands.focus("end");
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [editor, autoFocus]);
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
@@ -125,7 +148,7 @@ export function RichTextField({
     return (
       <div
         ref={wrapRef}
-        className={`flex min-h-0 flex-col ${editorShellClassName} animate-pulse text-sm text-black/50 ${minHeightClass} ${contentShell ?? ""}`.trim()}
+        className={`flex min-h-0 flex-col ${shellClassName} animate-pulse ${loadingClassName} ${minHeightClass} ${contentShell ?? ""}`.trim()}
       >
         Loading editor…
       </div>
@@ -135,10 +158,10 @@ export function RichTextField({
   return (
     <div
       ref={wrapRef}
-      className={`flex min-h-0 flex-col ${editorShellClassName}`}
+      className={`flex min-h-0 flex-col ${shellClassName}`}
       onBlurCapture={handleContainerBlurCapture}
     >
-      <RichTextToolbar editor={editor} />
+      <RichTextToolbar editor={editor} variant={variant} />
       <EditorContent
         editor={editor}
         className={contentShell ? `${contentShell} min-h-0` : "min-h-0"}

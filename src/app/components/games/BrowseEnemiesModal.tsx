@@ -110,15 +110,16 @@ export function BrowseEnemiesModal({
             <ul className="space-y-1">
               {enemies.map((enemy) => (
                 <li key={enemy.id}>
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => setSelectedEnemyId(enemy.id)}
-                    className={[
-                      "flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors",
+                    variant={
                       selectedEnemyId === enemy.id
-                        ? "bg-paleBlue/20 text-white"
-                        : "text-white/90 hover:bg-paleBlue/10",
-                    ].join(" ")}
+                        ? "modalBrowseListRowSelected"
+                        : "modalBrowseListRow"
+                    }
+                    fullWidth={false}
+                    onClick={() => setSelectedEnemyId(enemy.id)}
+                    className="w-full"
                   >
                     <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                       {imageUrls[enemy.id] ? (
@@ -141,7 +142,7 @@ export function BrowseEnemiesModal({
                       )}
                     </div>
                     <span className="truncate">{enemy.name}</span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

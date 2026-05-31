@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  numberFieldStepperButtonDarkClass,
+  numberFieldStepperButtonLightClass,
+} from "@/app/components/shared/inputStyles";
+
 function ChevronIcon({ up }: { up: boolean }) {
   return (
     <svg
@@ -39,8 +44,8 @@ export function NumberFieldStepperRail({
       : "border-black/15 bg-black/[0.04]";
   const buttonClass =
     variant === "dark"
-      ? "text-white/75 hover:bg-paleBlue/15 hover:text-white focus-visible:outline-white/60"
-      : "text-black/55 hover:bg-black/[0.06] hover:text-black focus-visible:outline-customPrimaryHover";
+      ? numberFieldStepperButtonDarkClass
+      : numberFieldStepperButtonLightClass;
 
   return (
     <div
@@ -54,7 +59,7 @@ export function NumberFieldStepperRail({
         tabIndex={-1}
         disabled={disabled}
         aria-label={`Increase ${label}`}
-        className={`flex flex-1 items-center justify-center rounded-sm transition focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] disabled:pointer-events-none ${buttonClass}`}
+        className={buttonClass}
         onClick={() => onBump(1)}
       >
         <ChevronIcon up />
@@ -64,7 +69,7 @@ export function NumberFieldStepperRail({
         tabIndex={-1}
         disabled={disabled}
         aria-label={`Decrease ${label}`}
-        className={`flex flex-1 items-center justify-center rounded-sm transition focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] disabled:pointer-events-none ${buttonClass}`}
+        className={buttonClass}
         onClick={() => onBump(-1)}
       >
         <ChevronIcon up={false} />

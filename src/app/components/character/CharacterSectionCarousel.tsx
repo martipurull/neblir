@@ -23,7 +23,13 @@ export function CharacterSectionCarousel({
   sections,
   className,
 }: CharacterSectionCarouselProps) {
-  const sectionKeys = useMemo(() => sections.map((s) => s.id), [sections]);
+  /** Stable while section ids/order are unchanged — note saves must not retrigger scroll restore. */
+  const sectionKeySignature = sections.map((s) => s.id).join("\0");
+  const sectionKeys = useMemo(
+    () =>
+      sectionKeySignature.length === 0 ? [] : sectionKeySignature.split("\0"),
+    [sectionKeySignature]
+  );
   const { scrollRef, currentIndex, scrollToIndex } = useCarousel(
     sections.length,
     sectionKeys

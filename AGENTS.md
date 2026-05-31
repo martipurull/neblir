@@ -17,21 +17,26 @@ These rules apply to every task unless the user explicitly overrides them.
   - `src/app/components/shared`
 - **Text entry on light pages** (dark text, `bg-paleBlue` field surface — not browser white):
   - Use **`TextField`** and **`TextArea`** (`TextField.tsx`, `TextArea.tsx`) for primitive single-line and multi-line controls.
-  - With **`react-hook-form`** and **`FormProvider`**, prefer **`TextInput`** and **`NumberInput`** (they compose `TextField` and include label + `Controller` wiring).
+  - With **`react-hook-form`** and **`FormProvider`**, prefer **`TextInput`** and **`NumberInput`** (they compose `TextField` / **`NumberField`** and include label + `Controller` wiring).
+  - **`NumberField`** / **`NumberInput`**: ± steppers use **`stepperStep`** (defaults to **1** — integer bumps). The native input **`step`** is separate (`step="any"` on float fields such as weight so users can type decimals manually). Do not tie fractional **`step`** values to the rail unless **`stepperStep`** is set explicitly.
   - Use **`SelectDropdown`** for searchable selects; its menu filter uses **`sharedTextFieldCompactClassName`** from `inputStyles.ts`.
-  - If you need another size or density, extend **`inputStyles.ts`** and/or add optional props on the shared primitive—avoid pasting one-off Tailwind field strings into feature code.
+  - If you need another size or density, extend **`inputStyles.ts`**, **`darkInputStyles.ts`**, and/or add optional props on the shared primitive—avoid pasting one-off Tailwind field strings into feature code.
+  - **Image uploads**: reuse **`useImageUpload`** (`src/hooks/use-image-upload.ts`) + **`ImageUploadDropzone`** (`src/app/components/shared/ImageUploadDropzone.tsx`).
+  - Code under **`src/app/components/shared/`** must not import from feature folders (`games/`, `character/`, etc.). Dark/light field tokens live in **`darkInputStyles.ts`** / **`inputStyles.ts`**; catalogue constants live in **`src/app/lib/constants/`**.
 - **Dark game modals** (purple shell, white/light text, transparent or tinted fields): keep **`darkTextFieldClassName`**, **`darkNumberFieldInnerClass`**, **`FieldLabel`** (`variant="dark"`), **`ModalNumberField`**, and related patterns in `src/app/components/shared/darkInputStyles.ts` (and e.g. `ModalSelect` filter styles). Do **not** drop in `TextField` / `TextArea` for those surfaces—they target the light-page theme.
 - **TipTap rich text (StarterKit + toolbar)**:
-  - On **light** pages, reuse **`RichTextField`** (`src/app/components/shared/RichTextField.tsx`) with **`Controller`** from `react-hook-form` — same wiring as character **`BackstoryStep`** (`generalInformation.backstory` / `summary`). For JSON document fields (e.g. reference `contentJson`), use **`RichTextJsonField`** (`src/app/components/shared/RichTextJsonField.tsx`). To **display** stored HTML, use **`StoredRichTextHtml`**; for TipTap JSON documents, use **`RichTextJsonHtml`** (both in `src/app/components/shared/`).
-  - On **dark game modals**, reuse **`GameModalRichTextField`** (`src/app/components/games/shared/GameModalRichTextField.tsx`).
+  - Reuse **`RichTextField`** (`src/app/components/shared/RichTextField.tsx`) with **`variant="light"`** (default) on paleBlue pages or **`variant="dark"`** on `modalBackground` shells (character notes, game modals). Wire with **`Controller`** from `react-hook-form` on light pages — same as character **`BackstoryStep`**. For JSON document fields (e.g. reference `contentJson`), use **`RichTextJsonField`**. To **display** stored HTML, use **`StoredRichTextHtml`** (`legacyNoteContent` for character notes with legacy JSON); for TipTap JSON-only fields, use **`RichTextJsonHtml`**.
+  - **`GameModalRichTextField`** (`src/app/components/games/shared/GameModalRichTextField.tsx`) is a labeled wrapper for react-hook-form game modals; prefer **`RichTextField variant="dark"`** for new dark-modal editors when a label wrapper is not needed.
   - Do **not** introduce a parallel TipTap stack (extensions, toolbar, serialization) for the same use case; extend the existing helpers in `src/app/lib/tiptap/richText.ts` (HTML strings) and `src/app/lib/tiptap/richTextJsonDoc.ts` (JSON documents) if behaviour must change.
 - Prefer existing shared `Button`, `TextField`, `TextArea`, `TextInput`, `NumberInput`, `SelectDropdown`, `Checkbox`, etc. over duplicating similar components.
 - Create a new shared primitive only when no existing component can satisfy the need without awkward hacks.
 
 ## 3) Always Use Shared Button Styles
 
-- Use `src/app/components/shared/buttonStyles.ts` for button styling decisions.
-- Do not introduce ad-hoc one-off button style systems when `buttonStyles.ts` can be extended.
+- Use **`Button`** (`src/app/components/shared/Button.tsx`) with variants from **`buttonStyles.ts`** for actions—not raw `<button>` with ad-hoc Tailwind.
+- Do not introduce ad-hoc one-off button style systems when **`buttonStyles.ts`** can be extended (e.g. **`modalIconStepperCompact`** for inline ± controls, **`modalBrowseListRow`** / **`modalBrowseListRowSelected`** for selectable dark lists, **`modalActionBlock`** for full-width modal nav blocks).
+- **Next.js `Link` styled as a button** cannot use **`Button`**; compose **`linkAsModalActionBlockClassName`** (or similar layout helper) with **`appButtonVariantClassName`** from **`buttonStyles.ts`** — see **`CharacterNameActionsModal`**.
+- Internal sub-controls (e.g. chevrons inside **`NumberFieldStepperRail`**) may stay native `<button>` elements but must use shared class tokens from **`inputStyles.ts`**, not duplicated strings.
 
 ## 4) Respect Tailwind Theme Tokens
 

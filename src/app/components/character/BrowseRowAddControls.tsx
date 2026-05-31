@@ -2,15 +2,10 @@
 
 import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import { Button } from "@/app/components/shared/Button";
+import { darkCompactNumberInputClassName } from "@/app/components/shared/darkInputStyles";
 import { useState } from "react";
 
 const MAX_ADD_QUANTITY = 10;
-
-const qtyStepButtonClass =
-  "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-white/30 bg-transparent text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50 disabled:pointer-events-none disabled:opacity-40";
-
-const qtyInputClass =
-  "h-7 w-10 shrink-0 appearance-none rounded border border-white/30 bg-transparent px-0 text-center text-xs tabular-nums text-white outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-40 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 function parseAddQuantity(raw: string): number {
   const n = Number.parseInt(raw, 10);
@@ -69,15 +64,16 @@ export function BrowseRowAddControls({
       </Button>
       {expanded ? (
         <>
-          <button
+          <Button
             type="button"
-            className={qtyStepButtonClass}
+            variant="modalIconStepperCompact"
+            fullWidth={false}
             disabled={busy}
             aria-label={`Decrease quantity of ${itemName}`}
             onClick={handleMinus}
           >
             −
-          </button>
+          </Button>
           <input
             type="number"
             inputMode="numeric"
@@ -87,33 +83,35 @@ export function BrowseRowAddControls({
             value={qty}
             disabled={busy}
             aria-label={`Quantity of ${itemName} to add`}
-            className={qtyInputClass}
+            className={darkCompactNumberInputClassName}
             onChange={(e) => setQty(e.target.value)}
             onBlur={() => {
               setQty(String(parseAddQuantity(qty)));
             }}
           />
-          <button
+          <Button
             type="button"
-            className={qtyStepButtonClass}
+            variant="modalIconStepperCompact"
+            fullWidth={false}
             disabled={busy}
             aria-label={`Increase quantity of ${itemName}`}
             onClick={handlePlus}
           >
             +
-          </button>
+          </Button>
         </>
       ) : (
-        <button
+        <Button
           type="button"
-          className={qtyStepButtonClass}
+          variant="modalIconStepperCompact"
+          fullWidth={false}
           disabled={busy}
           aria-label={`Choose quantity of ${itemName} to add`}
           aria-expanded={false}
           onClick={handlePlus}
         >
           +
-        </button>
+        </Button>
       )}
     </div>
   );

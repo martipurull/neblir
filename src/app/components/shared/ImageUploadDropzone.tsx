@@ -135,15 +135,17 @@ export function ImageUploadDropzone({
       </Button>
     </div>
   ) : (
-    <button
+    <Button
       type="button"
+      variant={
+        isLight
+          ? "imageUploadBrowseTriggerLight"
+          : "imageUploadBrowseTriggerDark"
+      }
+      fullWidth={false}
       disabled={inactive}
       aria-labelledby={labelId}
-      className={
-        isLight
-          ? "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-black/70 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-          : "flex w-full cursor-pointer flex-col items-center gap-1 text-center text-sm text-white/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-      }
+      className="w-full"
       onClick={(e) => {
         e.preventDefault();
         openFilePicker();
@@ -152,7 +154,7 @@ export function ImageUploadDropzone({
       <span>
         {uploading ? "Uploading…" : "Drag an image here or click to browse"}
       </span>
-    </button>
+    </Button>
   );
 
   return (

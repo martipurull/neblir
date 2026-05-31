@@ -17,6 +17,7 @@ export function useCarousel(
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const lastIndexRef = useRef(0);
+  const isRestoringScrollRef = useRef(false);
   const touchState = useRef<{
     startX: number;
     startScrollLeft: number;
@@ -50,6 +51,7 @@ export function useCarousel(
     if (!container) return;
 
     const handleScroll = () => {
+      if (isRestoringScrollRef.current) return;
       const firstSlide = container.querySelector("[data-slide-index='0']");
       if (!firstSlide) return;
       const slideWidth = (firstSlide as HTMLElement).offsetWidth;
@@ -157,9 +159,13 @@ export function useCarousel(
       0,
       Math.min(lastIndexRef.current, sectionCount - 1)
     );
+    isRestoringScrollRef.current = true;
     container.scrollLeft = targetIndex * step;
     setCurrentIndex(targetIndex);
     lastIndexRef.current = targetIndex;
+    requestAnimationFrame(() => {
+      isRestoringScrollRef.current = false;
+    });
   }, [sectionKeys, sectionCount]);
 
   return { scrollRef, currentIndex, scrollToIndex };

@@ -3,7 +3,7 @@ import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
 
 /** Shared with JSON TipTap editors and `generateHTML` so stored JSON round-trips. */
-export const RICH_TEXT_JSON_EXTENSIONS = [StarterKit];
+const RICH_TEXT_JSON_EXTENSIONS = [StarterKit];
 
 export const EMPTY_RICH_TEXT_DOC: JSONContent = {
   type: "doc",
@@ -26,7 +26,7 @@ export function isRichTextDocEmpty(doc: JSONContent): boolean {
 }
 
 /** Parse DB string: TipTap JSON doc, or legacy plain text. */
-export function parseStoredRichTextDoc(stored: string): JSONContent {
+function parseStoredRichTextDoc(stored: string): JSONContent {
   try {
     const parsed = JSON.parse(stored) as unknown;
     if (
@@ -45,10 +45,6 @@ export function parseStoredRichTextDoc(stored: string): JSONContent {
     type: "doc",
     content: [{ type: "paragraph", content: [{ type: "text", text: stored }] }],
   };
-}
-
-export function serializeRichTextDoc(doc: JSONContent): string {
-  return JSON.stringify(doc);
 }
 
 export function storedRichTextJsonToHtml(stored: string): string {

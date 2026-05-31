@@ -568,9 +568,8 @@ export function SuperAdminCreateItemForm({
           <NumberInput
             name="confCost"
             label="Conf cost"
-            parseAs="float"
+            parseAs="int"
             min={0}
-            step={0.01}
           />
           <SuperAdminLabeledField
             id="item-cost-info"
@@ -583,7 +582,7 @@ export function SuperAdminCreateItemForm({
             label="Weight"
             parseAs="float"
             min={0}
-            step={0.01}
+            step="any"
           />
 
           <div className="mb-6">

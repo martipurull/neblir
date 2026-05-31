@@ -22,7 +22,10 @@ export type NumberFieldProps = Omit<
   onChange: (value: string) => void;
   min?: number;
   max?: number;
-  step?: number;
+  /** Passed to the native `input` (`step="any"` allows free decimal typing). */
+  step?: number | "any";
+  /** ± rail increment. Defaults to 1 so steppers bump integers unless overridden. */
+  stepperStep?: number;
   variant?: NumberFieldVariant;
   /** Layout/sizing on the bordered shell (width, margin, min-height). */
   className?: string;
@@ -45,6 +48,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       min,
       max,
       step = 1,
+      stepperStep = 1,
       placeholder,
       id,
       stepperLabel,
@@ -70,7 +74,9 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     const railLabel = stepperLabel ?? ariaLabel ?? id ?? "Number";
 
     const bump = (direction: 1 | -1) => {
-      onChange(bumpNumericFieldValue(displayValue, direction, min, max, step));
+      onChange(
+        bumpNumericFieldValue(displayValue, direction, min, max, stepperStep)
+      );
     };
 
     return (
@@ -80,7 +86,9 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           ref={ref}
           id={id}
           type="number"
-          inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
+          inputMode={
+            step === "any" || !Number.isInteger(step) ? "decimal" : "numeric"
+          }
           value={displayValue}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}

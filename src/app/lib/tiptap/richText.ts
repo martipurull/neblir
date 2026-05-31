@@ -1,3 +1,4 @@
+import { storedRichTextJsonToHtml } from "@/app/lib/tiptap/richTextJsonDoc";
 import StarterKit from "@tiptap/starter-kit";
 
 /** Shared StarterKit stack for app rich text fields (headings, lists, bold, italic, etc.). */
@@ -54,4 +55,45 @@ export function storedRichTextToDisplayHtml(
   if (!s) return "";
   if (/<[a-z][\s\S]*>/i.test(s)) return s;
   return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
+}
+
+function isStoredRichTextJsonDoc(stored: string): boolean {
+  try {
+    const parsed = JSON.parse(stored) as unknown;
+    return (
+      !!parsed &&
+      typeof parsed === "object" &&
+      (parsed as { type?: string }).type === "doc"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Character notes (and similar envelopes): legacy TipTap JSON → HTML for the editor;
+ * otherwise same as {@link normalizeStoredHtmlForEditor}.
+ */
+export function normalizeStoredNoteContentForEditor(
+  stored: string | null | undefined
+): string {
+  const s = stored?.trim() ?? "";
+  if (!s) return "<p></p>";
+  if (isStoredRichTextJsonDoc(s)) {
+    const html = storedRichTextJsonToHtml(s);
+    return html || "<p></p>";
+  }
+  return normalizeStoredHtmlForEditor(s);
+}
+
+/** Display path for notes: JSON doc, HTML, or legacy plain text. */
+export function storedNoteContentToDisplayHtml(
+  stored: string | null | undefined
+): string {
+  const s = stored?.trim() ?? "";
+  if (!s) return "";
+  if (isStoredRichTextJsonDoc(s)) {
+    return storedRichTextJsonToHtml(s);
+  }
+  return storedRichTextToDisplayHtml(s);
 }

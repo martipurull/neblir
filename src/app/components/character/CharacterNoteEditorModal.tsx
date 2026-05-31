@@ -1,26 +1,15 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { CharacterNoteEditor } from "@/app/components/character/CharacterNoteEditor";
-import {
-  isRichTextDocEmpty,
-  parseStoredRichTextDoc,
-  serializeRichTextDoc,
-} from "@/app/lib/tiptap/richTextJsonDoc";
+import { RichTextField } from "@/app/components/shared/RichTextField";
+import { normalizeStoredNoteContentForEditor } from "@/app/lib/tiptap/richText";
 import type {
   CharacterDetail,
   CharacterNoteEntry,
 } from "@/app/lib/types/character";
 import { updateCharacterNotes } from "@/lib/api/character";
-import type { JSONContent } from "@tiptap/core";
 import type { KeyedMutator } from "swr";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 export type CharacterNoteModalMode =
   | { type: "create" }
@@ -31,7 +20,10 @@ export interface CharacterNoteEditorModalProps {
   onClose: () => void;
   characterId: string;
   mode: CharacterNoteModalMode | null;
-  notes: CharacterNoteEntry[];
+  /** Note content captured when the modal session opened (not live list data). */
+  initialContent: string;
+  /** Edit target identity captured when the modal session opened. */
+  editingCreatedAt: string | null;
   mutate: KeyedMutator<CharacterDetail | null>;
   /** Bump with the modal session so the editor remounts when opening create / another note. */
   editorSession: number;
@@ -42,7 +34,8 @@ export function CharacterNoteEditorModal({
   onClose,
   characterId,
   mode,
-  notes,
+  initialContent,
+  editingCreatedAt,
   mutate,
   editorSession,
 }: CharacterNoteEditorModalProps) {
@@ -50,6 +43,10 @@ export function CharacterNoteEditorModal({
     "idle"
   );
   const createPhaseRef = useRef<"fresh" | "prepended">("fresh");
+  /** Stable identity for the note being edited (array index shifts after saves). */
+  const editingCreatedAtRef = useRef<string | null>(null);
+  /** Prevents debounced + unmount flush from issuing duplicate empty deletes. */
+  const emptyDeleteHandledRef = useRef(false);
   /** Avoid overlapping PATCHes so a create flow cannot prepend twice. */
   const persistQueueRef = useRef(Promise.resolve());
   const onCloseRef = useRef(onClose);
@@ -57,25 +54,20 @@ export function CharacterNoteEditorModal({
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen || mode == null) return;
-    if (mode.type === "create") {
-      createPhaseRef.current = "fresh";
-    }
-  }, [isOpen, mode, editorSession]);
+    emptyDeleteHandledRef.current = false;
+    createPhaseRef.current = "fresh";
+    editingCreatedAtRef.current = editingCreatedAt;
+  }, [isOpen, mode, editorSession, editingCreatedAt]);
 
-  const initialDoc: JSONContent =
-    mode?.type === "edit"
-      ? parseStoredRichTextDoc(notes[mode.index]?.content ?? "")
-      : parseStoredRichTextDoc("");
-
-  const persistDoc = useCallback(
-    (doc: JSONContent) => {
+  const persistHtml = useCallback(
+    (html: string) => {
       if (!mode) return;
 
       const now = new Date().toISOString();
-      const serialized = serializeRichTextDoc(doc);
-      const empty = isRichTextDocEmpty(doc);
+      const serialized = html;
+      const empty = !serialized;
 
       if (
         mode.type === "create" &&
@@ -84,6 +76,14 @@ export function CharacterNoteEditorModal({
       ) {
         return;
       }
+
+      const resolveEditIndex = (entries: CharacterNoteEntry[]) => {
+        if (mode.type !== "edit") return -1;
+        const createdAt = editingCreatedAtRef.current;
+        if (!createdAt) return mode.index;
+        const idx = entries.findIndex((e) => e.createdAt === createdAt);
+        return idx === -1 ? mode.index : idx;
+      };
 
       const finishDeleteAndClose = () => {
         setSaveState("saving");
@@ -99,7 +99,11 @@ export function CharacterNoteEditorModal({
                     next = current.slice(1);
                     createPhaseRef.current = "fresh";
                   } else {
-                    next = current.filter((_, i) => i !== mode.index);
+                    const editIndex = resolveEditIndex(current);
+                    if (editIndex < 0 || editIndex >= current.length) {
+                      return prev;
+                    }
+                    next = current.filter((_, i) => i !== editIndex);
                   }
                   return updateCharacterNotes(characterId, next);
                 },
@@ -121,11 +125,15 @@ export function CharacterNoteEditorModal({
         createPhaseRef.current === "prepended" &&
         empty
       ) {
+        if (emptyDeleteHandledRef.current) return;
+        emptyDeleteHandledRef.current = true;
         finishDeleteAndClose();
         return;
       }
 
       if (mode.type === "edit" && empty) {
+        if (emptyDeleteHandledRef.current) return;
+        emptyDeleteHandledRef.current = true;
         finishDeleteAndClose();
         return;
       }
@@ -159,8 +167,12 @@ export function CharacterNoteEditorModal({
                     );
                   }
                 } else {
+                  const editIndex = resolveEditIndex(current);
+                  if (editIndex < 0 || editIndex >= current.length) {
+                    return prev;
+                  }
                   next = current.map((e, i) =>
-                    i === mode.index
+                    i === editIndex
                       ? { ...e, content: serialized, updatedAt: now }
                       : e
                   );
@@ -227,10 +239,16 @@ export function CharacterNoteEditorModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-modalBackground-200 p-4">
-          <CharacterNoteEditor
+          <RichTextField
             key={editorSession}
-            initialDoc={initialDoc}
-            onDebouncedDoc={persistDoc}
+            id="character-note-editor"
+            variant="dark"
+            autoFocus
+            value={initialContent}
+            normalizeStoredForEditor={normalizeStoredNoteContentForEditor}
+            onChange={persistHtml}
+            onBlur={() => {}}
+            minHeightClass="min-h-[11rem]"
           />
         </div>
 

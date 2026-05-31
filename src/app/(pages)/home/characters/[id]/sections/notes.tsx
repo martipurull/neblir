@@ -22,16 +22,25 @@ function CharacterNotesSectionContent({
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<CharacterNoteModalMode | null>(null);
   const [editorSession, setEditorSession] = useState(0);
+  const [sessionInitialContent, setSessionInitialContent] = useState("");
+  const [sessionEditingCreatedAt, setSessionEditingCreatedAt] = useState<
+    string | null
+  >(null);
   const notes = character.notes ?? [];
 
   const openCreate = () => {
     setMode({ type: "create" });
+    setSessionInitialContent("");
+    setSessionEditingCreatedAt(null);
     setEditorSession((s) => s + 1);
     setModalOpen(true);
   };
 
   const openEdit = (index: number) => {
+    const entry = notes[index];
     setMode({ type: "edit", index });
+    setSessionInitialContent(entry?.content ?? "");
+    setSessionEditingCreatedAt(entry?.createdAt ?? null);
     setEditorSession((s) => s + 1);
     setModalOpen(true);
   };
@@ -98,7 +107,8 @@ function CharacterNotesSectionContent({
         onClose={closeModal}
         characterId={character.id}
         mode={modalOpen ? mode : null}
-        notes={notes}
+        initialContent={sessionInitialContent}
+        editingCreatedAt={sessionEditingCreatedAt}
         mutate={mutate}
         editorSession={editorSession}
       />
