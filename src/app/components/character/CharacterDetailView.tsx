@@ -7,8 +7,8 @@ import {
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
 import { DedicatedDiceRollModal } from "@/app/components/character/DedicatedDiceRollModal";
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
-import { InitiativeOrderModal } from "@/app/components/character/InitiativeOrderModal";
-import { InitiativeRollModal } from "@/app/components/character/InitiativeRollModal";
+import { InitiativeOrderModal } from "@/app/components/combat/InitiativeOrderModal";
+import { InitiativeRollModal } from "@/app/components/combat/InitiativeRollModal";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import type { CharacterDetail } from "@/app/lib/types/character";

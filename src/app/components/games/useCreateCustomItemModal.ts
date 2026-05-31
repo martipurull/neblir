@@ -3,12 +3,12 @@ import {
   itemDamageSchema,
   type ItemDamage,
 } from "@/app/lib/types/item";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
-import { optionalStoredRichHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import { useState } from "react";
 
 type Args = {
@@ -44,7 +44,7 @@ export function useCreateCustomItemModal({ gameId, onClose, onSuccess }: Args) {
   const [damageDiceType, setDamageDiceType] = useState<string>("");
   const [damageNumberOfDice, setDamageNumberOfDice] = useState<string>("");
 
-  const imageUpload = useItemImageUpload("custom_items");
+  const imageUpload = useImageUpload("custom_items");
   const {
     imageKey,
     pendingImageKey,

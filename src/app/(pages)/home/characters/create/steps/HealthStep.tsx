@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { useFormContext, useWatch } from "react-hook-form";
-import { RollResultQuickModal } from "@/app/components/games/RollResultQuickModal";
+import { RollResultQuickModal } from "@/app/components/shared/RollResultQuickModal";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 

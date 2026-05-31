@@ -1,6 +1,6 @@
 "use client";
 
-import type { AttackType } from "@/app/components/character/AttackRollModal";
+import type { AttackType } from "@/app/components/combat/AttackRollModal";
 import { Button } from "@/app/components/shared/Button";
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { enemyAttackOption } from "../enemyInstanceUtils";

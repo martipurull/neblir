@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  EMPTY_NOTE_DOC,
-  CHARACTER_NOTE_EXTENSIONS,
-} from "@/app/lib/tiptap/characterNote";
+  EMPTY_RICH_TEXT_DOC,
+  RICH_TEXT_JSON_EXTENSIONS,
+} from "@/app/lib/tiptap/richTextJsonDoc";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useEffect, useLayoutEffect, useRef } from "react";
@@ -31,8 +31,8 @@ export function CharacterNoteEditor({
   }, [onDebouncedDoc]);
 
   const editor = useEditor({
-    extensions: CHARACTER_NOTE_EXTENSIONS,
-    content: initialDoc ?? EMPTY_NOTE_DOC,
+    extensions: RICH_TEXT_JSON_EXTENSIONS,
+    content: initialDoc ?? EMPTY_RICH_TEXT_DOC,
     immediatelyRender: false,
     editorProps: {
       attributes: {

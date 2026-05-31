@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowseItemDetailModal } from "@/app/components/character/BrowseItemDetailModal";
+import { BrowseItemDetailModal } from "@/app/components/items/BrowseItemDetailModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";

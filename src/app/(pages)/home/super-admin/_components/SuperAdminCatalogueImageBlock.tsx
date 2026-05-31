@@ -1,10 +1,7 @@
 "use client";
 
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import {
-  useItemImageUpload,
-  type ItemImageUploadType,
-} from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload, type ImageUploadKind } from "@/hooks/use-image-upload";
 import { useEffect } from "react";
 import { SuperAdminCatalogueImagePreview } from "./SuperAdminCatalogueImagePreview";
 
@@ -19,7 +16,7 @@ export function SuperAdminCatalogueImageBlock({
   previewVariant,
   previewAlt = "Catalogue image",
 }: {
-  uploadType: ItemImageUploadType;
+  uploadType: ImageUploadKind;
   id: string;
   label: string;
   disabled?: boolean;
@@ -28,7 +25,7 @@ export function SuperAdminCatalogueImageBlock({
   previewVariant?: "map";
   previewAlt?: string;
 }) {
-  const imageUpload = useItemImageUpload(uploadType, initialImageKey);
+  const imageUpload = useImageUpload(uploadType, initialImageKey);
 
   useEffect(() => {
     onImageKey(imageUpload.imageKey);

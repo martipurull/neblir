@@ -1,6 +1,6 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
@@ -13,10 +13,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import useSWR from "swr";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
@@ -90,13 +88,13 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
     setErrorMessage(null);
     const payload = {
       name: values.name.trim(),
-      description: optionalSuperAdminRichHtml(values.description),
+      description: optionalStoredRichHtml(values.description),
       imageKey: values.imageKey.trim() || undefined,
       health: values.health,
       speed: values.speed,
       initiativeModifier: values.initiativeModifier,
       numberOfReactions: values.numberOfReactions,
-      notes: optionalSuperAdminRichHtml(values.notes),
+      notes: optionalStoredRichHtml(values.notes),
     };
 
     const parsed = enemyCatalogueUpdateSchema.safeParse(payload);
@@ -181,7 +179,7 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
                 name="description"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextField
+                  <RichTextField
                     id="enemy-description"
                     value={field.value}
                     onChange={field.onChange}
@@ -230,7 +228,7 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
                 name="notes"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextField
+                  <RichTextField
                     id="enemy-notes"
                     value={field.value}
                     onChange={field.onChange}

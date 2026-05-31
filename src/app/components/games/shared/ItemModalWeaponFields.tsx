@@ -1,7 +1,10 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { ATTACK_ROLL_TYPES, DAMAGE_TYPES } from "./itemModalConstants";
+import {
+  ATTACK_ROLL_TYPES,
+  DAMAGE_TYPES,
+} from "@/app/lib/constants/itemCatalogue";
 
 const WEAPON_FIELD_IDS = {
   custom: {
@@ -128,7 +131,7 @@ export function ItemModalWeaponFields({
   return (
     <div className="space-y-3">
       <div>
-        <ModalFieldLabel id={ids.attackRoll} label={attackRollLabel} />
+        <FieldLabel id={ids.attackRoll} label={attackRollLabel} />
         <div className="flex flex-wrap gap-2">
           {ATTACK_ROLL_TYPES.map((t) => (
             <Checkbox
@@ -225,7 +228,7 @@ export function ItemModalWeaponFields({
         />
       </div>
       <div>
-        <ModalFieldLabel id={ids.damageTypes} label={damageTypesLabel} />
+        <FieldLabel id={ids.damageTypes} label={damageTypesLabel} />
         {damageTypesLayout === "single-row" ? (
           <div className="flex flex-wrap gap-2">
             {damageCheckboxes(DAMAGE_TYPES)}

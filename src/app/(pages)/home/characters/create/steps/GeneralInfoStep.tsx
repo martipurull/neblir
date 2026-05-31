@@ -8,7 +8,7 @@ import { TextInput } from "@/app/components/shared/TextInput";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
@@ -40,7 +40,7 @@ const raceOptions = RACES.map((r) => ({ value: r.value, label: r.label }));
 export function GeneralInfoStep() {
   const { control, setValue, watch } =
     useFormContext<CharacterCreationRequest>();
-  const imageUpload = useItemImageUpload("characters");
+  const imageUpload = useImageUpload("characters");
 
   const currencyImageEntries = useMemo(
     () =>

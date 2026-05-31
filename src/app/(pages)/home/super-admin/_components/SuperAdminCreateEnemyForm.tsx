@@ -1,6 +1,6 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { NumberInput } from "@/app/components/shared/NumberInput";
@@ -8,10 +8,8 @@ import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import {
-  optionalSuperAdminRichHtml,
-  superAdminRichEditorScrollClass,
-} from "../_utils/superAdminRichTextEditor";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
+import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
@@ -61,7 +59,7 @@ export function SuperAdminCreateEnemyForm() {
     setErrorMessage(null);
     const payload = {
       name: values.name.trim(),
-      description: optionalSuperAdminRichHtml(values.description),
+      description: optionalStoredRichHtml(values.description),
       imageKey: values.imageKey.trim() || undefined,
       health: values.health,
       speed: values.speed,
@@ -72,7 +70,7 @@ export function SuperAdminCreateEnemyForm() {
       vulnerabilities: [] as const,
       actions: [],
       additionalActions: [],
-      notes: optionalSuperAdminRichHtml(values.notes),
+      notes: optionalStoredRichHtml(values.notes),
     };
 
     const parsed = enemyCreateSchema.safeParse(payload);
@@ -148,7 +146,7 @@ export function SuperAdminCreateEnemyForm() {
               name="description"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="enemy-description"
                   value={field.value}
                   onChange={field.onChange}
@@ -195,7 +193,7 @@ export function SuperAdminCreateEnemyForm() {
               name="notes"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="enemy-notes"
                   value={field.value}
                   onChange={field.onChange}

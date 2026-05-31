@@ -1,9 +1,7 @@
-"use client";
-
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type DragEvent } from "react";
 
-export type ItemImageUploadType =
+export type ImageUploadKind =
   | "custom_items"
   | "custom_enemies"
   | "unique_items"
@@ -12,10 +10,7 @@ export type ItemImageUploadType =
   | "items"
   | "maps";
 
-export function useItemImageUpload(
-  type: ItemImageUploadType,
-  initialImageKey = ""
-) {
+export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);
   useEffect(() => {
     if (initialImageKey) {
@@ -65,7 +60,7 @@ export function useItemImageUpload(
         const formData = new FormData();
         formData.set("file", file);
         const res = await fetch(
-          `/api/upload-file?type=${encodeURIComponent(type)}`,
+          `/api/upload-file?type=${encodeURIComponent(kind)}`,
           { method: "POST", body: formData }
         );
         const data = await res.json();
@@ -86,11 +81,11 @@ export function useItemImageUpload(
         setUploading(false);
       }
     },
-    [type, pendingImageKey, deleteUploadedImage]
+    [kind, pendingImageKey, deleteUploadedImage]
   );
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e: DragEvent) => {
       e.preventDefault();
       const file = e.dataTransfer.files[0];
       if (file) void handleFile(file);
@@ -98,7 +93,7 @@ export function useItemImageUpload(
     [handleFile]
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
   }, []);
 

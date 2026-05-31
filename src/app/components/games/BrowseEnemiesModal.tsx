@@ -189,7 +189,7 @@ export function BrowseEnemiesModal({
                     Description
                   </p>
                   <div
-                    className="character-note-html text-sm text-white/90"
+                    className="rich-text-content text-sm text-white/90"
                     dangerouslySetInnerHTML={{ __html: selected.description }}
                   />
                 </div>
@@ -201,7 +201,7 @@ export function BrowseEnemiesModal({
                     Notes
                   </p>
                   <div
-                    className="character-note-html text-sm text-white/90"
+                    className="rich-text-content text-sm text-white/90"
                     dangerouslySetInnerHTML={{ __html: selected.notes }}
                   />
                 </div>

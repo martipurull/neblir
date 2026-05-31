@@ -3,10 +3,10 @@
 import { Button } from "@/app/components/shared/Button";
 import { CharacterNoteEditor } from "@/app/components/character/CharacterNoteEditor";
 import {
-  isNoteDocEmpty,
-  parseStoredNoteToDoc,
-  serializeNoteDoc,
-} from "@/app/lib/tiptap/characterNote";
+  isRichTextDocEmpty,
+  parseStoredRichTextDoc,
+  serializeRichTextDoc,
+} from "@/app/lib/tiptap/richTextJsonDoc";
 import type {
   CharacterDetail,
   CharacterNoteEntry,
@@ -66,16 +66,16 @@ export function CharacterNoteEditorModal({
 
   const initialDoc: JSONContent =
     mode?.type === "edit"
-      ? parseStoredNoteToDoc(notes[mode.index]?.content ?? "")
-      : parseStoredNoteToDoc("");
+      ? parseStoredRichTextDoc(notes[mode.index]?.content ?? "")
+      : parseStoredRichTextDoc("");
 
   const persistDoc = useCallback(
     (doc: JSONContent) => {
       if (!mode) return;
 
       const now = new Date().toISOString();
-      const serialized = serializeNoteDoc(doc);
-      const empty = isNoteDocEmpty(doc);
+      const serialized = serializeRichTextDoc(doc);
+      const empty = isRichTextDocEmpty(doc);
 
       if (
         mode.type === "create" &&

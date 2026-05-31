@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Button } from "@/app/components/shared/Button";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { Path } from "@/app/lib/types/path";
 export interface PathCardProps {
   path: Path;

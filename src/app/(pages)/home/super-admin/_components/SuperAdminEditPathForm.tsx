@@ -4,13 +4,13 @@ import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import type { Path } from "@/app/lib/types/path";
 import {
   pathCatalogueUpdateSchema,
   type PathCreate,
 } from "@/app/lib/types/path";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -148,7 +148,7 @@ export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
               name="description"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="path-description"
                   value={field.value ?? ""}
                   onChange={field.onChange}
@@ -171,7 +171,7 @@ export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
               name="baseFeature"
               control={form.control}
               render={({ field }) => (
-                <GeneralInformationRichTextField
+                <RichTextField
                   id="path-base-feature"
                   value={field.value}
                   onChange={field.onChange}

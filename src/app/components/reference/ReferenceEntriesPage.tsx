@@ -12,7 +12,7 @@ import { InfoCard } from "../shared/InfoCard";
 import { LoadingState } from "../shared/LoadingState";
 import { PageSection } from "../shared/PageSection";
 import { PageTitle } from "../shared/PageTitle";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { ReferenceEntryHtml } from "./ReferenceEntryHtml";
 
 interface ReferenceEntriesPageProps {

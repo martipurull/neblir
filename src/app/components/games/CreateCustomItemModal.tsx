@@ -3,10 +3,10 @@
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
@@ -54,13 +54,13 @@ export function CreateCustomItemModal({
         <h3 className="mb-3 text-sm font-semibold text-white/90">Basics</h3>
         <div className="space-y-3">
           <div>
-            <ModalFieldLabel id="custom-item-name" label="Name" required />
+            <FieldLabel id="custom-item-name" label="Name" required />
             <input
               id="custom-item-name"
               type="text"
               value={f.name}
               onChange={(e) => f.setName(e.target.value)}
-              className={modalInputClass}
+              className={darkTextFieldClassName}
               placeholder="e.g. Combat knife"
               disabled={f.submitting}
             />
@@ -123,13 +123,13 @@ export function CreateCustomItemModal({
             syncKey={f.richTextSyncKey}
           />
           <div>
-            <ModalFieldLabel id="custom-item-cost-info" label="Cost info" />
+            <FieldLabel id="custom-item-cost-info" label="Cost info" />
             <input
               id="custom-item-cost-info"
               type="text"
               value={f.costInfo}
               onChange={(e) => f.setCostInfo(e.target.value)}
-              className={modalInputClass}
+              className={darkTextFieldClassName}
               placeholder="e.g. Not for sale"
               disabled={f.submitting}
             />

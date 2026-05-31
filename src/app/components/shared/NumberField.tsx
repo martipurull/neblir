@@ -2,9 +2,9 @@
 
 import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import {
-  modalNumberFieldInnerClass,
-  modalNumberFieldShellClass,
-} from "@/app/components/games/shared/modalStyles";
+  darkNumberFieldInnerClass,
+  darkNumberFieldShellClass,
+} from "@/app/components/shared/darkInputStyles";
 import { NumberFieldStepperRail } from "@/app/components/shared/NumberFieldStepperRail";
 import {
   sharedNumberFieldInnerClass,
@@ -57,11 +57,11 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     const displayValue = value === "" || value == null ? "" : String(value);
     const shellClass =
       variant === "dark"
-        ? modalNumberFieldShellClass
+        ? darkNumberFieldShellClass
         : sharedNumberFieldShellClass;
     const innerClass =
       variant === "dark"
-        ? modalNumberFieldInnerClass
+        ? darkNumberFieldInnerClass
         : sharedNumberFieldInnerClass;
     const shellClassName = [shellClass, className].filter(Boolean).join(" ");
     const mergedInnerClass = [innerClass, inputClassName]

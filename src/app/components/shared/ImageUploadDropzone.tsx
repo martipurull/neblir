@@ -2,7 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import { ModalFieldLabel } from "../games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import Image from "next/image";
 import { useCallback, useRef } from "react";
 
@@ -158,15 +158,19 @@ export function ImageUploadDropzone({
   return (
     <section className="min-h-0">
       {isLight ? (
-        <p id={labelId} className="mb-1 block text-sm font-bold text-black">
-          {label}
-        </p>
+        <FieldLabel
+          id={labelId}
+          label={label}
+          associateControl={false}
+          variant="light"
+        />
       ) : (
-        <ModalFieldLabel
+        <FieldLabel
           id={labelId}
           label={label}
           required={false}
           associateControl={false}
+          variant="dark"
         />
       )}
       <div

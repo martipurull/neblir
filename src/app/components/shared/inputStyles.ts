@@ -1,7 +1,7 @@
 /**
  * Shared class strings for text controls on **light** app surfaces (`bg-paleBlue`).
- * For dark game modals, use `modalInputClass` / `modalNumberInputClass` in
- * `src/app/components/games/shared/modalStyles.ts` instead.
+ * For dark game modals, use `darkTextFieldClassName` / `darkNumberFieldInnerClass` in
+ * `src/app/components/shared/darkInputStyles.ts` instead.
  *
  * Primitives: `TextField`, `TextArea` (`variant="light"`, default) in
  * `src/app/components/shared/`. For multi-line controls in game modals, use

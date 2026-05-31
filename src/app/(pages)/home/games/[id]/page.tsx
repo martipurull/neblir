@@ -1,6 +1,6 @@
 "use client";
 
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { LoadingState } from "@/app/components/shared/LoadingState";

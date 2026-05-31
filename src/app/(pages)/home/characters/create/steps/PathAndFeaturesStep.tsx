@@ -2,7 +2,7 @@
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { getCharacterFeatureSlots } from "../characterCreationStepValidation";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";

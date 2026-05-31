@@ -1,8 +1,8 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
 import { Button } from "@/app/components/shared/Button";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { createGameImage } from "@/lib/api/gameImages";
@@ -127,19 +127,19 @@ export function CreateGameImageModal({
       submitDisabled={submitDisabled}
     >
       <div>
-        <ModalFieldLabel id="game-image-title" label="Title" required />
+        <FieldLabel id="game-image-title" label="Title" required />
         <input
           id="game-image-title"
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className={modalInputClass}
+          className={darkTextFieldClassName}
           placeholder="e.g. Citadel Exterior"
           disabled={submitting}
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-image-description" label="Description" />
+        <FieldLabel id="game-image-description" label="Description" />
         <TextArea
           id="game-image-description"
           variant="dark"
@@ -152,7 +152,7 @@ export function CreateGameImageModal({
         />
       </div>
       <div>
-        <ModalFieldLabel id="game-image-file" label="Image file" required />
+        <FieldLabel id="game-image-file" label="Image file" required />
         <div
           role="button"
           tabIndex={0}

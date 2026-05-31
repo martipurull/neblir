@@ -1,4 +1,4 @@
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
 import { sharedTextFieldClassName } from "@/app/components/shared/inputStyles";
 import { forwardRef } from "react";
 
@@ -16,7 +16,7 @@ export type TextAreaProps = Omit<
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   function TextArea({ className = "", variant = "light", ...props }, ref) {
     const baseClass =
-      variant === "dark" ? modalInputClass : sharedTextFieldClassName;
+      variant === "dark" ? darkTextFieldClassName : sharedTextFieldClassName;
     return (
       <textarea
         ref={ref}

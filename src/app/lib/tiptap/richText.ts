@@ -1,7 +1,7 @@
 import StarterKit from "@tiptap/starter-kit";
 
-/** Same surface as character notes; enough for headings, lists, bold, italic, etc. */
-export const GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS = [StarterKit];
+/** Shared StarterKit stack for app rich text fields (headings, lists, bold, italic, etc.). */
+export const RICH_TEXT_EXTENSIONS = [StarterKit];
 
 function escapeHtml(s: string): string {
   return s

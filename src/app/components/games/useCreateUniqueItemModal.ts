@@ -9,9 +9,9 @@ import {
   itemWithIdToBrowseDetail,
   type ItemBrowseDetailFields,
 } from "@/app/lib/types/itemBrowseDetail";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { optionalStoredRichHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { templateOptionLabel } from "./uniqueItemModalTypes";
 
@@ -77,7 +77,7 @@ export function useCreateUniqueItemModal({
   const [damageNumberOfDiceOverride, setDamageNumberOfDiceOverride] =
     useState("");
 
-  const imageUpload = useItemImageUpload("unique_items");
+  const imageUpload = useImageUpload("unique_items");
   const {
     imageKey: imageKeyOverride,
     pendingImageKey,

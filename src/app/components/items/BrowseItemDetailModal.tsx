@@ -10,7 +10,7 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-const MAX_ADD_QUANTITY = 999;
+const MAX_ADD_QUANTITY = 10;
 
 function parseAddQuantity(raw: string): number {
   const n = Number.parseInt(raw, 10);

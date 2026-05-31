@@ -1,24 +1,33 @@
 "use client";
-type ModalFieldLabelProps = {
+
+type FieldLabelProps = {
   id: string;
   label: string;
-  /** If true, show red * and treat as required. If false, show (optional). */
+  /** If true, show red * and treat as required. If false, show (optional). Dark variant only. */
   required?: boolean;
   /**
    * When false, renders a non-interactive heading (use when the control is opened
    * programmatically, e.g. hidden file inputs).
    */
   associateControl?: boolean;
+  variant?: "light" | "dark";
 };
 
-export function ModalFieldLabel({
+export function FieldLabel({
   id,
   label,
   required = false,
   associateControl = true,
-}: ModalFieldLabelProps) {
-  const className = "mb-1 block text-sm font-medium text-white";
-  const content = (
+  variant = "dark",
+}: FieldLabelProps) {
+  const isLight = variant === "light";
+  const className = isLight
+    ? "mb-1 block text-sm font-bold text-black"
+    : "mb-1 block text-sm font-medium text-white";
+
+  const content = isLight ? (
+    label
+  ) : (
     <>
       {label}
       {required ? (

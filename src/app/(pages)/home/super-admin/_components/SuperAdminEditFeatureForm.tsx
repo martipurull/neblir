@@ -6,9 +6,9 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { featureCatalogueUpdateSchema } from "@/app/lib/types/featureCatalogue";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -210,7 +210,7 @@ export function SuperAdminEditFeatureForm({
                 name="description"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextField
+                  <RichTextField
                     id="feature-description"
                     value={field.value}
                     onChange={field.onChange}
@@ -233,7 +233,7 @@ export function SuperAdminEditFeatureForm({
                 name="examplesHtml"
                 control={form.control}
                 render={({ field }) => (
-                  <GeneralInformationRichTextField
+                  <RichTextField
                     id="feature-examples"
                     value={field.value}
                     onChange={field.onChange}

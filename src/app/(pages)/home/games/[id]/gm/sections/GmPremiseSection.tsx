@@ -1,10 +1,10 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { RichTextField } from "@/app/components/shared/RichTextField";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
 import type { GameDetail } from "@/app/lib/types/game";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { updateGame } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useState } from "react";
@@ -72,7 +72,7 @@ export function GmPremiseSection({
       <div className="mt-3">
         {editing ? (
           <>
-            <GeneralInformationRichTextField
+            <RichTextField
               id="gm-game-premise"
               value={draft}
               onChange={setDraft}

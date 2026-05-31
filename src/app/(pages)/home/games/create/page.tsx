@@ -1,12 +1,12 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { Button } from "@/app/components/shared/Button";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
-import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { useImageUpload } from "@/hooks/use-image-upload";
+import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import {
   defaultCreateGameFormValues,
   createGameFormSchema,
@@ -49,7 +49,7 @@ function CreateGameFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const imageUpload = useItemImageUpload("games");
+  const imageUpload = useImageUpload("games");
   const {
     imageKey,
     pendingImageKey,
@@ -132,7 +132,7 @@ function CreateGameFormContent() {
           control={control}
           defaultValue=""
           render={({ field }) => (
-            <GeneralInformationRichTextField
+            <RichTextField
               id="game.premise"
               value={field.value}
               onChange={field.onChange}

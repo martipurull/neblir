@@ -1,4 +1,4 @@
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { enemyActionSchema } from "@/app/lib/types/enemy";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 import {
@@ -190,7 +190,7 @@ export function useCreateCustomEnemyModal({
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const imageUpload = useItemImageUpload("custom_enemies");
+  const imageUpload = useImageUpload("custom_enemies");
   const {
     imageKey,
     pendingImageKey,

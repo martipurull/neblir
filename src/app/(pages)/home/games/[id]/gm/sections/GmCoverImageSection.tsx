@@ -1,6 +1,6 @@
 "use client";
 
-import { useItemImageUpload } from "@/app/components/games/shared/useItemImageUpload";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import type { GameDetail } from "@/app/lib/types/game";
@@ -27,7 +27,7 @@ export function GmCoverImageSection({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const imageUpload = useItemImageUpload("games", imageKey ?? "");
+  const imageUpload = useImageUpload("games", imageKey ?? "");
   const { imageKey: localImageKey, setImageKey, uploading } = imageUpload;
 
   useEffect(() => {

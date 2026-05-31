@@ -4,7 +4,7 @@ import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldV
 import { Button } from "@/app/components/shared/Button";
 import { useState } from "react";
 
-const MAX_ADD_QUANTITY = 999;
+const MAX_ADD_QUANTITY = 10;
 
 const qtyStepButtonClass =
   "flex h-7 w-7 shrink-0 items-center justify-center rounded border border-white/30 bg-transparent text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50 disabled:pointer-events-none disabled:opacity-40";

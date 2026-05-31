@@ -4,9 +4,9 @@ import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ModalDamageTypeCheckboxGrid } from "@/app/components/games/shared/ModalDamageTypeCheckboxGrid";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
 import { CustomEnemyActionListEditor } from "@/app/components/games/CustomEnemyActionListEditor";
 import { useCreateCustomEnemyModal } from "@/app/components/games/useCreateCustomEnemyModal";
 
@@ -61,13 +61,13 @@ export function CreateCustomEnemyModal({
     >
       <section className="space-y-3">
         <div>
-          <ModalFieldLabel id="custom-enemy-name" label="Name" required />
+          <FieldLabel id="custom-enemy-name" label="Name" required />
           <input
             id="custom-enemy-name"
             type="text"
             value={f.name}
             onChange={(e) => f.setName(e.target.value)}
-            className={modalInputClass}
+            className={darkTextFieldClassName}
             disabled={f.submitting}
           />
         </div>

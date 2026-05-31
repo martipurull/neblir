@@ -1,6 +1,6 @@
 "use client";
 
-import { storedRichTextToDisplayHtml } from "@/app/lib/tiptap/generalInformationRichText";
+import { storedRichTextToDisplayHtml } from "@/app/lib/tiptap/richText";
 import { useMemo } from "react";
 
 type StoredRichTextHtmlProps = {
@@ -8,7 +8,7 @@ type StoredRichTextHtmlProps = {
   className?: string;
 };
 
-/** Renders TipTap HTML or legacy plain-text path/item copy. */
+/** Renders persisted TipTap HTML or legacy plain-text rich text copy. */
 export function StoredRichTextHtml({
   content,
   className = "text-sm text-black",
@@ -17,7 +17,7 @@ export function StoredRichTextHtml({
   if (!html) return null;
   return (
     <div
-      className={`character-note-html ${className}`.trim()}
+      className={`rich-text-content ${className}`.trim()}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

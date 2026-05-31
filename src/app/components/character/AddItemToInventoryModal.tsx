@@ -8,7 +8,7 @@ import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { Button } from "@/app/components/shared/Button";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BrowseItemDetailModal } from "./BrowseItemDetailModal";
+import { BrowseItemDetailModal } from "@/app/components/items/BrowseItemDetailModal";
 import { BrowseRowAddControls } from "./BrowseRowAddControls";
 
 export interface AddItemToInventoryModalProps {

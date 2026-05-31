@@ -1,11 +1,11 @@
 "use client";
 
-import { AttackRollModal } from "@/app/components/character/AttackRollModal";
-import { DefenceRollModal } from "@/app/components/character/DefenceRollModal";
-import { InitiativeOrderModal } from "@/app/components/character/InitiativeOrderModal";
+import { AttackRollModal } from "@/app/components/combat/AttackRollModal";
+import { DefenceRollModal } from "@/app/components/combat/DefenceRollModal";
+import { InitiativeOrderModal } from "@/app/components/combat/InitiativeOrderModal";
 import { EditEnemyInstanceModal } from "@/app/components/games/EditEnemyInstanceModal";
 import { EnemyInstanceDiceRollerModal } from "@/app/components/games/EnemyInstanceDiceRollerModal";
-import { RollResultQuickModal } from "@/app/components/games/RollResultQuickModal";
+import { RollResultQuickModal } from "@/app/components/shared/RollResultQuickModal";
 import type { GameDetail } from "@/app/lib/types/game";
 import type {
   EnemyInstanceDetailResponse,

@@ -1,7 +1,7 @@
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { UniqueItemEquippableOverrideFields } from "@/app/components/games/shared/UniqueItemEquippableOverrideFields";
 import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
@@ -27,13 +27,13 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
       <div className="space-y-3">
         {!standalone && (
           <div>
-            <ModalFieldLabel id="unique-name-override" label="Name override" />
+            <FieldLabel id="unique-name-override" label="Name override" />
             <input
               id="unique-name-override"
               type="text"
               value={f.nameOverride}
               onChange={(e) => f.setNameOverride(e.target.value)}
-              className={modalInputClass}
+              className={darkTextFieldClassName}
               placeholder="Override display name"
               disabled={f.submitting}
             />
@@ -64,13 +64,13 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           syncKey={f.richTextSyncKey}
         />
         <div>
-          <ModalFieldLabel id="unique-special-tag" label="Special tag" />
+          <FieldLabel id="unique-special-tag" label="Special tag" />
           <input
             id="unique-special-tag"
             type="text"
             value={f.specialTag}
             onChange={(e) => f.setSpecialTag(e.target.value)}
-            className={modalInputClass}
+            className={darkTextFieldClassName}
             placeholder="e.g. AMPLIFIED, PROTOTYPE"
             disabled={f.submitting}
           />
@@ -103,7 +103,7 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           />
         </div>
         <div>
-          <ModalFieldLabel
+          <FieldLabel
             id="unique-cost-info-override"
             label="Cost info override"
           />
@@ -112,7 +112,7 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
             type="text"
             value={f.costInfoOverride}
             onChange={(e) => f.setCostInfoOverride(e.target.value)}
-            className={modalInputClass}
+            className={darkTextFieldClassName}
             disabled={f.submitting}
           />
         </div>

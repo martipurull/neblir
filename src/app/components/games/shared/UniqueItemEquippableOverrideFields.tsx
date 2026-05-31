@@ -1,8 +1,8 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
-import { EQUIP_SLOTS } from "./itemModalConstants";
+import { EQUIP_SLOTS } from "@/app/lib/constants/itemCatalogue";
 
 type Props = {
   disabled: boolean;
@@ -30,7 +30,7 @@ export function UniqueItemEquippableOverrideFields({
   return (
     <>
       <div>
-        <ModalFieldLabel
+        <FieldLabel
           id="unique-equippable-override"
           label="Equippable override"
         />
@@ -63,7 +63,7 @@ export function UniqueItemEquippableOverrideFields({
       {equippableOverride !== "" && (
         <>
           <div>
-            <ModalFieldLabel
+            <FieldLabel
               id="unique-equip-slots-override"
               label="Equip slots override"
             />

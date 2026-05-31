@@ -2,43 +2,60 @@
 
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
-  GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
-  normalizeStoredHtmlForEditor,
-  serializeEditorToStoredHtml,
-} from "@/app/lib/tiptap/generalInformationRichText";
-import type { Editor } from "@tiptap/core";
+  EMPTY_RICH_TEXT_DOC,
+  isRichTextDocEmpty,
+} from "@/app/lib/tiptap/richTextJsonDoc";
+import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
+import type { Editor, JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type FocusEvent,
+} from "react";
 
 const editorShellClassName =
   "rounded-md border border-black/20 bg-paleBlue/40 px-2 py-2 focus-within:ring-2 focus-within:ring-customPrimaryHover";
 
-/** Reuses global TipTap list/heading styles (see `globals.css` `.character-note-html`). */
 const proseMirrorClassName =
-  "character-note-html max-w-none px-2 py-1 text-sm text-black outline-none focus:outline-none [&_a]:text-customPrimary [&_a]:underline";
+  "rich-text-content max-w-none px-2 py-1 text-sm text-black outline-none focus:outline-none [&_a]:text-customPrimary [&_a]:underline";
 
-export type GeneralInformationRichTextFieldProps = {
+function parseEditorDoc(value: JSONContent | null | undefined): JSONContent {
+  if (
+    value &&
+    typeof value === "object" &&
+    value.type === "doc" &&
+    Array.isArray(value.content)
+  ) {
+    return value;
+  }
+  return EMPTY_RICH_TEXT_DOC;
+}
+
+function docsEqual(a: JSONContent, b: JSONContent): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export type RichTextJsonFieldProps = {
   id: string;
-  value: string | null | undefined;
-  onChange: (html: string) => void;
+  value: JSONContent | null | undefined;
+  onChange: (doc: JSONContent) => void;
   onBlur: () => void;
-  /** Tailwind min-height class for the editable region (e.g. min-h-36). */
   minHeightClass?: string;
-  /**
-   * Classes on the TipTap `EditorContent` root (e.g. `max-h-[…] overflow-y-auto min-h-0`)
-   * so long HTML cannot stretch the whole page inside scroll layouts.
-   */
   editorContentClassName?: string;
 };
 
-export function GeneralInformationRichTextField({
+/** Light-page TipTap editor that reads/writes a TipTap JSON document (e.g. reference `contentJson`). */
+export function RichTextJsonField({
   id,
   value,
   onChange,
   onBlur,
   minHeightClass = "min-h-36",
   editorContentClassName,
-}: GeneralInformationRichTextFieldProps) {
+}: RichTextJsonFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const debounceMs = 400;
@@ -49,13 +66,12 @@ export function GeneralInformationRichTextField({
 
   const flushToForm = useCallback((editor: Editor) => {
     if (editor.isDestroyed) return;
-    const next = serializeEditorToStoredHtml(editor.getHTML());
-    onChangeRef.current(next);
+    onChangeRef.current(editor.getJSON());
   }, []);
 
   const editor = useEditor({
-    extensions: GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
-    content: normalizeStoredHtmlForEditor(value),
+    extensions: RICH_TEXT_EXTENSIONS,
+    content: parseEditorDoc(value),
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -86,11 +102,9 @@ export function GeneralInformationRichTextField({
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
     if (wrapRef.current?.contains(document.activeElement)) return;
-    const target = value?.trim() ? value.trim() : "";
-    if (serializeEditorToStoredHtml(editor.getHTML()) === target) return;
-    editor.commands.setContent(normalizeStoredHtmlForEditor(value), {
-      emitUpdate: false,
-    });
+    const next = parseEditorDoc(value);
+    if (docsEqual(editor.getJSON(), next)) return;
+    editor.commands.setContent(next, { emitUpdate: false });
   }, [value, editor]);
 
   useEffect(() => {
@@ -102,7 +116,7 @@ export function GeneralInformationRichTextField({
   }, [editor, flushToForm]);
 
   const handleContainerBlurCapture = useCallback(
-    (e: React.FocusEvent<HTMLDivElement>) => {
+    (e: FocusEvent<HTMLDivElement>) => {
       const el = wrapRef.current;
       if (!el || !editor || editor.isDestroyed) return;
       const related = e.relatedTarget as Node | null;
@@ -139,4 +153,12 @@ export function GeneralInformationRichTextField({
       />
     </div>
   );
+}
+
+/** TipTap doc → API `contentJson` (null when visually empty). */
+export function contentJsonForApi(
+  doc: JSONContent | null | undefined
+): JSONContent | null {
+  const parsed = parseEditorDoc(doc);
+  return isRichTextDocEmpty(parsed) ? null : parsed;
 }

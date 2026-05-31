@@ -1,6 +1,6 @@
 "use client";
 
-import { StoredRichTextHtml } from "@/app/components/character/StoredRichTextHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { GameListItem } from "@/app/lib/types/game";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import Image from "next/image";

@@ -1,6 +1,6 @@
 "use client";
 
-import { GeneralInformationRichTextField } from "@/app/components/character/GeneralInformationRichTextField";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 
@@ -27,7 +27,7 @@ export function BackstoryStep() {
           control={control}
           defaultValue=""
           render={({ field }) => (
-            <GeneralInformationRichTextField
+            <RichTextField
               id="generalInformation.backstory"
               value={field.value}
               onChange={field.onChange}
@@ -54,7 +54,7 @@ export function BackstoryStep() {
           control={control}
           defaultValue=""
           render={({ field }) => (
-            <GeneralInformationRichTextField
+            <RichTextField
               id="generalInformation.summary"
               value={field.value}
               onChange={field.onChange}

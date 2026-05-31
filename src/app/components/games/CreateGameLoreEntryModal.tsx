@@ -1,13 +1,13 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
-import { modalInputClass } from "@/app/components/games/shared/modalStyles";
-import { ModalFieldLabel } from "@/app/components/games/shared/ModalFieldLabel";
+import { darkTextFieldClassName } from "@/app/components/shared/darkInputStyles";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
-import { EMPTY_NOTE_DOC } from "@/app/lib/tiptap/characterNote";
-import { GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/generalInformationRichText";
+import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
+import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import {
   createReferenceEntry,
   updateReferenceEntry,
@@ -57,8 +57,8 @@ export function CreateGameLoreEntryModal({
   const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
-    extensions: GENERAL_INFORMATION_RICH_TEXT_EXTENSIONS,
-    content: EMPTY_NOTE_DOC,
+    extensions: RICH_TEXT_EXTENSIONS,
+    content: EMPTY_RICH_TEXT_DOC,
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -79,7 +79,7 @@ export function CreateGameLoreEntryModal({
       const editorContent =
         entry.contentJson && typeof entry.contentJson === "object"
           ? entry.contentJson
-          : (entry.contentHtml ?? EMPTY_NOTE_DOC);
+          : (entry.contentHtml ?? EMPTY_RICH_TEXT_DOC);
       editor?.commands.setContent(editorContent);
       return;
     }
@@ -87,7 +87,7 @@ export function CreateGameLoreEntryModal({
     setSummary("");
     setTagsInput("");
     setAccess("PLAYER");
-    editor?.commands.setContent(EMPTY_NOTE_DOC);
+    editor?.commands.setContent(EMPTY_RICH_TEXT_DOC);
   }, [isOpen, isEditMode, entry, editor]);
 
   const submitDisabled = useMemo(
@@ -101,7 +101,7 @@ export function CreateGameLoreEntryModal({
     setSummary("");
     setTagsInput("");
     setAccess("PLAYER");
-    editor?.commands.setContent(EMPTY_NOTE_DOC);
+    editor?.commands.setContent(EMPTY_RICH_TEXT_DOC);
   };
 
   const handleClose = () => {
@@ -121,7 +121,7 @@ export function CreateGameLoreEntryModal({
     setSubmitting(true);
     setError(null);
     try {
-      const contentJson: JSONContent = editor?.getJSON() ?? EMPTY_NOTE_DOC;
+      const contentJson: JSONContent = editor?.getJSON() ?? EMPTY_RICH_TEXT_DOC;
       const tags = tagsInput
         .split(",")
         .map((tag) => tag.trim())
@@ -182,20 +182,20 @@ export function CreateGameLoreEntryModal({
       submitDisabled={submitDisabled}
     >
       <div>
-        <ModalFieldLabel id="game-lore-title" label="Title" required />
+        <FieldLabel id="game-lore-title" label="Title" required />
         <input
           id="game-lore-title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className={modalInputClass}
+          className={darkTextFieldClassName}
           placeholder="e.g. The Fall of Arithem"
           disabled={submitting}
         />
       </div>
 
       <div>
-        <ModalFieldLabel id="game-lore-summary" label="Summary" />
+        <FieldLabel id="game-lore-summary" label="Summary" />
         <TextArea
           id="game-lore-summary"
           variant="dark"
@@ -209,13 +209,13 @@ export function CreateGameLoreEntryModal({
       </div>
 
       <div>
-        <ModalFieldLabel id="game-lore-tags" label="Tags" />
+        <FieldLabel id="game-lore-tags" label="Tags" />
         <input
           id="game-lore-tags"
           type="text"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
-          className={modalInputClass}
+          className={darkTextFieldClassName}
           placeholder="e.g. history, factions, city"
           disabled={submitting}
         />
@@ -241,10 +241,10 @@ export function CreateGameLoreEntryModal({
       </div>
 
       <div>
-        <ModalFieldLabel id="game-lore-content" label="Content" />
+        <FieldLabel id="game-lore-content" label="Content" />
         <div
           id="game-lore-content"
-          className="character-note-html rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[11rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
+          className="rich-text-content rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[11rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
         >
           {editor ? (
             <>
