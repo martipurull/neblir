@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const s3ClientCtorMock = vi.fn();
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn().mockImplementation((...args: unknown[]) => {
+  S3Client: vi.fn().mockImplementation(function (...args: unknown[]) {
     s3ClientCtorMock(...args);
     return {};
   }),

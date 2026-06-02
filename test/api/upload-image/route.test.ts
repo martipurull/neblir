@@ -10,14 +10,16 @@ const putObjectCommandCtorMock = vi.fn();
 const deleteObjectCommandCtorMock = vi.fn();
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn().mockImplementation(() => ({
-    send: s3SendMock,
-  })),
-  PutObjectCommand: vi.fn().mockImplementation((args: unknown) => {
+  S3Client: vi.fn().mockImplementation(function () {
+    return {
+      send: s3SendMock,
+    };
+  }),
+  PutObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
     putObjectCommandCtorMock(args);
     return {};
   }),
-  DeleteObjectCommand: vi.fn().mockImplementation((args: unknown) => {
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
     deleteObjectCommandCtorMock(args);
     return {};
   }),

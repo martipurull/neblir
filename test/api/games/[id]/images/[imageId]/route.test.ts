@@ -21,11 +21,17 @@ vi.mock("@/app/lib/prisma/gameImage", () => ({
 }));
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn().mockImplementation(() => ({
-    send: s3SendMock,
-  })),
-  DeleteObjectCommand: vi.fn().mockImplementation(() => ({})),
-  PutObjectCommand: vi.fn().mockImplementation(() => ({})),
+  S3Client: vi.fn().mockImplementation(function () {
+    return {
+      send: s3SendMock,
+    };
+  }),
+  DeleteObjectCommand: vi.fn().mockImplementation(function () {
+    return {};
+  }),
+  PutObjectCommand: vi.fn().mockImplementation(function () {
+    return {};
+  }),
 }));
 
 describe("DELETE /api/games/[id]/images/[imageId]", () => {
