@@ -8,6 +8,7 @@ import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { Button } from "@/app/components/shared/Button";
 import { TextField } from "@/app/components/shared/TextField";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrowseItemDetailModal } from "@/app/components/items/BrowseItemDetailModal";
 import { BrowseRowAddControls } from "./BrowseRowAddControls";
@@ -152,7 +153,8 @@ export function AddItemToInventoryModal({
     if (q) {
       list = browseRows.filter((row) => {
         const name = row.item.name.toLowerCase();
-        const desc = (row.item.description ?? "").toLowerCase();
+        const desc =
+          richTextToPlainTextPreview(row.item.description)?.toLowerCase() ?? "";
         const gameLabel =
           row.source === "CUSTOM" ? row.gameName.toLowerCase() : "";
         return name.includes(q) || desc.includes(q) || gameLabel.includes(q);
@@ -275,6 +277,9 @@ export function AddItemToInventoryModal({
                 const isAdding = addingKey === row.key;
                 const sourceLabel =
                   row.source === "GLOBAL" ? "Global" : row.gameName;
+                const descPreview = richTextToPlainTextPreview(
+                  row.item.description
+                );
                 return (
                   <li
                     key={row.key}
@@ -293,9 +298,9 @@ export function AddItemToInventoryModal({
                       <p className="mt-0.5 text-xs text-white/50">
                         {sourceLabel}
                       </p>
-                      {row.item.description ? (
+                      {descPreview ? (
                         <p className="mt-0.5 line-clamp-2 text-xs text-white/70">
-                          {row.item.description}
+                          {descPreview}
                         </p>
                       ) : null}
                       <p className="mt-0.5 text-xs text-white/50">

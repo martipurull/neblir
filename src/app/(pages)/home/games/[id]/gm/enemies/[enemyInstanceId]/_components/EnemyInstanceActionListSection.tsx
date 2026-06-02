@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 
 type ActionRow = EnemyInstanceDetailResponse["actions"][number];
@@ -39,9 +40,9 @@ export function EnemyInstanceActionListSection({
             >
               <p className="font-medium text-black">{a.name}</p>
               {a.description ? (
-                <div
-                  className="rich-text-content mt-1 text-sm text-black/85"
-                  dangerouslySetInnerHTML={{ __html: a.description }}
+                <StoredRichTextHtml
+                  content={a.description}
+                  className="mt-1 text-sm text-black/85"
                 />
               ) : null}
               <div className="mt-2 flex flex-wrap gap-2">

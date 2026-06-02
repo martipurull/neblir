@@ -2,6 +2,7 @@
 
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { Path } from "@/app/lib/types/path";
 import { updateCharacterFavouriteWeapon } from "@/lib/api/character";
 import { getItems } from "@/lib/api/items";
@@ -173,9 +174,10 @@ export function SoldierFavouriteWeaponSection({
           ) : null}
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-black">{favouriteWeapon.name}</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-snug text-black/85">
-              {favouriteWeapon.description}
-            </p>
+            <StoredRichTextHtml
+              content={favouriteWeapon.description}
+              className="mt-1 text-sm leading-snug text-black/85"
+            />
           </div>
         </div>
       ) : (

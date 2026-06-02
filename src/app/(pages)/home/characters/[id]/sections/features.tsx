@@ -3,6 +3,7 @@
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { Button } from "@/app/components/shared/Button";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { useState } from "react";
 
 type FeatureCharacterEntry = NonNullable<CharacterDetail["features"]>[number];
@@ -44,7 +45,10 @@ function FeaturesList({ features }: { features: FeatureCharacterEntry[] }) {
             </Button>
             {hasDescription && isExpanded && (
               <div className="border-t border-black px-3 py-2.5 text-sm text-black">
-                {fc.feature.description}
+                <StoredRichTextHtml
+                  content={fc.feature.description}
+                  className="text-sm text-black"
+                />
               </div>
             )}
           </li>

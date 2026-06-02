@@ -10,6 +10,7 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { TextField } from "@/app/components/shared/TextField";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getGameCustomItemById } from "@/lib/api/customItems";
@@ -52,7 +53,8 @@ export default function GameCustomItemsPage() {
     return customItemsSorted.filter((item) => {
       const name = item.name.toLowerCase();
       const type = item.type.toLowerCase();
-      const desc = (item.description ?? "").toLowerCase();
+      const desc =
+        richTextToPlainTextPreview(item.description)?.toLowerCase() ?? "";
       return (
         name.includes(searchTerm) ||
         type.includes(searchTerm) ||
@@ -162,6 +164,9 @@ export default function GameCustomItemsPage() {
                   ? (imageUrls[item.id] ?? undefined)
                   : null;
                 const opening = openingItemId === item.id;
+                const descPreview = richTextToPlainTextPreview(
+                  item.description
+                );
                 return (
                   <li key={item.id}>
                     <Button
@@ -198,12 +203,12 @@ export default function GameCustomItemsPage() {
                             {formatItemType(item.type)}
                           </span>
                         </div>
-                        {item.description?.trim() ? (
+                        {descPreview ? (
                           <p
                             className="mt-1 line-clamp-3 break-words text-xs leading-snug text-black/65"
-                            title={item.description}
+                            title={descPreview}
                           >
-                            {item.description}
+                            {descPreview}
                           </p>
                         ) : (
                           <p className="mt-1 text-xs italic leading-snug text-black/45">

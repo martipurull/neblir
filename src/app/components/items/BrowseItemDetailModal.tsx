@@ -4,6 +4,7 @@ import { formatEquipSlotRequirementLines } from "@/app/lib/equipSlotDisplay";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Button } from "@/app/components/shared/Button";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -169,9 +170,10 @@ export function BrowseItemDetailModal({
             <span className="text-white/60 uppercase tracking-wider">
               Description
             </span>
-            <p className="mt-0.5 text-white whitespace-pre-wrap">
-              {item.description}
-            </p>
+            <StoredRichTextHtml
+              content={item.description}
+              className="mt-0.5 text-white"
+            />
           </div>
         )}
 
@@ -343,7 +345,10 @@ export function BrowseItemDetailModal({
             <span className="text-white/60 uppercase tracking-wider">
               Usage
             </span>
-            <p className="mt-0.5 text-white">{item.usage}</p>
+            <StoredRichTextHtml
+              content={item.usage}
+              className="mt-0.5 text-white"
+            />
           </div>
         )}
 
@@ -352,9 +357,10 @@ export function BrowseItemDetailModal({
             <span className="text-white/60 uppercase tracking-wider">
               Notes
             </span>
-            <p className="mt-0.5 text-white whitespace-pre-wrap">
-              {item.notes}
-            </p>
+            <StoredRichTextHtml
+              content={item.notes}
+              className="mt-0.5 text-white"
+            />
           </div>
         )}
       </div>
