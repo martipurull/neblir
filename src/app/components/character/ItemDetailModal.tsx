@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/items";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -277,9 +278,10 @@ export function ItemDetailModal({
               <span className="text-white/60 uppercase tracking-wider">
                 Description
               </span>
-              <p className="mt-0.5 text-white whitespace-pre-wrap">
-                {item.description}
-              </p>
+              <StoredRichTextHtml
+                content={item.description}
+                className="mt-0.5 text-white"
+              />
             </div>
           )}
           {item && "usage" in item && item.usage && (
@@ -287,7 +289,10 @@ export function ItemDetailModal({
               <span className="text-white/60 uppercase tracking-wider">
                 Usage
               </span>
-              <p className="mt-0.5 text-white">{item.usage}</p>
+              <StoredRichTextHtml
+                content={item.usage}
+                className="mt-0.5 text-white"
+              />
             </div>
           )}
 
@@ -344,9 +349,10 @@ export function ItemDetailModal({
               <span className="text-white/60 uppercase tracking-wider">
                 Notes
               </span>
-              <p className="mt-0.5 text-white whitespace-pre-wrap">
-                {item.notes}
-              </p>
+              <StoredRichTextHtml
+                content={item.notes}
+                className="mt-0.5 text-white"
+              />
             </div>
           )}
 

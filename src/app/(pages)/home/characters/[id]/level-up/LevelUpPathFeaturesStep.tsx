@@ -223,7 +223,10 @@ export function LevelUpPathFeaturesStep({
               </div>
               <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
                 {feature.description && (
-                  <p className="text-sm text-black/70">{feature.description}</p>
+                  <StoredRichTextHtml
+                    content={feature.description}
+                    className="text-sm text-black/70"
+                  />
                 )}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">

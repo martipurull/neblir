@@ -10,6 +10,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
@@ -62,7 +63,8 @@ export function SuperAdminBrowseFeaturesClient() {
     if (q) {
       list = list.filter((f) => {
         const name = f.name.toLowerCase();
-        const desc = (f.description ?? "").toLowerCase();
+        const desc =
+          richTextToPlainTextPreview(f.description)?.toLowerCase() ?? "";
         return name.includes(q) || desc.includes(q);
       });
     }

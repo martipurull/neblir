@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -135,9 +136,10 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
               <span className="block text-[10px] font-medium uppercase tracking-wider text-white/50">
                 Description
               </span>
-              <p className="mt-0.5 whitespace-pre-wrap text-white">
-                {item.description}
-              </p>
+              <StoredRichTextHtml
+                content={item.description}
+                className="mt-0.5 text-white"
+              />
             </div>
           ) : null}
 
@@ -146,9 +148,10 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
               <span className="block text-[10px] font-medium uppercase tracking-wider text-white/50">
                 Usage
               </span>
-              <p className="mt-0.5 whitespace-pre-wrap text-white">
-                {item.usage}
-              </p>
+              <StoredRichTextHtml
+                content={item.usage}
+                className="mt-0.5 text-white"
+              />
             </div>
           ) : null}
 
@@ -157,9 +160,10 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
               <span className="block text-[10px] font-medium uppercase tracking-wider text-white/50">
                 Notes
               </span>
-              <p className="mt-0.5 whitespace-pre-wrap text-white">
-                {item.notes}
-              </p>
+              <StoredRichTextHtml
+                content={item.notes}
+                className="mt-0.5 text-white"
+              />
             </div>
           ) : null}
 

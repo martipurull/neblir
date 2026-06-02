@@ -9,6 +9,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -39,7 +40,8 @@ export function SuperAdminBrowseEnemiesClient() {
     const list = q
       ? rows.filter((enemy) => {
           const name = enemy.name.toLowerCase();
-          const desc = (enemy.description ?? "").toLowerCase();
+          const desc =
+            richTextToPlainTextPreview(enemy.description)?.toLowerCase() ?? "";
           return name.includes(q) || desc.includes(q);
         })
       : rows;

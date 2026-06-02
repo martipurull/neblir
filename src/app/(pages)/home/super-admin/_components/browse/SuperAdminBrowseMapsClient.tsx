@@ -9,6 +9,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -45,7 +46,8 @@ export function SuperAdminBrowseMapsClient() {
     const list = q
       ? rows.filter((map) => {
           const name = map.name.toLowerCase();
-          const desc = (map.description ?? "").toLowerCase();
+          const desc =
+            richTextToPlainTextPreview(map.description)?.toLowerCase() ?? "";
           return name.includes(q) || desc.includes(q);
         })
       : rows;

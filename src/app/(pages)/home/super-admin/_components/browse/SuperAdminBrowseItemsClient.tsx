@@ -9,6 +9,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import type { Item } from "@/app/lib/types/item";
+import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -41,7 +42,8 @@ export function SuperAdminBrowseItemsClient() {
     const list = q
       ? rows.filter((item) => {
           const name = item.name.toLowerCase();
-          const desc = (item.description ?? "").toLowerCase();
+          const desc =
+            richTextToPlainTextPreview(item.description)?.toLowerCase() ?? "";
           return name.includes(q) || desc.includes(q);
         })
       : rows;

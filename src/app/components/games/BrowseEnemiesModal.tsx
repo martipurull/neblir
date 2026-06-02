@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SpawnEnemyInstancesModal } from "@/app/components/games/SpawnEnemyInstancesModal";
 import { addOfficialEnemyToGame, getEnemies } from "@/lib/api/enemies";
@@ -189,9 +190,9 @@ export function BrowseEnemiesModal({
                   <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
                     Description
                   </p>
-                  <div
-                    className="rich-text-content text-sm text-white/90"
-                    dangerouslySetInnerHTML={{ __html: selected.description }}
+                  <StoredRichTextHtml
+                    content={selected.description}
+                    className="text-sm text-white/90"
                   />
                 </div>
               ) : null}
@@ -201,9 +202,9 @@ export function BrowseEnemiesModal({
                   <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
                     Notes
                   </p>
-                  <div
-                    className="rich-text-content text-sm text-white/90"
-                    dangerouslySetInnerHTML={{ __html: selected.notes }}
+                  <StoredRichTextHtml
+                    content={selected.notes}
+                    className="text-sm text-white/90"
                   />
                 </div>
               ) : null}
