@@ -14,11 +14,11 @@ vi.mock("@aws-sdk/s3-request-presigner", () => ({
 }));
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn().mockImplementation((...args: unknown[]) => {
+  S3Client: vi.fn().mockImplementation(function (...args: unknown[]) {
     s3ClientCtorMock(...args);
     return {};
   }),
-  GetObjectCommand: vi.fn().mockImplementation((...args: unknown[]) => {
+  GetObjectCommand: vi.fn().mockImplementation(function (...args: unknown[]) {
     getObjectCommandCtorMock(...args);
     return {};
   }),
