@@ -5,6 +5,12 @@ import { auth } from "@/auth";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
+import {
+  IMAGE_MAX_SIZE_BYTES,
+  IMAGE_MAX_SIZE_LABEL,
+  RECAP_MAX_SIZE_BYTES,
+  RECAP_MAX_SIZE_LABEL,
+} from "@/app/lib/constants/uploadLimits";
 import { errorResponse } from "../shared/responses";
 
 const ALLOWED_TYPES = [
@@ -17,8 +23,6 @@ const ALLOWED_TYPES = [
   "maps",
   "recaps",
 ] as const;
-const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const RECAP_MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
 const ALLOWED_RECAP_EXTENSIONS = ["pdf"];
 
@@ -106,8 +110,8 @@ export const POST = auth(async (request: AuthNextRequest) => {
     if (blob.size > maxSize) {
       return errorResponse(
         isRecap
-          ? "File must be 20MB or smaller"
-          : "File must be 5MB or smaller",
+          ? `File must be ${RECAP_MAX_SIZE_LABEL} or smaller`
+          : `File must be ${IMAGE_MAX_SIZE_LABEL} or smaller`,
         400
       );
     }
