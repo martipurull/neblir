@@ -131,6 +131,7 @@ export const enemyInstanceSpawnBodySchema = z
     sourceOfficialEnemyId: z.string().min(1).optional(),
     count: z.number().int().min(1).max(50).optional(),
     nameOverride: z.string().trim().min(1).optional(),
+    isPublic: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     const hasCustom = Boolean(data.sourceCustomEnemyId?.trim());
@@ -158,4 +159,5 @@ export const enemyInstancePatchBodySchema = z.object({
   reactionsPerRound: z.number().int().min(0).optional(),
   reactionsRemaining: z.number().int().nonnegative().optional(),
   status: z.enum(["ACTIVE", "DEFEATED", "DEAD"]).optional(),
+  isPublic: z.boolean().optional(),
 });

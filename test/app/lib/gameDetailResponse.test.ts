@@ -180,4 +180,62 @@ describe("shapeGameForResponse visibility filtering", () => {
       "char-public",
     ]);
   });
+
+  it("filters private enemy instances for non-GM and masks initiative names", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      enemyInstances: [
+        {
+          id: "ei-public",
+          name: "Goblin",
+          isPublic: true,
+          maxHealth: 10,
+          currentHealth: 10,
+          speed: 1,
+          initiativeModifier: 0,
+          reactionsPerRound: 1,
+          reactionsRemaining: 1,
+          status: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "ei-private",
+          name: "Stalker",
+          isPublic: false,
+          maxHealth: 20,
+          currentHealth: 20,
+          speed: 2,
+          initiativeModifier: 1,
+          reactionsPerRound: 1,
+          reactionsRemaining: 1,
+          status: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      initiativeOrder: [
+        {
+          combatantType: "ENEMY",
+          combatantId: "ei-private",
+          combatantName: "Stalker",
+          rolledValue: 7,
+          initiativeModifier: 1,
+          submittedAt: new Date(),
+        },
+      ],
+    };
+
+    const gmView = shapeGameForResponse(game as any, "gm-1");
+    expect(gmView?.enemyInstances?.map((e) => e.id)).toEqual([
+      "ei-public",
+      "ei-private",
+    ]);
+    expect(gmView?.initiativeOrder?.[0]?.displayName).toBe("Stalker");
+
+    const playerView = shapeGameForResponse(game as any, "player-1");
+    expect(playerView?.enemyInstances?.map((e) => e.id)).toEqual(["ei-public"]);
+    expect(playerView?.initiativeOrder?.[0]?.displayName).toBe("Enemy");
+    expect(playerView?.initiativeOrder?.[0]?.combatantName).toBe("Enemy");
+  });
 });

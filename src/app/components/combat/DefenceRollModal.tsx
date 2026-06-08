@@ -2,8 +2,11 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { useCallback, useEffect, useState } from "react";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
+import { useCallback, useEffect, useState } from "react";
 
 export interface DefenceRollModalProps {
   isOpen: boolean;
@@ -20,6 +23,7 @@ export interface DefenceRollModalProps {
   characterId?: string;
   /** When set, roll is attributed to an enemy instance instead of a character (Discord metadata). */
   enemyInstanceRoll?: { instanceId: string; name: string };
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 function rollD10(): number {
@@ -36,7 +40,10 @@ export function DefenceRollModal({
   gameId,
   characterId,
   enemyInstanceRoll,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: DefenceRollModalProps) {
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
   const [rolling, setRolling] = useState(false);
@@ -64,6 +71,7 @@ export function DefenceRollModal({
       setRollResult(results);
       void emitRollEvent(gameId, {
         characterId: enemyInstanceRoll ? undefined : characterId,
+        isPrivate: emitIsPrivate,
         rollType: "DEFENCE",
         diceExpression: `${totalDice}d10`,
         results,
@@ -94,6 +102,7 @@ export function DefenceRollModal({
     title,
     defenceDice,
     extraDice,
+    emitIsPrivate,
   ]);
 
   if (!isOpen) return null;
@@ -130,6 +139,13 @@ export function DefenceRollModal({
       }
     >
       <div className="space-y-4">
+        {rollPrivacy.allowPrivateRoll && gameId ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        ) : null}
+
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Extra dice</span>
           <div className="flex items-center gap-2">

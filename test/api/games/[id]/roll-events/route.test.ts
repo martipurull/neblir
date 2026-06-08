@@ -10,6 +10,8 @@ const userIsInGameMock = vi.fn();
 const getGameMock = vi.fn();
 const characterIsInGameMock = vi.fn();
 const userOwnsCharacterMock = vi.fn();
+const getGameCharacterLinkIsPublicMock = vi.fn();
+const getEnemyInstanceIsPublicMock = vi.fn();
 
 const prismaMocks = vi.hoisted(() => ({
   discordIntegration: { findUnique: vi.fn() },
@@ -25,6 +27,11 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   characterIsInGame: characterIsInGameMock,
   userOwnsCharacter: userOwnsCharacterMock,
+  getGameCharacterLinkIsPublic: getGameCharacterLinkIsPublicMock,
+}));
+
+vi.mock("@/app/lib/prisma/enemyInstance", () => ({
+  getEnemyInstanceIsPublic: getEnemyInstanceIsPublicMock,
 }));
 
 vi.mock("@/app/lib/prisma/client", () => ({
@@ -38,6 +45,8 @@ describe("/api/games/[id]/roll-events", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     characterIsInGameMock.mockResolvedValue(true);
     userOwnsCharacterMock.mockResolvedValue(true);
+    getGameCharacterLinkIsPublicMock.mockResolvedValue(true);
+    getEnemyInstanceIsPublicMock.mockResolvedValue(null);
     prismaMocks.discordIntegration.findUnique.mockResolvedValue(null);
     prismaMocks.rollEvent.create.mockResolvedValue({ id: "re-1" });
     prismaMocks.discordOutbox.create.mockResolvedValue({});
@@ -71,6 +80,94 @@ describe("/api/games/[id]/roll-events", () => {
         makeParams({ id: "g-1" })
       );
       expect(response.status).toBe(403);
+    });
+
+    it("defaults isPrivate=true for GM rolls on private NPC links", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+            metadata: { label1: "Agility" },
+          },
+          "gm-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            label1: "Agility",
+            isPrivate: true,
+          }),
+        }),
+      });
+    });
+
+    it("defaults isPrivate=true for GM enemy rolls on private instances", async () => {
+      getEnemyInstanceIsPublicMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            rollType: "ATTACK",
+            diceExpression: "3d10",
+            results: [10, 8, 5],
+            metadata: {
+              source: "enemyInstance",
+              enemyInstanceId: "ei-1",
+              enemyName: "Stalker",
+            },
+          },
+          "gm-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            enemyInstanceId: "ei-1",
+            isPrivate: true,
+          }),
+        }),
+      });
+    });
+
+    it("allows GM to opt out of private roll on private NPC links", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            isPrivate: false,
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+            metadata: { label1: "Agility" },
+          },
+          "gm-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: { label1: "Agility" },
+        }),
+      });
     });
 
     it("persists isPrivate=true into roll metadata", async () => {

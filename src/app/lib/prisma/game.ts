@@ -60,6 +60,7 @@ export function getGameWithDetails(id: string) {
           sourceCustomEnemyId: true,
           sourceOfficialEnemyId: true,
           name: true,
+          isPublic: true,
           imageKey: true,
           maxHealth: true,
           currentHealth: true,

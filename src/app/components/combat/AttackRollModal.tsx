@@ -3,7 +3,10 @@
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { useCallback, useEffect, useMemo, useState } from "react";
 export type AttackType = "melee" | "range" | "throw" | "grid";
 
@@ -29,6 +32,7 @@ export interface AttackRollModalProps {
   characterId?: string;
   /** When set, roll is attributed to an enemy instance instead of a character (Discord metadata). */
   enemyInstanceRoll?: { instanceId: string; name: string };
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 function rollD10(): number {
@@ -69,7 +73,10 @@ export function AttackRollModal({
   gameId,
   characterId,
   enemyInstanceRoll,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: AttackRollModalProps) {
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
@@ -110,6 +117,7 @@ export function AttackRollModal({
     setRollResult(results);
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
+      isPrivate: emitIsPrivate,
       rollType: "ATTACK",
       diceExpression: `${count}d10`,
       results,
@@ -136,6 +144,7 @@ export function AttackRollModal({
     characterId,
     enemyInstanceRoll,
     attackType,
+    emitIsPrivate,
   ]);
 
   const baseDamageDice = selected?.numberOfDice ?? 0;
@@ -171,6 +180,7 @@ export function AttackRollModal({
     setDamageRollResult(results);
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
+      isPrivate: emitIsPrivate,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${totalDamageDice}d${baseDamageType}`,
       results,
@@ -198,6 +208,7 @@ export function AttackRollModal({
     attackType,
     selected?.weaponName,
     totalDamageDice,
+    emitIsPrivate,
     // Keep totalDamageDice out of deps: it's derived from the above.
   ]);
 
@@ -237,6 +248,13 @@ export function AttackRollModal({
       }
     >
       <div className="space-y-4">
+        {rollPrivacy.allowPrivateRoll && gameId ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        ) : null}
+
         {modifierHint && (
           <p className="text-xs text-white/75">{modifierHint}</p>
         )}

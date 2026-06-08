@@ -27,6 +27,7 @@
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate",
     "prisma:backfill:special-abilities": "tsx prisma/scripts/backfillCharacterSpecialAbilities.ts",
+    "prisma:backfill:enemy-instance-visibility": "tsx prisma/scripts/backfillEnemyInstanceVisibility.ts",
     "data:import:paths-features": "tsx prisma/scripts/upsertPathsAndFeaturesFromFile.ts",
     "data:import:enemies": "tsx prisma/scripts/upsertEnemiesFromFile.ts",
     "data:import:maps": "tsx prisma/scripts/upsertMapsFromFile.ts",

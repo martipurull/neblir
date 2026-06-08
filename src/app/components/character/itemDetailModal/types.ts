@@ -1,4 +1,5 @@
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import type { KeyedMutator } from "swr";
 
@@ -27,4 +28,5 @@ export interface ItemDetailModalProps {
   ) => Promise<SelectDropdownOption[]>;
   /** When set, shows equip / unequip controls (carried items only). */
   equipControl?: ItemDetailEquipControl;
+  rollPrivacy?: RollPrivacyOptions;
 }

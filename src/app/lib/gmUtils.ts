@@ -18,6 +18,15 @@ export function isGmControlledGameCharacter(
   return ownersAmongGameUsers.every((uid: string) => uid === game.gameMaster);
 }
 
+/** GM-controlled NPC with a public game link (visible on Known NPCs to players). */
+export function isPublicKnownNpcInGame(
+  gc: GameCharacterRow,
+  game: GameDetail
+): boolean {
+  if (!isGmControlledGameCharacter(gc, game)) return false;
+  return gc.isPublic !== false;
+}
+
 /** Linked characters owned by a non-GM player in this game. */
 export function isPlayerCharacterInGame(
   gc: GameCharacterRow,

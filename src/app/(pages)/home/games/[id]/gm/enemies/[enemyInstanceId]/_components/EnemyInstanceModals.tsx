@@ -7,6 +7,7 @@ import { EditEnemyInstanceModal } from "@/app/components/games/EditEnemyInstance
 import { EnemyInstanceDiceRollerModal } from "@/app/components/games/EnemyInstanceDiceRollerModal";
 import { RollResultQuickModal } from "@/app/components/shared/RollResultQuickModal";
 import type { GameDetail } from "@/app/lib/types/game";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type {
   EnemyInstanceDetailResponse,
   EnemyInstancePatch,
@@ -42,6 +43,7 @@ type EnemyInstanceModalsProps = {
   applyEnemyPatch: (
     build: (prev: EnemyInstanceDetailResponse) => EnemyInstancePatch
   ) => void;
+  rollPrivacy: RollPrivacyOptions;
 };
 
 export function EnemyInstanceModals({
@@ -66,6 +68,7 @@ export function EnemyInstanceModals({
   setInitiativeListOpen,
   spendReaction,
   applyEnemyPatch,
+  rollPrivacy,
 }: EnemyInstanceModalsProps) {
   return (
     <>
@@ -78,6 +81,7 @@ export function EnemyInstanceModals({
         onRollReaction={spendReaction}
         gameId={gameId}
         enemyInstanceRoll={enemyRollCtx}
+        rollPrivacy={rollPrivacy}
       />
 
       <AttackRollModal
@@ -87,6 +91,7 @@ export function EnemyInstanceModals({
         options={attackModal?.options ?? []}
         gameId={gameId}
         enemyInstanceRoll={enemyRollCtx}
+        rollPrivacy={rollPrivacy}
       />
 
       <RollResultQuickModal
@@ -106,6 +111,7 @@ export function EnemyInstanceModals({
         gameId={gameId}
         enemyInstanceId={enemy.id}
         enemyName={enemy.name}
+        rollPrivacy={rollPrivacy}
       />
 
       <EditEnemyInstanceModal

@@ -45,6 +45,7 @@ export function ItemDetailModal({
   mutate,
   resolveGiveRecipients,
   equipControl,
+  rollPrivacy,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -405,6 +406,7 @@ export function ItemDetailModal({
           damage={weaponDamage}
           gameId={gameId}
           characterId={characterId}
+          rollPrivacy={rollPrivacy}
         />
       )}
     </>

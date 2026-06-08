@@ -12,6 +12,7 @@ import { InitiativeRollModal } from "@/app/components/combat/InitiativeRollModal
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { isSameDiceSelection } from "@/app/lib/types/dice-roll";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import { getGmRollPrivacyForCharacter } from "@/app/lib/roll-privacy";
 import { useCharacterStatUpdates } from "@/hooks/use-character-stat-updates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
@@ -98,6 +99,11 @@ export function CharacterDetailView({
     if (!activeGameId) return null;
     return initiativeGameDetails.find((g) => g.id === activeGameId) ?? null;
   }, [initiativeGameDetails, activeGameId]);
+
+  const rollPrivacy = useMemo(
+    () => getGmRollPrivacyForCharacter(activeGameDetail, character.id),
+    [activeGameDetail, character.id]
+  );
 
   const handleDiceSelect = useCallback(
     (item: DiceSelectionItem) => {
@@ -189,6 +195,7 @@ export function CharacterDetailView({
       getInventorySection(character, activeGameId, {
         mutate: readOnly ? undefined : mutate,
         readOnly,
+        rollPrivacy,
       })
     );
     const walletSection = getWalletSection(
@@ -217,6 +224,7 @@ export function CharacterDetailView({
     initiativeGameDetails,
     initiativeGamesLoading,
     activeGameId,
+    rollPrivacy,
   ]);
 
   return (
@@ -236,6 +244,7 @@ export function CharacterDetailView({
           readOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
         }
         readOnly={readOnly}
+        rollPrivacy={rollPrivacy}
         className="shrink-0"
       />
       <CharacterSectionCarousel
@@ -253,6 +262,7 @@ export function CharacterDetailView({
             }}
             character={character}
             gameId={activeGameId}
+            rollPrivacy={rollPrivacy}
             selection={
               singleAttributeRollSelection ??
               ([diceSelection[0], diceSelection[1]] as [
@@ -269,7 +279,7 @@ export function CharacterDetailView({
           onClose={() => setDedicatedDiceRollerOpen(false)}
           character={character}
           gameId={activeGameId}
-          allowPrivateRoll={activeGameDetail?.isGameMaster === true}
+          rollPrivacy={rollPrivacy}
         />
       )}
 

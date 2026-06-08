@@ -2,7 +2,14 @@ import { errorResponse } from "@/app/api/shared/responses";
 import {
   userOwnsCharacter,
   characterIsInGame,
+  getGameCharacterLinkIsPublic,
 } from "@/app/lib/prisma/gameCharacter";
+import { getEnemyInstanceIsPublic } from "@/app/lib/prisma/enemyInstance";
+import {
+  enemyInstanceIdFromRollMetadata,
+  resolvePersistedRollIsPrivate,
+  rollMetadataWithPrivateFlag,
+} from "@/app/lib/roll-privacy";
 import { prisma } from "@/app/lib/prisma/client";
 import type { Prisma } from "@prisma/client";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
@@ -50,17 +57,21 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const payload = parsed.data;
-    const persistedMetadata =
-      payload.isPrivate === true
-        ? { ...(payload.metadata ?? {}), isPrivate: true }
-        : payload.metadata;
+    const isGameMaster = game.gameMaster === userId;
+    let characterIsPublic: boolean | null = null;
+    let enemyInstanceIsPublic: boolean | null = null;
+
     if (payload.characterId) {
       const inThisGame = await characterIsInGame(gameId, payload.characterId);
       if (!inThisGame) {
         return errorResponse("Character is not in this game", 403);
       }
 
-      const isGameMaster = game.gameMaster === userId;
+      characterIsPublic = await getGameCharacterLinkIsPublic(
+        gameId,
+        payload.characterId
+      );
+
       const owns = await userOwnsCharacter(payload.characterId, userId);
       if (!isGameMaster && !owns) {
         return errorResponse(
@@ -69,6 +80,28 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         );
       }
     }
+
+    const enemyInstanceId = enemyInstanceIdFromRollMetadata(payload.metadata);
+    if (enemyInstanceId) {
+      enemyInstanceIsPublic = await getEnemyInstanceIsPublic(
+        gameId,
+        enemyInstanceId
+      );
+      if (enemyInstanceIsPublic === null) {
+        return errorResponse("Enemy instance is not in this game", 403);
+      }
+    }
+
+    const persistedIsPrivate = resolvePersistedRollIsPrivate({
+      requestedIsPrivate: payload.isPrivate,
+      isGameMaster,
+      characterIsPublic,
+      enemyInstanceIsPublic,
+    });
+    const persistedMetadata = rollMetadataWithPrivateFlag(
+      payload.metadata,
+      persistedIsPrivate
+    );
 
     const integration = await prisma.discordIntegration.findUnique({
       where: { gameId },

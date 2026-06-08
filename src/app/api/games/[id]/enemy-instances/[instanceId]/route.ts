@@ -31,6 +31,9 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     const row = await getEnemyInstance(instanceId);
     if (row?.gameId !== gameId)
       return errorResponse("Enemy instance not found", 404);
+    if (row.isPublic === false && game.gameMaster !== request.auth.user.id) {
+      return errorResponse("Enemy instance not found", 404);
+    }
     return NextResponse.json(row);
   } catch (error) {
     logger.error({
@@ -112,6 +115,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (parsed.data.description !== undefined)
       data.description = parsed.data.description;
     if (parsed.data.notes !== undefined) data.notes = parsed.data.notes;
+    if (parsed.data.isPublic !== undefined)
+      data.isPublic = parsed.data.isPublic;
     if (parsed.data.imageKey !== undefined)
       data.imageKey = parsed.data.imageKey;
     if (parsed.data.speed !== undefined) data.speed = parsed.data.speed;

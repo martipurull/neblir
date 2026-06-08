@@ -7,7 +7,7 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
 import { GameLinkedCharactersList } from "@/app/components/games/GameLinkedCharactersList";
-import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import { isPublicKnownNpcInGame } from "@/app/lib/gmUtils";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
@@ -21,9 +21,7 @@ export default function GameKnownNpcsPage() {
 
   const knownNpcs = useMemo(() => {
     if (!game?.characters) return [];
-    return game.characters.filter((gc) =>
-      isGmControlledGameCharacter(gc, game)
-    );
+    return game.characters.filter((gc) => isPublicKnownNpcInGame(gc, game));
   }, [game]);
 
   const alreadyLinkedCharacterIds = useMemo(
@@ -70,7 +68,10 @@ export default function GameKnownNpcsPage() {
           <p className="mt-1 text-sm text-black/70">
             Characters linked to{" "}
             <span className="font-semibold">{game.name}</span> and controlled by
-            the game master.
+            the game master
+            {game.isGameMaster
+              ? ". Only public NPCs appear here; manage private NPCs from the Game Master screen."
+              : "."}
           </p>
         </div>
         {game.isGameMaster ? (

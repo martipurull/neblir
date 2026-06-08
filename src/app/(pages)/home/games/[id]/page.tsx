@@ -12,8 +12,8 @@ import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
 import {
-  isGmControlledGameCharacter,
   isPlayerCharacterInGame,
+  isPublicKnownNpcInGame,
 } from "@/app/lib/gmUtils";
 import { useMemo } from "react";
 
@@ -48,7 +48,7 @@ export default function GameDetailPage() {
 
   const knownNpcCount = useMemo(() => {
     if (!game?.characters) return 0;
-    return game.characters.filter((gc) => isGmControlledGameCharacter(gc, game))
+    return game.characters.filter((gc) => isPublicKnownNpcInGame(gc, game))
       .length;
   }, [game]);
 

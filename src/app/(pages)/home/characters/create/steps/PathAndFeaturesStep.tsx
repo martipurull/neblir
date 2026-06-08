@@ -2,6 +2,7 @@
 
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { getCharacterFeatureSlots } from "../characterCreationStepValidation";
+import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
@@ -46,8 +47,6 @@ export function PathAndFeaturesStep({
   >(initialFeatures ?? []);
   const [loadingPaths, setLoadingPaths] = useState(true);
   const [loadingFeatures, setLoadingFeatures] = useState(false);
-  const [expandedFeatureDescriptions, setExpandedFeatureDescriptions] =
-    useState<Record<string, boolean>>({});
 
   useEffect(() => {
     onInitialFeaturesChange?.(selectedFeatures);
@@ -164,13 +163,6 @@ export function PathAndFeaturesStep({
       return next;
     });
   }, [features]);
-
-  const toggleExpandedDescription = (featureId: string) => {
-    setExpandedFeatureDescriptions((prev) => ({
-      ...prev,
-      [featureId]: !prev[featureId],
-    }));
-  };
 
   const addFeature = (featureId: string) => {
     if (slotsLeft < 1) return;
@@ -323,7 +315,6 @@ export function PathAndFeaturesStep({
               {features.map((f) => {
                 const sel = selectedFeatures.find((e) => e.featureId === f.id);
                 const desc = f.description ?? "";
-                const isExpandedDesc = !!expandedFeatureDescriptions[f.id];
                 return (
                   <div
                     key={f.id}
@@ -338,24 +329,13 @@ export function PathAndFeaturesStep({
 
                     {desc.trim().length > 0 && (
                       <div className="w-full">
-                        <div
-                          className={`mt-1 whitespace-pre-wrap text-xs text-black/70 ${
-                            isExpandedDesc ? "" : "max-h-12 overflow-hidden"
-                          }`}
+                        <ExpandableClamp
+                          contentClassName="mt-1 whitespace-pre-wrap text-xs text-black/70"
+                          clampClassName="max-h-12 overflow-hidden"
+                          measureKey={desc}
                         >
                           {desc}
-                        </div>
-
-                        {desc.trim().length > 120 && (
-                          <Button
-                            type="button"
-                            variant="lightLinkSubtle"
-                            fullWidth={false}
-                            onClick={() => toggleExpandedDescription(f.id)}
-                          >
-                            {isExpandedDesc ? "Show less" : "Show more"}
-                          </Button>
-                        )}
+                        </ExpandableClamp>
                       </div>
                     )}
                     {!sel ? (

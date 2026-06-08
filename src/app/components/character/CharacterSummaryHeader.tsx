@@ -15,6 +15,7 @@ import {
   HEADER_EQUIP_SLOTS_ROW2,
 } from "@/app/lib/equipUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
@@ -61,6 +62,7 @@ interface CharacterSummaryHeaderProps {
   onOpenDiceRoller?: () => void;
   /** View-only sheet: no rolls, equipping, or stat edits */
   readOnly?: boolean;
+  rollPrivacy?: RollPrivacyOptions;
   className?: string;
 }
 
@@ -77,6 +79,7 @@ export function CharacterSummaryHeader({
   mutate,
   onOpenDiceRoller,
   readOnly = false,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
   className,
 }: CharacterSummaryHeaderProps) {
   const {
@@ -554,6 +557,7 @@ export function CharacterSummaryHeader({
             onWeaponUsed={handleWeaponUsed}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -567,6 +571,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -580,6 +585,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -593,6 +599,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
       </div>

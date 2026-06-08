@@ -6,6 +6,9 @@ import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { useCallback, useEffect, useState } from "react";
 
 export interface DiceRollModalProps {
@@ -14,6 +17,7 @@ export interface DiceRollModalProps {
   character: CharacterDetail;
   gameId?: string | null;
   selection: [DiceSelectionItem] | [DiceSelectionItem, DiceSelectionItem];
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 function rollD10(): number {
@@ -26,9 +30,12 @@ export function DiceRollModal({
   character,
   gameId,
   selection,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: DiceRollModalProps) {
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
 
   const firstSelection = selection[0];
   const secondSelection = selection[1];
@@ -59,6 +66,7 @@ export function DiceRollModal({
       : { label1, baseDice, extraDice };
     void emitRollEvent(gameId, {
       characterId: character.id,
+      isPrivate: emitIsPrivate,
       rollType: "GENERAL_ROLL",
       diceExpression: `${count}d10`,
       results,
@@ -72,6 +80,7 @@ export function DiceRollModal({
     label1,
     label2,
     secondSelection,
+    emitIsPrivate,
   ]);
 
   if (!isOpen) return null;
@@ -107,6 +116,13 @@ export function DiceRollModal({
       }
     >
       <div className="space-y-4">
+        {rollPrivacy.allowPrivateRoll && gameId ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        ) : null}
+
         <p className="text-sm text-white/90">
           {secondSelection
             ? `${label1} (${v1}) + ${label2} (${v2}) = ${baseDice} dice`

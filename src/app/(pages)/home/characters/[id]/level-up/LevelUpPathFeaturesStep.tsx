@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
@@ -115,10 +116,18 @@ export function LevelUpPathFeaturesStep({
                   className="text-sm text-black"
                 />
                 {path.description ? (
-                  <StoredRichTextHtml
-                    content={path.description}
-                    className="mt-2 line-clamp-4 text-sm text-black/70"
-                  />
+                  <div className="mt-2 w-full text-left">
+                    <ExpandableClamp
+                      contentClassName="text-sm text-black/70"
+                      clampClassName="max-h-12 overflow-hidden"
+                      measureKey={path.description}
+                    >
+                      <StoredRichTextHtml
+                        content={path.description}
+                        className="text-sm text-black/70"
+                      />
+                    </ExpandableClamp>
+                  </div>
                 ) : null}
               </Button>
             ))}
@@ -188,83 +197,82 @@ export function LevelUpPathFeaturesStep({
               choices[slotIdx]?.mode !== "none"
           );
           const isSelected = selectedSlotIndexes.length > 0;
+          const description = feature.description ?? "";
           return (
             <div
               key={feature.id}
-              className={`flex h-40 flex-col rounded border-2 p-3 sm:h-44 xl:h-48 ${
+              className={`flex flex-wrap items-center gap-2 rounded border p-2 ${
                 isSelected
                   ? "border-customPrimary bg-customPrimary/5"
                   : "border-black/20"
               }`}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-medium text-black">{feature.name}</p>
-                {selectedSlotIndexes.map((slotIdx) => {
-                  const mode = choices[slotIdx]?.mode;
-                  return (
-                    <span
-                      key={`${feature.id}-slot-${slotIdx}`}
-                      className="rounded-full border border-customPrimary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-customPrimary"
-                    >
-                      Slot {slotIdx + 1} {mode === "new" ? "new" : "increase"}
-                    </span>
-                  );
-                })}
-                <span className="text-xs text-black/60">
-                  Max grade: {feature.maxGrade}
-                </span>
-                {existing ? (
-                  <span className="text-xs text-black/60">
-                    Current grade: {existing.grade}
+              <span className="font-medium text-black">{feature.name}</span>
+              {selectedSlotIndexes.map((slotIdx) => {
+                const mode = choices[slotIdx]?.mode;
+                return (
+                  <span
+                    key={`${feature.id}-slot-${slotIdx}`}
+                    className="rounded-full border border-customPrimary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-customPrimary"
+                  >
+                    Slot {slotIdx + 1} {mode === "new" ? "new" : "increase"}
                   </span>
-                ) : (
-                  <span className="text-xs text-black/60">Not learned yet</span>
-                )}
-              </div>
-              <div className="mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
-                {feature.description && (
-                  <StoredRichTextHtml
-                    content={feature.description}
-                    className="text-sm text-black/70"
-                  />
-                )}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant={
-                    canPickNew
-                      ? "lightChipSafeCompact"
-                      : "lightChipNeutralMuted"
-                  }
-                  fullWidth={false}
-                  disabled={!canPickNew}
-                  onClick={() =>
-                    setFeatureChoiceAtSlot(activeFeatureSlot, "new", feature.id)
-                  }
-                >
-                  Pick as new
-                </Button>
-                <Button
-                  type="button"
-                  variant={
-                    canIncrease
-                      ? "lightChipSafeCompact"
-                      : "lightChipNeutralMuted"
-                  }
-                  fullWidth={false}
-                  disabled={!canIncrease}
-                  onClick={() =>
-                    setFeatureChoiceAtSlot(
-                      activeFeatureSlot,
-                      "increment",
-                      feature.id
-                    )
-                  }
-                >
-                  Increase grade
-                </Button>
-              </div>
+                );
+              })}
+              <span className="text-xs text-black/60">
+                (grade 1–{feature.maxGrade})
+              </span>
+              {existing ? (
+                <span className="text-xs text-black/60">
+                  Current grade: {existing.grade}
+                </span>
+              ) : (
+                <span className="text-xs text-black/60">Not learned yet</span>
+              )}
+              {description.trim().length > 0 && (
+                <div className="w-full">
+                  <ExpandableClamp
+                    contentClassName="mt-1 text-xs text-black/70"
+                    clampClassName="max-h-12 overflow-hidden"
+                    measureKey={description}
+                  >
+                    <StoredRichTextHtml
+                      content={description}
+                      className="text-xs text-black/70"
+                    />
+                  </ExpandableClamp>
+                </div>
+              )}
+              <Button
+                type="button"
+                variant={
+                  canPickNew ? "lightChipSafeCompact" : "lightChipNeutralMuted"
+                }
+                fullWidth={false}
+                disabled={!canPickNew}
+                onClick={() =>
+                  setFeatureChoiceAtSlot(activeFeatureSlot, "new", feature.id)
+                }
+              >
+                Pick as new
+              </Button>
+              <Button
+                type="button"
+                variant={
+                  canIncrease ? "lightChipSafeCompact" : "lightChipNeutralMuted"
+                }
+                fullWidth={false}
+                disabled={!canIncrease}
+                onClick={() =>
+                  setFeatureChoiceAtSlot(
+                    activeFeatureSlot,
+                    "increment",
+                    feature.id
+                  )
+                }
+              >
+                Increase grade
+              </Button>
             </div>
           );
         })}

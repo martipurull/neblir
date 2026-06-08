@@ -32,7 +32,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     if (!allowed)
       return errorResponse("You do not have access to this game.", 403);
     const rows = await getEnemyInstancesByGame(gameId);
-    return NextResponse.json(rows);
+    const isGameMaster = game.gameMaster === request.auth.user.id;
+    const visible = isGameMaster
+      ? rows
+      : rows.filter((row) => row.isPublic !== false);
+    return NextResponse.json(visible);
   } catch (error) {
     logger.error({
       method: "GET",
@@ -67,6 +71,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
     const count = parsed.data.count ?? 1;
+    const isPublic = parsed.data.isPublic ?? false;
 
     let createdRecords: Awaited<ReturnType<typeof createEnemyInstance>>[];
 
@@ -84,6 +89,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           uncheckedSnapshotFromEnemyTemplate(source, {
             gameId,
             name,
+            isPublic,
             sourceCustomEnemyId: source.id,
             sourceOfficialEnemyId: undefined,
           })
@@ -104,6 +110,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           uncheckedSnapshotFromEnemyTemplate(source, {
             gameId,
             name,
+            isPublic,
             sourceCustomEnemyId: undefined,
             sourceOfficialEnemyId: source.id,
           })

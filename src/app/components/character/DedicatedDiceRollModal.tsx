@@ -18,7 +18,9 @@ import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { WeaponDamageType } from "@/app/lib/types/item";
 import { Button } from "@/app/components/shared/Button";
-import { Checkbox } from "@/app/components/shared/Checkbox";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
@@ -82,8 +84,7 @@ export interface DedicatedDiceRollModalProps {
   onClose: () => void;
   character: CharacterDetail;
   gameId?: string | null;
-  /** Enables showing the "Private roll" checkbox (e.g. when user is GM of active game). */
-  allowPrivateRoll?: boolean;
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 export function DedicatedDiceRollModal({
@@ -91,13 +92,14 @@ export function DedicatedDiceRollModal({
   onClose,
   character,
   gameId,
-  allowPrivateRoll = false,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: DedicatedDiceRollModalProps) {
   const [tab, setTab] = useState<TabId>("stats");
   const [firstValue, setFirstValue] = useState("");
   const [secondValue, setSecondValue] = useState("");
   const [extraDice, setExtraDice] = useState(0);
-  const [isPrivateRoll, setIsPrivateRoll] = useState(false);
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
   const [statsResult, setStatsResult] = useState<number[] | null>(null);
   const [damageDiceCount, setDamageDiceCount] = useState(1);
   const [damageDiceType, setDamageDiceType] = useState(6);
@@ -161,7 +163,6 @@ export function DedicatedDiceRollModal({
       setFirstValue("");
       setSecondValue("");
       setExtraDice(0);
-      setIsPrivateRoll(false);
       setStatsResult(null);
       setDamageDiceCount(1);
       setDamageDiceType(6);
@@ -215,7 +216,7 @@ export function DedicatedDiceRollModal({
       : { label1, baseDice, extraDice };
     void emitRollEvent(gameId, {
       characterId: character.id,
-      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
+      isPrivate: emitIsPrivate,
       rollType: "GENERAL_ROLL",
       diceExpression: `${totalDice}d10`,
       results,
@@ -228,8 +229,7 @@ export function DedicatedDiceRollModal({
     totalDice,
     gameId,
     character.id,
-    allowPrivateRoll,
-    isPrivateRoll,
+    emitIsPrivate,
     label1,
     label2,
     baseDice,
@@ -244,7 +244,7 @@ export function DedicatedDiceRollModal({
     setDamageResult(results);
     void emitRollEvent(gameId, {
       characterId: character.id,
-      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
+      isPrivate: emitIsPrivate,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${damageDiceCount}d${damageDiceType}`,
       results,
@@ -257,8 +257,7 @@ export function DedicatedDiceRollModal({
     gameId,
     character.id,
     damageType,
-    allowPrivateRoll,
-    isPrivateRoll,
+    emitIsPrivate,
   ]);
 
   const handleFreeRoll = useCallback(() => {
@@ -267,21 +266,14 @@ export function DedicatedDiceRollModal({
     const note = freeNote.trim();
     void emitRollEvent(gameId, {
       characterId: character.id,
-      isPrivate: allowPrivateRoll ? isPrivateRoll : undefined,
+      isPrivate: emitIsPrivate,
       rollType: "GENERAL_ROLL",
       diceExpression: roll.diceExpression,
       results: roll.results,
       total: roll.total,
       metadata: note ? { note } : undefined,
     });
-  }, [
-    tryExecuteFreeRoll,
-    freeNote,
-    gameId,
-    character.id,
-    allowPrivateRoll,
-    isPrivateRoll,
-  ]);
+  }, [tryExecuteFreeRoll, freeNote, gameId, character.id, emitIsPrivate]);
 
   if (!isOpen) return null;
 
@@ -331,19 +323,11 @@ export function DedicatedDiceRollModal({
           </Button>
         </div>
 
-        {allowPrivateRoll && gameId ? (
-          <div className="rounded border border-white/15 bg-black/10 p-3">
-            <Checkbox
-              checked={isPrivateRoll}
-              onChange={(checked) => setIsPrivateRoll(checked)}
-              tone="inverse"
-              label={
-                <span className="text-white/90">
-                  Private roll (hide character and roll details on Discord)
-                </span>
-              }
-            />
-          </div>
+        {rollPrivacy.allowPrivateRoll && gameId ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
         ) : null}
 
         {tab === "stats" && (

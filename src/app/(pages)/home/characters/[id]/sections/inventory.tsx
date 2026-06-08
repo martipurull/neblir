@@ -20,6 +20,7 @@ import {
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import {
   isItemInventoryOperational,
   itemStatusEquipColumnDamageLabel,
@@ -217,6 +218,7 @@ interface InventorySectionContentProps {
   mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
   readOnly?: boolean;
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 function InventorySectionContent({
@@ -224,6 +226,7 @@ function InventorySectionContent({
   mutate,
   activeGameId,
   readOnly = false,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
@@ -483,6 +486,7 @@ function InventorySectionContent({
             equippingId,
             unequippingId,
           }}
+          rollPrivacy={rollPrivacy}
         />
       )}
 
@@ -585,10 +589,15 @@ export function getInventorySection(
   options?: {
     mutate?: KeyedMutator<CharacterDetail | null>;
     readOnly?: boolean;
+    rollPrivacy?: RollPrivacyOptions;
   }
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
   const mutate = options?.mutate;
+  const rollPrivacy = options?.rollPrivacy ?? {
+    allowPrivateRoll: false,
+    defaultPrivateRoll: false,
+  };
 
   return {
     id: "inventory",
@@ -602,6 +611,7 @@ export function getInventorySection(
         mutate={mutate}
         activeGameId={activeGameId}
         readOnly={readOnly}
+        rollPrivacy={rollPrivacy}
       />
     ),
   };
