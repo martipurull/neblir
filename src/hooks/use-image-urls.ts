@@ -1,5 +1,5 @@
 import { getImageUrl } from "@/lib/api/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ImageEntry = {
   id: string;
@@ -12,6 +12,9 @@ const RETRY_DELAY_MS = 500;
 
 export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
   const [imageUrls, setImageUrls] = useState<ImageUrlMap>({});
+  const [resolvedImageKeyById, setResolvedImageKeyById] = useState<
+    Record<string, string>
+  >({});
   const retryCountByIdRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
@@ -19,6 +22,11 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
 
     const entriesToFetch = entries.filter((entry) => {
       if (!entry.imageKey) return false;
+      const resolvedKey = resolvedImageKeyById[entry.id];
+      if (resolvedKey !== entry.imageKey) {
+        retryCountByIdRef.current[entry.id] = 0;
+        return true;
+      }
       if (imageUrls[entry.id] === undefined) return true;
       if (
         imageUrls[entry.id] === null &&
@@ -36,6 +44,7 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
     const resolveImageUrls = async () => {
       const resolvedEntries = await Promise.all(
         entriesToFetch.map(async (entry) => {
+          const imageKey = entry.imageKey as string;
           const nextAttempt = (retryCountByIdRef.current[entry.id] ?? 0) + 1;
           retryCountByIdRef.current[entry.id] = nextAttempt;
           if (nextAttempt > 1) {
@@ -44,10 +53,10 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
             );
           }
           try {
-            const url = await getImageUrl(entry.imageKey as string);
-            return [entry.id, url] as const;
+            const url = await getImageUrl(imageKey);
+            return { id: entry.id, imageKey, url } as const;
           } catch {
-            return [entry.id, null] as const;
+            return { id: entry.id, imageKey, url: null } as const;
           }
         })
       );
@@ -56,9 +65,26 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
         return;
       }
 
+      const appliedEntries = resolvedEntries.filter(({ id, imageKey }) => {
+        const currentEntry = entries.find((entry) => entry.id === id);
+        return currentEntry?.imageKey === imageKey;
+      });
+
+      if (appliedEntries.length === 0) {
+        return;
+      }
+
       setImageUrls((previous) => ({
         ...previous,
-        ...Object.fromEntries(resolvedEntries),
+        ...Object.fromEntries(
+          appliedEntries.map(({ id, url }) => [id, url] as const)
+        ),
+      }));
+      setResolvedImageKeyById((previous) => ({
+        ...previous,
+        ...Object.fromEntries(
+          appliedEntries.map(({ id, imageKey }) => [id, imageKey] as const)
+        ),
       }));
     };
 
@@ -67,7 +93,19 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
     return () => {
       isCancelled = true;
     };
-  }, [entries, imageUrls]);
+  }, [entries, imageUrls, resolvedImageKeyById]);
 
-  return imageUrls;
+  return useMemo(() => {
+    const result: ImageUrlMap = {};
+    for (const entry of entries) {
+      if (!entry.imageKey) continue;
+      if (resolvedImageKeyById[entry.id] !== entry.imageKey) {
+        continue;
+      }
+      if (entry.id in imageUrls) {
+        result[entry.id] = imageUrls[entry.id];
+      }
+    }
+    return result;
+  }, [entries, imageUrls, resolvedImageKeyById]);
 }
