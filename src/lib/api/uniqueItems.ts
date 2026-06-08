@@ -3,6 +3,7 @@ import {
   uniqueItemListResponseSchema,
   type UniqueItemCreate,
   type UniqueItemCreateResponse,
+  type UniqueItemUpdate,
 } from "@/app/lib/types/item";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
@@ -11,6 +12,16 @@ type ApiErrorPayload = { message?: string; details?: string };
 export type UniqueItemListItem = {
   id: string;
   name: string;
+  ownerUserId: string;
+};
+
+export type UniqueItemDetailRecord = Record<string, unknown> & {
+  id: string;
+  ownerUserId: string;
+  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE";
+  itemId?: string | null;
+  templateItem?: Record<string, unknown> | null;
+  resolvedItem?: Record<string, unknown> | null;
 };
 
 export async function getGameUniqueItems(
@@ -49,6 +60,70 @@ export async function getGameUniqueItems(
     );
   }
   return parsed.data;
+}
+
+export async function getUniqueItemById(
+  uniqueItemId: string,
+  signal?: AbortSignal
+): Promise<UniqueItemDetailRecord> {
+  const response = await fetch(
+    `/api/unique-items/${encodeURIComponent(uniqueItemId)}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to load unique item")
+    );
+  }
+
+  const json = (await response.json()) as UniqueItemDetailRecord;
+  if (!json?.id || typeof json.id !== "string") {
+    throw new Error("Unique item response did not include an id.");
+  }
+  return json;
+}
+
+export async function updateUniqueItem(
+  uniqueItemId: string,
+  body: UniqueItemUpdate
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `/api/unique-items/${encodeURIComponent(uniqueItemId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update unique item"
+      )
+    );
+  }
+
+  return (await response.json()) as Record<string, unknown>;
 }
 
 export async function createUniqueItem(

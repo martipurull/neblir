@@ -260,6 +260,7 @@ export function GameMasterPageClient() {
         </div>
 
         <GmItemsSection
+          gameId={game.id}
           onCreateCustom={() => setCustomItemModalOpen(true)}
           onCreateUnique={() => setUniqueItemModalOpen(true)}
           onGiveItem={() => setGiveItemModalOpen(true)}

@@ -179,6 +179,7 @@ export async function getUniqueItemsByGameId(
       : { game: { is: { id: gameId } } },
     select: {
       id: true,
+      ownerUserId: true,
       nameOverride: true,
       sourceType: true,
       itemId: true,
@@ -206,7 +207,7 @@ export async function getUniqueItemsByGameId(
                     select: { name: true },
                   })
                 )?.name ?? "Unknown");
-      return { id: u.id, name };
+      return { id: u.id, name, ownerUserId: u.ownerUserId };
     })
   );
 

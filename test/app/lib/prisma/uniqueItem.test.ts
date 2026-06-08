@@ -282,6 +282,7 @@ describe("getUniqueItemsByGameId", () => {
     uniqueItemFindMany.mockResolvedValue([
       {
         id: "a",
+        ownerUserId: "owner-1",
         nameOverride: "Shown",
         sourceType: "STANDALONE",
         itemId: null,
@@ -290,13 +291,14 @@ describe("getUniqueItemsByGameId", () => {
     const { getUniqueItemsByGameId } =
       await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
-    expect(list).toEqual([{ id: "a", name: "Shown" }]);
+    expect(list).toEqual([{ id: "a", name: "Shown", ownerUserId: "owner-1" }]);
   });
 
   it("uses Unnamed item for STANDALONE without nameOverride", async () => {
     uniqueItemFindMany.mockResolvedValue([
       {
         id: "b",
+        ownerUserId: "owner-1",
         nameOverride: null,
         sourceType: "STANDALONE",
         itemId: null,
@@ -305,13 +307,16 @@ describe("getUniqueItemsByGameId", () => {
     const { getUniqueItemsByGameId } =
       await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
-    expect(list).toEqual([{ id: "b", name: "Unnamed item" }]);
+    expect(list).toEqual([
+      { id: "b", name: "Unnamed item", ownerUserId: "owner-1" },
+    ]);
   });
 
   it("resolves GLOBAL_ITEM name from Item when override empty", async () => {
     uniqueItemFindMany.mockResolvedValue([
       {
         id: "c",
+        ownerUserId: "owner-1",
         nameOverride: "",
         sourceType: "GLOBAL_ITEM",
         itemId: "it-1",
@@ -321,7 +326,7 @@ describe("getUniqueItemsByGameId", () => {
     const { getUniqueItemsByGameId } =
       await import("@/app/lib/prisma/uniqueItem");
     const list = await getUniqueItemsByGameId("g-1");
-    expect(list).toEqual([{ id: "c", name: "Rifle" }]);
+    expect(list).toEqual([{ id: "c", name: "Rifle", ownerUserId: "owner-1" }]);
   });
 
   it("passes ownerUserId filter into findMany when provided", async () => {

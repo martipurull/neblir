@@ -53,7 +53,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const { characterId, sourceType, itemId } = parsed.data;
+    const { characterId, sourceType, itemId, quantity } = parsed.data;
 
     const inGame = await characterIsInGame(gameId, characterId);
     if (!inGame) {
@@ -86,7 +86,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       }
     }
 
-    await addOrIncrementItemCharacter(characterId, sourceType, itemId);
+    await addOrIncrementItemCharacter(characterId, sourceType, itemId, {
+      quantity: quantity ?? 1,
+    });
 
     return NextResponse.json(
       { message: "Item given to character" },

@@ -74,6 +74,8 @@ export interface BrowseItemDetailModalProps {
   isAdding?: boolean;
   /** GM flow: opens give-to-character UI for this item */
   onGiveToCharacter?: () => void;
+  /** Opens edit UI for this item (GM custom items or owned unique items). */
+  onEdit?: () => void;
 }
 
 function fmt(n: number) {
@@ -87,6 +89,7 @@ export function BrowseItemDetailModal({
   onAddToInventory,
   isAdding = false,
   onGiveToCharacter,
+  onEdit,
 }: BrowseItemDetailModalProps) {
   const itemImageKey = item && "imageKey" in item ? item.imageKey : null;
   const imageEntries = useMemo(
@@ -117,8 +120,18 @@ export function BrowseItemDetailModal({
       maxWidthClass="max-w-md"
       maxHeightClass="max-h-[90vh]"
       footer={
-        onGiveToCharacter || onAddToInventory ? (
+        onGiveToCharacter || onAddToInventory || onEdit ? (
           <div className="flex w-full flex-col gap-2">
+            {onEdit ? (
+              <Button
+                type="button"
+                variant="primarySm"
+                onClick={onEdit}
+                className="w-full"
+              >
+                Edit item
+              </Button>
+            ) : null}
             {onGiveToCharacter ? (
               <Button
                 type="button"

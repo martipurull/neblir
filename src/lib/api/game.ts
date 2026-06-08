@@ -445,6 +445,7 @@ export type GiveItemToCharacterBody = {
   characterId: string;
   sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
   itemId: string;
+  quantity?: number;
 };
 
 export async function giveItemToCharacter(

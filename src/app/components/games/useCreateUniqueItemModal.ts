@@ -1,5 +1,9 @@
 import type { ItemWithId } from "@/lib/api/items";
 import {
+  itemAttributePathSchema,
+  itemGeneralSkillSchema,
+} from "@/app/lib/itemModifierEnums";
+import {
   equipSlotCostSchema,
   itemDamageSchema,
   type UniqueItemCreate,
@@ -10,16 +14,31 @@ import {
   type ItemBrowseDetailFields,
 } from "@/app/lib/types/itemBrowseDetail";
 import { useImageUpload } from "@/hooks/use-image-upload";
+import {
+  getUniqueItemById,
+  updateUniqueItem,
+  type UniqueItemDetailRecord,
+} from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { templateOptionLabel } from "./uniqueItemModalTypes";
+
+function optionalNumStr(value: number | null | undefined): string {
+  return value != null ? String(value) : "";
+}
+
+function strField(data: UniqueItemDetailRecord, key: string): string {
+  const value = data[key];
+  return typeof value === "string" ? value : "";
+}
 
 type Args = {
   isOpen: boolean;
   customTemplateGameIds: string[];
   gameIdForSubmit?: string;
   submitEndpoint?: string;
+  editUniqueItemId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -29,6 +48,7 @@ export function useCreateUniqueItemModal({
   customTemplateGameIds,
   gameIdForSubmit,
   submitEndpoint,
+  editUniqueItemId = null,
   onClose,
   onSuccess,
 }: Args) {
@@ -60,6 +80,16 @@ export function useCreateUniqueItemModal({
   >([]);
   const [equipSlotCostOverride, setEquipSlotCostOverride] = useState("");
   const [maxUsesOverride, setMaxUsesOverride] = useState("");
+  const [modifiesAttributeOverride, setModifiesAttributeOverride] =
+    useState("");
+  const [attributeModOverride, setAttributeModOverride] = useState("");
+  const [modifiesSkillOverride, setModifiesSkillOverride] = useState("");
+  const [skillModOverride, setSkillModOverride] = useState("");
+  const [isSpeedAlteredOverride, setIsSpeedAlteredOverride] = useState<
+    boolean | ""
+  >("");
+  const [isSpeedAlteredStandalone, setIsSpeedAlteredStandalone] =
+    useState(false);
   const [attackRollOverride, setAttackRollOverride] = useState<string[]>([]);
   const [attackMeleeBonusOverride, setAttackMeleeBonusOverride] = useState("");
   const [attackRangeBonusOverride, setAttackRangeBonusOverride] = useState("");
@@ -82,6 +112,7 @@ export function useCreateUniqueItemModal({
     imageKey: imageKeyOverride,
     pendingImageKey,
     setPendingImageKey,
+    setImageKey: setImageKeyOverride,
     deleteUploadedImage,
     handleFile: handleImageFile,
     handleDrop: handleImageDrop,
@@ -90,8 +121,13 @@ export function useCreateUniqueItemModal({
   } = imageUpload;
 
   const [richTextSyncKey, setRichTextSyncKey] = useState(0);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  const [editTemplateLabel, setEditTemplateLabel] = useState<string | null>(
+    null
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(editUniqueItemId);
 
   const templates = useMemo(
     () =>
@@ -167,12 +203,203 @@ export function useCreateUniqueItemModal({
     [sourceType, globalItems, customTemplateBrowseItems]
   );
 
+  const resetOverrides = useCallback(() => {
+    setNameOverride("");
+    setDescriptionOverride("");
+    setNotesOverride("");
+    setUsageOverride("");
+    setCostInfoOverride("");
+    setConfCostOverride("");
+    setWeightOverride("");
+    setSpecialTag("");
+    setEquippableOverride("");
+    setEquipSlotTypesOverride([]);
+    setEquipSlotCostOverride("");
+    setMaxUsesOverride("");
+    setModifiesAttributeOverride("");
+    setAttributeModOverride("");
+    setModifiesSkillOverride("");
+    setSkillModOverride("");
+    setIsSpeedAlteredOverride("");
+    setIsSpeedAlteredStandalone(false);
+    setAttackRollOverride([]);
+    setAttackMeleeBonusOverride("");
+    setAttackRangeBonusOverride("");
+    setAttackThrowBonusOverride("");
+    setDefenceMeleeBonusOverride("");
+    setDefenceRangeBonusOverride("");
+    setGridAttackBonusOverride("");
+    setGridDefenceBonusOverride("");
+    setEffectiveRangeOverride("");
+    setMaxRangeOverride("");
+    setDamageTypesOverride([]);
+    setDamageDiceTypeOverride("");
+    setDamageNumberOfDiceOverride("");
+    resetImageUpload();
+    setRichTextSyncKey((k) => k + 1);
+  }, [resetImageUpload]);
+
   useEffect(() => {
-    if (isOpen) {
-      setSelectedTemplate(null);
-      void fetchTemplates();
+    if (!isOpen || isEdit) return;
+    setSelectedTemplate(null);
+    void fetchTemplates();
+  }, [isOpen, isEdit, sourceType, fetchTemplates]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!editUniqueItemId) {
+      setEditTemplateLabel(null);
+      return;
     }
-  }, [isOpen, sourceType, fetchTemplates]);
+    let cancelled = false;
+    setLoadingEdit(true);
+    setError(null);
+    resetOverrides();
+    void (async () => {
+      try {
+        const data = await getUniqueItemById(editUniqueItemId);
+        if (cancelled) return;
+        const loadedSourceType = data.sourceType;
+        setSourceType(loadedSourceType);
+        if (loadedSourceType === "STANDALONE") {
+          setEditTemplateLabel("No template (standalone item)");
+          setSelectedTemplate(null);
+        } else {
+          const template = data.templateItem;
+          const templateName =
+            template && typeof template.name === "string"
+              ? template.name
+              : "Template";
+          setEditTemplateLabel(templateName);
+          if (data.itemId && template) {
+            const browse =
+              loadedSourceType === "GLOBAL_ITEM"
+                ? itemWithIdToBrowseDetail(template as ItemWithId)
+                : (template as ItemBrowseDetailFields);
+            setSelectedTemplate(browse);
+          }
+        }
+        setNameOverride(strField(data, "nameOverride"));
+        setDescriptionOverride(strField(data, "descriptionOverride"));
+        setNotesOverride(strField(data, "notesOverride"));
+        setUsageOverride(strField(data, "usageOverride"));
+        setCostInfoOverride(strField(data, "costInfoOverride"));
+        setConfCostOverride(
+          optionalNumStr(data.confCostOverride as number | null | undefined)
+        );
+        setWeightOverride(
+          optionalNumStr(data.weightOverride as number | null | undefined)
+        );
+        setSpecialTag(strField(data, "specialTag"));
+        const equippable = data.equippableOverride;
+        setEquippableOverride(
+          equippable === null || equippable === undefined
+            ? ""
+            : (equippable as boolean)
+        );
+        setEquipSlotTypesOverride(
+          Array.isArray(data.equipSlotTypesOverride)
+            ? (data.equipSlotTypesOverride as string[])
+            : []
+        );
+        setEquipSlotCostOverride(
+          optionalNumStr(
+            data.equipSlotCostOverride as number | null | undefined
+          )
+        );
+        setMaxUsesOverride(
+          optionalNumStr(data.maxUsesOverride as number | null | undefined)
+        );
+        setModifiesAttributeOverride(
+          strField(data, "modifiesAttributeOverride")
+        );
+        setAttributeModOverride(
+          optionalNumStr(data.attributeModOverride as number | null | undefined)
+        );
+        setModifiesSkillOverride(strField(data, "modifiesSkillOverride"));
+        setSkillModOverride(
+          optionalNumStr(data.skillModOverride as number | null | undefined)
+        );
+        const speedOverride = data.isSpeedAlteredOverride;
+        if (loadedSourceType === "STANDALONE") {
+          setIsSpeedAlteredStandalone(speedOverride === true);
+          setIsSpeedAlteredOverride("");
+        } else {
+          setIsSpeedAlteredOverride(
+            speedOverride === null || speedOverride === undefined
+              ? ""
+              : (speedOverride as boolean)
+          );
+          setIsSpeedAlteredStandalone(false);
+        }
+        setAttackRollOverride(
+          Array.isArray(data.attackRollOverride)
+            ? (data.attackRollOverride as string[])
+            : []
+        );
+        setAttackMeleeBonusOverride(
+          optionalNumStr(
+            data.attackMeleeBonusOverride as number | null | undefined
+          )
+        );
+        setAttackRangeBonusOverride(
+          optionalNumStr(
+            data.attackRangeBonusOverride as number | null | undefined
+          )
+        );
+        setAttackThrowBonusOverride(
+          optionalNumStr(
+            data.attackThrowBonusOverride as number | null | undefined
+          )
+        );
+        setDefenceMeleeBonusOverride(
+          optionalNumStr(
+            data.defenceMeleeBonusOverride as number | null | undefined
+          )
+        );
+        setDefenceRangeBonusOverride(
+          optionalNumStr(
+            data.defenceRangeBonusOverride as number | null | undefined
+          )
+        );
+        setGridAttackBonusOverride(
+          optionalNumStr(
+            data.gridAttackBonusOverride as number | null | undefined
+          )
+        );
+        setGridDefenceBonusOverride(
+          optionalNumStr(
+            data.gridDefenceBonusOverride as number | null | undefined
+          )
+        );
+        setEffectiveRangeOverride(
+          optionalNumStr(
+            data.effectiveRangeOverride as number | null | undefined
+          )
+        );
+        setMaxRangeOverride(
+          optionalNumStr(data.maxRangeOverride as number | null | undefined)
+        );
+        const damage = data.damageOverride as ItemDamage | null | undefined;
+        if (damage) {
+          setDamageTypesOverride(damage.damageType ?? []);
+          setDamageDiceTypeOverride(String(damage.diceType));
+          setDamageNumberOfDiceOverride(String(damage.numberOfDice));
+        }
+        setImageKeyOverride(strField(data, "imageKeyOverride"));
+        setRichTextSyncKey((k) => k + 1);
+      } catch (e) {
+        if (!cancelled) {
+          setError(getUserSafeErrorMessage(e, "Failed to load unique item."));
+        }
+      } finally {
+        if (!cancelled) setLoadingEdit(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, editUniqueItemId, resetOverrides, setImageKeyOverride]);
 
   const toggleAttackRoll = (value: string) => {
     setAttackRollOverride((prev) =>
@@ -215,36 +442,6 @@ export function useCreateUniqueItemModal({
     return parsed.success ? parsed.data : undefined;
   };
 
-  const resetOverrides = () => {
-    setNameOverride("");
-    setDescriptionOverride("");
-    setNotesOverride("");
-    setUsageOverride("");
-    setCostInfoOverride("");
-    setConfCostOverride("");
-    setWeightOverride("");
-    setSpecialTag("");
-    setEquippableOverride("");
-    setEquipSlotTypesOverride([]);
-    setEquipSlotCostOverride("");
-    setMaxUsesOverride("");
-    setAttackRollOverride([]);
-    setAttackMeleeBonusOverride("");
-    setAttackRangeBonusOverride("");
-    setAttackThrowBonusOverride("");
-    setDefenceMeleeBonusOverride("");
-    setDefenceRangeBonusOverride("");
-    setGridAttackBonusOverride("");
-    setGridDefenceBonusOverride("");
-    setEffectiveRangeOverride("");
-    setMaxRangeOverride("");
-    setDamageTypesOverride([]);
-    setDamageDiceTypeOverride("");
-    setDamageNumberOfDiceOverride("");
-    resetImageUpload();
-    setRichTextSyncKey((k) => k + 1);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -264,22 +461,57 @@ export function useCreateUniqueItemModal({
         return;
       }
     }
+    if (maxUsesOverride !== "") {
+      const n = parseInt(maxUsesOverride, 10);
+      if (!Number.isInteger(n) || n <= 0) {
+        setError(
+          sourceType === "STANDALONE"
+            ? "Max uses must be a positive integer or left blank for unlimited."
+            : "Max uses override must be a positive integer or left blank to use the template."
+        );
+        return;
+      }
+    }
+    if (modifiesAttributeOverride.trim()) {
+      const parsedPath = itemAttributePathSchema.safeParse(
+        modifiesAttributeOverride.trim()
+      );
+      if (!parsedPath.success) {
+        setError("Invalid attribute path for item modifier override.");
+        return;
+      }
+    }
+    if (modifiesSkillOverride.trim()) {
+      const parsedSkill = itemGeneralSkillSchema.safeParse(
+        modifiesSkillOverride.trim()
+      );
+      if (!parsedSkill.success) {
+        setError("Invalid skill for item modifier override.");
+        return;
+      }
+    }
 
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {};
-      if (gameIdForSubmit) {
+      if (!isEdit && gameIdForSubmit) {
         body.gameId = gameIdForSubmit;
       }
 
-      if (sourceType === "STANDALONE") {
+      if (!isEdit) {
+        if (sourceType === "STANDALONE") {
+          const w = parseFloat(weightOverride);
+          body.sourceType = "STANDALONE";
+          body.nameOverride = nameOverride.trim();
+          body.weightOverride = w;
+        } else {
+          body.sourceType = sourceType;
+          body.itemId = selectedTemplate!.id;
+        }
+      } else if (sourceType === "STANDALONE") {
         const w = parseFloat(weightOverride);
-        body.sourceType = "STANDALONE";
         body.nameOverride = nameOverride.trim();
         body.weightOverride = w;
-      } else {
-        body.sourceType = sourceType;
-        body.itemId = selectedTemplate!.id;
       }
 
       const setStr = (key: string, val: string) => {
@@ -300,7 +532,7 @@ export function useCreateUniqueItemModal({
         if (!Number.isNaN(n)) (body as Record<string, number>)[key] = n;
       };
 
-      if (sourceType !== "STANDALONE") {
+      if (sourceType !== "STANDALONE" || isEdit) {
         setStr("nameOverride", nameOverride);
       }
       setStr("imageKeyOverride", imageKeyOverride);
@@ -329,9 +561,35 @@ export function useCreateUniqueItemModal({
           (body as Record<string, number>).equipSlotCostOverride = parsed.data;
       }
       if (maxUsesOverride !== "") {
-        const n = parseInt(maxUsesOverride, 10);
-        if (Number.isInteger(n) && n > 0)
-          (body as Record<string, number>).maxUsesOverride = n;
+        (body as Record<string, number>).maxUsesOverride = parseInt(
+          maxUsesOverride,
+          10
+        );
+      }
+      if (modifiesAttributeOverride.trim()) {
+        (body as Record<string, string>).modifiesAttributeOverride =
+          itemAttributePathSchema.parse(modifiesAttributeOverride.trim());
+      }
+      if (attributeModOverride !== "") {
+        const n = parseInt(attributeModOverride, 10);
+        if (!Number.isNaN(n))
+          (body as Record<string, number>).attributeModOverride = n;
+      }
+      if (modifiesSkillOverride.trim()) {
+        (body as Record<string, string>).modifiesSkillOverride =
+          itemGeneralSkillSchema.parse(modifiesSkillOverride.trim());
+      }
+      if (skillModOverride !== "") {
+        const n = parseInt(skillModOverride, 10);
+        if (!Number.isNaN(n))
+          (body as Record<string, number>).skillModOverride = n;
+      }
+      if (sourceType === "STANDALONE") {
+        (body as Record<string, boolean>).isSpeedAlteredOverride =
+          isSpeedAlteredStandalone;
+      } else if (isSpeedAlteredOverride !== "") {
+        (body as Record<string, boolean>).isSpeedAlteredOverride =
+          isSpeedAlteredOverride as boolean;
       }
       if (attackRollOverride.length > 0) {
         (body as Record<string, string[]>).attackRollOverride =
@@ -355,11 +613,15 @@ export function useCreateUniqueItemModal({
       const damage = buildDamageOverride();
       if (damage) body.damageOverride = damage;
 
-      const { createUniqueItem } = await import("@/lib/api/uniqueItems");
-      await createUniqueItem(
-        body as UniqueItemCreate,
-        submitEndpoint ?? "/api/unique-items"
-      );
+      if (isEdit && editUniqueItemId) {
+        await updateUniqueItem(editUniqueItemId, body);
+      } else {
+        const { createUniqueItem } = await import("@/lib/api/uniqueItems");
+        await createUniqueItem(
+          body as UniqueItemCreate,
+          submitEndpoint ?? "/api/unique-items"
+        );
+      }
       setPendingImageKey("");
       onSuccess?.();
       void handleClose(true);
@@ -368,7 +630,14 @@ export function useCreateUniqueItemModal({
         await deleteUploadedImage(pendingImageKey);
         setPendingImageKey("");
       }
-      setError(getUserSafeErrorMessage(e, "Failed to create unique item."));
+      setError(
+        getUserSafeErrorMessage(
+          e,
+          isEdit
+            ? "Failed to update unique item."
+            : "Failed to create unique item."
+        )
+      );
     } finally {
       setSubmitting(false);
     }
@@ -425,6 +694,18 @@ export function useCreateUniqueItemModal({
     setEquipSlotCostOverride,
     maxUsesOverride,
     setMaxUsesOverride,
+    modifiesAttributeOverride,
+    setModifiesAttributeOverride,
+    attributeModOverride,
+    setAttributeModOverride,
+    modifiesSkillOverride,
+    setModifiesSkillOverride,
+    skillModOverride,
+    setSkillModOverride,
+    isSpeedAlteredOverride,
+    setIsSpeedAlteredOverride,
+    isSpeedAlteredStandalone,
+    setIsSpeedAlteredStandalone,
     attackRollOverride,
     attackMeleeBonusOverride,
     setAttackMeleeBonusOverride,
@@ -457,7 +738,10 @@ export function useCreateUniqueItemModal({
     handleImageFile,
     handleImageDrop,
     handleImageDragOver,
-    submitting,
+    submitting: submitting || loadingEdit,
+    loadingEdit,
+    isEdit,
+    editTemplateLabel,
     error,
     handleSubmit,
     handleClose,

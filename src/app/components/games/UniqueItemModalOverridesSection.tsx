@@ -4,6 +4,7 @@ import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField
 import { TextField } from "@/app/components/shared/TextField";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { UniqueItemEquippableOverrideFields } from "@/app/components/games/shared/UniqueItemEquippableOverrideFields";
+import { UniqueItemStatModifierOverrideFields } from "@/app/components/games/shared/UniqueItemStatModifierOverrideFields";
 import type { CreateUniqueItemModalModel } from "@/app/components/games/useCreateUniqueItemModal";
 
 type Props = {
@@ -161,9 +162,33 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           onToggleEquipSlot={f.toggleEquipSlot}
           equipSlotCostOverride={f.equipSlotCostOverride}
           onEquipSlotCostOverrideChange={f.setEquipSlotCostOverride}
-          maxUsesOverride={f.maxUsesOverride}
-          onMaxUsesOverrideChange={f.setMaxUsesOverride}
         />
+
+        <div className="border-t border-white/15 pt-3">
+          <h4 className="mb-3 text-sm font-semibold text-white/85">
+            {standalone
+              ? "Uses & stat modifiers"
+              : "Uses & stat modifier overrides"}
+          </h4>
+          <UniqueItemStatModifierOverrideFields
+            standalone={standalone}
+            disabled={f.submitting}
+            maxUsesOverride={f.maxUsesOverride}
+            onMaxUsesOverrideChange={f.setMaxUsesOverride}
+            modifiesAttributeOverride={f.modifiesAttributeOverride}
+            onModifiesAttributeOverrideChange={f.setModifiesAttributeOverride}
+            attributeModOverride={f.attributeModOverride}
+            onAttributeModOverrideChange={f.setAttributeModOverride}
+            modifiesSkillOverride={f.modifiesSkillOverride}
+            onModifiesSkillOverrideChange={f.setModifiesSkillOverride}
+            skillModOverride={f.skillModOverride}
+            onSkillModOverrideChange={f.setSkillModOverride}
+            isSpeedAlteredOverride={f.isSpeedAlteredOverride}
+            onIsSpeedAlteredOverrideChange={f.setIsSpeedAlteredOverride}
+            isSpeedAlteredStandalone={f.isSpeedAlteredStandalone}
+            onIsSpeedAlteredStandaloneChange={f.setIsSpeedAlteredStandalone}
+          />
+        </div>
       </div>
     </section>
   );

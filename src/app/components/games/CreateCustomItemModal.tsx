@@ -8,6 +8,7 @@ import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
+import { ItemModalStatModifierFields } from "@/app/components/games/shared/ItemModalStatModifierFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
 const ITEM_TYPES = [
@@ -19,6 +20,8 @@ type CreateCustomItemModalProps = {
   isOpen: boolean;
   gameId: string;
   gameName: string;
+  /** When set, modal loads that item and PATCHes on submit. */
+  editCustomItemId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -27,15 +30,27 @@ export function CreateCustomItemModal({
   isOpen,
   gameId,
   gameName,
+  editCustomItemId = null,
   onClose,
   onSuccess,
 }: CreateCustomItemModalProps) {
-  const f = useCreateCustomItemModal({ gameId, onClose, onSuccess });
+  const f = useCreateCustomItemModal({
+    gameId,
+    isOpen,
+    editCustomItemId,
+    onClose,
+    onSuccess,
+  });
+  const isEdit = Boolean(editCustomItemId);
 
   return (
     <GameFormModal
       isOpen={isOpen}
-      title={`Create custom item — ${gameName}`}
+      title={
+        isEdit
+          ? `Edit custom item — ${gameName}`
+          : `Create custom item — ${gameName}`
+      }
       subtitle={
         <>
           Fields marked with <span className="text-neblirDanger-400">*</span>{" "}
@@ -47,8 +62,8 @@ export function CreateCustomItemModal({
       onClose={() => void f.handleClose()}
       onSubmit={(e) => void f.handleSubmit(e)}
       submitting={f.submitting}
-      submitLabel="Create custom item"
-      submittingLabel="Creating…"
+      submitLabel={isEdit ? "Save changes" : "Create custom item"}
+      submittingLabel={isEdit ? "Saving…" : "Creating…"}
     >
       <section>
         <h3 className="mb-3 text-sm font-semibold text-white/90">Basics</h3>
@@ -122,6 +137,16 @@ export function CreateCustomItemModal({
             disabled={f.submitting}
             syncKey={f.richTextSyncKey}
           />
+          <ModalNumberField
+            id="custom-item-conf-cost"
+            label="Conf cost"
+            value={f.confCost}
+            onChange={f.setConfCost}
+            disabled={f.submitting}
+            required={false}
+            min={0}
+            placeholder="0"
+          />
           <div>
             <FieldLabel id="custom-item-cost-info" label="Cost info" />
             <TextField
@@ -134,16 +159,6 @@ export function CreateCustomItemModal({
               disabled={f.submitting}
             />
           </div>
-          <ModalNumberField
-            id="custom-item-conf-cost"
-            label="Conf cost"
-            value={f.confCost}
-            onChange={f.setConfCost}
-            disabled={f.submitting}
-            required={false}
-            min={0}
-            placeholder="0"
-          />
         </div>
       </section>
 
@@ -196,8 +211,28 @@ export function CreateCustomItemModal({
           onToggleEquipSlot={f.toggleEquipSlot}
           equipSlotCost={f.equipSlotCost}
           onEquipSlotCostChange={f.setEquipSlotCost}
+        />
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-sm font-semibold text-white/90">
+          Uses &amp; stat modifiers
+        </h3>
+        <ItemModalStatModifierFields
+          fieldIdPrefix="custom-item"
+          disabled={f.submitting}
           maxUses={f.maxUses}
           onMaxUsesChange={f.setMaxUses}
+          modifiesAttribute={f.modifiesAttribute}
+          onModifiesAttributeChange={f.setModifiesAttribute}
+          attributeMod={f.attributeMod}
+          onAttributeModChange={f.setAttributeMod}
+          modifiesSkill={f.modifiesSkill}
+          onModifiesSkillChange={f.setModifiesSkill}
+          skillMod={f.skillMod}
+          onSkillModChange={f.setSkillMod}
+          isSpeedAltered={f.isSpeedAltered}
+          onIsSpeedAlteredChange={f.setIsSpeedAltered}
         />
       </section>
 

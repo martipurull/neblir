@@ -19,6 +19,8 @@ type CreateUniqueItemModalProps = {
   gameIdForSubmit?: string;
   /** Optional; shown after an em dash in the modal title (e.g. game name on GM page). */
   titleSuffix?: string;
+  /** When set, modal loads that item and PATCHes on submit. */
+  editUniqueItemId?: string | null;
   submitEndpoint?: string;
   noLinkedGameNotice?: string;
   onClose: () => void;
@@ -30,6 +32,7 @@ export function CreateUniqueItemModal({
   customTemplateGameIds,
   gameIdForSubmit,
   titleSuffix,
+  editUniqueItemId = null,
   submitEndpoint,
   noLinkedGameNotice,
   onClose,
@@ -39,18 +42,24 @@ export function CreateUniqueItemModal({
     isOpen,
     customTemplateGameIds,
     gameIdForSubmit,
+    editUniqueItemId,
     submitEndpoint,
     onClose,
     onSuccess,
   });
+  const isEdit = Boolean(editUniqueItemId);
 
   return (
     <GameFormModal
       isOpen={isOpen}
       title={
-        titleSuffix?.trim()
-          ? `Create unique item — ${titleSuffix.trim()}`
-          : "Create unique item"
+        isEdit
+          ? titleSuffix?.trim()
+            ? `Edit unique item — ${titleSuffix.trim()}`
+            : "Edit unique item"
+          : titleSuffix?.trim()
+            ? `Create unique item — ${titleSuffix.trim()}`
+            : "Create unique item"
       }
       subtitle={
         f.sourceType === "STANDALONE"
@@ -62,8 +71,8 @@ export function CreateUniqueItemModal({
       onClose={() => void f.handleClose()}
       onSubmit={(e) => void f.handleSubmit(e)}
       submitting={f.submitting}
-      submitLabel="Create unique item"
-      submittingLabel="Creating…"
+      submitLabel={isEdit ? "Save changes" : "Create unique item"}
+      submittingLabel={isEdit ? "Saving…" : "Creating…"}
       submitDisabled={f.submitDisabled}
     >
       {noLinkedGameNotice && (

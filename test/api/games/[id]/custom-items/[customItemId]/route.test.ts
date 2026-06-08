@@ -71,8 +71,23 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
     expect(response.status).toBe(200);
   });
 
+  it("PATCH returns 403 when user is not game master", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "other-gm" });
+    getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-items/[customItemId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "updated" }, "user-1"),
+      makeParams({ id: "g-1", customItemId: "c-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(updateCustomItemMock).not.toHaveBeenCalled();
+  });
+
   it("PATCH returns 400 when payload is invalid", async () => {
-    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "user-1" });
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     safeParseMock.mockReturnValue({
       error: { issues: [{ message: "bad payload" }] },
@@ -90,7 +105,7 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
-    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "user-1" });
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     safeParseMock.mockReturnValue({
       data: { name: "updated" },
@@ -109,7 +124,7 @@ describe("/api/games/[id]/custom-items/[customItemId] handlers", () => {
   });
 
   it("DELETE returns 204 on success", async () => {
-    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "user-1" });
     getCustomItemMock.mockResolvedValue({ id: "c-1", gameId: "g-1" });
     deleteCustomItemMock.mockResolvedValue(undefined);
     const { DELETE } =

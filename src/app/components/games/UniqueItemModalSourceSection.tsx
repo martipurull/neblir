@@ -18,6 +18,44 @@ type Props = {
 export function UniqueItemModalSourceSection({ f }: Props) {
   const [peekItem, setPeekItem] = useState<ItemBrowseDetailFields | null>(null);
 
+  if (f.isEdit) {
+    return (
+      <section>
+        <h3 className="mb-3 text-sm font-semibold text-white/90">Source</h3>
+        <p className="rounded-md border border-white/20 bg-paleBlue/10 px-3 py-2 text-sm text-white">
+          {f.editTemplateLabel ?? "Template"}
+        </p>
+        <p className="mt-2 text-xs text-white/55">
+          The template cannot be changed after creation. Update overrides below.
+        </p>
+        {f.sourceType === "STANDALONE" ? (
+          <div className="mt-3 space-y-3 rounded border border-white/20 bg-paleBlue/5 p-3">
+            <div>
+              <FieldLabel id="standalone-unique-name" label="Name" required />
+              <TextField
+                id="standalone-unique-name"
+                type="text"
+                variant="dark"
+                value={f.nameOverride}
+                onChange={(e) => f.setNameOverride(e.target.value)}
+                disabled={f.submitting}
+              />
+            </div>
+            <ModalNumberField
+              id="standalone-unique-weight"
+              label="Weight (kg)"
+              value={f.weightOverride}
+              onChange={f.setWeightOverride}
+              disabled={f.submitting}
+              min={0}
+              step={0.1}
+            />
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold text-white/90">

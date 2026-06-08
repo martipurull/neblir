@@ -13,6 +13,7 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -46,6 +47,7 @@ export function ItemDetailModal({
   resolveGiveRecipients,
   equipControl,
   rollPrivacy,
+  onEditUniqueItem,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -356,6 +358,17 @@ export function ItemDetailModal({
               />
             </div>
           )}
+
+          {onEditUniqueItem ? (
+            <Button
+              type="button"
+              variant="semanticSafeOutline"
+              fullWidth
+              onClick={onEditUniqueItem}
+            >
+              Edit unique item
+            </Button>
+          ) : null}
 
           <ItemDetailGiveRemoveSection
             showGiveFlow={Boolean(resolveGiveRecipients)}

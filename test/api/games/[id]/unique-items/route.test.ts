@@ -65,8 +65,8 @@ describe("GET /api/games/[id]/unique-items", () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     userIsInGameMock.mockResolvedValue(true);
     getUniqueItemsByGameIdMock.mockResolvedValue([
-      { id: "u-1", name: "Unique Sword" },
-      { id: "u-2", name: "Custom variant" },
+      { id: "u-1", name: "Unique Sword", ownerUserId: "user-1" },
+      { id: "u-2", name: "Custom variant", ownerUserId: "user-2" },
     ]);
     const { GET } = await import("@/app/api/games/[id]/unique-items/route");
 
@@ -77,8 +77,8 @@ describe("GET /api/games/[id]/unique-items", () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual([
-      { id: "u-1", name: "Unique Sword" },
-      { id: "u-2", name: "Custom variant" },
+      { id: "u-1", name: "Unique Sword", ownerUserId: "user-1" },
+      { id: "u-2", name: "Custom variant", ownerUserId: "user-2" },
     ]);
     expect(getUniqueItemsByGameIdMock).toHaveBeenCalledWith("g-1");
   });

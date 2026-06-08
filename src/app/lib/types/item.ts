@@ -386,6 +386,7 @@ export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
 const uniqueItemListItemResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
+  ownerUserId: z.string(),
 });
 export const uniqueItemListResponseSchema = z.array(
   uniqueItemListItemResponseSchema

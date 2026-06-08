@@ -1,6 +1,7 @@
 "use client";
 
 import type { GameDetail } from "@/app/lib/types/game";
+import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {
   ModalSelect,
   type ModalSelectOption,
@@ -12,7 +13,15 @@ import { getGameUniqueItems } from "@/lib/api/uniqueItems";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+const MAX_GIVE_QUANTITY = 999;
+
+function parseGiveQuantity(raw: string): number {
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, MAX_GIVE_QUANTITY);
+}
 
 export type GiveItemOption = {
   sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
@@ -55,6 +64,7 @@ export function GiveItemToCharacterModal({
     "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM"
   >("GLOBAL_ITEM");
   const [itemId, setItemId] = useState("");
+  const [quantity, setQuantity] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,6 +101,7 @@ export function GiveItemToCharacterModal({
   useEffect(() => {
     if (isOpen) {
       setCharacterId("");
+      setQuantity("1");
       setError(null);
       if (lockedItem) {
         setSourceType(lockedItem.sourceType);
@@ -145,6 +156,7 @@ export function GiveItemToCharacterModal({
         characterId,
         sourceType: submitSourceType,
         itemId: submitItemId,
+        quantity: parseGiveQuantity(quantity),
       });
       onSuccess?.();
       onClose();
@@ -157,6 +169,7 @@ export function GiveItemToCharacterModal({
 
   const handleClose = () => {
     setCharacterId("");
+    setQuantity("1");
     if (lockedItem) {
       setSourceType(lockedItem.sourceType);
       setItemId(lockedItem.itemId);
@@ -248,7 +261,11 @@ export function GiveItemToCharacterModal({
               characters.length === 0
             }
           >
-            {submitting ? "Giving…" : "Give item"}
+            {submitting
+              ? "Giving…"
+              : parseGiveQuantity(quantity) > 1
+                ? `Give ${parseGiveQuantity(quantity)} items`
+                : "Give item"}
           </Button>
         </div>
       }
@@ -311,10 +328,27 @@ export function GiveItemToCharacterModal({
                 (sourceType === "UNIQUE_ITEM" &&
                   (loadingUniqueItems || uniqueItems.length === 0))
               }
-              onChange={setItemId}
+              onChange={(v) => {
+                setItemId(v);
+                setQuantity("1");
+              }}
             />
           </>
         )}
+
+        {resolvedItemId ? (
+          <ModalNumberField
+            id="give-item-quantity"
+            label="Quantity"
+            value={quantity}
+            onChange={setQuantity}
+            disabled={submitting}
+            required={false}
+            min={1}
+            max={MAX_GIVE_QUANTITY}
+            step={1}
+          />
+        ) : null}
 
         {error && <p className="text-sm text-red-300 break-words">{error}</p>}
       </form>

@@ -29,4 +29,6 @@ export interface ItemDetailModalProps {
   /** When set, shows equip / unequip controls (carried items only). */
   equipControl?: ItemDetailEquipControl;
   rollPrivacy?: RollPrivacyOptions;
+  /** When set, shows an edit control for owned unique items. */
+  onEditUniqueItem?: () => void;
 }

@@ -63,6 +63,7 @@ export type ItemBrowseDetailFields = {
   attributeMod?: number | null;
   modifiesSkill?: LevelUpGeneralSkill | null;
   skillMod?: number | null;
+  isSpeedAltered?: boolean | null;
 };
 
 /** Map global catalog item to browse shape (e.g. unique-item template preview). */
@@ -99,5 +100,6 @@ export function itemWithIdToBrowseDetail(
     attributeMod: item.attributeMod ?? null,
     modifiesSkill: item.modifiesSkill ?? null,
     skillMod: item.skillMod ?? null,
+    isSpeedAltered: item.isSpeedAltered ?? null,
   };
 }

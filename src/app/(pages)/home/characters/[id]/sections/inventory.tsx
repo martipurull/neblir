@@ -230,6 +230,7 @@ function InventorySectionContent({
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
+  const [editUniqueItemId, setEditUniqueItemId] = useState<string | null>(null);
   const [detailEntry, setDetailEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
@@ -470,6 +471,22 @@ function InventorySectionContent({
         />
       )}
 
+      {editUniqueItemId && !readOnly && mutate && (
+        <CreateUniqueItemModal
+          isOpen={Boolean(editUniqueItemId)}
+          customTemplateGameIds={characterGames}
+          editUniqueItemId={editUniqueItemId}
+          onClose={() => {
+            setEditUniqueItemId(null);
+          }}
+          onSuccess={() => {
+            setEditUniqueItemId(null);
+            setDetailEntry(null);
+            void mutate();
+          }}
+        />
+      )}
+
       {detailEntry && !readOnly && mutate && (
         <ItemDetailModal
           isOpen={!!detailEntry}
@@ -487,6 +504,14 @@ function InventorySectionContent({
             unequippingId,
           }}
           rollPrivacy={rollPrivacy}
+          onEditUniqueItem={
+            detailEntry.sourceType === "UNIQUE_ITEM"
+              ? () => {
+                  setEditUniqueItemId(detailEntry.itemId);
+                  setDetailEntry(null);
+                }
+              : undefined
+          }
         />
       )}
 
