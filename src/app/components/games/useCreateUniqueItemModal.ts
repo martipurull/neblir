@@ -21,7 +21,16 @@ import {
 } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  clearUniqueItemDraft,
+  isMeaningfulUniqueItemDraft,
+  persistUniqueItemDraft,
+  readUniqueItemDraft,
+  type UniqueItemDraft,
+  type UniqueItemDraftScope,
+} from "@/app/components/games/uniqueItemDraftStorage";
+import { useModalDraftSession } from "@/app/components/games/useModalDraftSession";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { templateOptionLabel } from "./uniqueItemModalTypes";
 
 function optionalNumStr(value: number | null | undefined): string {
@@ -36,6 +45,8 @@ function strField(data: UniqueItemDetailRecord, key: string): string {
 type Args = {
   isOpen: boolean;
   customTemplateGameIds: string[];
+  /** When set, create-mode drafts persist in sessionStorage for this scope. */
+  draftScope?: UniqueItemDraftScope;
   gameIdForSubmit?: string;
   submitEndpoint?: string;
   editUniqueItemId?: string | null;
@@ -43,9 +54,88 @@ type Args = {
   onSuccess?: () => void;
 };
 
+function applyUniqueItemDraft(
+  draft: UniqueItemDraft,
+  apply: {
+    setSourceType: (v: UniqueItemDraft["sourceType"]) => void;
+    setNameOverride: (v: string) => void;
+    setDescriptionOverride: (v: string) => void;
+    setNotesOverride: (v: string) => void;
+    setUsageOverride: (v: string) => void;
+    setCostInfoOverride: (v: string) => void;
+    setConfCostOverride: (v: string) => void;
+    setWeightOverride: (v: string) => void;
+    setSpecialTag: (v: string) => void;
+    setEquippableOverride: (v: boolean | "") => void;
+    setEquipSlotTypesOverride: (v: string[]) => void;
+    setEquipSlotCostOverride: (v: string) => void;
+    setMaxUsesOverride: (v: string) => void;
+    setModifiesAttributeOverride: (v: string) => void;
+    setAttributeModOverride: (v: string) => void;
+    setModifiesSkillOverride: (v: string) => void;
+    setSkillModOverride: (v: string) => void;
+    setIsSpeedAlteredOverride: (v: boolean | "") => void;
+    setIsSpeedAlteredStandalone: (v: boolean) => void;
+    setAttackRollOverride: (v: string[]) => void;
+    setAttackMeleeBonusOverride: (v: string) => void;
+    setAttackRangeBonusOverride: (v: string) => void;
+    setAttackThrowBonusOverride: (v: string) => void;
+    setDefenceMeleeBonusOverride: (v: string) => void;
+    setDefenceRangeBonusOverride: (v: string) => void;
+    setGridAttackBonusOverride: (v: string) => void;
+    setGridDefenceBonusOverride: (v: string) => void;
+    setEffectiveRangeOverride: (v: string) => void;
+    setMaxRangeOverride: (v: string) => void;
+    setDamageTypesOverride: (v: string[]) => void;
+    setDamageDiceTypeOverride: (v: string) => void;
+    setDamageNumberOfDiceOverride: (v: string) => void;
+    setImageKeyOverride: (v: string) => void;
+    setPendingImageKey: (v: string) => void;
+    bumpRichTextSyncKey: () => void;
+  }
+): string | null {
+  apply.setSourceType(draft.sourceType);
+  apply.setNameOverride(draft.nameOverride);
+  apply.setDescriptionOverride(draft.descriptionOverride);
+  apply.setNotesOverride(draft.notesOverride);
+  apply.setUsageOverride(draft.usageOverride);
+  apply.setCostInfoOverride(draft.costInfoOverride);
+  apply.setConfCostOverride(draft.confCostOverride);
+  apply.setWeightOverride(draft.weightOverride);
+  apply.setSpecialTag(draft.specialTag);
+  apply.setEquippableOverride(draft.equippableOverride);
+  apply.setEquipSlotTypesOverride(draft.equipSlotTypesOverride);
+  apply.setEquipSlotCostOverride(draft.equipSlotCostOverride);
+  apply.setMaxUsesOverride(draft.maxUsesOverride);
+  apply.setModifiesAttributeOverride(draft.modifiesAttributeOverride);
+  apply.setAttributeModOverride(draft.attributeModOverride);
+  apply.setModifiesSkillOverride(draft.modifiesSkillOverride);
+  apply.setSkillModOverride(draft.skillModOverride);
+  apply.setIsSpeedAlteredOverride(draft.isSpeedAlteredOverride);
+  apply.setIsSpeedAlteredStandalone(draft.isSpeedAlteredStandalone);
+  apply.setAttackRollOverride(draft.attackRollOverride);
+  apply.setAttackMeleeBonusOverride(draft.attackMeleeBonusOverride);
+  apply.setAttackRangeBonusOverride(draft.attackRangeBonusOverride);
+  apply.setAttackThrowBonusOverride(draft.attackThrowBonusOverride);
+  apply.setDefenceMeleeBonusOverride(draft.defenceMeleeBonusOverride);
+  apply.setDefenceRangeBonusOverride(draft.defenceRangeBonusOverride);
+  apply.setGridAttackBonusOverride(draft.gridAttackBonusOverride);
+  apply.setGridDefenceBonusOverride(draft.gridDefenceBonusOverride);
+  apply.setEffectiveRangeOverride(draft.effectiveRangeOverride);
+  apply.setMaxRangeOverride(draft.maxRangeOverride);
+  apply.setDamageTypesOverride(draft.damageTypesOverride);
+  apply.setDamageDiceTypeOverride(draft.damageDiceTypeOverride);
+  apply.setDamageNumberOfDiceOverride(draft.damageNumberOfDiceOverride);
+  apply.setImageKeyOverride(draft.imageKeyOverride);
+  apply.setPendingImageKey(draft.imageKeyOverride);
+  apply.bumpRichTextSyncKey();
+  return draft.selectedTemplateId;
+}
+
 export function useCreateUniqueItemModal({
   isOpen,
   customTemplateGameIds,
+  draftScope,
   gameIdForSubmit,
   submitEndpoint,
   editUniqueItemId = null,
@@ -127,7 +217,13 @@ export function useCreateUniqueItemModal({
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pendingTemplateIdRef = useRef<string | null>(null);
   const isEdit = Boolean(editUniqueItemId);
+  const resolvedDraftScope = useMemo((): UniqueItemDraftScope | null => {
+    const trimmedId = draftScope?.id.trim();
+    if (!draftScope || !trimmedId) return null;
+    return { ...draftScope, id: trimmedId };
+  }, [draftScope]);
 
   const templates = useMemo(
     () =>
@@ -239,11 +335,185 @@ export function useCreateUniqueItemModal({
     setRichTextSyncKey((k) => k + 1);
   }, [resetImageUpload]);
 
+  const resetDraftForm = useCallback(() => {
+    pendingTemplateIdRef.current = null;
+    setSelectedTemplate(null);
+    setSourceType("GLOBAL_ITEM");
+    resetOverrides();
+  }, [resetOverrides]);
+
+  const applyDraft = useCallback(
+    (draft: UniqueItemDraft) => {
+      pendingTemplateIdRef.current = applyUniqueItemDraft(draft, {
+        setSourceType,
+        setNameOverride,
+        setDescriptionOverride,
+        setNotesOverride,
+        setUsageOverride,
+        setCostInfoOverride,
+        setConfCostOverride,
+        setWeightOverride,
+        setSpecialTag,
+        setEquippableOverride,
+        setEquipSlotTypesOverride,
+        setEquipSlotCostOverride,
+        setMaxUsesOverride,
+        setModifiesAttributeOverride,
+        setAttributeModOverride,
+        setModifiesSkillOverride,
+        setSkillModOverride,
+        setIsSpeedAlteredOverride,
+        setIsSpeedAlteredStandalone,
+        setAttackRollOverride,
+        setAttackMeleeBonusOverride,
+        setAttackRangeBonusOverride,
+        setAttackThrowBonusOverride,
+        setDefenceMeleeBonusOverride,
+        setDefenceRangeBonusOverride,
+        setGridAttackBonusOverride,
+        setGridDefenceBonusOverride,
+        setEffectiveRangeOverride,
+        setMaxRangeOverride,
+        setDamageTypesOverride,
+        setDamageDiceTypeOverride,
+        setDamageNumberOfDiceOverride,
+        setImageKeyOverride,
+        setPendingImageKey,
+        bumpRichTextSyncKey: () => setRichTextSyncKey((k) => k + 1),
+      });
+    },
+    [setImageKeyOverride, setPendingImageKey]
+  );
+
+  const draftSnapshot = useMemo((): UniqueItemDraft | null => {
+    if (isEdit || !resolvedDraftScope) return null;
+    return {
+      sourceType,
+      selectedTemplateId: selectedTemplate?.id ?? null,
+      nameOverride,
+      descriptionOverride,
+      notesOverride,
+      usageOverride,
+      costInfoOverride,
+      confCostOverride,
+      weightOverride,
+      specialTag,
+      equippableOverride,
+      equipSlotTypesOverride,
+      equipSlotCostOverride,
+      maxUsesOverride,
+      modifiesAttributeOverride,
+      attributeModOverride,
+      modifiesSkillOverride,
+      skillModOverride,
+      isSpeedAlteredOverride,
+      isSpeedAlteredStandalone,
+      attackRollOverride,
+      attackMeleeBonusOverride,
+      attackRangeBonusOverride,
+      attackThrowBonusOverride,
+      defenceMeleeBonusOverride,
+      defenceRangeBonusOverride,
+      gridAttackBonusOverride,
+      gridDefenceBonusOverride,
+      effectiveRangeOverride,
+      maxRangeOverride,
+      damageTypesOverride,
+      damageDiceTypeOverride,
+      damageNumberOfDiceOverride,
+      imageKeyOverride,
+    };
+  }, [
+    isEdit,
+    resolvedDraftScope,
+    sourceType,
+    selectedTemplate,
+    nameOverride,
+    descriptionOverride,
+    notesOverride,
+    usageOverride,
+    costInfoOverride,
+    confCostOverride,
+    weightOverride,
+    specialTag,
+    equippableOverride,
+    equipSlotTypesOverride,
+    equipSlotCostOverride,
+    maxUsesOverride,
+    modifiesAttributeOverride,
+    attributeModOverride,
+    modifiesSkillOverride,
+    skillModOverride,
+    isSpeedAlteredOverride,
+    isSpeedAlteredStandalone,
+    attackRollOverride,
+    attackMeleeBonusOverride,
+    attackRangeBonusOverride,
+    attackThrowBonusOverride,
+    defenceMeleeBonusOverride,
+    defenceRangeBonusOverride,
+    gridAttackBonusOverride,
+    gridDefenceBonusOverride,
+    effectiveRangeOverride,
+    maxRangeOverride,
+    damageTypesOverride,
+    damageDiceTypeOverride,
+    damageNumberOfDiceOverride,
+    imageKeyOverride,
+  ]);
+
+  const draftSession = useModalDraftSession({
+    enabled: Boolean(resolvedDraftScope) && !isEdit,
+    isOpen,
+    snapshot: draftSnapshot,
+    isMeaningful: isMeaningfulUniqueItemDraft,
+    readDraft: useCallback(() => {
+      if (!resolvedDraftScope) return null;
+      return readUniqueItemDraft(resolvedDraftScope);
+    }, [resolvedDraftScope]),
+    persistDraft: useCallback(
+      (draft: UniqueItemDraft) => {
+        if (!resolvedDraftScope) return;
+        persistUniqueItemDraft(resolvedDraftScope, draft);
+      },
+      [resolvedDraftScope]
+    ),
+    clearDraft: useCallback(() => {
+      if (!resolvedDraftScope) return;
+      clearUniqueItemDraft(resolvedDraftScope);
+    }, [resolvedDraftScope]),
+    applyDraft,
+    resetForm: resetDraftForm,
+    deletePendingImage: useCallback(async () => {
+      if (pendingImageKey) {
+        await deleteUploadedImage(pendingImageKey);
+      }
+    }, [pendingImageKey, deleteUploadedImage]),
+    onClose,
+  });
+
   useEffect(() => {
     if (!isOpen || isEdit) return;
-    setSelectedTemplate(null);
     void fetchTemplates();
   }, [isOpen, isEdit, sourceType, fetchTemplates]);
+
+  useEffect(() => {
+    if (!isOpen || isEdit || sourceType === "STANDALONE") return;
+    const templateId = pendingTemplateIdRef.current;
+    if (!templateId) return;
+    const detail = getTemplateBrowseDetail(templateId);
+    if (detail) {
+      setSelectedTemplate(detail);
+      pendingTemplateIdRef.current = null;
+    }
+  }, [
+    isOpen,
+    isEdit,
+    sourceType,
+    globalItems,
+    customTemplateBrowseItems,
+    getTemplateBrowseDetail,
+  ]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -623,6 +893,9 @@ export function useCreateUniqueItemModal({
         );
       }
       setPendingImageKey("");
+      if (resolvedDraftScope) {
+        draftSession.clearDraftOnSuccess();
+      }
       onSuccess?.();
       void handleClose(true);
     } catch (e) {
@@ -644,14 +917,8 @@ export function useCreateUniqueItemModal({
   };
 
   const handleClose = async (skipCleanup?: boolean) => {
-    if (!skipCleanup && pendingImageKey) {
-      await deleteUploadedImage(pendingImageKey);
-    }
-    setSelectedTemplate(null);
-    setSourceType("GLOBAL_ITEM");
-    resetOverrides();
+    await draftSession.handleDismiss(skipCleanup);
     setError(null);
-    onClose();
   };
 
   const submitDisabled =
@@ -748,6 +1015,10 @@ export function useCreateUniqueItemModal({
     submitDisabled,
     getTemplateBrowseDetail,
     richTextSyncKey,
+    draftRestored: draftSession.draftRestored,
+    draftPersistenceEnabled: draftSession.draftPersistenceEnabled,
+    hasDiscardableDraft: draftSession.hasDiscardableDraft,
+    discardAndClose: draftSession.discardAndClose,
   };
 }
 

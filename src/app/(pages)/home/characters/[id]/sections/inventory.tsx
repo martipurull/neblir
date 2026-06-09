@@ -455,6 +455,7 @@ function InventorySectionContent({
       {createUniqueOpen && !readOnly && mutate && (
         <CreateUniqueItemModal
           isOpen={createUniqueOpen}
+          draftScope={{ kind: "character", id: character.id }}
           customTemplateGameIds={characterGames}
           noLinkedGameNotice={
             characterGames.length === 0

@@ -18,7 +18,15 @@ import {
 } from "@/lib/api/customItems";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import type { CustomItemResponse } from "@/app/lib/types/item";
-import { useCallback, useEffect, useState } from "react";
+import {
+  clearGameCustomItemDraft,
+  isMeaningfulGameCustomItemDraft,
+  persistGameCustomItemDraft,
+  readGameCustomItemDraft,
+  type GameCustomItemDraft,
+} from "@/app/components/games/gameCustomItemDraftStorage";
+import { useModalDraftSession } from "@/app/components/games/useModalDraftSession";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 function optionalNumStr(value: number | null | undefined): string {
   return value != null ? String(value) : "";
@@ -165,6 +173,7 @@ export function useCreateCustomItemModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isEdit = Boolean(editCustomItemId);
+  const trimmedGameId = gameId.trim();
 
   const toggleAttackRoll = (value: string) => {
     setAttackRoll((prev) =>
@@ -240,10 +249,146 @@ export function useCreateCustomItemModal({
     setRichTextSyncKey((k) => k + 1);
   }, [resetImageUpload]);
 
+  const applyDraft = useCallback(
+    (draft: GameCustomItemDraft) => {
+      setName(draft.name);
+      setWeight(draft.weight);
+      setType(draft.type);
+      setDescription(draft.description);
+      setNotes(draft.notes);
+      setUsage(draft.usage);
+      setCostInfo(draft.costInfo);
+      setConfCost(draft.confCost);
+      setEquippable(draft.equippable);
+      setEquipSlotTypes(draft.equipSlotTypes);
+      setEquipSlotCost(draft.equipSlotCost);
+      setMaxUses(draft.maxUses);
+      setModifiesAttribute(draft.modifiesAttribute);
+      setAttributeMod(draft.attributeMod);
+      setModifiesSkill(draft.modifiesSkill);
+      setSkillMod(draft.skillMod);
+      setIsSpeedAltered(draft.isSpeedAltered);
+      setAttackRoll(draft.attackRoll);
+      setAttackMeleeBonus(draft.attackMeleeBonus);
+      setAttackRangeBonus(draft.attackRangeBonus);
+      setAttackThrowBonus(draft.attackThrowBonus);
+      setDefenceMeleeBonus(draft.defenceMeleeBonus);
+      setDefenceRangeBonus(draft.defenceRangeBonus);
+      setGridAttackBonus(draft.gridAttackBonus);
+      setGridDefenceBonus(draft.gridDefenceBonus);
+      setEffectiveRange(draft.effectiveRange);
+      setMaxRange(draft.maxRange);
+      setDamageTypes(draft.damageTypes);
+      setDamageDiceType(draft.damageDiceType);
+      setDamageNumberOfDice(draft.damageNumberOfDice);
+      setImageKey(draft.imageKey);
+      setPendingImageKey(draft.imageKey);
+      setRichTextSyncKey((k) => k + 1);
+    },
+    [setImageKey, setPendingImageKey]
+  );
+
+  const draftSnapshot = useMemo((): GameCustomItemDraft | null => {
+    if (isEdit) return null;
+    return {
+      name,
+      weight,
+      type,
+      description,
+      notes,
+      usage,
+      costInfo,
+      confCost,
+      equippable,
+      equipSlotTypes,
+      equipSlotCost,
+      maxUses,
+      modifiesAttribute,
+      attributeMod,
+      modifiesSkill,
+      skillMod,
+      isSpeedAltered,
+      attackRoll,
+      attackMeleeBonus,
+      attackRangeBonus,
+      attackThrowBonus,
+      defenceMeleeBonus,
+      defenceRangeBonus,
+      gridAttackBonus,
+      gridDefenceBonus,
+      effectiveRange,
+      maxRange,
+      damageTypes,
+      damageDiceType,
+      damageNumberOfDice,
+      imageKey,
+    };
+  }, [
+    isEdit,
+    name,
+    weight,
+    type,
+    description,
+    notes,
+    usage,
+    costInfo,
+    confCost,
+    equippable,
+    equipSlotTypes,
+    equipSlotCost,
+    maxUses,
+    modifiesAttribute,
+    attributeMod,
+    modifiesSkill,
+    skillMod,
+    isSpeedAltered,
+    attackRoll,
+    attackMeleeBonus,
+    attackRangeBonus,
+    attackThrowBonus,
+    defenceMeleeBonus,
+    defenceRangeBonus,
+    gridAttackBonus,
+    gridDefenceBonus,
+    effectiveRange,
+    maxRange,
+    damageTypes,
+    damageDiceType,
+    damageNumberOfDice,
+    imageKey,
+  ]);
+
+  const draftSession = useModalDraftSession({
+    enabled: !isEdit && Boolean(trimmedGameId),
+    isOpen,
+    snapshot: draftSnapshot,
+    isMeaningful: isMeaningfulGameCustomItemDraft,
+    readDraft: useCallback(
+      () => readGameCustomItemDraft(trimmedGameId),
+      [trimmedGameId]
+    ),
+    persistDraft: useCallback(
+      (draft: GameCustomItemDraft) =>
+        persistGameCustomItemDraft(trimmedGameId, draft),
+      [trimmedGameId]
+    ),
+    clearDraft: useCallback(
+      () => clearGameCustomItemDraft(trimmedGameId),
+      [trimmedGameId]
+    ),
+    applyDraft,
+    resetForm,
+    deletePendingImage: useCallback(async () => {
+      if (pendingImageKey) {
+        await deleteUploadedImage(pendingImageKey);
+      }
+    }, [pendingImageKey, deleteUploadedImage]),
+    onClose,
+  });
+
   useEffect(() => {
     if (!isOpen) return;
     if (!editCustomItemId) {
-      resetForm();
       return;
     }
     let cancelled = false;
@@ -441,6 +586,9 @@ export function useCreateCustomItemModal({
         }
       }
       setPendingImageKey("");
+      if (!isEdit) {
+        draftSession.clearDraftOnSuccess();
+      }
       onSuccess?.();
       void handleClose(true);
     } catch (e) {
@@ -462,11 +610,8 @@ export function useCreateCustomItemModal({
   };
 
   const handleClose = async (skipCleanup?: boolean) => {
-    if (!skipCleanup && pendingImageKey) {
-      await deleteUploadedImage(pendingImageKey);
-    }
-    resetForm();
-    onClose();
+    await draftSession.handleDismiss(skipCleanup);
+    setError(null);
   };
 
   return {
@@ -542,5 +687,9 @@ export function useCreateCustomItemModal({
     handleSubmit,
     handleClose,
     richTextSyncKey,
+    draftRestored: draftSession.draftRestored,
+    draftPersistenceEnabled: draftSession.draftPersistenceEnabled,
+    hasDiscardableDraft: draftSession.hasDiscardableDraft,
+    discardAndClose: draftSession.discardAndClose,
   };
 }
