@@ -166,6 +166,7 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
               disabled={submitting}
               initialImageKey={data.imageKey ?? ""}
               onImageKey={onImageKey}
+              previewLayout="roundAvatar"
             />
 
             <div className="mb-6">

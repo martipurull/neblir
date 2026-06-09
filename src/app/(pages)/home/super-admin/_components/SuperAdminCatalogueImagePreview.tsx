@@ -1,9 +1,8 @@
 "use client";
 
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
-import { useMemo } from "react";
+import { useImageUploadPreviewUrl } from "@/hooks/use-image-upload-preview-url";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 
 type SuperAdminCatalogueImagePreviewProps = {
   imageKey: string;
@@ -20,12 +19,7 @@ export function SuperAdminCatalogueImagePreview({
   variant = "thumbnail",
   sizeClassName = "h-28 w-28",
 }: SuperAdminCatalogueImagePreviewProps) {
-  const imageEntries = useMemo(
-    () => (imageKey ? [{ id: "catalogue-preview", imageKey }] : []),
-    [imageKey]
-  );
-  const imageUrls = useImageUrls(imageEntries);
-  const url = imageKey ? imageUrls["catalogue-preview"] : null;
+  const url = useImageUploadPreviewUrl(imageKey, "catalogue-preview");
 
   if (!imageKey) {
     return null;
@@ -44,14 +38,14 @@ export function SuperAdminCatalogueImagePreview({
             >
               <span className="sr-only">Open {alt} image</span>
               <span className="block w-full">
-                <Image
+                <SignedRemoteImage
                   src={url}
+                  imageKey={imageKey}
                   alt={alt}
                   width={1600}
                   height={900}
                   sizes="(max-width: 768px) 100vw, 1024px"
                   className="h-auto max-h-[70vh] w-full object-contain"
-                  unoptimized
                 />
               </span>
             </a>
@@ -75,13 +69,13 @@ export function SuperAdminCatalogueImagePreview({
   return (
     <div className={`mt-2 overflow-hidden bg-transparent ${sizeClassName}`}>
       {url ? (
-        <Image
+        <SignedRemoteImage
           src={url}
+          imageKey={imageKey}
           alt={alt}
           width={112}
           height={112}
           className={`${sizeClassName} object-cover object-center`}
-          unoptimized
         />
       ) : url === undefined ? (
         <ImageLoadingSkeleton variant="item" className={sizeClassName} />

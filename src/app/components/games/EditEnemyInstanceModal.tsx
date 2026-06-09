@@ -213,6 +213,10 @@ export function EditEnemyInstanceModal({
           uploading={imageUpload.uploading}
           error={imageUpload.uploadError}
           disabled={busy}
+          previewLayout="roundAvatar"
+          previewImageAlt={
+            name.trim() ? `${name.trim()} avatar` : "Enemy avatar"
+          }
         />
 
         <div className="grid gap-3 sm:grid-cols-2">

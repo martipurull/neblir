@@ -265,6 +265,10 @@ export function CreateCustomItemModal({
             uploading={f.imageUpload.uploading}
             error={f.imageUpload.uploadError}
             disabled={f.submitting}
+            previewLayout="itemThumbnail"
+            previewImageAlt={
+              f.name.trim() ? `${f.name.trim()} image` : "Item image"
+            }
           />
         </GameFormModal>
       )}

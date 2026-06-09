@@ -47,7 +47,8 @@ interface CharacterSummaryHeaderProps {
   activeGameId?: string | null;
   activeGameOptions: { value: string; label: string }[];
   onActiveGameChange: (gameId: string) => void;
-  avatarUrl: string | null;
+  avatarUrl: string | null | undefined;
+  avatarKey?: string | null;
   /** Current number of reactions used this round; when set, enables reaction tracking UI */
   usedReactions?: number;
   /** Called when user "uses" a reaction (click on Reactions, Melee Def or Range Def) */
@@ -72,6 +73,7 @@ export function CharacterSummaryHeader({
   activeGameOptions,
   onActiveGameChange,
   avatarUrl,
+  avatarKey,
   usedReactions = 0,
   onUseReaction,
   onHealthUpdate,
@@ -251,6 +253,7 @@ export function CharacterSummaryHeader({
       <div className="mx-auto flex max-w-2xl flex-col items-center">
         <CharacterHeaderInfo
           avatarUrl={avatarUrl}
+          avatarKey={avatarKey}
           name={name}
           level={generalInformation.level}
           pathsLabel={pathsLabel}

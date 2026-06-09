@@ -4,7 +4,7 @@ import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { enemyStatusBadgeClass, enemyStatusLabel } from "../enemyInstanceUtils";
 
 type EnemyInstanceHeaderProps = {
@@ -22,8 +22,9 @@ export function EnemyInstanceHeader({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
       <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-black/15 bg-paleBlue/20">
         {imageUrl ? (
-          <Image
+          <SignedRemoteImage
             src={imageUrl}
+            imageKey={enemy.imageKey ?? undefined}
             alt=""
             fill
             className="object-cover object-top"

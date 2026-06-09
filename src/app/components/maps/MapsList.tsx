@@ -3,7 +3,7 @@
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { GameMap } from "@/app/lib/types/map";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useMemo, useState } from "react";
 import { Button } from "../shared/Button";
 import { ImageLoadingSkeleton } from "../shared/ImageLoadingSkeleton";
@@ -96,14 +96,14 @@ export function MapsList({ maps }: MapsListProps) {
                   >
                     <span className="sr-only">Open {map.name} image</span>
                     <span className="block w-full">
-                      <Image
+                      <SignedRemoteImage
                         src={imageUrl}
+                        imageKey={map.imageKey}
                         alt={map.name}
                         width={1600}
                         height={900}
                         sizes="(max-width: 768px) 100vw, 1024px"
                         className="h-auto max-h-[70vh] w-full object-contain"
-                        unoptimized
                       />
                     </span>
                   </a>

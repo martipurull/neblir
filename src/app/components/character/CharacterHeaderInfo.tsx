@@ -2,8 +2,8 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
-import Image from "next/image";
 import { useState } from "react";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import {
@@ -13,7 +13,9 @@ import {
 import { DicePairIcon } from "./DicePairIcon";
 
 export interface CharacterHeaderInfoProps {
-  avatarUrl: string | null;
+  /** Resolved avatar URL, `undefined` while loading, or `null` when none is set. */
+  avatarUrl: string | null | undefined;
+  avatarKey?: string | null;
   name: string;
   level: number;
   pathsLabel: string;
@@ -32,6 +34,7 @@ export interface CharacterHeaderInfoProps {
 
 export function CharacterHeaderInfo({
   avatarUrl,
+  avatarKey,
   name,
   level,
   pathsLabel,
@@ -73,17 +76,24 @@ export function CharacterHeaderInfo({
             aria-label={`Open ${name} avatar image`}
             title="Open full avatar image"
           >
-            <Image
+            <SignedRemoteImage
               src={avatarUrl}
+              imageKey={avatarKey ?? undefined}
               alt={`${name} avatar`}
               width={48}
               height={48}
               className="h-12 w-12 object-cover object-top"
             />
           </a>
+        ) : avatarUrl === undefined ? (
+          <ImageLoadingSkeleton
+            variant="avatar"
+            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
+          />
         ) : (
           <ImageLoadingSkeleton
             variant="avatar"
+            animated={false}
             className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
           />
         )}

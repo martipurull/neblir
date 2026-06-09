@@ -156,7 +156,7 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
             disabled={submitting}
             initialImageKey={data.imageKey}
             onImageKey={onImageKey}
-            previewVariant="map"
+            previewLayout="cover"
             previewAlt={mapPreviewAlt}
           />
 

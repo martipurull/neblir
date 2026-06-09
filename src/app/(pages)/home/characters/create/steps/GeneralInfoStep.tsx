@@ -11,7 +11,7 @@ import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useRef } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
@@ -54,17 +54,6 @@ export function GeneralInfoStep() {
 
   const formAvatarKey = watch("generalInformation.avatarKey") ?? "";
   const characterName = watch("generalInformation.name")?.trim() ?? "";
-  const avatarImageEntries = useMemo(
-    () =>
-      formAvatarKey
-        ? [{ id: "character-avatar-preview", imageKey: formAvatarKey }]
-        : [],
-    [formAvatarKey]
-  );
-  const avatarImageUrls = useImageUrls(avatarImageEntries);
-  const avatarPreviewUrl = formAvatarKey
-    ? (avatarImageUrls["character-avatar-preview"] ?? null)
-    : null;
   const selectedRace = watch("generalInformation.race");
   const selectedSpecialAbilityName = watch(
     "generalInformation.specialAbilityName"
@@ -177,10 +166,10 @@ export function GeneralInfoStep() {
           label="Character image"
           imageKey={formAvatarKey || imageUpload.imageKey}
           previewLayout="characterAvatar"
-          previewImageUrl={avatarPreviewUrl}
           previewImageAlt={
             characterName ? `${characterName} avatar` : "Character avatar"
           }
+          previewCaption="Avatar preview — this is how it will appear on your character page."
           onFileChange={(file) => {
             void imageUpload.handleFile(file);
             // If the user explicitly removes the image, clear the form value too.
@@ -384,8 +373,9 @@ export function GeneralInfoStep() {
                             </span>
                             <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
-                                <Image
+                                <SignedRemoteImage
                                   src={currencyImageUrl}
+                                  imageKey={`currency-${cn.toLowerCase()}.png`}
                                   alt=""
                                   width={20}
                                   height={20}
@@ -407,8 +397,9 @@ export function GeneralInfoStep() {
                             </span>
                             <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
                               {currencyImageUrl ? (
-                                <Image
+                                <SignedRemoteImage
                                   src={currencyImageUrl}
+                                  imageKey={`currency-${cn.toLowerCase()}.png`}
                                   alt=""
                                   width={24}
                                   height={24}

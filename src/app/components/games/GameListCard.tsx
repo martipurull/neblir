@@ -3,7 +3,7 @@
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { GameListItem } from "@/app/lib/types/game";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 
 type GameListCardProps = {
@@ -62,8 +62,9 @@ export function GameListCard({ game, imageUrl }: GameListCardProps) {
       <div className="flex shrink-0 items-center gap-3 px-5 py-4">
         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
           {showImage ? (
-            <Image
+            <SignedRemoteImage
               src={imageUrl}
+              imageKey={game.imageKey ?? undefined}
               alt=""
               width={48}
               height={48}

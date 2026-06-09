@@ -17,7 +17,7 @@ import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
@@ -239,13 +239,13 @@ export function ItemDetailModal({
             {itemImageKey ? (
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
                 {itemImageUrl ? (
-                  <Image
+                  <SignedRemoteImage
                     src={itemImageUrl}
+                    imageKey={itemImageKey ?? undefined}
                     alt=""
                     width={80}
                     height={80}
                     className="h-20 w-20 object-cover object-center"
-                    unoptimized
                   />
                 ) : itemImageUrl === undefined ? (
                   <ImageLoadingSkeleton variant="item" />

@@ -113,6 +113,12 @@ export function CreateUniqueItemModal({
             uploading={f.imageUpload.uploading}
             error={f.imageUpload.uploadError}
             disabled={f.submitting}
+            previewLayout="itemThumbnail"
+            previewImageAlt={
+              f.nameOverride.trim()
+                ? `${f.nameOverride.trim()} image`
+                : "Item image"
+            }
           />
         </GameFormModal>
       )}

@@ -1,4 +1,5 @@
 import { getImageUrl } from "@/lib/api/image";
+import { SIGNED_IMAGE_URL_REFRESH_AFTER_MS } from "@/lib/signedImageUrl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type ImageEntry = {
@@ -16,6 +17,7 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
     Record<string, string>
   >({});
   const retryCountByIdRef = useRef<Record<string, number>>({});
+  const resolvedAtByIdRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     let isCancelled = false;
@@ -24,6 +26,14 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
       if (!entry.imageKey) return false;
       const resolvedKey = resolvedImageKeyById[entry.id];
       if (resolvedKey !== entry.imageKey) {
+        retryCountByIdRef.current[entry.id] = 0;
+        return true;
+      }
+      const resolvedAt = resolvedAtByIdRef.current[entry.id] ?? 0;
+      if (
+        resolvedAt > 0 &&
+        Date.now() - resolvedAt >= SIGNED_IMAGE_URL_REFRESH_AFTER_MS
+      ) {
         retryCountByIdRef.current[entry.id] = 0;
         return true;
       }
@@ -74,6 +84,11 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
         return;
       }
 
+      const now = Date.now();
+      for (const { id } of appliedEntries) {
+        resolvedAtByIdRef.current[id] = now;
+      }
+
       setImageUrls((previous) => ({
         ...previous,
         ...Object.fromEntries(
@@ -94,6 +109,40 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
       isCancelled = true;
     };
   }, [entries, imageUrls, resolvedImageKeyById]);
+
+  // Proactive refresh while the tab stays open on a long-lived SPA session.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const staleIds = entries
+        .filter((entry) => {
+          if (!entry.imageKey) return false;
+          if (resolvedImageKeyById[entry.id] !== entry.imageKey) return false;
+          const resolvedAt = resolvedAtByIdRef.current[entry.id] ?? 0;
+          return (
+            resolvedAt > 0 &&
+            Date.now() - resolvedAt >= SIGNED_IMAGE_URL_REFRESH_AFTER_MS
+          );
+        })
+        .map((entry) => entry.id);
+
+      if (staleIds.length === 0) return;
+
+      for (const id of staleIds) {
+        retryCountByIdRef.current[id] = 0;
+        delete resolvedAtByIdRef.current[id];
+      }
+
+      setResolvedImageKeyById((previous) => {
+        const next = { ...previous };
+        for (const id of staleIds) {
+          delete next[id];
+        }
+        return next;
+      });
+    }, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [entries, resolvedImageKeyById]);
 
   return useMemo(() => {
     const result: ImageUrlMap = {};

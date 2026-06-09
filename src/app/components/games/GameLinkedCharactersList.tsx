@@ -50,11 +50,6 @@ export function GameLinkedCharactersList({
         const imageUrl = char.avatarKey
           ? (imageUrls[char.id] ?? undefined)
           : null;
-        const initials =
-          char.name.charAt(0).toUpperCase() +
-          (char.surname?.charAt(0).toUpperCase() ??
-            char.name.charAt(1)?.toUpperCase() ??
-            "");
 
         const summaryHtml = gi?.summary ?? "";
         const summaryBlock = summaryHtml ? (
@@ -114,8 +109,8 @@ export function GameLinkedCharactersList({
             title={title}
             subtitle={<>LVL {gi?.level ?? "—"}</>}
             imageUrl={imageUrl}
+            imageKey={char.avatarKey}
             imageAlt={`${char.name} avatar`}
-            placeholder={initials}
             className={
               char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
             }

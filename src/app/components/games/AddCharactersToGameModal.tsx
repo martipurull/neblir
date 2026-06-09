@@ -12,7 +12,7 @@ import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 
 type AddCharactersResponse = {
   success: boolean;
@@ -292,13 +292,13 @@ export function AddCharactersToGameModal({
                       />
                       <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
                         {avatarUrl ? (
-                          <Image
+                          <SignedRemoteImage
                             src={avatarUrl}
+                            imageKey={c.avatarKey ?? undefined}
                             alt=""
                             fill
                             sizes="36px"
                             className="object-cover object-top"
-                            unoptimized
                           />
                         ) : avatarUrl === undefined ? (
                           <ImageLoadingSkeleton variant="avatar" />

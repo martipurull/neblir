@@ -57,11 +57,6 @@ const CharactersPage: React.FC = () => {
               const imageUrl = character.avatarKey
                 ? (avatarUrls[character.id] ?? undefined)
                 : null;
-              const initials =
-                character.name.charAt(0).toUpperCase() +
-                (character.surname?.charAt(0).toUpperCase() ??
-                  character.name.charAt(1)?.toUpperCase() ??
-                  "");
 
               return (
                 <ResourceListCard
@@ -77,8 +72,8 @@ const CharactersPage: React.FC = () => {
                     </>
                   }
                   imageUrl={imageUrl}
+                  imageKey={character.avatarKey}
                   imageAlt={`${character.name} avatar`}
-                  placeholder={initials}
                 />
               );
             })}

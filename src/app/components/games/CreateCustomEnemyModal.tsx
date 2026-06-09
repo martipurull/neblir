@@ -98,6 +98,10 @@ export function CreateCustomEnemyModal({
               uploading={f.imageUpload.uploading}
               error={f.imageUpload.uploadError}
               disabled={f.submitting}
+              previewLayout="roundAvatar"
+              previewImageAlt={
+                f.name.trim() ? `${f.name.trim()} avatar` : "Enemy avatar"
+              }
             />
             <GameModalRichTextField
               id="custom-enemy-description"

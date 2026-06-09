@@ -150,7 +150,8 @@ export function CharacterDetailView({
     [character]
   );
   const imageUrls = useImageUrls(imageEntries);
-  const avatarUrl = imageUrls[character.id] ?? null;
+  const avatarKey = character.generalInformation.avatarKey;
+  const avatarUrl = avatarKey ? imageUrls[character.id] : null;
 
   const sections: CharacterSectionSlide[] = useMemo(() => {
     const list: CharacterSectionSlide[] = [
@@ -235,6 +236,7 @@ export function CharacterDetailView({
         activeGameOptions={activeGameOptions}
         onActiveGameChange={setActiveGameId}
         avatarUrl={avatarUrl}
+        avatarKey={avatarKey}
         usedReactions={readOnly ? undefined : reactionTracking.usedReactions}
         onUseReaction={readOnly ? undefined : reactionTracking.useReaction}
         onHealthUpdate={readOnly ? undefined : updateHealth}

@@ -2,13 +2,10 @@
 
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import type { GameDetail } from "@/app/lib/types/game";
-import { useImageUrls } from "@/hooks/use-image-urls";
 import { updateGame } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type GmCoverImageSectionProps = {
   gameId: string;
@@ -37,12 +34,6 @@ export function GmCoverImageSection({
   }, [imageKey, setImageKey]);
 
   const previewKey = localImageKey ?? imageKey ?? "";
-  const imageEntries = useMemo(
-    () => (previewKey ? [{ id: gameId, imageKey: previewKey }] : []),
-    [gameId, previewKey]
-  );
-  const imageUrls = useImageUrls(imageEntries);
-  const previewUrl = previewKey ? imageUrls[gameId] : null;
 
   const persistCover = useCallback(
     async (nextKey: string | null) => {
@@ -82,53 +73,11 @@ export function GmCoverImageSection({
     <div className="rounded-md border border-black p-4">
       <span className="text-sm font-semibold text-black">Cover image</span>
       <p className="mt-1 text-xs text-black/70">
-        Shown on the game page and games list. Click the image to view it full
-        size, or use the area below to replace or remove it.
+        Shown on the game page and games list. Upload or replace the cover
+        below; tap the preview to open the full size image.
       </p>
 
-      {previewKey ? (
-        <div className="mt-4">
-          {previewUrl ? (
-            <>
-              <a
-                href={previewUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="block w-full overflow-hidden rounded-md border border-black/20 bg-black/5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
-              >
-                <span className="sr-only">Open {gameName} cover image</span>
-                <span className="block w-full">
-                  <Image
-                    src={previewUrl}
-                    alt={`${gameName} cover`}
-                    width={1600}
-                    height={900}
-                    sizes="(max-width: 768px) 100vw, 1024px"
-                    className="h-auto max-h-[50vh] w-full object-contain"
-                    unoptimized
-                  />
-                </span>
-              </a>
-              <p className="mt-2 text-xs text-black/60">
-                Tap or click the image to open the full size.
-              </p>
-            </>
-          ) : previewUrl === undefined ? (
-            <div className="block h-48 overflow-hidden rounded-md border border-black/20 bg-black/5">
-              <ImageLoadingSkeleton
-                variant="cityscape"
-                className="!bg-black/5"
-              />
-            </div>
-          ) : (
-            <div className="flex h-40 items-center justify-center rounded-md border border-black/20 bg-black/5 px-4 text-sm text-black/60">
-              Cover image unavailable.
-            </div>
-          )}
-        </div>
-      ) : null}
-
-      <div className={previewKey ? "mt-4" : "mt-3"}>
+      <div className="mt-3">
         <ImageUploadDropzone
           id="gm-game-cover-image"
           label={previewKey ? "Replace cover image" : "Cover image"}
@@ -140,6 +89,8 @@ export function GmCoverImageSection({
           error={imageUpload.uploadError}
           disabled={dropzoneBusy}
           variant="light"
+          previewLayout={previewKey ? "cover" : undefined}
+          previewImageAlt={`${gameName} cover`}
         />
       </div>
 

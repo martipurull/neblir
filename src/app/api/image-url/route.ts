@@ -1,6 +1,7 @@
 import { getR2Config } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
+import { SIGNED_IMAGE_URL_EXPIRES_IN_SECONDS } from "@/lib/signedImageUrl";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/logger";
@@ -47,7 +48,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
     });
 
     const signedUrl = await getSignedUrl(config.s3Client, getObjectCommand, {
-      expiresIn: 3600,
+      expiresIn: SIGNED_IMAGE_URL_EXPIRES_IN_SECONDS,
     });
 
     return NextResponse.json({ url: signedUrl }, { status: 200 });

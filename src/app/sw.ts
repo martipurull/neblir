@@ -28,6 +28,12 @@ const neblirApiCaching = [
     handler: new NetworkOnly(),
   },
   {
+    matcher: ({ url }: { url: URL }) =>
+      url.hostname.endsWith(".r2.cloudflarestorage.com"),
+    // Presigned object URLs expire; never cache them in the service worker.
+    handler: new NetworkOnly(),
+  },
+  {
     method: "GET" as const,
     matcher: ({ url }: { url: URL }) =>
       /^\/api\/(characters|paths|items|unique-items|games)(\/|$)/.test(

@@ -152,6 +152,9 @@ function CreateGameFormContent() {
         uploading={imageUpload.uploading}
         error={imageUpload.uploadError}
         disabled={isSubmitting}
+        variant="light"
+        previewLayout="cover"
+        previewImageAlt="Game cover"
       />
 
       {submitError && (

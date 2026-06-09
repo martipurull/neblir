@@ -18,7 +18,7 @@ import {
   updateEnemyInstance,
 } from "@/lib/api/enemyInstances";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import {
@@ -219,8 +219,9 @@ export function GmCustomEnemiesSection({
                 <div className="min-w-0 flex flex-1 items-center gap-3">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                     {imageUrls[e.id] ? (
-                      <Image
+                      <SignedRemoteImage
                         src={imageUrls[e.id] as string}
+                        imageKey={e.imageKey ?? undefined}
                         alt={`${e.name} avatar`}
                         width={44}
                         height={44}
@@ -350,8 +351,9 @@ export function GmCustomEnemiesSection({
                   <div className="min-w-0 flex flex-1 items-center gap-3">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                       {imageUrls[inst.id] ? (
-                        <Image
+                        <SignedRemoteImage
                           src={imageUrls[inst.id] as string}
+                          imageKey={inst.imageKey ?? undefined}
                           alt={`${inst.name} avatar`}
                           width={44}
                           height={44}

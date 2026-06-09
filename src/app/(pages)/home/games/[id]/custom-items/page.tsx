@@ -23,7 +23,7 @@ import {
 } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -314,13 +314,13 @@ export default function GameCustomItemsPage() {
                       {item.imageKey ? (
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-transparent">
                           {imageUrl ? (
-                            <Image
+                            <SignedRemoteImage
                               src={imageUrl}
+                              imageKey={item.imageKey}
                               alt=""
                               width={56}
                               height={56}
                               className="h-14 w-14 object-cover object-center"
-                              unoptimized
                             />
                           ) : imageUrl === undefined ? (
                             <ImageLoadingSkeleton

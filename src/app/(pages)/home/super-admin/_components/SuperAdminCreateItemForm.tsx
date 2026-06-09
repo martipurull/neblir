@@ -536,6 +536,7 @@ export function SuperAdminCreateItemForm({
             disabled={submitting}
             initialImageKey={previewImageKey}
             onImageKey={onImageKey}
+            previewLayout="itemThumbnail"
           />
 
           <div className="mb-6">

@@ -10,7 +10,7 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { Button } from "@/app/components/shared/Button";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useState } from "react";
 
 interface WalletSectionContentProps {
@@ -65,8 +65,9 @@ function WalletSectionContent({
             >
               <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/30">
                 {currencyImageUrl ? (
-                  <Image
+                  <SignedRemoteImage
                     src={currencyImageUrl}
+                    imageKey={`currency-${entry.currencyName.toLowerCase()}.png`}
                     alt=""
                     width={32}
                     height={32}
@@ -164,8 +165,9 @@ export function getWalletSection(
               >
                 <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/30">
                   {currencyImageUrl ? (
-                    <Image
+                    <SignedRemoteImage
                       src={currencyImageUrl}
+                      imageKey={`currency-${entry.currencyName.toLowerCase()}.png`}
                       alt=""
                       width={32}
                       height={32}
