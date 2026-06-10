@@ -39,7 +39,7 @@
     "data:seed:official:dry-run": "tsx prisma/scripts/seedOfficialDataFromFiles.ts --dry-run",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",
     "smoke:http": "bash scripts/smoke-http.sh",
-    "prepare": "husky",
+    "prepare": "node -e \"if (process.env.CI || process.env.VERCEL) process.exit(0); require('child_process').execSync('npx husky', { stdio: 'inherit' })\"",
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
@@ -65,7 +65,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@oxc-parser/binding-darwin-x64": "0.130.0",
     "@serwist/turbopack": "^9.5.7",
     "@testing-library/react": "^16.0.0",
     "@types/csv-parse": "^1.1.12",
@@ -113,8 +112,14 @@
     "eslint-plugin-react-hooks": "7.0.1"
   },
   "optionalDependencies": {
+    "@esbuild/darwin-arm64": "0.25.12",
+    "@esbuild/darwin-x64": "0.25.12",
     "@esbuild/linux-x64": "0.25.12",
+    "@oxc-parser/binding-darwin-arm64": "0.130.0",
+    "@oxc-parser/binding-darwin-x64": "0.130.0",
     "@oxc-parser/binding-linux-x64-gnu": "0.130.0",
+    "@oxc-resolver/binding-darwin-arm64": "11.20.0",
+    "@oxc-resolver/binding-darwin-x64": "11.20.0",
     "@oxc-resolver/binding-linux-x64-gnu": "11.20.0"
   }
 }

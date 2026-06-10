@@ -7,6 +7,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     env:
+      HUSKY: "0"
       # Placeholders only for compile + prisma generate — no runtime DB/access from CI.
       MONGODB_URI: mongodb://127.0.0.1:27017/ci-build
       AUTH_SECRET: ci-build-placeholder-secret-min-length-32
