@@ -330,11 +330,14 @@ export function PathAndFeaturesStep({
                     {desc.trim().length > 0 && (
                       <div className="w-full">
                         <ExpandableClamp
-                          contentClassName="mt-1 whitespace-pre-wrap text-xs text-black/70"
+                          contentClassName="mt-1 text-xs text-black/70"
                           clampClassName="max-h-12 overflow-hidden"
                           measureKey={desc}
                         >
-                          {desc}
+                          <StoredRichTextHtml
+                            content={desc}
+                            className="text-xs text-black/70"
+                          />
                         </ExpandableClamp>
                       </div>
                     )}
