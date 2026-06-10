@@ -18,6 +18,8 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+      # npm <11.3 has optional-dep install bugs (oxc.rs + npm/cli#4828); match Vercel's npm.
+      - run: npm install -g npm@11.6.4
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck

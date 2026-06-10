@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.12.0",
+    "npm": ">=11.3.0"
   },
   "scripts": {
     "dev": "next dev | pino-pretty",
@@ -64,6 +65,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@oxc-parser/binding-darwin-x64": "0.130.0",
     "@serwist/turbopack": "^9.5.7",
     "@testing-library/react": "^16.0.0",
     "@types/csv-parse": "^1.1.12",
@@ -109,5 +111,10 @@
     "effect": "^3.20.0",
     "@swc/helpers": "0.5.15",
     "eslint-plugin-react-hooks": "7.0.1"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "0.25.12",
+    "@oxc-parser/binding-linux-x64-gnu": "0.130.0",
+    "@oxc-resolver/binding-linux-x64-gnu": "11.20.0"
   }
 }
