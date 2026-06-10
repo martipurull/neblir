@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import {
+  getApiSlotCapacity,
   getApiSlotsForDisplay,
   HEADER_EQUIP_SLOTS_ROW1,
   HEADER_EQUIP_SLOTS_ROW2,
@@ -174,7 +175,6 @@ export function CharacterSummaryHeader({
       return empty;
     }
     const values = { ...empty };
-    const maxItems = 2;
     for (const displaySlot of [
       "HAND",
       "FOOT",
@@ -183,6 +183,7 @@ export function CharacterSummaryHeader({
       "BRAIN",
     ] as const) {
       const apiSlots = getApiSlotsForDisplay(displaySlot);
+      const maxItems = Math.max(...apiSlots.map(getApiSlotCapacity));
       const names: string[] = [];
       for (const entry of carried) {
         const name = entry.customName ?? entry.item?.name ?? "?";

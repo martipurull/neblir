@@ -1,5 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { getWearReliefEquippedInstanceCount } from "@/app/lib/equipUtils";
+import {
+  getApiSlotCapacity,
+  getWearReliefEquippedInstanceCount,
+  isWithinSlotCapacity,
+} from "@/app/lib/equipUtils";
+
+describe("getApiSlotCapacity", () => {
+  it("returns 3 for brain and 2 for other slots", () => {
+    expect(getApiSlotCapacity("BRAIN")).toBe(3);
+    expect(getApiSlotCapacity("HAND")).toBe(2);
+    expect(getApiSlotCapacity("HEAD")).toBe(2);
+  });
+});
+
+describe("isWithinSlotCapacity", () => {
+  const brainItem = (id: string, equipSlots: string[]) => ({
+    id,
+    quantity: 1,
+    equipSlots,
+    item: { equipSlotTypes: ["BRAIN"], equipSlotCost: 1 },
+  });
+
+  it("allows three brain-equipped items", () => {
+    const carried = [
+      brainItem("a", ["BRAIN"]),
+      brainItem("b", ["BRAIN"]),
+      brainItem("c", ["BRAIN"]),
+    ];
+    expect(isWithinSlotCapacity(carried, "c", ["BRAIN"])).toBe(true);
+  });
+
+  it("rejects a fourth brain-equipped item", () => {
+    const carried = [
+      brainItem("a", ["BRAIN"]),
+      brainItem("b", ["BRAIN"]),
+      brainItem("c", ["BRAIN"]),
+      brainItem("d", []),
+    ];
+    expect(isWithinSlotCapacity(carried, "d", ["BRAIN"])).toBe(false);
+  });
+});
 
 describe("getWearReliefEquippedInstanceCount", () => {
   it("returns 0 for hand-only equipment", () => {
