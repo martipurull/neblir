@@ -109,3 +109,26 @@ These rules apply to every task unless the user explicitly overrides them.
 - **Prefer resetting local UI state by remounting** instead: extract the stateful slice into a child component and pass a stable **`key`** tied to the identity you are resetting on (for example `key={item.id}` on a modal footer form). A new key unmounts the old instance and mounts a fresh one with initial `useState` values.
 - **Reserve `useEffect` for synchronizing with external systems**—DOM APIs, timers, subscriptions, fetches, third-party widgets—not for mirroring props into state. If you must derive state from props without remounting, adjust during render only when the driving value changed (see [You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect)), or store the minimum state and compute the rest during render.
   - Example: resetting child UI when a modal closes—**do not** `useEffect(() => { if (!isOpen) setX(false); }, [isOpen])`. Compare the prop to a stored previous value during render and reset there (see **`GameFormModalDraftChrome`**, **`TypeToConfirmDangerModal`**), or remount the child with `key={isOpen ? "open" : "closed"}`.
+
+## 12) CI / lockfile / native bindings (esbuild, oxc)
+
+GitHub Actions and Vercel run on **Linux**; local dev is usually **macOS**. Tools such as **`knip`**, **`vitest`**, and the Next build install **platform-specific native binaries** via npm `optionalDependencies`. Failures often appear only on CI/Vercel. Full context: **`docs/ci-native-deps.md`**.
+
+**Do not:**
+
+- Add **`.npmrc`** with `os=linux,darwin` / `cpu=…` to “fix” cross-platform lockfiles—it breaks optional native binding installs.
+- Put **`@esbuild/*`**, **`@oxc-parser/binding-*`**, or **`@oxc-resolver/binding-*`** in **`devDependencies`**—Linux CI/Vercel will fail with `EBADPLATFORM` if a Darwin-only package is required.
+- Run **`prepare: husky`** unconditionally in CI/Vercel (use the existing `CI` / `VERCEL` guard in `package.json`).
+
+**Do:**
+
+- Keep platform native bindings in **`optionalDependencies`** (Darwin and Linux entries are already pinned in `package.json`—extend that list if a new tool needs bindings; match pinned versions to the parent package).
+- Use **Node 22.12+** (`.node-version`, `engines.node`) and **npm ≥ 11.3** when updating the lockfile; CI runs `npm install -g npm@11.6.4` before `npm ci`.
+- **Commit `package-lock.json`** after dependency changes; rely on PR **quality checks** on `ubuntu-latest` as the cross-platform gate.
+- Keep **`HUSKY=0`** in `.github/workflows/quality-checks.yml` job env.
+
+**If `npm ci` fails on GitHub only:**
+
+1. Check for `Missing: … from lock file` (especially `@esbuild/linux-x64`, `esbuild@0.28.0` under vitest)—lockfile likely pruned on macOS; resync on Node 22.12+ with npm ≥ 11.3, do not add `.npmrc`.
+2. Check for `Cannot find native binding` / missing `@oxc-parser/binding-linux-x64-gnu`—confirm optional deps and npm version; see **`docs/ci-native-deps.md`**.
+3. Check for `husky: not found`—confirm `HUSKY=0` and the `prepare` skip in `package.json`.
