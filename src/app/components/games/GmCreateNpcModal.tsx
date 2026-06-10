@@ -9,6 +9,10 @@ type GmCreateNpcModalProps = {
   gameId: string;
   gameName: string;
   returnTo: string;
+  /** Shown after "you will return to". Defaults to the GM screen wording. */
+  returnDestinationLabel?: string;
+  /** Initial value for the known-to-players checkbox. */
+  defaultKnownToPlayers?: boolean;
   onClose: () => void;
 };
 
@@ -16,11 +20,13 @@ export function GmCreateNpcModal({
   gameId,
   gameName,
   returnTo,
+  returnDestinationLabel = "the GM screen for this game",
+  defaultKnownToPlayers = false,
   onClose,
 }: GmCreateNpcModalProps) {
   const router = useRouter();
   const titleId = useId();
-  const [knownToPlayers, setKnownToPlayers] = useState(false);
+  const [knownToPlayers, setKnownToPlayers] = useState(defaultKnownToPlayers);
 
   const startCreate = () => {
     const params = new URLSearchParams({
@@ -51,8 +57,8 @@ export function GmCreateNpcModal({
         <p className="mt-2 text-sm text-black/80">
           You are creating an NPC that will be linked to{" "}
           <span className="font-semibold text-black">{gameName}</span>. When you
-          finish the character stepper, you will return to the GM screen for
-          this game.
+          finish the character stepper, you will return to{" "}
+          {returnDestinationLabel}.
         </p>
         <div className="mt-4">
           <Checkbox

@@ -178,7 +178,88 @@ describe("/api/characters POST", () => {
     );
     expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        gameLink: { gameId: "game-1", isPublic: true },
+        gameLinks: [{ gameId: "game-1", isPublic: true }],
+      })
+    );
+  });
+
+  it("links to multiple games when gameLinks are provided", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        gameLinks: [
+          { gameId: "game-1", isPublic: true },
+          { gameId: "game-2", isPublic: false },
+        ],
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    resolveGameCharacterLinkForCreateMock
+      .mockResolvedValueOnce({ gameId: "game-1", isPublic: true })
+      .mockResolvedValueOnce({ gameId: "game-2", isPublic: false });
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(201);
+    expect(resolveGameCharacterLinkForCreateMock).toHaveBeenNthCalledWith(
+      1,
+      "game-1",
+      "user-1",
+      true
+    );
+    expect(resolveGameCharacterLinkForCreateMock).toHaveBeenNthCalledWith(
+      2,
+      "game-2",
+      "user-1",
+      false
+    );
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameLinks: [
+          { gameId: "game-1", isPublic: true },
+          { gameId: "game-2", isPublic: false },
+        ],
+      })
+    );
+  });
+
+  it("dedupes gameId and gameLinks when both refer to the same game", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        gameId: "game-1",
+        gameLinks: [
+          { gameId: "game-1", isPublic: true },
+          { gameId: "game-2", isPublic: false },
+        ],
+        gameLinkIsPublic: false,
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    resolveGameCharacterLinkForCreateMock
+      .mockResolvedValueOnce({ gameId: "game-1", isPublic: false })
+      .mockResolvedValueOnce({ gameId: "game-2", isPublic: false });
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(201);
+    expect(resolveGameCharacterLinkForCreateMock).toHaveBeenCalledTimes(2);
+    expect(resolveGameCharacterLinkForCreateMock).toHaveBeenNthCalledWith(
+      1,
+      "game-1",
+      "user-1",
+      false
+    );
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameLinks: [
+          { gameId: "game-1", isPublic: false },
+          { gameId: "game-2", isPublic: false },
+        ],
       })
     );
   });

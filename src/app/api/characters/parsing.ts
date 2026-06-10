@@ -117,6 +117,7 @@ export function computeCharacterRequestData(
     wallet: rawWallet,
     initialFeatures: _initialFeatures,
     gameId: _gameId,
+    gameLinks: _gameLinks,
     gameLinkIsPublic: _gameLinkIsPublic,
     generalInformation,
     ...requestWithoutPathAndWallet
@@ -125,6 +126,7 @@ export function computeCharacterRequestData(
     wallet?: Array<{ currencyName: string; quantity: number }>;
     initialFeatures?: Array<{ featureId: string; grade: number }>;
     gameId?: string;
+    gameLinks?: Array<{ gameId: string; isPublic: boolean }>;
     gameLinkIsPublic?: boolean;
     generalInformation: {
       race: Race;

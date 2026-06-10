@@ -9,7 +9,7 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { GmCreateNpcModal } from "./GmCreateNpcModal";
+import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {

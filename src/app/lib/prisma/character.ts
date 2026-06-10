@@ -62,14 +62,14 @@ export async function createCharacterWithRelations({
   pathId,
   pathRank,
   initialFeatures = [],
-  gameLink,
+  gameLinks = [],
 }: {
   data: Prisma.CharacterCreateInput;
   userId: string;
   pathId: string;
   pathRank: number;
   initialFeatures?: { featureId: string; grade: number }[];
-  gameLink?: { gameId: string; isPublic: boolean };
+  gameLinks?: { gameId: string; isPublic: boolean }[];
 }) {
   return prisma.$transaction(async (tx) => {
     let createdCharacter;
@@ -125,7 +125,7 @@ export async function createCharacterWithRelations({
       }
     }
 
-    if (gameLink) {
+    for (const gameLink of gameLinks) {
       try {
         await tx.gameCharacter.create({
           data: {
