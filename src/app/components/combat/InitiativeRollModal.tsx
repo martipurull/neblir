@@ -2,8 +2,11 @@
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Button } from "@/app/components/shared/Button";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { getInitiativeModifierFromCharacter } from "@/app/lib/equipCombatUtils";
+import { getGmRollPrivacyForCharacter } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { GameDetail } from "@/app/lib/types/game";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -117,6 +120,12 @@ export function InitiativeRollModal({
   const selectedGame = gameDetails.find((g) => g.id === selectedGameId);
   const selectedAllowsRoll =
     selectedGame != null && !hasSubmittedInGame(selectedGame);
+  const rollPrivacy = useMemo(
+    () => getGmRollPrivacyForCharacter(selectedGame, character.id),
+    [selectedGame, character.id]
+  );
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
 
   const handleRoll = useCallback(async () => {
     if (!selectedGameId || !selectedAllowsRoll || submitting) return;
@@ -134,6 +143,7 @@ export function InitiativeRollModal({
       });
       await emitRollEvent(selectedGameId, {
         characterId: character.id,
+        isPrivate: emitIsPrivate,
         rollType: "INITIATIVE",
         diceExpression: "1d10",
         results: [d],
@@ -157,6 +167,7 @@ export function InitiativeRollModal({
     character.id,
     mod,
     onRegistered,
+    emitIsPrivate,
   ]);
 
   if (!isOpen) return null;
@@ -200,6 +211,15 @@ export function InitiativeRollModal({
           />
         </div>
       )}
+
+      {rollPrivacy.allowPrivateRoll && selectedGameId ? (
+        <div className="mt-4">
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        </div>
+      ) : null}
 
       <div className="mt-6 flex flex-col gap-3">
         {phase === "success" && selectedGameId ? (

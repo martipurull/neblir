@@ -2,7 +2,10 @@
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Button } from "@/app/components/shared/Button";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { useEffect, useState } from "react";
 import type { WeaponDamageSlice } from "./weaponDerived";
 import { rollDice } from "./utils";
@@ -13,6 +16,7 @@ type ItemDamageRollModalProps = {
   damage: WeaponDamageSlice;
   gameId?: string | null;
   characterId?: string;
+  rollPrivacy?: RollPrivacyOptions;
 };
 
 export function ItemDamageRollModal({
@@ -21,7 +25,10 @@ export function ItemDamageRollModal({
   damage,
   gameId,
   characterId,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: ItemDamageRollModalProps) {
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
   const [extraDice, setExtraDice] = useState(0);
   const [rollResult, setRollResult] = useState<number[] | null>(null);
 
@@ -45,6 +52,7 @@ export function ItemDamageRollModal({
     setRollResult(results);
     void emitRollEvent(gameId, {
       characterId,
+      isPrivate: emitIsPrivate,
       rollType: "ITEM_DAMAGE",
       diceExpression: `${totalDamageDice}d${baseDamageType}`,
       results,
@@ -75,6 +83,13 @@ export function ItemDamageRollModal({
       }
     >
       <div className="space-y-3 text-sm">
+        {rollPrivacy.allowPrivateRoll && gameId ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        ) : null}
+
         <p className="text-white">
           Base: {baseDamageDice}d{baseDamageType}
         </p>

@@ -126,7 +126,7 @@ export function isWithinSlotCapacity(
     e.id === entryId ? { ...e, equipSlots: nextEquipSlots } : e
   );
   for (const slot of AUTO_EQUIP_SLOT_TRY_ORDER) {
-    if (getUsedCapacityInApiSlot(hyp, slot) > API_SLOT_CAPACITY) {
+    if (getUsedCapacityInApiSlot(hyp, slot) > getApiSlotCapacity(slot)) {
       return false;
     }
   }
@@ -200,8 +200,16 @@ export const HEADER_EQUIP_SLOTS_ROW2: {
   { slot: "BRAIN", label: "Brain" },
 ];
 
-/** Capacity per API slot (HAND, FOOT, BODY, HEAD, BRAIN each have this) */
+/** Default capacity per API slot (HAND, FOOT, BODY, HEAD). */
 export const API_SLOT_CAPACITY = 2;
+
+/** Brain equipment can hold one more item than other areas. */
+const BRAIN_SLOT_CAPACITY = 3;
+
+/** Capacity for a single API equip slot. */
+export function getApiSlotCapacity(slot: EquipSlot): number {
+  return slot === "BRAIN" ? BRAIN_SLOT_CAPACITY : API_SLOT_CAPACITY;
+}
 
 /** API slot(s) represented by a header equip cell */
 export function getApiSlotsForDisplay(

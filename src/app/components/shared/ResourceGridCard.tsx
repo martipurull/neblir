@@ -1,7 +1,7 @@
 "use client";
 
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useMemo } from "react";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
@@ -18,6 +18,7 @@ export type ResourceGridCardProps = {
   richBody?: string | null | undefined;
   emptyBodyText?: string;
   imageUrl?: string | null;
+  imageKey?: string | null;
   imageAlt?: string;
   minHeightClass?: string;
 };
@@ -31,6 +32,7 @@ export function ResourceGridCard({
   richBody,
   emptyBodyText = "No description",
   imageUrl,
+  imageKey,
   imageAlt = "",
   minHeightClass = "min-h-[14rem]",
 }: ResourceGridCardProps) {
@@ -56,13 +58,13 @@ export function ResourceGridCard({
       {showImage ? (
         <div className="mb-3 flex h-16 w-full shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/15 bg-paleBlue/20 p-1.5">
           {imageUrl ? (
-            <Image
+            <SignedRemoteImage
               src={imageUrl}
+              imageKey={imageKey ?? undefined}
               alt={imageAlt || title}
               width={320}
               height={64}
               className="max-h-full max-w-full object-contain object-center"
-              unoptimized
             />
           ) : imageUrl === undefined ? (
             <ImageLoadingSkeleton variant="item" className="h-full w-full" />

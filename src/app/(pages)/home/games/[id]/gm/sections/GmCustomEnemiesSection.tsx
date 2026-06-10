@@ -18,9 +18,13 @@ import {
   updateEnemyInstance,
 } from "@/lib/api/enemyInstances";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import {
+  linkVisibilityBadgeClassName,
+  linkVisibilityLabel,
+} from "@/app/lib/visibilityBadge";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmCustomEnemiesSectionProps = {
@@ -215,8 +219,9 @@ export function GmCustomEnemiesSection({
                 <div className="min-w-0 flex flex-1 items-center gap-3">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                     {imageUrls[e.id] ? (
-                      <Image
+                      <SignedRemoteImage
                         src={imageUrls[e.id] as string}
+                        imageKey={e.imageKey ?? undefined}
                         alt={`${e.name} avatar`}
                         width={44}
                         height={44}
@@ -335,83 +340,94 @@ export function GmCustomEnemiesSection({
           </p>
         ) : (
           <ul className="mt-2 divide-y divide-black/15 border-b border-black/15 text-sm text-black">
-            {instances.map((inst) => (
-              <li
-                key={inst.id}
-                className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0 flex flex-1 items-center gap-3">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                    {imageUrls[inst.id] ? (
-                      <Image
-                        src={imageUrls[inst.id] as string}
-                        alt={`${inst.name} avatar`}
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 object-cover object-top"
-                      />
-                    ) : imageUrls[inst.id] === undefined ? (
-                      <ImageLoadingSkeleton
-                        variant="avatar"
-                        className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                        {inst.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+            {instances.map((inst) => {
+              const isPublic = inst.isPublic !== false;
+              const visibilityLabel = linkVisibilityLabel(isPublic);
+              return (
+                <li
+                  key={inst.id}
+                  className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0 flex flex-1 items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+                      {imageUrls[inst.id] ? (
+                        <SignedRemoteImage
+                          src={imageUrls[inst.id] as string}
+                          imageKey={inst.imageKey ?? undefined}
+                          alt={`${inst.name} avatar`}
+                          width={44}
+                          height={44}
+                          className="h-11 w-11 object-cover object-top"
+                        />
+                      ) : imageUrls[inst.id] === undefined ? (
+                        <ImageLoadingSkeleton
+                          variant="avatar"
+                          className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
+                          {inst.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{inst.name}</p>
+                      <p className="text-xs tabular-nums text-black/70">
+                        HP {inst.currentHealth}/{inst.maxHealth} · Reactions{" "}
+                        {inst.reactionsRemaining}/{inst.reactionsPerRound} ·{" "}
+                        {inst.status}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{inst.name}</p>
-                    <p className="text-xs tabular-nums text-black/70">
-                      HP {inst.currentHealth}/{inst.maxHealth} · Reactions{" "}
-                      {inst.reactionsRemaining}/{inst.reactionsPerRound} ·{" "}
-                      {inst.status}
-                    </p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={linkVisibilityBadgeClassName(isPublic)}>
+                      {visibilityLabel}
+                    </span>
+                    <Link
+                      href={`/home/games/${game.id}/gm/enemies/${inst.id}`}
+                      className="rounded border border-black/40 px-2 py-1 text-xs font-medium text-black hover:bg-black/5"
+                    >
+                      Manage
+                    </Link>
+                    <Button
+                      type="button"
+                      variant="secondaryOutlineXs"
+                      fullWidth={false}
+                      disabled={busyInstanceId === inst.id}
+                      className="!px-2 !py-1 !text-xs"
+                      onClick={() => {
+                        setBusyInstanceId(inst.id);
+                        void updateEnemyInstance(game.id, inst.id, {
+                          reactionsRemaining: inst.reactionsPerRound,
+                        })
+                          .then(async () => onMutate())
+                          .finally(() => setBusyInstanceId(null));
+                      }}
+                    >
+                      Reset reactions
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="semanticDangerOutline"
+                      fullWidth={false}
+                      disabled={
+                        busyInstanceId === inst.id || removeInstanceSubmitting
+                      }
+                      className="!px-2 !py-1 !text-xs"
+                      onClick={() => {
+                        setRemoveInstanceTarget({
+                          id: inst.id,
+                          name: inst.name,
+                        });
+                        setRemoveInstanceError(null);
+                      }}
+                    >
+                      {busyInstanceId === inst.id ? "Removing…" : "Remove"}
+                    </Button>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <Link
-                    href={`/home/games/${game.id}/gm/enemies/${inst.id}`}
-                    className="rounded border border-black/40 px-2 py-1 text-xs font-medium text-black hover:bg-black/5"
-                  >
-                    Manage
-                  </Link>
-                  <Button
-                    type="button"
-                    variant="secondaryOutlineXs"
-                    fullWidth={false}
-                    disabled={busyInstanceId === inst.id}
-                    className="!px-2 !py-1 !text-xs"
-                    onClick={() => {
-                      setBusyInstanceId(inst.id);
-                      void updateEnemyInstance(game.id, inst.id, {
-                        reactionsRemaining: inst.reactionsPerRound,
-                      })
-                        .then(async () => onMutate())
-                        .finally(() => setBusyInstanceId(null));
-                    }}
-                  >
-                    Reset reactions
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="semanticDangerOutline"
-                    fullWidth={false}
-                    disabled={
-                      busyInstanceId === inst.id || removeInstanceSubmitting
-                    }
-                    className="!px-2 !py-1 !text-xs"
-                    onClick={() => {
-                      setRemoveInstanceTarget({ id: inst.id, name: inst.name });
-                      setRemoveInstanceError(null);
-                    }}
-                  >
-                    {busyInstanceId === inst.id ? "Removing…" : "Remove"}
-                  </Button>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

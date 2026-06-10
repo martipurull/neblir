@@ -1,14 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 
 interface ResourceListCardProps {
   title: string;
   subtitle: React.ReactNode;
   imageUrl?: string | null;
+  imageKey?: string | null;
   imageAlt: string;
-  placeholder?: React.ReactNode;
   className?: string;
   href?: string;
   rightAccessory?: React.ReactNode;
@@ -19,8 +19,8 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   title,
   subtitle,
   imageUrl,
+  imageKey,
   imageAlt,
-  placeholder = null,
   className = "",
   href,
   rightAccessory,
@@ -34,8 +34,9 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
     <div className="flex items-center gap-3">
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {showImage ? (
-          <Image
+          <SignedRemoteImage
             src={imageUrl}
+            imageKey={imageKey ?? undefined}
             alt={imageAlt}
             width={48}
             height={48}
@@ -44,9 +45,11 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
         ) : showLoading ? (
           <ImageLoadingSkeleton variant="avatar" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[10px] text-black">
-            {placeholder ?? "N/A"}
-          </div>
+          <ImageLoadingSkeleton
+            variant="avatar"
+            animated={false}
+            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
+          />
         )}
       </div>
       <div className="min-w-0 flex-1">

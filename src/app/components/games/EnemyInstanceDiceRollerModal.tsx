@@ -8,6 +8,9 @@ import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import type { WeaponDamageType } from "@/app/lib/types/item";
 import { Button } from "@/app/components/shared/Button";
+import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
@@ -23,6 +26,7 @@ export type EnemyInstanceDiceRollerModalProps = {
   gameId: string;
   enemyInstanceId: string;
   enemyName: string;
+  rollPrivacy?: RollPrivacyOptions;
 };
 
 export function EnemyInstanceDiceRollerModal({
@@ -31,7 +35,10 @@ export function EnemyInstanceDiceRollerModal({
   gameId,
   enemyInstanceId,
   enemyName,
+  rollPrivacy = { allowPrivateRoll: true, defaultPrivateRoll: false },
 }: EnemyInstanceDiceRollerModalProps) {
+  const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
+    usePrivateRollState(isOpen, rollPrivacy);
   const [tab, setTab] = useState<TabId>("free");
   const [damageDiceCount, setDamageDiceCount] = useState(1);
   const [damageDiceType, setDamageDiceType] = useState(6);
@@ -78,6 +85,7 @@ export function EnemyInstanceDiceRollerModal({
     ).sort((a, b) => b - a);
     setDamageResult(results);
     void emitRollEvent(gameId, {
+      isPrivate: emitIsPrivate,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${damageDiceCount}d${damageDiceType}`,
       results,
@@ -97,6 +105,7 @@ export function EnemyInstanceDiceRollerModal({
     enemyInstanceId,
     enemyName,
     damageType,
+    emitIsPrivate,
   ]);
 
   const handleFreeRoll = useCallback(() => {
@@ -104,6 +113,7 @@ export function EnemyInstanceDiceRollerModal({
     if (!roll) return;
     const note = freeNote.trim();
     void emitRollEvent(gameId, {
+      isPrivate: emitIsPrivate,
       rollType: "GENERAL_ROLL",
       diceExpression: roll.diceExpression,
       results: roll.results,
@@ -116,7 +126,14 @@ export function EnemyInstanceDiceRollerModal({
         ...(note ? { note } : {}),
       },
     });
-  }, [tryExecuteFreeRoll, freeNote, gameId, enemyInstanceId, enemyName]);
+  }, [
+    tryExecuteFreeRoll,
+    freeNote,
+    gameId,
+    enemyInstanceId,
+    enemyName,
+    emitIsPrivate,
+  ]);
 
   if (!isOpen) return null;
 
@@ -156,6 +173,13 @@ export function EnemyInstanceDiceRollerModal({
             Damage
           </Button>
         </div>
+
+        {rollPrivacy.allowPrivateRoll ? (
+          <PrivateRollCheckbox
+            checked={isPrivateRoll}
+            onChange={setIsPrivateRoll}
+          />
+        ) : null}
 
         {tab === "damage" && (
           <div className="space-y-4">

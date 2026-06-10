@@ -3,6 +3,10 @@
 import type { AttackType } from "@/app/components/combat/AttackRollModal";
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
+import {
+  emitIsPrivateFromRollPrivacy,
+  getGmRollPrivacyForEnemyInstance,
+} from "@/app/lib/roll-privacy";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import {
@@ -235,6 +239,21 @@ export function useEnemyInstancePage() {
     }));
   }, [applyEnemyPatch]);
 
+  const rollPrivacy = useMemo(
+    () => getGmRollPrivacyForEnemyInstance(enemy?.isPublic),
+    [enemy?.isPublic]
+  );
+  const [isPrivateRoll, setIsPrivateRoll] = useState(
+    rollPrivacy.defaultPrivateRoll
+  );
+  useEffect(() => {
+    setIsPrivateRoll(rollPrivacy.defaultPrivateRoll);
+  }, [enemy?.id, rollPrivacy.defaultPrivateRoll]);
+  const emitIsPrivate = emitIsPrivateFromRollPrivacy(
+    rollPrivacy,
+    isPrivateRoll
+  );
+
   const handleInitiativeRoll = useCallback(async () => {
     if (!enemy || !gameId) return;
     if (hasInitiativeEntry) return;
@@ -250,6 +269,7 @@ export function useEnemyInstancePage() {
         initiativeModifier: enemy.initiativeModifier,
       });
       await emitRollEvent(gameId, {
+        isPrivate: emitIsPrivate,
         rollType: "INITIATIVE",
         diceExpression: "1d10",
         results: [rolledValue],
@@ -257,6 +277,8 @@ export function useEnemyInstancePage() {
         metadata: {
           initiativeModifier: enemy.initiativeModifier,
           source: "enemyInstancePage",
+          enemyInstanceId: enemy.id,
+          enemyName: enemy.name,
           combatantType: "ENEMY",
           combatantId: enemy.id,
           combatantName: enemy.name,
@@ -276,7 +298,7 @@ export function useEnemyInstancePage() {
     } finally {
       setInitiativeBusy(false);
     }
-  }, [enemy, gameId, hasInitiativeEntry, load]);
+  }, [enemy, gameId, hasInitiativeEntry, load, emitIsPrivate]);
 
   const handleAdjustInitiativeInGame = useCallback(
     async (delta: number) => {
@@ -306,6 +328,7 @@ export function useEnemyInstancePage() {
       const rolls = rollD10(dice);
       const sum = rolls.reduce((a, b) => a + b, 0);
       void emitRollEvent(gameId, {
+        isPrivate: emitIsPrivate,
         rollType: "ATTACK",
         diceExpression: `${dice}d10`,
         results: rolls,
@@ -324,7 +347,7 @@ export function useEnemyInstancePage() {
         totalLabel: "Total",
       });
     },
-    [enemy, gameId]
+    [enemy, gameId, emitIsPrivate]
   );
 
   const runActionDamage = useCallback(
@@ -338,6 +361,7 @@ export function useEnemyInstancePage() {
       const rolls = rollDice(n, sides);
       const sum = rolls.reduce((a, b) => a + b, 0);
       void emitRollEvent(gameId, {
+        isPrivate: emitIsPrivate,
         rollType: "ATTACK_DAMAGE",
         diceExpression: `${n}d${sides}`,
         results: rolls,
@@ -359,7 +383,7 @@ export function useEnemyInstancePage() {
         totalLabel: "Total",
       });
     },
-    [enemy, gameId]
+    [enemy, gameId, emitIsPrivate]
   );
 
   return {
@@ -401,5 +425,8 @@ export function useEnemyInstancePage() {
     setInitiativeListOpen,
     runActionToHit,
     runActionDamage,
+    rollPrivacy,
+    isPrivateRoll,
+    setIsPrivateRoll,
   };
 }

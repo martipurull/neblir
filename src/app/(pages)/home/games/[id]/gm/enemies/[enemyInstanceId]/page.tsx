@@ -69,6 +69,9 @@ export default function EnemyInstancePage() {
             }))
           }
           onRollInitiative={() => void page.handleInitiativeRoll()}
+          rollPrivacy={page.rollPrivacy}
+          isPrivateRoll={page.isPrivateRoll}
+          onPrivateRollChange={page.setIsPrivateRoll}
         />
 
         {page.gameDetail ? (
@@ -143,6 +146,7 @@ export default function EnemyInstancePage() {
         setInitiativeListOpen={page.setInitiativeListOpen}
         spendReaction={page.spendReaction}
         applyEnemyPatch={page.applyEnemyPatch}
+        rollPrivacy={page.rollPrivacy}
       />
     </PageSection>
   );

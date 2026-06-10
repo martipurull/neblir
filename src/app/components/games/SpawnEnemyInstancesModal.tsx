@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { TextField } from "@/app/components/shared/TextField";
@@ -33,6 +34,7 @@ export function SpawnEnemyInstancesModal({
 }: SpawnEnemyInstancesModalProps) {
   const [count, setCount] = useState("1");
   const [nameOverride, setNameOverride] = useState("");
+  const [knownToPlayers, setKnownToPlayers] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +42,7 @@ export function SpawnEnemyInstancesModal({
     if (!isOpen || !source) return;
     setCount("1");
     setNameOverride("");
+    setKnownToPlayers(false);
     setError(null);
   }, [isOpen, source]);
 
@@ -57,12 +60,14 @@ export function SpawnEnemyInstancesModal({
         await spawnEnemyInstances(gameId, {
           sourceCustomEnemyId: source.sourceCustomEnemyId,
           count: n,
+          isPublic: knownToPlayers,
           ...(trimmed ? { nameOverride: trimmed } : {}),
         });
       } else {
         await spawnEnemyInstances(gameId, {
           sourceOfficialEnemyId: source.sourceOfficialEnemyId,
           count: n,
+          isPublic: knownToPlayers,
           ...(trimmed ? { nameOverride: trimmed } : {}),
         });
       }
@@ -111,6 +116,16 @@ export function SpawnEnemyInstancesModal({
             className="mt-1"
           />
         </label>
+        <Checkbox
+          checked={knownToPlayers}
+          onChange={setKnownToPlayers}
+          tone="inverse"
+          label={<span className="text-white/90">Known to players?</span>}
+        />
+        <p className="text-xs text-white/65">
+          Leave unchecked to keep spawned instances private to you (GM only).
+          Discord rolls default to secret until you reveal them.
+        </p>
       </div>
       {error ? (
         <p className="mt-3 text-sm text-neblirDanger-300">{error}</p>

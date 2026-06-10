@@ -13,6 +13,8 @@ type GameFormModalProps = {
   children: React.ReactNode;
   error: string | null;
   onClose: () => void;
+  /** Footer secondary action; defaults to `onClose` (backdrop and × always use `onClose`). */
+  onCancel?: () => void;
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   cancelLabel?: string;
@@ -30,6 +32,7 @@ export function GameFormModal({
   children,
   error,
   onClose,
+  onCancel,
   onSubmit,
   submitting,
   cancelLabel = "Cancel",
@@ -37,6 +40,8 @@ export function GameFormModal({
   submittingLabel = "Saving…",
   submitDisabled = false,
 }: GameFormModalProps) {
+  const handleCancel = onCancel ?? onClose;
+
   if (!isOpen) return null;
 
   return (
@@ -92,7 +97,7 @@ export function GameFormModal({
             variant="modalFooterSecondary"
             fullWidth={false}
             className="font-medium"
-            onClick={onClose}
+            onClick={handleCancel}
             disabled={submitting}
           >
             {cancelLabel}

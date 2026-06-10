@@ -1,6 +1,10 @@
 "use client";
 
-import { bumpNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
+import {
+  bumpNumericFieldValue,
+  isReplaceableZeroDisplay,
+  normalizeNumericInputOnType,
+} from "@/app/components/shared/bumpNumericFieldValue";
 import {
   darkCompactNumberInputClassName,
   darkNumberFieldInnerClass,
@@ -12,7 +16,7 @@ import {
   sharedNumberFieldInnerClass,
   sharedNumberFieldShellClass,
 } from "@/app/components/shared/inputStyles";
-import { forwardRef } from "react";
+import { forwardRef, type FocusEvent } from "react";
 
 type NumberFieldVariant = "light" | "dark";
 type NumberFieldDensity = "default" | "compact";
@@ -63,6 +67,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       stepperLabel,
       "aria-label": ariaLabel,
       onBlur,
+      onFocus,
       ...rest
     },
     ref
@@ -70,6 +75,17 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     const displayValue = value === "" || value == null ? "" : String(value);
     const inputMode =
       step === "any" || !Number.isInteger(step) ? "decimal" : "numeric";
+
+    const handleChange = (raw: string) => {
+      onChange(normalizeNumericInputOnType(displayValue, raw));
+    };
+
+    const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+      if (isReplaceableZeroDisplay(displayValue)) {
+        e.target.select();
+      }
+      onFocus?.(e);
+    };
 
     if (density === "compact") {
       const compactClass =
@@ -87,7 +103,8 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           type="number"
           inputMode={inputMode}
           value={displayValue}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={handleFocus}
           onBlur={onBlur}
           className={mergedClass}
           disabled={disabled}
@@ -129,7 +146,8 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           type="number"
           inputMode={inputMode}
           value={displayValue}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={handleFocus}
           onBlur={onBlur}
           className={mergedInnerClass}
           disabled={disabled}

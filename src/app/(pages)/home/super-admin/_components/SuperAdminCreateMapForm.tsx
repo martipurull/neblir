@@ -109,6 +109,7 @@ export function SuperAdminCreateMapForm() {
           label="Image"
           disabled={submitting}
           onImageKey={onImageKey}
+          previewLayout="cover"
         />
 
         <div className="mb-6">

@@ -6,10 +6,10 @@ import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { GmCreateNpcModal } from "./GmCreateNpcModal";
+import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
@@ -85,8 +85,9 @@ export function GmNpcsSection({
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                       {npcImageUrls[char.id] ? (
-                        <Image
+                        <SignedRemoteImage
                           src={npcImageUrls[char.id] as string}
+                          imageKey={char.avatarKey ?? undefined}
                           alt={`${name} avatar`}
                           width={44}
                           height={44}

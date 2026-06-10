@@ -12,8 +12,6 @@ type Props = {
   onToggleEquipSlot: (value: string) => void;
   equipSlotCostOverride: string;
   onEquipSlotCostOverrideChange: (value: string) => void;
-  maxUsesOverride: string;
-  onMaxUsesOverrideChange: (value: string) => void;
 };
 
 export function UniqueItemEquippableOverrideFields({
@@ -24,8 +22,6 @@ export function UniqueItemEquippableOverrideFields({
   onToggleEquipSlot,
   equipSlotCostOverride,
   onEquipSlotCostOverrideChange,
-  maxUsesOverride,
-  onMaxUsesOverrideChange,
 }: Props) {
   return (
     <>
@@ -92,16 +88,6 @@ export function UniqueItemEquippableOverrideFields({
           />
         </>
       )}
-      <ModalNumberField
-        id="unique-max-uses-override"
-        label="Max uses override"
-        value={maxUsesOverride}
-        onChange={onMaxUsesOverrideChange}
-        disabled={disabled}
-        required={false}
-        min={1}
-        placeholder="Leave empty to use template"
-      />
     </>
   );
 }

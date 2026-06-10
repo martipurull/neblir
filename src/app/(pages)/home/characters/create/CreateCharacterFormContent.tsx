@@ -8,6 +8,7 @@ import { GeneralInfoStep } from "./steps/GeneralInfoStep";
 import { AttributesStep } from "./steps/AttributesStep";
 import { HealthStep } from "./steps/HealthStep";
 import { LearnedSkillsStep } from "./steps/LearnedSkillsStep";
+import { LinkGamesStep } from "./steps/LinkGamesStep";
 import { PathAndFeaturesStep } from "./steps/PathAndFeaturesStep";
 import { useCharacterCreateController } from "./useCharacterCreateController";
 import { CharacterCreateFooter } from "./CharacterCreateFooter";
@@ -58,6 +59,7 @@ export function CreateCharacterFormContent() {
             initialFeatures={initialFeatures}
           />
         )}
+        {currentStepIndex === 6 && <LinkGamesStep />}
 
         {submitError && (
           <p className="text-sm text-neblirDanger-600" role="alert">

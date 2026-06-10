@@ -15,6 +15,7 @@ export type EnemyInstancePatch = {
   description?: string | null;
   notes?: string;
   imageKey?: string | null;
+  isPublic?: boolean;
   currentHealth?: number;
   maxHealth?: number;
   speed?: number;
@@ -28,6 +29,7 @@ export type EnemyInstanceDetailResponse = {
   id: string;
   gameId: string;
   name: string;
+  isPublic?: boolean;
   imageKey?: string | null;
   currentHealth: number;
   maxHealth: number;
@@ -54,11 +56,13 @@ export type SpawnEnemyInstancesBody =
       sourceCustomEnemyId: string;
       count?: number;
       nameOverride?: string;
+      isPublic?: boolean;
       sourceOfficialEnemyId?: undefined;
     }
   | {
       sourceOfficialEnemyId: string;
       count?: number;
       nameOverride?: string;
+      isPublic?: boolean;
       sourceCustomEnemyId?: undefined;
     };

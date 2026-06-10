@@ -5,6 +5,8 @@ type ImageLoadingSkeletonVariant = "avatar" | "item" | "currency" | "cityscape";
 interface ImageLoadingSkeletonProps {
   variant?: ImageLoadingSkeletonVariant;
   className?: string;
+  /** When false, shows placeholder artwork without pulse/orbit animations. */
+  animated?: boolean;
 }
 
 const variantSvgClassName: Record<ImageLoadingSkeletonVariant, string> = {
@@ -25,9 +27,16 @@ const variantBackgroundClassName: Record<ImageLoadingSkeletonVariant, string> =
 const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
   variant = "avatar",
   className = "",
+  animated = true,
 }) => {
-  const rootClassName =
-    `image-loading-skeleton flex h-full w-full items-center justify-center ${variantBackgroundClassName[variant]} ${className}`.trim();
+  const rootClassName = [
+    "image-loading-skeleton flex h-full w-full items-center justify-center",
+    variantBackgroundClassName[variant],
+    animated ? "image-loading-skeleton--animated" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -224,21 +233,21 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
         )}
       </div>
       <style jsx>{`
-        .image-loading-skeleton {
+        .image-loading-skeleton--animated {
           animation: image-skeleton-pulse 1.4s ease-in-out infinite;
         }
 
-        .image-loading-skeleton svg g[data-avatar-orbit] {
+        .image-loading-skeleton--animated svg g[data-avatar-orbit] {
           transform-origin: 24px 24px;
           animation: avatar-skeleton-orbit 5s linear infinite;
         }
 
-        .image-loading-skeleton svg g[data-piece="l"] {
+        .image-loading-skeleton--animated svg g[data-piece="l"] {
           transform-origin: 13px 9px;
           animation: item-skeleton-piece-l 1.65s ease-in-out infinite alternate;
         }
 
-        .image-loading-skeleton svg g[data-piece="i"] {
+        .image-loading-skeleton--animated svg g[data-piece="i"] {
           transform-origin: 4.25px 14px;
           animation: item-skeleton-piece-i 1.65s ease-in-out infinite alternate;
           animation-delay: 0.1s;

@@ -6,7 +6,7 @@ import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useMemo } from "react";
 
 type Props = {
@@ -53,13 +53,13 @@ export function ItemTemplatePeekModal({ item, onClose }: Props) {
           {itemImageKey ? (
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
               {itemImageUrl ? (
-                <Image
+                <SignedRemoteImage
                   src={itemImageUrl}
+                  imageKey={itemImageKey ?? undefined}
                   alt=""
                   width={64}
                   height={64}
                   className="h-16 w-16 object-cover object-center"
-                  unoptimized
                 />
               ) : itemImageUrl === undefined ? (
                 <ImageLoadingSkeleton variant="item" />

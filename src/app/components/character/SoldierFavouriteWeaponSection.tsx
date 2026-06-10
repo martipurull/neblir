@@ -8,7 +8,7 @@ import { updateCharacterFavouriteWeapon } from "@/lib/api/character";
 import { getItems } from "@/lib/api/items";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { PathName } from "@prisma/client";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -156,13 +156,13 @@ export function SoldierFavouriteWeaponSection({
           {favouriteWeapon.imageKey ? (
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-black/10 bg-paleBlue/30">
               {imageUrl ? (
-                <Image
+                <SignedRemoteImage
                   src={imageUrl}
+                  imageKey={favouriteWeapon.imageKey ?? undefined}
                   alt=""
                   width={64}
                   height={64}
                   className="h-16 w-16 object-cover object-center"
-                  unoptimized
                 />
               ) : imageUrl === undefined ? (
                 <ImageLoadingSkeleton

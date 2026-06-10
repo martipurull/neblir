@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
@@ -38,6 +39,7 @@ export function EditEnemyInstanceModal({
   const [initiativeModifier, setInitiativeModifier] = useState(0);
   const [reactionsPerRound, setReactionsPerRound] = useState(0);
   const [status, setStatus] = useState<EnemyInstanceStatus>("ACTIVE");
+  const [knownToPlayers, setKnownToPlayers] = useState(true);
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [richTextSyncKey, setRichTextSyncKey] = useState(0);
@@ -55,6 +57,7 @@ export function EditEnemyInstanceModal({
     setInitiativeModifier(enemy.initiativeModifier);
     setReactionsPerRound(enemy.reactionsPerRound);
     setStatus(enemy.status);
+    setKnownToPlayers(enemy.isPublic !== false);
     setDescription(enemy.description ?? "");
     setNotes(enemy.notes ?? "");
     setError(null);
@@ -74,6 +77,7 @@ export function EditEnemyInstanceModal({
     enemy.initiativeModifier,
     enemy.reactionsPerRound,
     enemy.status,
+    enemy.isPublic,
     enemy.description,
     enemy.notes,
     enemy.imageKey,
@@ -115,6 +119,7 @@ export function EditEnemyInstanceModal({
         initiativeModifier,
         reactionsPerRound,
         status,
+        isPublic: knownToPlayers,
         description: description.trim() ? description : null,
         notes: notes.trim() ? notes : "",
       };
@@ -174,6 +179,18 @@ export function EditEnemyInstanceModal({
           instance page or GM initiative list, not here.
         </p>
 
+        <Checkbox
+          checked={knownToPlayers}
+          onChange={setKnownToPlayers}
+          tone="inverse"
+          disabled={busy}
+          label={<span className="text-white/90">Known to players?</span>}
+        />
+        <p className="text-xs text-white/65">
+          Private instances are hidden from players in game data; Discord rolls
+          default to secret.
+        </p>
+
         <div>
           <FieldLabel id="edit-enemy-instance-name" label="Name" required />
           <TextField
@@ -196,6 +213,10 @@ export function EditEnemyInstanceModal({
           uploading={imageUpload.uploading}
           error={imageUpload.uploadError}
           disabled={busy}
+          previewLayout="roundAvatar"
+          previewImageAlt={
+            name.trim() ? `${name.trim()} avatar` : "Enemy avatar"
+          }
         />
 
         <div className="grid gap-3 sm:grid-cols-2">

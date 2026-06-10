@@ -1,5 +1,7 @@
+import type { EquipSlot } from "@/app/lib/types/character";
 import {
   API_SLOT_CAPACITY,
+  getApiSlotCapacity,
   getItemCost,
   isCombinedBodyHeadSuit,
 } from "@/app/lib/equipUtils";
@@ -80,9 +82,8 @@ export function formatEquipSlotRequirementLines(
     if (cost === 0) {
       lines.push(`${label}: uses no slot capacity`);
     } else if (cost === 2) {
-      lines.push(
-        `${label}: uses 2 of ${API_SLOT_CAPACITY} slots (fills that area)`
-      );
+      const capacity = getApiSlotCapacity(slotType as EquipSlot);
+      lines.push(`${label}: uses 2 of ${capacity} slots (fills that area)`);
     } else {
       lines.push(`${label}: uses 1 slot`);
     }

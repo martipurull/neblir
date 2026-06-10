@@ -4,7 +4,7 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import type { GameImage } from "@/app/lib/types/gameImage";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 
 type GmImagesSectionProps = {
@@ -77,14 +77,14 @@ export function GmImagesSection({
                       rel="noreferrer"
                       className="mt-2 block"
                     >
-                      <Image
+                      <SignedRemoteImage
                         src={imageUrl}
+                        imageKey={image.imageKey}
                         alt={image.title}
                         width={1600}
                         height={900}
                         sizes="(max-width: 768px) 100vw, 640px"
                         className="max-h-48 w-full rounded border border-black/20 object-contain"
-                        unoptimized
                       />
                     </Link>
                   ) : null}

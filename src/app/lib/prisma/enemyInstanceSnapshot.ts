@@ -5,7 +5,11 @@ export function uncheckedSnapshotFromEnemyTemplate(
   template: Enemy | CustomEnemy,
   overrides: Pick<
     Prisma.EnemyInstanceUncheckedCreateInput,
-    "gameId" | "name" | "sourceCustomEnemyId" | "sourceOfficialEnemyId"
+    | "gameId"
+    | "name"
+    | "isPublic"
+    | "sourceCustomEnemyId"
+    | "sourceOfficialEnemyId"
   >
 ): Prisma.EnemyInstanceUncheckedCreateInput {
   return {

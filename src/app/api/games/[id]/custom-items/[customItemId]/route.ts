@@ -79,6 +79,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Game not found", 404);
     }
 
+    if (game.gameMaster !== request.auth.user.id) {
+      return errorResponse(
+        "Only the game master can update custom items for this game.",
+        403
+      );
+    }
+
     const existing = await getCustomItem(customItemId);
     if (existing?.gameId !== gameId) {
       return errorResponse("Custom item not found", 404);
@@ -139,6 +146,13 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     const game = await getGame(gameId);
     if (!game) {
       return errorResponse("Game not found", 404);
+    }
+
+    if (game.gameMaster !== request.auth.user.id) {
+      return errorResponse(
+        "Only the game master can delete custom items for this game.",
+        403
+      );
     }
 
     const existing = await getCustomItem(customItemId);

@@ -5,8 +5,12 @@ import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { TextField } from "@/app/components/shared/TextField";
 import { Button } from "@/app/components/shared/Button";
 import { TextArea } from "@/app/components/shared/TextArea";
+import {
+  RECAP_MAX_SIZE_BYTES,
+  RECAP_MAX_SIZE_LABEL,
+} from "@/app/lib/constants/uploadLimits";
 import { createGameRecap } from "@/lib/api/recaps";
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type CreateGameRecapModalProps = {
   isOpen: boolean;
@@ -85,6 +89,10 @@ export function CreateGameRecapModal({
       setError("Only PDF files are allowed.");
       return;
     }
+    if (file.size > RECAP_MAX_SIZE_BYTES) {
+      setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
+      return;
+    }
 
     let uploadedKey: string | null = null;
     try {
@@ -119,6 +127,10 @@ export function CreateGameRecapModal({
     if (!candidate) return;
     if (candidate.type !== "application/pdf") {
       setError("Only PDF files are allowed.");
+      return;
+    }
+    if (candidate.size > RECAP_MAX_SIZE_BYTES) {
+      setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
       return;
     }
     setError(null);
@@ -215,7 +227,9 @@ export function CreateGameRecapModal({
             >
               Choose file
             </Button>
-            <p className="text-xs text-white/80">or drag and drop a PDF here</p>
+            <p className="text-xs text-white/80">
+              or drag and drop a PDF here (max {RECAP_MAX_SIZE_LABEL})
+            </p>
           </div>
         </div>
         <input

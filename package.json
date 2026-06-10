@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.12.0",
+    "npm": ">=11.3.0"
   },
   "scripts": {
     "dev": "next dev | pino-pretty",
@@ -27,6 +28,7 @@
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate",
     "prisma:backfill:special-abilities": "tsx prisma/scripts/backfillCharacterSpecialAbilities.ts",
+    "prisma:backfill:enemy-instance-visibility": "tsx prisma/scripts/backfillEnemyInstanceVisibility.ts",
     "data:import:paths-features": "tsx prisma/scripts/upsertPathsAndFeaturesFromFile.ts",
     "data:import:enemies": "tsx prisma/scripts/upsertEnemiesFromFile.ts",
     "data:import:maps": "tsx prisma/scripts/upsertMapsFromFile.ts",
@@ -37,7 +39,7 @@
     "data:seed:official:dry-run": "tsx prisma/scripts/seedOfficialDataFromFiles.ts --dry-run",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",
     "smoke:http": "bash scripts/smoke-http.sh",
-    "prepare": "husky",
+    "prepare": "node -e \"if (process.env.CI || process.env.VERCEL) process.exit(0); require('child_process').execSync('npx husky', { stdio: 'inherit' })\"",
     "push:pr": "git push -u origin HEAD && (gh pr view --json url -q .url || (gh pr create --fill >/dev/null && gh pr view --json url -q .url))"
   },
   "dependencies": {
@@ -108,5 +110,16 @@
     "effect": "^3.20.0",
     "@swc/helpers": "0.5.15",
     "eslint-plugin-react-hooks": "7.0.1"
+  },
+  "optionalDependencies": {
+    "@esbuild/darwin-arm64": "0.25.12",
+    "@esbuild/darwin-x64": "0.25.12",
+    "@esbuild/linux-x64": "0.25.12",
+    "@oxc-parser/binding-darwin-arm64": "0.130.0",
+    "@oxc-parser/binding-darwin-x64": "0.130.0",
+    "@oxc-parser/binding-linux-x64-gnu": "0.130.0",
+    "@oxc-resolver/binding-darwin-arm64": "11.20.0",
+    "@oxc-resolver/binding-darwin-x64": "11.20.0",
+    "@oxc-resolver/binding-linux-x64-gnu": "11.20.0"
   }
 }

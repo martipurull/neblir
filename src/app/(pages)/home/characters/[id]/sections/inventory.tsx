@@ -20,6 +20,7 @@ import {
   isOverCarryLimit,
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import {
   isItemInventoryOperational,
   itemStatusEquipColumnDamageLabel,
@@ -217,6 +218,7 @@ interface InventorySectionContentProps {
   mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
   readOnly?: boolean;
+  rollPrivacy?: RollPrivacyOptions;
 }
 
 function InventorySectionContent({
@@ -224,9 +226,11 @@ function InventorySectionContent({
   mutate,
   activeGameId,
   readOnly = false,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
+  const [editUniqueItemId, setEditUniqueItemId] = useState<string | null>(null);
   const [detailEntry, setDetailEntry] = useState<
     NonNullable<CharacterDetail["inventory"]>[number] | null
   >(null);
@@ -451,6 +455,7 @@ function InventorySectionContent({
       {createUniqueOpen && !readOnly && mutate && (
         <CreateUniqueItemModal
           isOpen={createUniqueOpen}
+          draftScope={{ kind: "character", id: character.id }}
           customTemplateGameIds={characterGames}
           noLinkedGameNotice={
             characterGames.length === 0
@@ -462,6 +467,22 @@ function InventorySectionContent({
             setCreateUniqueOpen(false);
           }}
           onSuccess={() => {
+            void mutate();
+          }}
+        />
+      )}
+
+      {editUniqueItemId && !readOnly && mutate && (
+        <CreateUniqueItemModal
+          isOpen={Boolean(editUniqueItemId)}
+          customTemplateGameIds={characterGames}
+          editUniqueItemId={editUniqueItemId}
+          onClose={() => {
+            setEditUniqueItemId(null);
+          }}
+          onSuccess={() => {
+            setEditUniqueItemId(null);
+            setDetailEntry(null);
             void mutate();
           }}
         />
@@ -483,6 +504,15 @@ function InventorySectionContent({
             equippingId,
             unequippingId,
           }}
+          rollPrivacy={rollPrivacy}
+          onEditUniqueItem={
+            detailEntry.sourceType === "UNIQUE_ITEM"
+              ? () => {
+                  setEditUniqueItemId(detailEntry.itemId);
+                  setDetailEntry(null);
+                }
+              : undefined
+          }
         />
       )}
 
@@ -585,10 +615,15 @@ export function getInventorySection(
   options?: {
     mutate?: KeyedMutator<CharacterDetail | null>;
     readOnly?: boolean;
+    rollPrivacy?: RollPrivacyOptions;
   }
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
   const mutate = options?.mutate;
+  const rollPrivacy = options?.rollPrivacy ?? {
+    allowPrivateRoll: false,
+    defaultPrivateRoll: false,
+  };
 
   return {
     id: "inventory",
@@ -602,6 +637,7 @@ export function getInventorySection(
         mutate={mutate}
         activeGameId={activeGameId}
         readOnly={readOnly}
+        rollPrivacy={rollPrivacy}
       />
     ),
   };

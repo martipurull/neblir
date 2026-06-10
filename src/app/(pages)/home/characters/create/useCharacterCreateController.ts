@@ -34,6 +34,7 @@ const STEPS = [
   { id: "health", label: "Health" },
   { id: "skills", label: "Skills" },
   { id: "path", label: "Path" },
+  { id: "games", label: "Games" },
 ];
 
 export function useCharacterCreateController() {
@@ -273,6 +274,11 @@ export function useCharacterCreateController() {
 
       setIsSubmitting(true);
       try {
+        const selectedGameLinks =
+          !linkGameId && values.gameLinks && values.gameLinks.length > 0
+            ? values.gameLinks
+            : undefined;
+
         const body = {
           ...values,
           learnedSkills: {
@@ -287,6 +293,7 @@ export function useCharacterCreateController() {
               : undefined,
           initialFeatures:
             initialFeatures.length > 0 ? initialFeatures : undefined,
+          gameLinks: linkGameId ? undefined : selectedGameLinks,
           ...(linkGameId
             ? {
                 gameId: linkGameId,

@@ -6,14 +6,14 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
 import {
-  isGmControlledGameCharacter,
   isPlayerCharacterInGame,
+  isPublicKnownNpcInGame,
 } from "@/app/lib/gmUtils";
 import { useMemo } from "react";
 
@@ -48,7 +48,7 @@ export default function GameDetailPage() {
 
   const knownNpcCount = useMemo(() => {
     if (!game?.characters) return 0;
-    return game.characters.filter((gc) => isGmControlledGameCharacter(gc, game))
+    return game.characters.filter((gc) => isPublicKnownNpcInGame(gc, game))
       .length;
   }, [game]);
 
@@ -91,8 +91,9 @@ export default function GameDetailPage() {
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-black bg-paleBlue/20">
             {gameImageUrl ? (
-              <Image
+              <SignedRemoteImage
                 src={gameImageUrl}
+                imageKey={game.imageKey ?? undefined}
                 alt=""
                 width={64}
                 height={64}

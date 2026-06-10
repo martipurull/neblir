@@ -168,7 +168,36 @@ describe("POST /api/games/[id]/give-item", () => {
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "c-1",
       "GLOBAL_ITEM",
-      "i-1"
+      "i-1",
+      { quantity: 1 }
+    );
+  });
+
+  it("returns 201 and passes quantity to addOrIncrementItemCharacter", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "user-1" });
+    characterIsInGameMock.mockResolvedValue(true);
+    addOrIncrementItemCharacterMock.mockResolvedValue(undefined);
+    const { POST } = await import("@/app/api/games/[id]/give-item/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          characterId: "c-1",
+          sourceType: "GLOBAL_ITEM",
+          itemId: "i-1",
+          quantity: 5,
+        },
+        "user-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
+      "c-1",
+      "GLOBAL_ITEM",
+      "i-1",
+      { quantity: 5 }
     );
   });
 
@@ -191,7 +220,8 @@ describe("POST /api/games/[id]/give-item", () => {
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "c-1",
       "CUSTOM_ITEM",
-      "custom-1"
+      "custom-1",
+      { quantity: 1 }
     );
   });
 
@@ -214,7 +244,8 @@ describe("POST /api/games/[id]/give-item", () => {
     expect(addOrIncrementItemCharacterMock).toHaveBeenCalledWith(
       "c-1",
       "UNIQUE_ITEM",
-      "unique-1"
+      "unique-1",
+      { quantity: 1 }
     );
   });
 });

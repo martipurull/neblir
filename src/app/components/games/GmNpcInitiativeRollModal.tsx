@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { GameDetail } from "@/app/lib/types/game";
 import { submitGameInitiative } from "@/lib/api/game";
@@ -75,8 +76,18 @@ export function GmNpcInitiativeRollModal({
             initiativeModifier,
           });
         }
+        const isPrivateNpcRoll =
+          combatantType === "CHARACTER"
+            ? isPrivateGameCharacterLink(
+                npcRows.find((gc) => gc.character.id === combatantId)?.isPublic
+              )
+            : isPrivateGameCharacterLink(
+                (game.enemyInstances ?? []).find((ei) => ei.id === combatantId)
+                  ?.isPublic
+              );
         await emitRollEvent(game.id, {
           characterId: combatantType === "CHARACTER" ? combatantId : undefined,
+          isPrivate: isPrivateNpcRoll ? true : undefined,
           rollType: "INITIATIVE",
           diceExpression: "1d10",
           results: [rolledValue],
@@ -87,6 +98,12 @@ export function GmNpcInitiativeRollModal({
             combatantType,
             combatantId,
             combatantName: combatantName ?? null,
+            ...(combatantType === "ENEMY"
+              ? {
+                  enemyInstanceId: combatantId,
+                  enemyName: combatantName ?? null,
+                }
+              : {}),
           },
         });
         await onSuccess();
@@ -98,7 +115,7 @@ export function GmNpcInitiativeRollModal({
         setRollingId(null);
       }
     },
-    [game.id, onSuccess]
+    [game.id, game.enemyInstances, npcRows, onSuccess]
   );
 
   if (!isOpen) return null;

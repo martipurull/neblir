@@ -10,11 +10,13 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import {
+  getApiSlotCapacity,
   getApiSlotsForDisplay,
   HEADER_EQUIP_SLOTS_ROW1,
   HEADER_EQUIP_SLOTS_ROW2,
 } from "@/app/lib/equipUtils";
 import type { CharacterDetail } from "@/app/lib/types/character";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
 import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
@@ -46,7 +48,8 @@ interface CharacterSummaryHeaderProps {
   activeGameId?: string | null;
   activeGameOptions: { value: string; label: string }[];
   onActiveGameChange: (gameId: string) => void;
-  avatarUrl: string | null;
+  avatarUrl: string | null | undefined;
+  avatarKey?: string | null;
   /** Current number of reactions used this round; when set, enables reaction tracking UI */
   usedReactions?: number;
   /** Called when user "uses" a reaction (click on Reactions, Melee Def or Range Def) */
@@ -61,6 +64,7 @@ interface CharacterSummaryHeaderProps {
   onOpenDiceRoller?: () => void;
   /** View-only sheet: no rolls, equipping, or stat edits */
   readOnly?: boolean;
+  rollPrivacy?: RollPrivacyOptions;
   className?: string;
 }
 
@@ -70,6 +74,7 @@ export function CharacterSummaryHeader({
   activeGameOptions,
   onActiveGameChange,
   avatarUrl,
+  avatarKey,
   usedReactions = 0,
   onUseReaction,
   onHealthUpdate,
@@ -77,6 +82,7 @@ export function CharacterSummaryHeader({
   mutate,
   onOpenDiceRoller,
   readOnly = false,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
   className,
 }: CharacterSummaryHeaderProps) {
   const {
@@ -169,7 +175,6 @@ export function CharacterSummaryHeader({
       return empty;
     }
     const values = { ...empty };
-    const maxItems = 2;
     for (const displaySlot of [
       "HAND",
       "FOOT",
@@ -178,6 +183,7 @@ export function CharacterSummaryHeader({
       "BRAIN",
     ] as const) {
       const apiSlots = getApiSlotsForDisplay(displaySlot);
+      const maxItems = Math.max(...apiSlots.map(getApiSlotCapacity));
       const names: string[] = [];
       for (const entry of carried) {
         const name = entry.customName ?? entry.item?.name ?? "?";
@@ -248,6 +254,7 @@ export function CharacterSummaryHeader({
       <div className="mx-auto flex max-w-2xl flex-col items-center">
         <CharacterHeaderInfo
           avatarUrl={avatarUrl}
+          avatarKey={avatarKey}
           name={name}
           level={generalInformation.level}
           pathsLabel={pathsLabel}
@@ -554,6 +561,7 @@ export function CharacterSummaryHeader({
             onWeaponUsed={handleWeaponUsed}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -567,6 +575,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -580,6 +589,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
 
@@ -593,6 +603,7 @@ export function CharacterSummaryHeader({
             onRollReaction={onUseReaction}
             gameId={activeGameId}
             characterId={character.id}
+            rollPrivacy={rollPrivacy}
           />
         )}
       </div>

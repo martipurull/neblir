@@ -3,6 +3,7 @@ import {
   customItemListResponseSchema,
   customItemResponseSchema,
   type CustomItemResponse,
+  type CustomItemUpdate,
 } from "@/app/lib/types/item";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
@@ -41,14 +42,15 @@ function mapCustomItemJsonToBrowseDetail(
     attributeMod: data.attributeMod ?? null,
     modifiesSkill: data.modifiesSkill ?? null,
     skillMod: data.skillMod ?? null,
+    isSpeedAltered: data.isSpeedAltered ?? null,
   };
 }
 
-export async function getGameCustomItemById(
+export async function getGameCustomItemRecord(
   gameId: string,
   customItemId: string,
   signal?: AbortSignal
-): Promise<ItemBrowseDetailFields> {
+): Promise<CustomItemResponse> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/custom-items/${encodeURIComponent(customItemId)}`,
     {
@@ -80,7 +82,59 @@ export async function getGameCustomItemById(
       `Custom item response did not match expected shape: ${details}`
     );
   }
-  return mapCustomItemJsonToBrowseDetail(parsed.data);
+  return parsed.data;
+}
+
+export async function updateGameCustomItem(
+  gameId: string,
+  customItemId: string,
+  body: CustomItemUpdate
+): Promise<CustomItemResponse> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/custom-items/${encodeURIComponent(customItemId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update custom item"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = customItemResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join("; ");
+    throw new Error(
+      `Custom item response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function getGameCustomItemById(
+  gameId: string,
+  customItemId: string,
+  signal?: AbortSignal
+): Promise<ItemBrowseDetailFields> {
+  const record = await getGameCustomItemRecord(gameId, customItemId, signal);
+  return mapCustomItemJsonToBrowseDetail(record);
 }
 
 /** Lists custom items for a game (for browse / add to inventory). Returns [] if the request fails (e.g. no access). */

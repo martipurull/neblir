@@ -1,6 +1,7 @@
 "use client";
 
 import { ReferenceEntryHtml } from "@/app/components/reference/ReferenceEntryHtml";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -94,7 +95,10 @@ export default function GameLoreEntryPage() {
       ) : null}
       <InfoCard border className="mt-4">
         {entry.summary ? (
-          <p className="mb-3 text-sm text-black/70">{entry.summary}</p>
+          <StoredRichTextHtml
+            content={entry.summary}
+            className="mb-3 text-sm text-black/70"
+          />
         ) : null}
         <ReferenceEntryHtml
           contentJson={entry.contentJson}

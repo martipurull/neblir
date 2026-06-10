@@ -7,18 +7,18 @@ import {
 } from "@/lib/userSafeError";
 import type { ItemWeaponDamageType } from "@prisma/client";
 import type { z } from "zod";
-import { useCallback, useEffect, useState } from "react";
+import type { CustomEnemyActionDraft } from "@/app/components/games/gameCustomEnemyDraftStorage";
+import {
+  clearGameCustomEnemyDraft,
+  isMeaningfulGameCustomEnemyDraft,
+  persistGameCustomEnemyDraft,
+  readGameCustomEnemyDraft,
+  type GameCustomEnemyDraft,
+} from "@/app/components/games/gameCustomEnemyDraftStorage";
+import { useModalDraftSession } from "@/app/components/games/useModalDraftSession";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-export type CustomEnemyActionDraft = {
-  clientId: string;
-  name: string;
-  description: string;
-  numberOfDiceToHit: string;
-  numberOfDamageDice: string;
-  damageDiceType: string;
-  damageType: string;
-  notes: string;
-};
+export type { CustomEnemyActionDraft } from "@/app/components/games/gameCustomEnemyDraftStorage";
 
 type Args = {
   gameId: string;
@@ -203,6 +203,9 @@ export function useCreateCustomEnemyModal({
     reset: resetImageUpload,
   } = imageUpload;
 
+  const isEdit = Boolean(editCustomEnemyId);
+  const trimmedGameId = gameId.trim();
+
   const resetForm = useCallback(() => {
     setName("");
     setDescription("");
@@ -228,6 +231,110 @@ export function useCreateCustomEnemyModal({
     setLoadingEdit(false);
     setRichTextSyncKey((k) => k + 1);
   }, [resetImageUpload]);
+
+  const applyDraft = useCallback(
+    (draft: GameCustomEnemyDraft) => {
+      setName(draft.name);
+      setDescription(draft.description);
+      setNotes(draft.notes);
+      setHealth(draft.health);
+      setSpeed(draft.speed);
+      setInitiativeModifier(draft.initiativeModifier);
+      setNumberOfReactions(draft.numberOfReactions);
+      setDefenceMelee(draft.defenceMelee);
+      setDefenceRange(draft.defenceRange);
+      setDefenceGrid(draft.defenceGrid);
+      setAttackMelee(draft.attackMelee);
+      setAttackRange(draft.attackRange);
+      setAttackThrow(draft.attackThrow);
+      setAttackGrid(draft.attackGrid);
+      setActions(draft.actions);
+      setAdditionalActions(draft.additionalActions);
+      setImmunities(draft.immunities as ItemWeaponDamageType[]);
+      setResistances(draft.resistances as ItemWeaponDamageType[]);
+      setVulnerabilities(draft.vulnerabilities as ItemWeaponDamageType[]);
+      setImageKey(draft.imageKey);
+      setPendingImageKey(draft.imageKey);
+      setRichTextSyncKey((k) => k + 1);
+    },
+    [setImageKey, setPendingImageKey]
+  );
+
+  const draftSnapshot = useMemo((): GameCustomEnemyDraft | null => {
+    if (isEdit) return null;
+    return {
+      name,
+      description,
+      notes,
+      health,
+      speed,
+      initiativeModifier,
+      numberOfReactions,
+      defenceMelee,
+      defenceRange,
+      defenceGrid,
+      attackMelee,
+      attackRange,
+      attackThrow,
+      attackGrid,
+      actions,
+      additionalActions,
+      immunities,
+      resistances,
+      vulnerabilities,
+      imageKey,
+    };
+  }, [
+    isEdit,
+    name,
+    description,
+    notes,
+    health,
+    speed,
+    initiativeModifier,
+    numberOfReactions,
+    defenceMelee,
+    defenceRange,
+    defenceGrid,
+    attackMelee,
+    attackRange,
+    attackThrow,
+    attackGrid,
+    actions,
+    additionalActions,
+    immunities,
+    resistances,
+    vulnerabilities,
+    imageKey,
+  ]);
+
+  const draftSession = useModalDraftSession({
+    enabled: !isEdit && Boolean(trimmedGameId),
+    isOpen,
+    snapshot: draftSnapshot,
+    isMeaningful: isMeaningfulGameCustomEnemyDraft,
+    readDraft: useCallback(
+      () => readGameCustomEnemyDraft(trimmedGameId),
+      [trimmedGameId]
+    ),
+    persistDraft: useCallback(
+      (draft: GameCustomEnemyDraft) =>
+        persistGameCustomEnemyDraft(trimmedGameId, draft),
+      [trimmedGameId]
+    ),
+    clearDraft: useCallback(
+      () => clearGameCustomEnemyDraft(trimmedGameId),
+      [trimmedGameId]
+    ),
+    applyDraft,
+    resetForm,
+    deletePendingImage: useCallback(async () => {
+      if (pendingImageKey) {
+        await deleteUploadedImage(pendingImageKey);
+      }
+    }, [pendingImageKey, deleteUploadedImage]),
+    onClose,
+  });
 
   const toggleImmunity = useCallback((t: ItemWeaponDamageType) => {
     setImmunities((prev) =>
@@ -283,7 +390,6 @@ export function useCreateCustomEnemyModal({
   useEffect(() => {
     if (!isOpen) return;
     if (!editCustomEnemyId) {
-      resetForm();
       return;
     }
     let cancelled = false;
@@ -472,6 +578,9 @@ export function useCreateCustomEnemyModal({
         return;
       }
       setPendingImageKey("");
+      if (!isEdit) {
+        draftSession.clearDraftOnSuccess();
+      }
       onSuccess?.();
       void handleClose(true);
     } catch (submitError) {
@@ -493,11 +602,8 @@ export function useCreateCustomEnemyModal({
   };
 
   const handleClose = async (skipCleanup?: boolean) => {
-    if (!skipCleanup && pendingImageKey) {
-      await deleteUploadedImage(pendingImageKey);
-    }
-    resetForm();
-    onClose();
+    await draftSession.handleDismiss(skipCleanup);
+    setError(null);
   };
 
   return {
@@ -551,6 +657,10 @@ export function useCreateCustomEnemyModal({
     error,
     handleSubmit,
     handleClose,
-    isEdit: Boolean(editCustomEnemyId),
+    isEdit,
+    draftRestored: draftSession.draftRestored,
+    draftPersistenceEnabled: draftSession.draftPersistenceEnabled,
+    hasDiscardableDraft: draftSession.hasDiscardableDraft,
+    discardAndClose: draftSession.discardAndClose,
   };
 }

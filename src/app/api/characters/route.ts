@@ -193,14 +193,38 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
-    const { gameId, gameLinkIsPublic } = parseResult.data;
-    let gameLink: { gameId: string; isPublic: boolean } | undefined;
+    const {
+      gameId,
+      gameLinks: requestedDashboardLinks,
+      gameLinkIsPublic,
+    } = parseResult.data;
+    const requestedGameLinks: Array<{
+      gameId: string;
+      gameLinkIsPublic?: boolean;
+    }> = [];
+    const seenGameIds = new Set<string>();
     if (gameId) {
+      seenGameIds.add(gameId);
+      requestedGameLinks.push({ gameId, gameLinkIsPublic });
+    }
+    for (const link of requestedDashboardLinks ?? []) {
+      if (seenGameIds.has(link.gameId)) continue;
+      seenGameIds.add(link.gameId);
+      requestedGameLinks.push({
+        gameId: link.gameId,
+        gameLinkIsPublic: link.isPublic,
+      });
+    }
+
+    const gameLinks: { gameId: string; isPublic: boolean }[] = [];
+    for (const entry of requestedGameLinks) {
       try {
-        gameLink = await resolveGameCharacterLinkForCreate(
-          gameId,
-          user.id,
-          gameLinkIsPublic
+        gameLinks.push(
+          await resolveGameCharacterLinkForCreate(
+            entry.gameId,
+            user.id,
+            entry.gameLinkIsPublic
+          )
         );
       } catch (error) {
         if (error instanceof GameCharacterLinkError) {
@@ -216,7 +240,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       pathId,
       pathRank,
       initialFeatures,
-      gameLink,
+      gameLinks,
     });
 
     return NextResponse.json(character, { status: 201 });

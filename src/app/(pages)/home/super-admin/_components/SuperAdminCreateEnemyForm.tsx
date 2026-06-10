@@ -130,6 +130,7 @@ export function SuperAdminCreateEnemyForm() {
             label="Image"
             disabled={submitting}
             onImageKey={onImageKey}
+            previewLayout="roundAvatar"
           />
 
           <div className="mb-6">

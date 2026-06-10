@@ -50,6 +50,7 @@ export default function CreateGameCustomItemPage() {
       isOpen
       gameId={game.id}
       gameName={game.name}
+      editCustomItemId={null}
       onClose={() => router.push(`/home/games/${game.id}/custom-items`)}
       onSuccess={() => {
         void mutate();

@@ -168,6 +168,7 @@ const gameDetailEnemyInstanceSchema = z.object({
   sourceCustomEnemyId: z.string().nullable().optional(),
   sourceOfficialEnemyId: z.string().nullable().optional(),
   name: z.string(),
+  isPublic: z.boolean().optional(),
   imageKey: z.string().nullable().optional(),
   maxHealth: z.number(),
   currentHealth: z.number(),

@@ -10,6 +10,19 @@ export async function characterIsInGame(
   return !!gc;
 }
 
+/** Whether a linked character is visible to non-owner players (`isPublic !== false`). */
+export async function getGameCharacterLinkIsPublic(
+  gameId: string,
+  characterId: string
+): Promise<boolean | null> {
+  const link = await prisma.gameCharacter.findFirst({
+    where: { gameId, characterId },
+    select: { isPublic: true },
+  });
+  if (!link) return null;
+  return link.isPublic !== false;
+}
+
 /** True when the user is the game master of `gameId`. */
 export async function userIsGameMaster(
   gameId: string,

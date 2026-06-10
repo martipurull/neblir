@@ -9,7 +9,7 @@ import { useGame } from "@/hooks/use-game";
 import { useGameImages } from "@/hooks/use-game-images";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { deleteGameImage } from "@/lib/api/gameImages";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -71,14 +71,14 @@ export default function GameImagesPage() {
                       rel="noreferrer"
                       className="mt-3 block overflow-hidden rounded border border-black/20 bg-black/5"
                     >
-                      <Image
+                      <SignedRemoteImage
                         src={imageUrl}
+                        imageKey={image.imageKey}
                         alt={image.title}
                         width={1600}
                         height={900}
                         sizes="(max-width: 768px) 100vw, 1024px"
                         className="max-h-[70vh] w-full object-contain"
-                        unoptimized
                       />
                     </Link>
                   ) : null}

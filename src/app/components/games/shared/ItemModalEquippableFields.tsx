@@ -11,8 +11,6 @@ type Props = {
   onToggleEquipSlot: (value: string) => void;
   equipSlotCost: string;
   onEquipSlotCostChange: (value: string) => void;
-  maxUses: string;
-  onMaxUsesChange: (value: string) => void;
 };
 
 export function ItemModalEquippableFields({
@@ -23,8 +21,6 @@ export function ItemModalEquippableFields({
   onToggleEquipSlot,
   equipSlotCost,
   onEquipSlotCostChange,
-  maxUses,
-  onMaxUsesChange,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -64,16 +60,6 @@ export function ItemModalEquippableFields({
           />
         </>
       )}
-      <ModalNumberField
-        id="custom-item-max-uses"
-        label="Max uses"
-        value={maxUses}
-        onChange={onMaxUsesChange}
-        disabled={disabled}
-        required={false}
-        min={1}
-        placeholder="Leave empty for unlimited"
-      />
     </div>
   );
 }

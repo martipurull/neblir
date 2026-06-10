@@ -13,10 +13,11 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
+import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
@@ -45,6 +46,8 @@ export function ItemDetailModal({
   mutate,
   resolveGiveRecipients,
   equipControl,
+  rollPrivacy,
+  onEditUniqueItem,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -236,13 +239,13 @@ export function ItemDetailModal({
             {itemImageKey ? (
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
                 {itemImageUrl ? (
-                  <Image
+                  <SignedRemoteImage
                     src={itemImageUrl}
+                    imageKey={itemImageKey ?? undefined}
                     alt=""
                     width={80}
                     height={80}
                     className="h-20 w-20 object-cover object-center"
-                    unoptimized
                   />
                 ) : itemImageUrl === undefined ? (
                   <ImageLoadingSkeleton variant="item" />
@@ -356,6 +359,17 @@ export function ItemDetailModal({
             </div>
           )}
 
+          {onEditUniqueItem ? (
+            <Button
+              type="button"
+              variant="semanticSafeOutline"
+              fullWidth
+              onClick={onEditUniqueItem}
+            >
+              Edit unique item
+            </Button>
+          ) : null}
+
           <ItemDetailGiveRemoveSection
             showGiveFlow={Boolean(resolveGiveRecipients)}
             entry={entry}
@@ -405,6 +419,7 @@ export function ItemDetailModal({
           damage={weaponDamage}
           gameId={gameId}
           characterId={characterId}
+          rollPrivacy={rollPrivacy}
         />
       )}
     </>

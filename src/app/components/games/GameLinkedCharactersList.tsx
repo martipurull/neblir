@@ -1,19 +1,23 @@
 "use client";
 
-import { Button } from "@/app/components/shared/Button";
+import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import type { GameDetail } from "@/app/lib/types/game";
 import Link from "next/link";
-import { useState } from "react";
 
 type GameCharacterRow = NonNullable<GameDetail["characters"]>[number];
 
-function stripHtml(html: string): string {
-  if (!html) return "";
-  const el = document.createElement("div");
-  el.innerHTML = html;
-  return (el.textContent ?? "").replace(/\s+/g, " ").trim();
+function CharacterSummaryBlock({ summaryHtml }: { summaryHtml: string }) {
+  return (
+    <ExpandableClamp
+      contentClassName="prose prose-sm max-w-none text-black/80"
+      clampClassName="line-clamp-3"
+      measureKey={summaryHtml}
+    >
+      <div dangerouslySetInnerHTML={{ __html: summaryHtml }} />
+    </ExpandableClamp>
+  );
 }
 
 type GameLinkedCharactersListProps = {
@@ -33,10 +37,6 @@ export function GameLinkedCharactersList({
   imageUrls,
   onRemoved,
 }: GameLinkedCharactersListProps) {
-  const [expandedByCharacterId, setExpandedByCharacterId] = useState<
-    Record<string, boolean>
-  >({});
-
   if (characters.length === 0) {
     return <p className="py-2 text-sm text-black/60">{emptyText}</p>;
   }
@@ -50,45 +50,10 @@ export function GameLinkedCharactersList({
         const imageUrl = char.avatarKey
           ? (imageUrls[char.id] ?? undefined)
           : null;
-        const initials =
-          char.name.charAt(0).toUpperCase() +
-          (char.surname?.charAt(0).toUpperCase() ??
-            char.name.charAt(1)?.toUpperCase() ??
-            "");
 
         const summaryHtml = gi?.summary ?? "";
-        const summaryText = stripHtml(summaryHtml);
-        const expanded = expandedByCharacterId[char.id] === true;
-        const canExpand = summaryText.length > 180;
-
-        const rightAccessory = canExpand ? (
-          <Button
-            type="button"
-            variant="lightChevronExpand"
-            fullWidth={false}
-            aria-label={expanded ? "Collapse summary" : "Expand summary"}
-            aria-expanded={expanded}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setExpandedByCharacterId((prev) => ({
-                ...prev,
-                [char.id]: !expanded,
-              }));
-            }}
-          >
-            <span aria-hidden>{expanded ? "▾" : "▸"}</span>
-          </Button>
-        ) : null;
-
         const summaryBlock = summaryHtml ? (
-          <div
-            className={[
-              "prose prose-sm max-w-none text-black/80",
-              expanded ? "" : "line-clamp-2",
-            ].join(" ")}
-            dangerouslySetInnerHTML={{ __html: summaryHtml }}
-          />
+          <CharacterSummaryBlock summaryHtml={summaryHtml} />
         ) : (
           <p className="text-sm text-black/60">No summary yet.</p>
         );
@@ -97,17 +62,6 @@ export function GameLinkedCharactersList({
           char.isOwnedByCurrentUser || game.isGameMaster === true;
         const canViewSheet =
           char.isOwnedByCurrentUser || game.isGameMaster === true;
-        const showSummaryInBody = !canViewSheet || expanded || !canExpand;
-
-        const removeButton = canRemoveFromGame ? (
-          <RemoveCharacterFromGameButton
-            className={showSummaryInBody ? "pt-2" : undefined}
-            gameId={game.id}
-            characterId={char.id}
-            characterName={title}
-            onRemoved={onRemoved}
-          />
-        ) : null;
 
         const sheetHref = char.isOwnedByCurrentUser
           ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
@@ -115,26 +69,31 @@ export function GameLinkedCharactersList({
             ? `/home/games/${game.id}/characters/${char.id}`
             : null;
 
-        const body = canViewSheet ? (
+        const body = (
           <div className="space-y-2">
-            {sheetHref ? (
-              <Link
-                href={sheetHref}
-                className="text-sm text-black/70 underline-offset-2 hover:underline"
-              >
-                View character sheet
-              </Link>
-            ) : (
-              <p className="text-sm text-black/70">View character sheet</p>
-            )}
-            {showSummaryInBody ? summaryBlock : null}
-            {removeButton}
-          </div>
-        ) : (
-          <>
+            {canViewSheet ? (
+              sheetHref ? (
+                <Link
+                  href={sheetHref}
+                  className="text-sm text-black/70 underline-offset-2 hover:underline"
+                >
+                  View character sheet
+                </Link>
+              ) : (
+                <p className="text-sm text-black/70">View character sheet</p>
+              )
+            ) : null}
             {summaryBlock}
-            {removeButton}
-          </>
+            {canRemoveFromGame ? (
+              <RemoveCharacterFromGameButton
+                className="pt-2"
+                gameId={game.id}
+                characterId={char.id}
+                characterName={title}
+                onRemoved={onRemoved}
+              />
+            ) : null}
+          </div>
         );
 
         return (
@@ -150,12 +109,11 @@ export function GameLinkedCharactersList({
             title={title}
             subtitle={<>LVL {gi?.level ?? "—"}</>}
             imageUrl={imageUrl}
+            imageKey={char.avatarKey}
             imageAlt={`${char.name} avatar`}
-            placeholder={initials}
             className={
               char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
             }
-            rightAccessory={rightAccessory}
             body={body}
           />
         );

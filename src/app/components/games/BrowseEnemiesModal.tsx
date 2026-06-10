@@ -9,7 +9,7 @@ import { SpawnEnemyInstancesModal } from "@/app/components/games/SpawnEnemyInsta
 import { addOfficialEnemyToGame, getEnemies } from "@/lib/api/enemies";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
-import Image from "next/image";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useState } from "react";
 
 type BrowseEnemiesModalProps = {
@@ -124,8 +124,9 @@ export function BrowseEnemiesModal({
                   >
                     <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                       {imageUrls[enemy.id] ? (
-                        <Image
+                        <SignedRemoteImage
                           src={imageUrls[enemy.id] as string}
+                          imageKey={enemy.imageKey ?? undefined}
                           alt=""
                           width={32}
                           height={32}
@@ -160,8 +161,9 @@ export function BrowseEnemiesModal({
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                   {imageUrls[selected.id] ? (
-                    <Image
+                    <SignedRemoteImage
                       src={imageUrls[selected.id] as string}
+                      imageKey={selected.imageKey ?? undefined}
                       alt={`${selected.name} avatar`}
                       width={48}
                       height={48}

@@ -5,9 +5,10 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
 import { GameLinkedCharactersList } from "@/app/components/games/GameLinkedCharactersList";
-import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import { isPublicKnownNpcInGame } from "@/app/lib/gmUtils";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
@@ -18,12 +19,11 @@ export default function GameKnownNpcsPage() {
   const id = typeof params.id === "string" ? params.id : null;
   const { game, loading, error, refetch } = useGame(id);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
 
   const knownNpcs = useMemo(() => {
     if (!game?.characters) return [];
-    return game.characters.filter((gc) =>
-      isGmControlledGameCharacter(gc, game)
-    );
+    return game.characters.filter((gc) => isPublicKnownNpcInGame(gc, game));
   }, [game]);
 
   const alreadyLinkedCharacterIds = useMemo(
@@ -70,18 +70,33 @@ export default function GameKnownNpcsPage() {
           <p className="mt-1 text-sm text-black/70">
             Characters linked to{" "}
             <span className="font-semibold">{game.name}</span> and controlled by
-            the game master.
+            the game master
+            {game.isGameMaster
+              ? ". Only public NPCs appear here; manage private NPCs from the Game Master screen."
+              : "."}
           </p>
         </div>
         {game.isGameMaster ? (
-          <Button
-            type="button"
-            variant="solidDark"
-            fullWidth={false}
-            onClick={() => setAddModalOpen(true)}
-          >
-            Add characters
-          </Button>
+          <div className="flex shrink-0 flex-wrap gap-2 max-sm:w-full">
+            <Button
+              type="button"
+              variant="solidDark"
+              fullWidth={false}
+              className="max-sm:flex-1"
+              onClick={() => setAddModalOpen(true)}
+            >
+              Add characters
+            </Button>
+            <Button
+              type="button"
+              variant="solidDark"
+              fullWidth={false}
+              className="max-sm:flex-1"
+              onClick={() => setCreateNpcModalOpen(true)}
+            >
+              Create NPC
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -93,6 +108,16 @@ export default function GameKnownNpcsPage() {
         onClose={() => setAddModalOpen(false)}
         onSuccess={() => void refetch()}
       />
+      {createNpcModalOpen ? (
+        <GmCreateNpcModal
+          gameId={game.id}
+          gameName={game.name}
+          returnTo={returnTo}
+          returnDestinationLabel="Known NPCs for this game"
+          defaultKnownToPlayers
+          onClose={() => setCreateNpcModalOpen(false)}
+        />
+      ) : null}
 
       <div className="mt-4">
         <GameLinkedCharactersList

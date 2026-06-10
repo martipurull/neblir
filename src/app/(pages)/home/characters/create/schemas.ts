@@ -72,6 +72,7 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
     },
     path: { pathId: "", rank: level },
     wallet: [],
+    gameLinks: [],
   };
 }
 

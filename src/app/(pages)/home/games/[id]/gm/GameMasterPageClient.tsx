@@ -260,6 +260,7 @@ export function GameMasterPageClient() {
         </div>
 
         <GmItemsSection
+          gameId={game.id}
           onCreateCustom={() => setCustomItemModalOpen(true)}
           onCreateUnique={() => setUniqueItemModalOpen(true)}
           onGiveItem={() => setGiveItemModalOpen(true)}
@@ -535,6 +536,7 @@ export function GameMasterPageClient() {
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}
         customTemplateGameIds={[game.id]}
+        draftScope={{ kind: "game", id: game.id }}
         gameIdForSubmit={game.id}
         titleSuffix={game.name}
         onClose={() => setUniqueItemModalOpen(false)}

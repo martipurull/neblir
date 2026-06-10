@@ -68,7 +68,16 @@ export const characterCreationRequestSchema = z
     }),
     /** When set, links the new character to this game in the same transaction. */
     gameId: z.string().min(1).optional(),
-    /** GM-only visibility; non-GMs are forced public. Defaults to false when omitted. */
+    /** Links the new character to these games (dashboard create flow). */
+    gameLinks: z
+      .array(
+        z.strictObject({
+          gameId: z.string().min(1),
+          isPublic: z.boolean(),
+        })
+      )
+      .optional(),
+    /** GM-only visibility for `gameId`; non-GMs are forced public. Defaults to false when omitted. */
     gameLinkIsPublic: z.boolean().optional(),
   })
   .strict();

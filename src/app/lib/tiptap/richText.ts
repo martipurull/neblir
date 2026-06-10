@@ -13,6 +13,41 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/** Decode common HTML entities once (legacy imports / double-encoded rows). */
+function decodeHtmlEntitiesOnce(s: string): string {
+  if (!/&(?:lt|gt|amp|quot|#39);/i.test(s)) return s;
+  if (typeof document !== "undefined") {
+    const el = document.createElement("textarea");
+    el.innerHTML = s;
+    return el.value;
+  }
+  return s
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&amp;/gi, "&");
+}
+
+/** Opening, void, or closing tags — includes `</p>` and `&lt;p&gt;` before decode. */
+function looksLikeStoredRichTextHtml(s: string): boolean {
+  if (/<\/?[a-z][^>]*>/i.test(s)) return true;
+  if (/&lt;\/?[a-z]/i.test(s)) return true;
+  return false;
+}
+
+/** Trim and decode entity-encoded HTML so display/editor paths agree. */
+function normalizeStoredRichTextContent(
+  stored: string | null | undefined
+): string {
+  const trimmed = stored?.trim() ?? "";
+  if (!trimmed) return "";
+  if (/&lt;\/?[a-z]/i.test(trimmed)) {
+    return decodeHtmlEntitiesOnce(trimmed).trim();
+  }
+  return trimmed;
+}
+
 /**
  * DB / form value → HTML TipTap can load. Legacy plain text becomes a single paragraph
  * (newlines preserved with <br>).
@@ -20,9 +55,9 @@ function escapeHtml(s: string): string {
 export function normalizeStoredHtmlForEditor(
   stored: string | null | undefined
 ): string {
-  const s = stored?.trim() ?? "";
+  const s = normalizeStoredRichTextContent(stored);
   if (!s) return "<p></p>";
-  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  if (looksLikeStoredRichTextHtml(s)) return s;
   return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
 }
 
@@ -51,9 +86,9 @@ export function optionalStoredRichHtml(html: string): string | undefined {
 export function storedRichTextToDisplayHtml(
   stored: string | null | undefined
 ): string {
-  const s = stored?.trim() ?? "";
+  const s = normalizeStoredRichTextContent(stored);
   if (!s) return "";
-  if (/<[a-z][\s\S]*>/i.test(s)) return s;
+  if (looksLikeStoredRichTextHtml(s)) return s;
   return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
 }
 

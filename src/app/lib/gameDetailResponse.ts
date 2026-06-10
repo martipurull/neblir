@@ -14,7 +14,8 @@ type VisibleCharacterRow = {
 
 function shapeInitiativeOrderForResponse(
   game: GameWithDetails,
-  visibleCharacters: VisibleCharacterRow[]
+  visibleCharacters: VisibleCharacterRow[],
+  isGameMaster: boolean
 ) {
   const sorted = sortInitiativeEntries(game.initiativeOrder ?? []);
   const characterById = new Map(
@@ -30,16 +31,25 @@ function shapeInitiativeOrderForResponse(
         : undefined;
     const gi = ch?.generalInformation;
     const enemyInstance = enemyInstanceById.get(entry.combatantId);
+    const enemyIsPublic = enemyInstance?.isPublic !== false;
+    const enemyDisplayName =
+      entry.combatantName ?? enemyInstance?.name ?? "Enemy";
     const displayName =
       entry.combatantType === "CHARACTER"
         ? (gi?.name ?? null)
-        : (entry.combatantName ?? enemyInstance?.name ?? "Enemy");
+        : !isGameMaster && !enemyIsPublic
+          ? "Enemy"
+          : enemyDisplayName;
     const displaySurname =
       entry.combatantType === "CHARACTER" ? (gi?.surname ?? null) : null;
+    const combatantName =
+      entry.combatantType === "ENEMY" && !isGameMaster && !enemyIsPublic
+        ? "Enemy"
+        : entry.combatantName;
     return {
       combatantType: entry.combatantType,
       combatantId: entry.combatantId,
-      combatantName: entry.combatantName,
+      combatantName,
       rolledValue: entry.rolledValue,
       initiativeModifier: entry.initiativeModifier,
       submittedAt: entry.submittedAt,
@@ -85,12 +95,25 @@ export function shapeGameForResponse(
         },
       };
     });
-  const { initiativeOrder: _rawInitiative, ...gameRest } = game;
+  const visibleEnemyInstances = (game.enemyInstances ?? []).filter((enemy) => {
+    if (isGameMaster) return true;
+    return enemy.isPublic !== false;
+  });
+  const {
+    initiativeOrder: _rawInitiative,
+    enemyInstances: _enemyInstances,
+    ...gameRest
+  } = game;
   return {
     ...gameRest,
     isGameMaster,
     characters: characters ?? game.characters,
-    initiativeOrder: shapeInitiativeOrderForResponse(game, characters ?? []),
+    enemyInstances: visibleEnemyInstances,
+    initiativeOrder: shapeInitiativeOrderForResponse(
+      game,
+      characters ?? [],
+      isGameMaster
+    ),
     discordIntegration: game.discordIntegration
       ? {
           gameId: game.discordIntegration.gameId,

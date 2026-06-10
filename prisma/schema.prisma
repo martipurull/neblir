@@ -931,6 +931,8 @@ model EnemyInstance {
   imageKey String?
   description String?
   notes String?
+  /** When false, instance name/details are GM-only in game context; rolls default secret on Discord. */
+  isPublic Boolean @default(true)
 
   maxHealth Int
   currentHealth Int
