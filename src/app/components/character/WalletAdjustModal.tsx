@@ -3,7 +3,8 @@
 import { Button } from "@/app/components/shared/Button";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useState, useEffect } from "react";
+import { useAutoFocusInput } from "@/hooks/use-auto-focus-input";
+import { useEffect, useRef, useState } from "react";
 export type WalletAdjustMode = "add" | "subtract";
 
 export interface WalletAdjustModalProps {
@@ -26,6 +27,9 @@ export function WalletAdjustModal({
   const [amount, setAmount] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement>(null);
+
+  useAutoFocusInput(amountInputRef, isOpen);
 
   useEffect(() => {
     if (isOpen) {
@@ -108,6 +112,7 @@ export function WalletAdjustModal({
         <div className="mt-4 flex items-center justify-between gap-4">
           <span className="text-sm font-medium text-white">Amount</span>
           <NumberField
+            ref={amountInputRef}
             variant="dark"
             min={0}
             step={1}

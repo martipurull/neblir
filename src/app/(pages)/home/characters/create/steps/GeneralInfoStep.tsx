@@ -12,7 +12,8 @@ import { useImageUpload } from "@/hooks/use-image-upload";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
-import { useEffect, useMemo, useRef } from "react";
+import { useAutoFocusInput } from "@/hooks/use-auto-focus-input";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import {
@@ -36,6 +37,41 @@ const religionOptions = RELIGIONS.map((r) => ({
   label: r.label,
 }));
 const raceOptions = RACES.map((r) => ({ value: r.value, label: r.label }));
+
+type WalletQuantityFieldProps = {
+  currencyName: (typeof CURRENCY_NAMES)[number];
+  label: string;
+  quantity: number;
+  focusOnMount: boolean;
+  onAutoFocusDone: () => void;
+  onQuantityChange: (quantity: number) => void;
+};
+
+function WalletQuantityField({
+  currencyName,
+  label,
+  quantity,
+  focusOnMount,
+  onAutoFocusDone,
+  onQuantityChange,
+}: WalletQuantityFieldProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useAutoFocusInput(inputRef, focusOnMount, onAutoFocusDone);
+
+  return (
+    <NumberField
+      ref={inputRef}
+      id={`wallet-qty-${currencyName}`}
+      min={0}
+      value={quantity}
+      stepperLabel={`${label} quantity`}
+      onChange={(raw) => onQuantityChange(Math.max(0, parseInt(raw, 10) || 0))}
+      className="ml-auto !w-24 shrink-0 !min-h-9"
+      inputClassName="px-2 py-1 text-right text-sm"
+    />
+  );
+}
 
 export function GeneralInfoStep() {
   const { control, setValue, watch } =
@@ -75,6 +111,13 @@ export function GeneralInfoStep() {
   }, [imageUpload.imageKey, setValue]);
 
   const previousRaceRef = useRef<string | undefined>(undefined);
+  const [focusWalletCurrency, setFocusWalletCurrency] = useState<
+    (typeof CURRENCY_NAMES)[number] | null
+  >(null);
+  const clearWalletCurrencyFocus = useCallback(
+    () => setFocusWalletCurrency(null),
+    []
+  );
 
   // Apply race defaults only when the user changes race — not on remount when
   // navigating back to this step (which would clobber persisted form values).
@@ -340,6 +383,7 @@ export function GeneralInfoStep() {
             ) => {
               if (wallet.some((e) => e.currencyName === currencyName)) return;
               field.onChange([...wallet, { currencyName, quantity: 0 }]);
+              setFocusWalletCurrency(currencyName);
             };
             const updateQuantity = (currencyName: string, quantity: number) => {
               const next = wallet.map((e) =>
@@ -412,19 +456,15 @@ export function GeneralInfoStep() {
                               )}
                             </span>
                           </span>
-                          <NumberField
-                            id={`wallet-qty-${cn}`}
-                            min={0}
-                            value={entry.quantity}
-                            stepperLabel={`${CURRENCY_LABELS[cn]} quantity`}
-                            onChange={(raw) =>
-                              updateQuantity(
-                                cn,
-                                Math.max(0, parseInt(raw, 10) || 0)
-                              )
+                          <WalletQuantityField
+                            currencyName={cn}
+                            label={CURRENCY_LABELS[cn]}
+                            quantity={entry.quantity}
+                            focusOnMount={focusWalletCurrency === cn}
+                            onAutoFocusDone={clearWalletCurrencyFocus}
+                            onQuantityChange={(quantity) =>
+                              updateQuantity(cn, quantity)
                             }
-                            className="ml-auto !w-24 shrink-0 !min-h-9"
-                            inputClassName="px-2 py-1 text-right text-sm"
                           />
                           <Button
                             type="button"

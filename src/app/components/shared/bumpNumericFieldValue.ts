@@ -1,3 +1,42 @@
+/** True when the field shows integer zero and typing should replace it (not append). */
+export function isReplaceableZeroDisplay(value: string): boolean {
+  const trimmed = value.trim();
+  if (
+    !trimmed ||
+    trimmed === "-" ||
+    trimmed.includes(".") ||
+    trimmed.includes(",")
+  ) {
+    return false;
+  }
+  const n = Number(trimmed);
+  return n === 0 && !Number.isNaN(n);
+}
+
+/**
+ * When the field shows a lone zero, typing a digit should replace it
+ * (e.g. "0" + "5" → "5", not "05"). Preserves decimal entry ("0." stays).
+ */
+export function normalizeNumericInputOnType(
+  previous: string,
+  next: string
+): string {
+  if (!isReplaceableZeroDisplay(previous)) {
+    return next;
+  }
+  const trimmed = next.trim();
+  if (trimmed.startsWith("0.") || trimmed.startsWith("0,")) {
+    return next;
+  }
+  if (/^-?0+[1-9]/.test(trimmed)) {
+    const sign = next.startsWith("-") ? "-" : "";
+    const unsigned = sign ? next.slice(1) : next;
+    const stripped = unsigned.replace(/^0+/, "") || "0";
+    return sign + stripped;
+  }
+  return next;
+}
+
 /** Bump a numeric string for ± stepper controls (shared by light and modal number fields). */
 export function bumpNumericFieldValue(
   raw: string,
