@@ -166,3 +166,9 @@ export function TypeToConfirmDangerModal({
 export function getDeleteGameConfirmationPhrase(gameName: string): string {
   return `I want to delete ${gameName}`;
 }
+
+export function getDeleteCharacterConfirmationPhrase(
+  characterName: string
+): string {
+  return `I want to delete ${characterName}`;
+}

@@ -109,6 +109,24 @@ export async function createCharacter(
   return parsed.data;
 }
 
+export async function deleteCharacter(id: string): Promise<void> {
+  const response = await fetch(`/api/characters/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to delete character")
+    );
+  }
+}
+
 export async function updateCharacterEditableFields(
   id: string,
   body: CharacterEditableUpdateBody

@@ -128,6 +128,7 @@ export function CharacterHeaderInfo({
           isOpen={actionsOpen}
           onClose={() => setActionsOpen(false)}
           characterId={characterId}
+          characterName={name}
           gameOptions={activeGameOptions}
           gameLinks={gameLinks}
           activeGameId={activeGameId}
