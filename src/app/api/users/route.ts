@@ -1,4 +1,5 @@
 import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toDbCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
 import type { Prisma } from "@prisma/client";
@@ -30,6 +31,9 @@ export async function POST(request: NextRequest) {
       ...parsedBody,
       characterLayoutMode: toDbCharacterLayoutMode(
         parsedBody.characterLayoutMode
+      ),
+      characterSectionOrder: toDbCharacterSectionOrder(
+        parsedBody.characterSectionOrder
       ),
     };
 

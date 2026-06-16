@@ -9,6 +9,7 @@ import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CharacterSectionOrderSettings } from "@/app/components/settings/CharacterSectionOrderSettings";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { useUser } from "@/hooks/use-user";
 import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
@@ -164,6 +165,12 @@ const SettingsPage: React.FC = () => {
                     {carouselWrapError}
                   </p>
                 ) : null}
+                <CharacterSectionOrderSettings
+                  userId={user.id}
+                  savedOrder={user.characterSectionOrder}
+                  onSaved={refetch}
+                  disabled={layoutSaving || carouselWrapSaving}
+                />
               </div>
             </div>
           </div>

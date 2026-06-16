@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { characterSectionOrderSchema } from "@/app/lib/constants/characterSections";
 import { gameUserSchema } from "./game";
 
 const characterLayoutModeSchema = z.enum(["horizontal", "vertical"]).nullish();
@@ -20,6 +21,7 @@ const userSchema = z.object({
   email: z.string().email(),
   characterLayoutMode: characterLayoutModeSchema,
   characterCarouselWrap: characterCarouselWrapSchema,
+  characterSectionOrder: characterSectionOrderSchema,
   games: z.array(z.lazy(() => gameUserSchema)).optional(),
   characters: z.array(z.lazy(() => characterUserSchema)).optional(),
 });
@@ -37,6 +39,7 @@ export const currentUserSchema = userSchema
     email: true,
     characterLayoutMode: true,
     characterCarouselWrap: true,
+    characterSectionOrder: true,
   })
   .extend({
     isSuperAdmin: z.boolean(),

@@ -840,6 +840,8 @@ model User {
   characterLayoutMode CharacterLayoutMode?
   /** When true, horizontal carousel wraps from last to first at edges. Null/missing means wrap enabled. */
   characterCarouselWrap Boolean?
+  /** Saved character section order (stable section ids). Empty/missing means default order. */
+  characterSectionOrder String[] @default([])
 
   games               GameUser[]
   characters          CharacterUser[]

@@ -1,4 +1,5 @@
 import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toDbCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { deleteUser, getUser, updateUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { userUpdateSchema } from "@/app/lib/types/user";
@@ -105,6 +106,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...parsedBody,
       characterLayoutMode: toDbCharacterLayoutMode(
         parsedBody.characterLayoutMode
+      ),
+      characterSectionOrder: toDbCharacterSectionOrder(
+        parsedBody.characterSectionOrder
       ),
     };
 

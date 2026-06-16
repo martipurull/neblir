@@ -21,6 +21,7 @@ import { useActiveGameId } from "@/hooks/use-active-game-id";
 import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useUser } from "@/hooks/use-user";
 import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
+import { applyCharacterSectionOrder } from "@/app/lib/characterSectionOrder";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -220,7 +221,7 @@ export function CharacterDetailView({
     if (!readOnly && mutate) {
       list.push(getNotesSection(character, mutate));
     }
-    return list;
+    return applyCharacterSectionOrder(list, user?.characterSectionOrder);
   }, [
     character,
     readOnly,
@@ -236,6 +237,7 @@ export function CharacterDetailView({
     initiativeGamesLoading,
     activeGameId,
     rollPrivacy,
+    user?.characterSectionOrder,
   ]);
 
   const effectiveLayoutMode = resolveCharacterLayoutMode(

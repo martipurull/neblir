@@ -1,4 +1,5 @@
 import { toApiCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toApiCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { deleteUser, getUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -43,6 +44,9 @@ export const GET = auth(async (request: AuthNextRequest) => {
         isSuperAdmin: user.role === "SUPER_ADMIN",
         characterLayoutMode,
         characterCarouselWrap: user.characterCarouselWrap ?? null,
+        characterSectionOrder: toApiCharacterSectionOrder(
+          user.characterSectionOrder
+        ),
       },
       { status: 200 }
     );

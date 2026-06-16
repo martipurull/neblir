@@ -37,6 +37,42 @@ describe("userUpdateSchema character preferences", () => {
       userUpdateSchema.safeParse({ characterLayoutMode: "vertical" }).success
     ).toBe(true);
   });
+
+  it("accepts valid characterSectionOrder updates", () => {
+    expect(
+      userUpdateSchema.safeParse({
+        characterSectionOrder: ["inventory", "attributes"],
+      }).success
+    ).toBe(true);
+  });
+
+  it("accepts null characterSectionOrder to clear preference", () => {
+    expect(
+      userUpdateSchema.safeParse({ characterSectionOrder: null }).success
+    ).toBe(true);
+  });
+
+  it("accepts empty characterSectionOrder array", () => {
+    expect(
+      userUpdateSchema.safeParse({ characterSectionOrder: [] }).success
+    ).toBe(true);
+  });
+
+  it("rejects duplicate ids in characterSectionOrder", () => {
+    expect(
+      userUpdateSchema.safeParse({
+        characterSectionOrder: ["attributes", "attributes"],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects unknown ids in characterSectionOrder", () => {
+    expect(
+      userUpdateSchema.safeParse({
+        characterSectionOrder: ["attributes", "foo"],
+      }).success
+    ).toBe(false);
+  });
 });
 
 describe("currentUserSchema character preferences", () => {
@@ -48,8 +84,28 @@ describe("currentUserSchema character preferences", () => {
       isSuperAdmin: false,
       characterLayoutMode: null,
       characterCarouselWrap: null,
+      characterSectionOrder: null,
     });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts saved character section order", () => {
+    const result = currentUserSchema.safeParse({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: "horizontal",
+      characterCarouselWrap: false,
+      characterSectionOrder: ["inventory", "attributes"],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.characterSectionOrder).toEqual([
+        "inventory",
+        "attributes",
+      ]);
+    }
   });
 
   it("accepts explicit carousel wrap preference", () => {
@@ -60,6 +116,7 @@ describe("currentUserSchema character preferences", () => {
       isSuperAdmin: false,
       characterLayoutMode: "horizontal",
       characterCarouselWrap: false,
+      characterSectionOrder: null,
     });
     expect(result.success).toBe(true);
     if (result.success) {
