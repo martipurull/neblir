@@ -40,6 +40,7 @@ describe("/api/users/me handlers", () => {
       name: "Taylor",
       email: "taylor@example.com",
       role: "SUPER_ADMIN",
+      characterLayoutMode: "VERTICAL",
       characters: [],
       games: [],
     });
@@ -50,9 +51,11 @@ describe("/api/users/me handlers", () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
+      id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
       isSuperAdmin: true,
+      characterLayoutMode: "vertical",
     });
   });
 
@@ -62,6 +65,7 @@ describe("/api/users/me handlers", () => {
       name: "Taylor",
       email: "taylor@example.com",
       role: "USER",
+      characterLayoutMode: null,
       characters: [],
       games: [],
     });
@@ -72,9 +76,11 @@ describe("/api/users/me handlers", () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
+      id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
       isSuperAdmin: false,
+      characterLayoutMode: null,
     });
   });
 

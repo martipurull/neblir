@@ -1,5 +1,7 @@
+import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
 import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
+import type { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { logger } from "@/logger";
@@ -24,7 +26,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await createUser(parsedBody);
+    const createData: Prisma.UserCreateInput = {
+      ...parsedBody,
+      characterLayoutMode: toDbCharacterLayoutMode(
+        parsedBody.characterLayoutMode
+      ),
+    };
+
+    const user = await createUser(createData);
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {

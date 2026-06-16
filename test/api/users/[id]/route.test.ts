@@ -62,7 +62,10 @@ describe("/api/users/[id] handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
-    safeParseMock.mockReturnValue({ data: { name: "new" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "new", characterLayoutMode: "vertical" },
+      error: undefined,
+    });
     updateUserMock.mockResolvedValue({ id: "user-1", name: "new" });
     const { PATCH } = await import("@/app/api/users/[id]/route");
     const response = await invokeRoute(
@@ -71,6 +74,28 @@ describe("/api/users/[id] handlers", () => {
       makeParams({ id: "user-1" })
     );
     expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      name: "new",
+      characterLayoutMode: "VERTICAL",
+    });
+  });
+
+  it("PATCH passes null characterLayoutMode through to db", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterLayoutMode: null },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterLayoutMode: null,
+    });
   });
 
   it("DELETE returns 204 on success", async () => {

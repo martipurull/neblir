@@ -4,6 +4,7 @@ import {
   CharacterSectionCarousel,
   type CharacterSectionSlide,
 } from "@/app/components/character/CharacterSectionCarousel";
+import { CharacterSectionGrid } from "@/app/components/character/CharacterSectionGrid";
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
 import { DedicatedDiceRollModal } from "@/app/components/character/DedicatedDiceRollModal";
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
@@ -18,6 +19,7 @@ import { useImageUrls } from "@/hooks/use-image-urls";
 import { useReactionTracking } from "@/hooks/use-reaction-tracking";
 import { useActiveGameId } from "@/hooks/use-active-game-id";
 import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
+import { useUser } from "@/hooks/use-user";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -41,12 +43,19 @@ export type CharacterDetailViewProps = {
   mutate?: KeyedMutator<CharacterDetail | null>;
 };
 
+export function resolveCharacterLayoutMode(
+  mode: "horizontal" | "vertical" | null | undefined
+): "horizontal" | "vertical" {
+  return mode ?? "horizontal";
+}
+
 export function CharacterDetailView({
   character,
   readOnly = false,
   fixedGameId = null,
   mutate,
 }: CharacterDetailViewProps) {
+  const { user } = useUser();
   const noopMutate = useCallback(
     async () => character,
     [character]
@@ -228,6 +237,10 @@ export function CharacterDetailView({
     rollPrivacy,
   ]);
 
+  const effectiveLayoutMode = resolveCharacterLayoutMode(
+    user?.characterLayoutMode
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <CharacterSummaryHeader
@@ -249,10 +262,14 @@ export function CharacterDetailView({
         rollPrivacy={rollPrivacy}
         className="shrink-0"
       />
-      <CharacterSectionCarousel
-        sections={sections}
-        className="min-h-0 flex-1"
-      />
+      {effectiveLayoutMode === "vertical" ? (
+        <CharacterSectionGrid sections={sections} className="min-h-0 flex-1" />
+      ) : (
+        <CharacterSectionCarousel
+          sections={sections}
+          className="min-h-0 flex-1"
+        />
+      )}
 
       {!readOnly &&
         (diceSelection.length === 2 || singleAttributeRollSelection) && (

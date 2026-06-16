@@ -208,6 +208,11 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum CharacterLayoutMode {
+  HORIZONTAL
+  VERTICAL
+}
+
 type CharacterCombatInformation {
   armourCurrentHP   Int
   armourMaxHP       Int
@@ -831,6 +836,8 @@ model User {
   name  String
   /** Defaults to USER in app logic when unset (existing documents may omit this field). */
   role  UserRole?
+  /** Optional UI preference. Null/missing means use horizontal carousel fallback. */
+  characterLayoutMode CharacterLayoutMode?
 
   games               GameUser[]
   characters          CharacterUser[]

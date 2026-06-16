@@ -39,5 +39,37 @@ describe("/api/users POST", () => {
       makeAuthedRequest({ email: "a@b.com", name: "A" })
     );
     expect(response.status).toBe(201);
+    expect(createUserMock).toHaveBeenCalledWith({
+      email: "a@b.com",
+      name: "A",
+      characterLayoutMode: undefined,
+    });
+  });
+
+  it("maps characterLayoutMode to db enum on create", async () => {
+    safeParseMock.mockReturnValue({
+      data: {
+        email: "a@b.com",
+        name: "A",
+        characterLayoutMode: "vertical",
+      },
+      error: undefined,
+    });
+    createUserMock.mockResolvedValue({ id: "u-1" });
+    const { POST } = await import("@/app/api/users/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        email: "a@b.com",
+        name: "A",
+        characterLayoutMode: "vertical",
+      })
+    );
+    expect(response.status).toBe(201);
+    expect(createUserMock).toHaveBeenCalledWith({
+      email: "a@b.com",
+      name: "A",
+      characterLayoutMode: "VERTICAL",
+    });
   });
 });

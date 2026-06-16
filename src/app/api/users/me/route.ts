@@ -1,3 +1,4 @@
+import { toApiCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
 import { deleteUser, getUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -30,11 +31,17 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("User not found", 404);
     }
 
+    const characterLayoutMode = toApiCharacterLayoutMode(
+      user.characterLayoutMode
+    );
+
     return NextResponse.json(
       {
+        id: user.id,
         name: user.name,
         email: user.email,
         isSuperAdmin: user.role === "SUPER_ADMIN",
+        characterLayoutMode,
       },
       { status: 200 }
     );

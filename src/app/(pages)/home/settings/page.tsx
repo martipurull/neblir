@@ -7,16 +7,59 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
+import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { useUser } from "@/hooks/use-user";
-import { deleteCurrentUser } from "@/lib/api/user";
+import {
+  deleteCurrentUser,
+  updateUserCharacterLayoutMode,
+} from "@/lib/api/user";
 import { signOut } from "next-auth/react";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 const SettingsPage: React.FC = () => {
   const { user, loading, error, refetch } = useUser();
+  const [layoutMode, setLayoutMode] =
+    useState<CharacterLayoutMode>("horizontal");
+  const [layoutSaving, setLayoutSaving] = useState(false);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
+
+  const effectiveLayoutMode = useMemo<CharacterLayoutMode>(
+    () => user?.characterLayoutMode ?? "horizontal",
+    [user?.characterLayoutMode]
+  );
+
+  useEffect(() => {
+    setLayoutMode(effectiveLayoutMode);
+  }, [effectiveLayoutMode]);
+
   const deleteAccount = async () => {
     await deleteCurrentUser();
     await signOut({ callbackUrl: "/" });
+  };
+
+  const handleLayoutChange = async (value: string) => {
+    if (!user) return;
+    if (value !== "horizontal" && value !== "vertical") return;
+    const nextMode = value as CharacterLayoutMode;
+    if (nextMode === effectiveLayoutMode) return;
+
+    setLayoutMode(nextMode);
+    setLayoutSaving(true);
+    setLayoutError(null);
+    try {
+      await updateUserCharacterLayoutMode(user.id, nextMode);
+      await refetch();
+    } catch (e) {
+      setLayoutMode(effectiveLayoutMode);
+      setLayoutError(
+        e instanceof Error
+          ? e.message
+          : "Failed to update character layout preference"
+      );
+    } finally {
+      setLayoutSaving(false);
+    }
   };
 
   return (
@@ -33,12 +76,34 @@ const SettingsPage: React.FC = () => {
         )}
 
         {!loading && !error && user && (
-          <KeyValueList
-            items={[
-              { label: "Name", value: user.name },
-              { label: "Email", value: user.email },
-            ]}
-          />
+          <div className="space-y-4">
+            <KeyValueList
+              items={[
+                { label: "Name", value: user.name },
+                { label: "Email", value: user.email },
+              ]}
+            />
+            <div className="border-t border-black/20 pt-4">
+              <RadioGroup
+                name="character-layout-mode"
+                label="Character Page Layout"
+                value={layoutMode}
+                options={[
+                  { value: "horizontal", label: "Horizontal (carousel)" },
+                  { value: "vertical", label: "Vertical (scrolling cards)" },
+                ]}
+                onChange={(value) => {
+                  void handleLayoutChange(value);
+                }}
+                disabled={layoutSaving}
+              />
+              {layoutError ? (
+                <p className="mt-2 text-sm text-neblirDanger-600">
+                  {layoutError}
+                </p>
+              ) : null}
+            </div>
+          </div>
         )}
       </InfoCard>
       <DangerActionFooter
