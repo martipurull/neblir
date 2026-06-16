@@ -21,6 +21,33 @@ export async function deleteCurrentUser(): Promise<void> {
   }
 }
 
+export async function updateUserCharacterCarouselWrap(
+  userId: string,
+  wrapAtEdges: boolean | null
+): Promise<void> {
+  const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ characterCarouselWrap: wrapAtEdges }),
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        body,
+        "Failed to update carousel wrap preference"
+      )
+    );
+  }
+}
+
 export async function updateUserCharacterLayoutMode(
   userId: string,
   mode: CharacterLayoutMode | null

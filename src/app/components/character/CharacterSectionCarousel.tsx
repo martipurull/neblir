@@ -17,11 +17,13 @@ export interface CharacterSectionSlide {
 interface CharacterSectionCarouselProps {
   sections: CharacterSectionSlide[];
   className?: string;
+  wrapAtEdges?: boolean;
 }
 
 export function CharacterSectionCarousel({
   sections,
   className,
+  wrapAtEdges = true,
 }: CharacterSectionCarouselProps) {
   /** Stable while section ids/order are unchanged — note saves must not retrigger scroll restore. */
   const sectionKeySignature = sections.map((s) => s.id).join("\0");
@@ -30,10 +32,11 @@ export function CharacterSectionCarousel({
       sectionKeySignature.length === 0 ? [] : sectionKeySignature.split("\0"),
     [sectionKeySignature]
   );
-  const { scrollRef, currentIndex, scrollToIndex } = useCarousel(
-    sections.length,
-    sectionKeys
-  );
+  const { scrollRef, currentIndex, scrollToIndex, canGoPrev, canGoNext } =
+    useCarousel(sections.length, sectionKeys, { wrapAtEdges });
+
+  const prevArrowDisabled = sections.length === 0 || !canGoPrev;
+  const nextArrowDisabled = sections.length === 0 || !canGoNext;
 
   return (
     <div
@@ -43,7 +46,8 @@ export function CharacterSectionCarousel({
         <CarouselArrows
           onPrev={() => scrollToIndex(currentIndex - 1)}
           onNext={() => scrollToIndex(currentIndex + 1)}
-          disabled={sections.length === 0}
+          prevDisabled={prevArrowDisabled}
+          nextDisabled={nextArrowDisabled}
         />
         <CarouselTrack ref={scrollRef}>
           {sections.map((section, index) => (

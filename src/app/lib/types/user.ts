@@ -6,6 +6,8 @@ export type CharacterLayoutMode = NonNullable<
   z.infer<typeof characterLayoutModeSchema>
 >;
 
+const characterCarouselWrapSchema = z.boolean().nullish();
+
 const characterUserSchema = z.object({
   id: z.string(),
   characterId: z.string(),
@@ -17,6 +19,7 @@ const userSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   characterLayoutMode: characterLayoutModeSchema,
+  characterCarouselWrap: characterCarouselWrapSchema,
   games: z.array(z.lazy(() => gameUserSchema)).optional(),
   characters: z.array(z.lazy(() => characterUserSchema)).optional(),
 });
@@ -33,6 +36,7 @@ export const currentUserSchema = userSchema
     name: true,
     email: true,
     characterLayoutMode: true,
+    characterCarouselWrap: true,
   })
   .extend({
     isSuperAdmin: z.boolean(),

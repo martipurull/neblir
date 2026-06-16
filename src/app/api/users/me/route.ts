@@ -42,6 +42,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         email: user.email,
         isSuperAdmin: user.role === "SUPER_ADMIN",
         characterLayoutMode,
+        characterCarouselWrap: user.characterCarouselWrap ?? null,
       },
       { status: 200 }
     );

@@ -80,6 +80,25 @@ describe("/api/users/[id] handlers", () => {
     });
   });
 
+  it("PATCH passes characterCarouselWrap through to db", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterCarouselWrap: false },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterCarouselWrap: false,
+      characterLayoutMode: undefined,
+    });
+  });
+
   it("PATCH passes null characterLayoutMode through to db", async () => {
     safeParseMock.mockReturnValue({
       data: { characterLayoutMode: null },

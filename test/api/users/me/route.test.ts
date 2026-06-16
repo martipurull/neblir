@@ -41,6 +41,7 @@ describe("/api/users/me handlers", () => {
       email: "taylor@example.com",
       role: "SUPER_ADMIN",
       characterLayoutMode: "VERTICAL",
+      characterCarouselWrap: true,
       characters: [],
       games: [],
     });
@@ -56,16 +57,18 @@ describe("/api/users/me handlers", () => {
       email: "taylor@example.com",
       isSuperAdmin: true,
       characterLayoutMode: "vertical",
+      characterCarouselWrap: true,
     });
   });
 
-  it("GET returns 200 with frontend-safe user payload", async () => {
+  it("GET returns characterCarouselWrap null when unset", async () => {
     getUserMock.mockResolvedValue({
       id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
       role: "USER",
       characterLayoutMode: null,
+      characterCarouselWrap: null,
       characters: [],
       games: [],
     });
@@ -81,6 +84,34 @@ describe("/api/users/me handlers", () => {
       email: "taylor@example.com",
       isSuperAdmin: false,
       characterLayoutMode: null,
+      characterCarouselWrap: null,
+    });
+  });
+
+  it("GET returns 200 with frontend-safe user payload", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characters: [],
+      games: [],
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
     });
   });
 

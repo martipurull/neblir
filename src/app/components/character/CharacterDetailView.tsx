@@ -20,6 +20,7 @@ import { useReactionTracking } from "@/hooks/use-reaction-tracking";
 import { useActiveGameId } from "@/hooks/use-active-game-id";
 import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useUser } from "@/hooks/use-user";
+import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -240,6 +241,9 @@ export function CharacterDetailView({
   const effectiveLayoutMode = resolveCharacterLayoutMode(
     user?.characterLayoutMode
   );
+  const effectiveCarouselWrap = resolveCharacterCarouselWrap(
+    user?.characterCarouselWrap
+  );
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -267,6 +271,7 @@ export function CharacterDetailView({
       ) : (
         <CharacterSectionCarousel
           sections={sections}
+          wrapAtEdges={effectiveCarouselWrap}
           className="min-h-0 flex-1"
         />
       )}

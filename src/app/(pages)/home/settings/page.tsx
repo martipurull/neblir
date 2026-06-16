@@ -8,10 +8,13 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
+import { Checkbox } from "@/app/components/shared/Checkbox";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { useUser } from "@/hooks/use-user";
+import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
 import {
   deleteCurrentUser,
+  updateUserCharacterCarouselWrap,
   updateUserCharacterLayoutMode,
 } from "@/lib/api/user";
 import { signOut } from "next-auth/react";
@@ -23,15 +26,29 @@ const SettingsPage: React.FC = () => {
     useState<CharacterLayoutMode>("horizontal");
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutError, setLayoutError] = useState<string | null>(null);
+  const [carouselWrap, setCarouselWrap] = useState(true);
+  const [carouselWrapSaving, setCarouselWrapSaving] = useState(false);
+  const [carouselWrapError, setCarouselWrapError] = useState<string | null>(
+    null
+  );
 
   const effectiveLayoutMode = useMemo<CharacterLayoutMode>(
     () => user?.characterLayoutMode ?? "horizontal",
     [user?.characterLayoutMode]
   );
 
+  const effectiveCarouselWrap = useMemo(
+    () => resolveCharacterCarouselWrap(user?.characterCarouselWrap),
+    [user?.characterCarouselWrap]
+  );
+
   useEffect(() => {
     setLayoutMode(effectiveLayoutMode);
   }, [effectiveLayoutMode]);
+
+  useEffect(() => {
+    setCarouselWrap(effectiveCarouselWrap);
+  }, [effectiveCarouselWrap]);
 
   const deleteAccount = async () => {
     await deleteCurrentUser();
@@ -59,6 +76,28 @@ const SettingsPage: React.FC = () => {
       );
     } finally {
       setLayoutSaving(false);
+    }
+  };
+
+  const handleCarouselWrapChange = async (checked: boolean) => {
+    if (!user) return;
+    if (checked === effectiveCarouselWrap) return;
+
+    setCarouselWrap(checked);
+    setCarouselWrapSaving(true);
+    setCarouselWrapError(null);
+    try {
+      await updateUserCharacterCarouselWrap(user.id, checked);
+      await refetch();
+    } catch (e) {
+      setCarouselWrap(effectiveCarouselWrap);
+      setCarouselWrapError(
+        e instanceof Error
+          ? e.message
+          : "Failed to update carousel wrap preference"
+      );
+    } finally {
+      setCarouselWrapSaving(false);
     }
   };
 
@@ -102,6 +141,30 @@ const SettingsPage: React.FC = () => {
                   {layoutError}
                 </p>
               ) : null}
+              <div className="mt-4 border-t border-black/20 pt-4">
+                <p className="text-sm font-bold text-black">
+                  Carousel wrap at ends
+                </p>
+                <p className="mt-1 text-xs text-black/75">
+                  When enabled, scrolling past the first or last section in the
+                  horizontal carousel jumps to the opposite end. Only applies
+                  when horizontal layout is selected.
+                </p>
+                <Checkbox
+                  checked={carouselWrap}
+                  onChange={(checked) => {
+                    void handleCarouselWrapChange(checked);
+                  }}
+                  disabled={carouselWrapSaving || layoutSaving}
+                  className="mt-3"
+                  label="Wrap carousel at ends"
+                />
+                {carouselWrapError ? (
+                  <p className="mt-2 text-sm text-neblirDanger-600">
+                    {carouselWrapError}
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         )}

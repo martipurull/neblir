@@ -838,6 +838,8 @@ model User {
   role  UserRole?
   /** Optional UI preference. Null/missing means use horizontal carousel fallback. */
   characterLayoutMode CharacterLayoutMode?
+  /** When true, horizontal carousel wraps from last to first at edges. Null/missing means wrap enabled. */
+  characterCarouselWrap Boolean?
 
   games               GameUser[]
   characters          CharacterUser[]
