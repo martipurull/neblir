@@ -124,19 +124,28 @@ const SettingsPage: React.FC = () => {
               ]}
             />
             <div className="border-t border-black/20 pt-4">
-              <RadioGroup
-                name="character-layout-mode"
-                label="Character Page Layout"
-                value={layoutMode}
-                options={[
-                  { value: "horizontal", label: "Horizontal (carousel)" },
-                  { value: "vertical", label: "Vertical (scrolling cards)" },
-                ]}
-                onChange={(value) => {
-                  void handleLayoutChange(value);
-                }}
-                disabled={layoutSaving}
-              />
+              <p className="text-sm font-bold text-black">
+                Character page layout
+              </p>
+              <p className="mt-1 text-xs text-black/75">
+                Choose between horizontal carousel and vertical scrolling cards.
+              </p>
+              <div className="mt-3">
+                <RadioGroup
+                  name="character-layout-mode"
+                  value={layoutMode}
+                  variant="chip"
+                  optionLayout="equal"
+                  options={[
+                    { value: "horizontal", label: "Horizontal (carousel)" },
+                    { value: "vertical", label: "Vertical (scrolling cards)" },
+                  ]}
+                  onChange={(value) => {
+                    void handleLayoutChange(value);
+                  }}
+                  disabled={layoutSaving}
+                />
+              </div>
               {layoutError ? (
                 <p className="mt-2 text-sm text-neblirDanger-600">
                   {layoutError}
@@ -170,6 +179,7 @@ const SettingsPage: React.FC = () => {
                   savedOrder={user.characterSectionOrder}
                   onSaved={refetch}
                   disabled={layoutSaving || carouselWrapSaving}
+                  characterLayoutMode={layoutMode}
                 />
               </div>
             </div>

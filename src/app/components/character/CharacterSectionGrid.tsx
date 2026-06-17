@@ -1,6 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
+import { CHARACTER_SECTION_GRID_RESPONSIVE_CLASS } from "@/app/lib/characterSectionGridLayout";
 
 interface CharacterSectionGridProps {
   sections: CharacterSectionSlide[];
@@ -15,7 +16,7 @@ export function CharacterSectionGrid({
     <div
       className={`min-h-0 min-w-0 overflow-y-auto px-2 pb-2 pt-4 ${className ?? ""}`}
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className={CHARACTER_SECTION_GRID_RESPONSIVE_CLASS}>
         {sections.map((section) => (
           <section
             key={section.id}

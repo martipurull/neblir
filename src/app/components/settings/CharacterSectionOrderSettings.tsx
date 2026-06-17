@@ -1,11 +1,20 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import {
   CHARACTER_SECTION_LABELS,
   type CharacterSectionId,
   type CharacterSectionOrder,
 } from "@/app/lib/constants/characterSections";
+import {
+  CHARACTER_SECTION_ORDER_PREVIEW_CHIP_WIDTH_CLASS,
+  type CharacterSectionGridPreview,
+  characterSectionGridPreviewGridClassName,
+  getAvailableCharacterSectionGridPreviewOptions,
+  isCharacterSectionGridPreview,
+  resolveCharacterSectionGridPreviewForViewport,
+} from "@/app/lib/characterSectionGridLayout";
 import {
   characterSectionOrdersEqual,
   isDefaultCharacterSectionOrder,
@@ -13,6 +22,8 @@ import {
   resolveCharacterSectionOrderList,
   toPersistedCharacterSectionOrder,
 } from "@/app/lib/characterSectionOrder";
+import type { CharacterLayoutMode } from "@/app/lib/types/user";
+import { useViewportWidth } from "@/hooks/use-viewport-width";
 import { updateUserCharacterSectionOrder } from "@/lib/api/user";
 import {
   useCallback,
@@ -30,6 +41,7 @@ type CharacterSectionOrderSettingsProps = {
   savedOrder: CharacterSectionOrder | null | undefined;
   onSaved: () => Promise<unknown>;
   disabled?: boolean;
+  characterLayoutMode?: CharacterLayoutMode;
 };
 
 export function CharacterSectionOrderSettings({
@@ -37,7 +49,9 @@ export function CharacterSectionOrderSettings({
   savedOrder,
   onSaved,
   disabled = false,
+  characterLayoutMode = "horizontal",
 }: CharacterSectionOrderSettingsProps) {
+  const viewportWidth = useViewportWidth();
   const effectiveSavedOrder = useMemo(
     () => resolveCharacterSectionOrderList(savedOrder),
     [savedOrder]
@@ -46,6 +60,8 @@ export function CharacterSectionOrderSettings({
     null
   );
   const order = draftOrder ?? effectiveSavedOrder;
+  const [gridPreview, setGridPreview] =
+    useState<CharacterSectionGridPreview>("mobile");
   const [draggedId, setDraggedId] = useState<CharacterSectionId | null>(null);
   const [dropTargetId, setDropTargetId] = useState<CharacterSectionId | null>(
     null
@@ -57,6 +73,21 @@ export function CharacterSectionOrderSettings({
   const isAtDefault =
     isDefaultCharacterSectionOrder(order) &&
     (savedOrder === null || savedOrder === undefined);
+
+  const isVerticalLayout = characterLayoutMode === "vertical";
+  const availableGridPreviewOptions = useMemo(
+    () => getAvailableCharacterSectionGridPreviewOptions(viewportWidth),
+    [viewportWidth]
+  );
+  const effectiveGridPreview = resolveCharacterSectionGridPreviewForViewport(
+    gridPreview,
+    viewportWidth
+  );
+  const previewGridClassName =
+    characterSectionGridPreviewGridClassName(effectiveGridPreview);
+  const listLayoutClassName = isVerticalLayout
+    ? previewGridClassName
+    : "flex flex-col gap-2";
 
   const persistOrder = useCallback(
     async (nextOrder: CharacterSectionId[]) => {
@@ -154,6 +185,15 @@ export function CharacterSectionOrderSettings({
           <p className="mt-1 text-xs text-black/75">
             Drag sections to reorder cards on your character page. Changes save
             automatically.
+            {isVerticalLayout ? (
+              <>
+                {" "}
+                Use the layout preview to see how sections wrap at different
+                screen sizes.
+              </>
+            ) : (
+              <> Sections appear in carousel order on the character page.</>
+            )}
           </p>
         </div>
         <Button
@@ -168,8 +208,29 @@ export function CharacterSectionOrderSettings({
         </Button>
       </div>
 
+      {isVerticalLayout ? (
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-black">Layout preview</p>
+          <div className="mt-2">
+            <RadioGroup
+              name="character-section-grid-preview"
+              value={effectiveGridPreview}
+              variant="chip"
+              density="compact"
+              options={[...availableGridPreviewOptions]}
+              onChange={(value) => {
+                if (isCharacterSectionGridPreview(value)) {
+                  setGridPreview(value);
+                }
+              }}
+              disabled={disabled || saving}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <ul
-        className="mt-3 space-y-2"
+        className={`mt-3 ${listLayoutClassName}`}
         aria-label="Character section order"
         aria-busy={saving}
       >
@@ -189,9 +250,13 @@ export function CharacterSectionOrderSettings({
               onDragLeave={() => {
                 setDropTargetId((current) => (current === id ? null : current));
               }}
-              className={`flex items-center gap-3 rounded-md border bg-paleBlue px-3 py-2 transition-colors ${
+              className={`flex items-center gap-2 rounded-md border bg-paleBlue transition-colors ${
+                isVerticalLayout
+                  ? `h-10 shrink-0 ${CHARACTER_SECTION_ORDER_PREVIEW_CHIP_WIDTH_CLASS} px-2 py-1.5`
+                  : "w-full px-3 py-2"
+              } ${
                 isDropTarget
-                  ? "border-customPrimary ring-1 ring-customPrimary"
+                  ? "border-customPrimary ring-2 ring-paleBlue ring-offset-1"
                   : "border-black/20"
               } ${isDragging ? "opacity-50" : ""} ${
                 disabled || saving
@@ -200,12 +265,18 @@ export function CharacterSectionOrderSettings({
               }`}
             >
               <span
-                className="select-none text-sm leading-none text-black/45"
+                className={`select-none leading-none text-black/45 ${
+                  isVerticalLayout ? "text-xs" : "text-sm"
+                }`}
                 aria-hidden
               >
                 ⋮⋮
               </span>
-              <span className="text-sm text-black">
+              <span
+                className={`min-w-0 flex-1 font-medium text-black ${
+                  isVerticalLayout ? "truncate text-xs" : "text-sm"
+                }`}
+              >
                 {CHARACTER_SECTION_LABELS[id]}
               </span>
             </li>
