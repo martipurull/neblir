@@ -1,6 +1,7 @@
 "use client";
 
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { Button } from "@/app/components/shared/Button";
@@ -14,7 +15,10 @@ import {
 } from "@/app/components/shared/TypeToConfirmDangerModal";
 import { deleteCharacter } from "@/lib/api/character";
 import { setGameCharacterVisibility } from "@/lib/api/game";
+import { updateUserCharacterLayoutMode } from "@/lib/api/user";
+import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -48,11 +52,16 @@ export function CharacterNameActionsModal({
   onVisibilityUpdated,
 }: CharacterNameActionsModalProps) {
   const router = useRouter();
+  const { user, refetch: refetchUser } = useUser();
   const [visibilityBusy, setVisibilityBusy] = useState(false);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [layoutSaving, setLayoutSaving] = useState(false);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
+  const [layoutMode, setLayoutMode] =
+    useState<CharacterLayoutMode>("horizontal");
   const [localIsPublicByGameId, setLocalIsPublicByGameId] = useState<
     Record<string, boolean>
   >({});
@@ -68,6 +77,12 @@ export function CharacterNameActionsModal({
     setLocalIsPublicByGameId(next);
     setVisibilityError(null);
   }, [isOpen, gameLinks]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLayoutMode(user?.characterLayoutMode ?? "horizontal");
+    setLayoutError(null);
+  }, [isOpen, user?.characterLayoutMode]);
 
   const activeIsPublic = useMemo(() => {
     if (!activeGameId) return true;
@@ -130,6 +145,31 @@ export function CharacterNameActionsModal({
         );
       } finally {
         setVisibilityBusy(false);
+      }
+    })();
+  };
+
+  const handleLayoutChange = (value: string) => {
+    if (!user || layoutSaving) return;
+    if (value !== "horizontal" && value !== "vertical") return;
+    const nextMode = value as CharacterLayoutMode;
+    const currentMode = user.characterLayoutMode ?? "horizontal";
+    if (nextMode === currentMode) return;
+
+    setLayoutMode(nextMode);
+    setLayoutSaving(true);
+    setLayoutError(null);
+    void (async () => {
+      try {
+        await updateUserCharacterLayoutMode(user.id, nextMode);
+        await refetchUser();
+      } catch (e) {
+        setLayoutMode(currentMode);
+        setLayoutError(
+          getUserSafeErrorMessage(e, "Failed to update character layout.")
+        );
+      } finally {
+        setLayoutSaving(false);
       }
     })();
   };
@@ -228,6 +268,34 @@ export function CharacterNameActionsModal({
                     </p>
                   ) : null}
                 </div>
+              ) : null}
+            </div>
+
+            <div className="mt-2 border-t border-white/20 pt-4">
+              <p className="text-sm font-semibold text-white">
+                Character page layout
+              </p>
+              <p className="mt-1 text-xs text-white/75">
+                Choose between horizontal carousel and vertical scrolling cards.
+              </p>
+              <div className="mt-3">
+                <RadioGroup
+                  name="character-layout-mode-modal"
+                  value={layoutMode}
+                  options={[
+                    { value: "horizontal", label: "Horizontal" },
+                    { value: "vertical", label: "Vertical" },
+                  ]}
+                  onChange={handleLayoutChange}
+                  disabled={layoutSaving}
+                  tone="inverse"
+                  variant="chip"
+                />
+              </div>
+              {layoutError ? (
+                <p className="mt-2 text-sm text-neblirDanger-400">
+                  {layoutError}
+                </p>
               ) : null}
             </div>
 

@@ -1,5 +1,5 @@
 // types/next-auth.d.ts
-import "next-auth";
+import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface CharacterUser {
@@ -7,7 +7,7 @@ declare module "next-auth" {
     characterId: string;
     userId: string;
   }
-  interface User {
+  interface User extends Omit<DefaultSession["user"], "email" | "name"> {
     id: string;
     email: string;
     name: string;
@@ -16,7 +16,7 @@ declare module "next-auth" {
     characters: CharacterUser[];
   }
 
-  interface Session {
+  interface Session extends DefaultSession {
     user: User;
   }
 }

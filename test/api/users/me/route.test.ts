@@ -40,6 +40,9 @@ describe("/api/users/me handlers", () => {
       name: "Taylor",
       email: "taylor@example.com",
       role: "SUPER_ADMIN",
+      characterLayoutMode: "VERTICAL",
+      characterCarouselWrap: true,
+      characterSectionOrder: ["inventory", "attributes"],
       characters: [],
       games: [],
     });
@@ -50,9 +53,99 @@ describe("/api/users/me handlers", () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
+      id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
       isSuperAdmin: true,
+      characterLayoutMode: "vertical",
+      characterCarouselWrap: true,
+      characterSectionOrder: ["inventory", "attributes"],
+    });
+  });
+
+  it("GET returns characterSectionOrder null when unset", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+      characters: [],
+      games: [],
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+    });
+  });
+
+  it("GET returns characterSectionOrder null when stored order is empty", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: [],
+      characters: [],
+      games: [],
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+    });
+  });
+
+  it("GET returns characterCarouselWrap null when unset", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characters: [],
+      games: [],
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
     });
   });
 
@@ -62,6 +155,8 @@ describe("/api/users/me handlers", () => {
       name: "Taylor",
       email: "taylor@example.com",
       role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
       characters: [],
       games: [],
     });
@@ -72,9 +167,13 @@ describe("/api/users/me handlers", () => {
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
+      id: "user-1",
       name: "Taylor",
       email: "taylor@example.com",
       isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
     });
   });
 

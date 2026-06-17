@@ -62,7 +62,10 @@ describe("/api/users/[id] handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
-    safeParseMock.mockReturnValue({ data: { name: "new" }, error: undefined });
+    safeParseMock.mockReturnValue({
+      data: { name: "new", characterLayoutMode: "vertical" },
+      error: undefined,
+    });
     updateUserMock.mockResolvedValue({ id: "user-1", name: "new" });
     const { PATCH } = await import("@/app/api/users/[id]/route");
     const response = await invokeRoute(
@@ -71,6 +74,85 @@ describe("/api/users/[id] handlers", () => {
       makeParams({ id: "user-1" })
     );
     expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      name: "new",
+      characterLayoutMode: "VERTICAL",
+    });
+  });
+
+  it("PATCH passes characterCarouselWrap through to db", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterCarouselWrap: false },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterCarouselWrap: false,
+      characterLayoutMode: undefined,
+    });
+  });
+
+  it("PATCH passes characterSectionOrder through to db", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterSectionOrder: ["inventory", "attributes", "skills"] },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterSectionOrder: ["inventory", "attributes", "skills"],
+      characterLayoutMode: undefined,
+    });
+  });
+
+  it("PATCH passes null characterSectionOrder through to db as empty array", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterSectionOrder: null },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterSectionOrder: [],
+      characterLayoutMode: undefined,
+    });
+  });
+
+  it("PATCH passes null characterLayoutMode through to db", async () => {
+    safeParseMock.mockReturnValue({
+      data: { characterLayoutMode: null },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+      characterLayoutMode: null,
+    });
   });
 
   it("DELETE returns 204 on success", async () => {

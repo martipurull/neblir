@@ -1,3 +1,5 @@
+import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toDbCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { deleteUser, getUser, updateUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { userUpdateSchema } from "@/app/lib/types/user";
@@ -6,6 +8,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
+import type { Prisma } from "@prisma/client";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -99,7 +102,17 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updatedUser = await updateUser(id, parsedBody);
+    const updateData: Prisma.UserUpdateInput = {
+      ...parsedBody,
+      characterLayoutMode: toDbCharacterLayoutMode(
+        parsedBody.characterLayoutMode
+      ),
+      characterSectionOrder: toDbCharacterSectionOrder(
+        parsedBody.characterSectionOrder
+      ),
+    };
+
+    const updatedUser = await updateUser(id, updateData);
 
     return NextResponse.json(updatedUser);
   } catch (error) {

@@ -1,8 +1,20 @@
 import NextAuth from "next-auth";
+import type { User } from "next-auth";
 import { parseSuperAdminEmailSet } from "./app/lib/authz/superAdmin";
 import { createUser, getUserByEmail, updateUser } from "./app/lib/prisma/user";
-import type { AdapterUser } from "next-auth/adapters";
 import authConfig from "./auth.config";
+
+function toSessionUser(
+  dbUser: NonNullable<Awaited<ReturnType<typeof getUserByEmail>>>
+): User {
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name,
+    role: dbUser.role ?? undefined,
+    characters: [],
+  };
+}
 
 export const { handlers, signOut, auth } = NextAuth({
   ...authConfig,
@@ -30,7 +42,11 @@ export const { handlers, signOut, auth } = NextAuth({
           }
         }
 
-        token.user = (await getUserByEmail(user.email)) as AdapterUser;
+        const dbUser = await getUserByEmail(user.email);
+        if (!dbUser) {
+          throw new Error("User not found after sign-in");
+        }
+        token.user = toSessionUser(dbUser);
 
         return token;
       }
@@ -39,7 +55,14 @@ export const { handlers, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
-      session.user = token.user as AdapterUser;
+      const jwtUser = token.user as User | undefined;
+      if (jwtUser) {
+        session.user.id = jwtUser.id;
+        session.user.email = jwtUser.email;
+        session.user.name = jwtUser.name;
+        session.user.role = jwtUser.role;
+        session.user.characters = jwtUser.characters;
+      }
 
       return session;
     },

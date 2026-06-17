@@ -9,11 +9,54 @@ import {
 const SWIPE_THRESHOLD_PX = 40;
 const WHEEL_WRAP_THRESHOLD = 20;
 
+export type UseCarouselOptions = {
+  /** When true, scrolling past an edge jumps to the opposite end. Default true. */
+  wrapAtEdges?: boolean;
+};
+
+/** Null/missing user preference => wrap enabled (legacy carousel behaviour). */
+export function resolveCharacterCarouselWrap(
+  wrap: boolean | null | undefined
+): boolean {
+  return wrap ?? true;
+}
+
+export function resolveCarouselIndex(
+  index: number,
+  sectionCount: number,
+  wrapAtEdges: boolean
+): number {
+  if (sectionCount <= 0) return 0;
+  if (wrapAtEdges) {
+    return ((index % sectionCount) + sectionCount) % sectionCount;
+  }
+  return Math.max(0, Math.min(index, sectionCount - 1));
+}
+
+export function resolveCarouselNavAvailability(
+  wrapAtEdges: boolean,
+  sectionCount: number,
+  currentIndex: number
+): { canGoPrev: boolean; canGoNext: boolean } {
+  if (wrapAtEdges) {
+    return {
+      canGoPrev: sectionCount > 0,
+      canGoNext: sectionCount > 0,
+    };
+  }
+  return {
+    canGoPrev: currentIndex > 0,
+    canGoNext: currentIndex < sectionCount - 1,
+  };
+}
+
 /** When sectionKeys reference changes, we restore scroll to the last index (so mutate doesn't reset the slide). */
 export function useCarousel(
   sectionCount: number,
-  sectionKeys?: readonly string[]
+  sectionKeys?: readonly string[],
+  options?: UseCarouselOptions
 ) {
+  const wrapAtEdges = options?.wrapAtEdges ?? true;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const lastIndexRef = useRef(0);
@@ -36,14 +79,17 @@ export function useCarousel(
       const slideWidth = (firstSlide as HTMLElement).offsetWidth;
       const gap = 16;
       const step = slideWidth + gap;
-      const wrappedIndex =
-        ((index % sectionCount) + sectionCount) % sectionCount;
-      lastIndexRef.current = wrappedIndex;
-      const left = wrappedIndex * step;
+      const targetIndex = resolveCarouselIndex(
+        index,
+        sectionCount,
+        wrapAtEdges
+      );
+      lastIndexRef.current = targetIndex;
+      const left = targetIndex * step;
       container.scrollTo({ left, behavior: "smooth" });
-      setCurrentIndex(wrappedIndex);
+      setCurrentIndex(targetIndex);
     },
-    [sectionCount]
+    [sectionCount, wrapAtEdges]
   );
 
   useEffect(() => {
@@ -70,7 +116,7 @@ export function useCarousel(
 
   useEffect(() => {
     const container = scrollRef.current;
-    if (!container || sectionCount <= 1) return;
+    if (!container || sectionCount <= 1 || !wrapAtEdges) return;
 
     const handleTouchStart = (e: TouchEvent) => {
       const scrollLeft = container.scrollLeft;
@@ -119,11 +165,11 @@ export function useCarousel(
       container.removeEventListener("touchend", handleTouchEnd);
       container.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [sectionCount, scrollToIndex]);
+  }, [sectionCount, scrollToIndex, wrapAtEdges]);
 
   useEffect(() => {
     const container = scrollRef.current;
-    if (!container || sectionCount <= 1) return;
+    if (!container || sectionCount <= 1 || !wrapAtEdges) return;
 
     const handleWheel = (e: WheelEvent) => {
       const scrollLeft = container.scrollLeft;
@@ -143,7 +189,7 @@ export function useCarousel(
 
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
-  }, [sectionCount, scrollToIndex]);
+  }, [sectionCount, scrollToIndex, wrapAtEdges]);
 
   useLayoutEffect(() => {
     if (sectionKeys == null || sectionKeys.length === 0 || sectionCount === 0)
@@ -168,5 +214,17 @@ export function useCarousel(
     });
   }, [sectionKeys, sectionCount]);
 
-  return { scrollRef, currentIndex, scrollToIndex };
+  const { canGoPrev, canGoNext } = resolveCarouselNavAvailability(
+    wrapAtEdges,
+    sectionCount,
+    currentIndex
+  );
+
+  return {
+    scrollRef,
+    currentIndex,
+    scrollToIndex,
+    canGoPrev,
+    canGoNext,
+  };
 }
