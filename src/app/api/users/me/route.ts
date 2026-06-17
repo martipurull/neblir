@@ -32,17 +32,13 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("User not found", 404);
     }
 
-    const characterLayoutMode = toApiCharacterLayoutMode(
-      user.characterLayoutMode
-    );
-
     return NextResponse.json(
       {
         id: user.id,
         name: user.name,
         email: user.email,
         isSuperAdmin: user.role === "SUPER_ADMIN",
-        characterLayoutMode,
+        characterLayoutMode: toApiCharacterLayoutMode(user.characterLayoutMode),
         characterCarouselWrap: user.characterCarouselWrap ?? null,
         characterSectionOrder: toApiCharacterSectionOrder(
           user.characterSectionOrder
