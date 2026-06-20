@@ -1,8 +1,11 @@
 import { createGameRecap, getGameRecaps } from "@/app/lib/prisma/gameRecap";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
+import { getR2Config } from "@/app/lib/r2";
+import { isPdfFileName, isValidRecapFileKey } from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameRecapCreateSchema } from "@/app/lib/types/recap";
 import { auth } from "@/auth";
+import { HeadObjectCommand } from "@aws-sdk/client-s3";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../shared/errors";
@@ -69,6 +72,32 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         400,
         validationDetails
       );
+    }
+
+    if (!isValidRecapFileKey(parsed.data.fileKey)) {
+      return errorResponse("Invalid recap file key", 400);
+    }
+    if (!isPdfFileName(parsed.data.fileName)) {
+      return errorResponse("Recap file name must end with .pdf", 400);
+    }
+
+    const config = getR2Config();
+    if (!config) {
+      return errorResponse("File upload is not configured", 500);
+    }
+
+    try {
+      const head = await config.s3Client.send(
+        new HeadObjectCommand({
+          Bucket: config.bucketName,
+          Key: parsed.data.fileKey,
+        })
+      );
+      if (head.ContentLength !== parsed.data.fileSizeBytes) {
+        return errorResponse("Uploaded file size does not match", 400);
+      }
+    } catch {
+      return errorResponse("Uploaded recap file not found in storage", 400);
     }
 
     const recap = await createGameRecap({

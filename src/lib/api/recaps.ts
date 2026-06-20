@@ -2,8 +2,10 @@ import {
   gameRecapDownloadSchema,
   gameRecapListSchema,
   gameRecapSchema,
+  recapUploadUrlResponseSchema,
   type GameRecap,
   type GameRecapCreate,
+  type RecapUploadUrlRequest,
 } from "@/app/lib/types/recap";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
@@ -61,6 +63,48 @@ export async function createGameRecap(
     );
   }
   return gameRecapSchema.parse(await response.json());
+}
+
+export async function requestRecapUploadUrl(
+  body: RecapUploadUrlRequest
+): Promise<{ fileKey: string; uploadUrl: string }> {
+  const response = await fetch("/api/recap-upload-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to prepare recap upload"
+      )
+    );
+  }
+  return recapUploadUrlResponseSchema.parse(await response.json());
+}
+
+export async function uploadRecapPdfToStorage(
+  uploadUrl: string,
+  file: File
+): Promise<void> {
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": "application/pdf",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to upload recap PDF to storage.");
+  }
+}
+
+export async function deleteUploadedRecapFile(fileKey: string): Promise<void> {
+  await fetch(`/api/upload-file?fileKey=${encodeURIComponent(fileKey)}`, {
+    method: "DELETE",
+  });
 }
 
 export async function deleteGameRecap(

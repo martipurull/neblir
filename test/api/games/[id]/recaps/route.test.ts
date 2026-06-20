@@ -10,6 +10,7 @@ const userIsInGameMock = vi.fn();
 const getGameMock = vi.fn();
 const getGameRecapsMock = vi.fn();
 const createGameRecapMock = vi.fn();
+const s3SendMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   userIsInGame: userIsInGameMock,
@@ -19,6 +20,20 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/gameRecap", () => ({
   getGameRecaps: getGameRecapsMock,
   createGameRecap: createGameRecapMock,
+}));
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  HeadObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    return args;
+  }),
+  S3Client: vi.fn(),
+}));
+
+vi.mock("@/app/lib/r2", () => ({
+  getR2Config: vi.fn(() => ({
+    bucketName: "bucket",
+    s3Client: { send: s3SendMock },
+  })),
 }));
 
 describe("GET /api/games/[id]/recaps", () => {
@@ -67,6 +82,11 @@ describe("GET /api/games/[id]/recaps", () => {
 describe("POST /api/games/[id]/recaps", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+    s3SendMock.mockResolvedValue({ ContentLength: 1234 });
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -151,6 +171,53 @@ describe("POST /api/games/[id]/recaps", () => {
       fileSizeBytes: 1234,
       uploadedByUserId: "gm-1",
     });
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 400 when recap file is missing from storage", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    s3SendMock.mockRejectedValueOnce(new Error("NotFound"));
+    const { POST } = await import("@/app/api/games/[id]/recaps/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          title: "Session 1",
+          fileKey: "recaps-s1.pdf",
+          fileName: "s1.pdf",
+          fileSizeBytes: 1234,
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { message: string };
+    expect(body.message).toMatch(/not found/i);
+    expect(createGameRecapMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for invalid recap file key", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/recaps/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          title: "Session 1",
+          fileKey: "games-cover.png",
+          fileName: "s1.pdf",
+          fileSizeBytes: 1234,
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { message: string };
+    expect(body.message).toMatch(/file key/i);
+    expect(createGameRecapMock).not.toHaveBeenCalled();
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 
   it("returns field-specific validation errors for invalid body", async () => {
