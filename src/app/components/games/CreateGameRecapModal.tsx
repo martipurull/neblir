@@ -9,8 +9,13 @@ import {
   RECAP_MAX_SIZE_BYTES,
   RECAP_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
-import { createGameRecap } from "@/lib/api/recaps";
-import { useMemo, useRef, useState } from "react";
+import {
+  createGameRecap,
+  deleteUploadedRecapFile,
+  requestRecapUploadUrl,
+  uploadRecapPdfToStorage,
+} from "@/lib/api/recaps";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 
 type CreateGameRecapModalProps = {
   isOpen: boolean;
@@ -19,32 +24,6 @@ type CreateGameRecapModalProps = {
   onClose: () => void;
   onSuccess?: () => void;
 };
-
-async function uploadRecapFile(file: File): Promise<{ fileKey: string }> {
-  const formData = new FormData();
-  formData.append("file", file);
-  const response = await fetch("/api/upload-file?type=recaps", {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as {
-      message?: string;
-    };
-    throw new Error(body.message ?? "Failed to upload recap file");
-  }
-  const data = (await response.json()) as { fileKey?: string };
-  if (!data.fileKey) {
-    throw new Error("Upload succeeded but no file key was returned.");
-  }
-  return { fileKey: data.fileKey };
-}
-
-async function deleteUploadedRecapFile(fileKey: string): Promise<void> {
-  await fetch(`/api/upload-file?fileKey=${encodeURIComponent(fileKey)}`, {
-    method: "DELETE",
-  });
-}
 
 export function CreateGameRecapModal({
   isOpen,
@@ -79,7 +58,7 @@ export function CreateGameRecapModal({
     onClose();
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!file) {
       setError("PDF file is required.");
@@ -99,13 +78,19 @@ export function CreateGameRecapModal({
       setSubmitting(true);
       setError(null);
 
-      const upload = await uploadRecapFile(file);
-      uploadedKey = upload.fileKey;
+      const { fileKey, uploadUrl } = await requestRecapUploadUrl({
+        gameId,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+      });
+      uploadedKey = fileKey;
+
+      await uploadRecapPdfToStorage(uploadUrl, file);
 
       await createGameRecap(gameId, {
         title: title.trim(),
         summary: summary.trim() || null,
-        fileKey: upload.fileKey,
+        fileKey,
         fileName: file.name,
         fileSizeBytes: file.size,
       });

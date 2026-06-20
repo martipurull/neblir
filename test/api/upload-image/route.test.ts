@@ -221,7 +221,7 @@ describe("/api/upload-image POST", () => {
     expect(putArgs.Key).toBe(data.fileKey);
   });
 
-  it("uploads recap PDF files with recaps- key and pdf content type", async () => {
+  it("returns 400 when type is recaps", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -233,48 +233,9 @@ describe("/api/upload-image POST", () => {
     const { POST } = await import("@/app/api/upload-image/route");
     const request = makeUploadRequest({ file, type: "recaps" });
     const response = await invokeRoute(POST, request);
-    expect(response.status).toBe(201);
-    const data = await response.json();
-    expect(data.fileKey).toMatch(/^recaps-/);
-    expect(data.fileKey).toMatch(/\.pdf$/);
-
-    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
-    expect(putArgs.Key).toBe(data.fileKey);
-    expect(putArgs.ContentType).toBe("application/pdf");
-  });
-
-  it("returns 400 when recap pdf exceeds 50MB", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
-
-    const size = 50 * 1024 * 1024 + 1;
-    const file = new File(["x".repeat(size)], "big-recap.pdf", {
-      type: "application/pdf",
-    });
-    const { POST } = await import("@/app/api/upload-image/route");
-    const request = makeUploadRequest({ file, type: "recaps" });
-    const response = await invokeRoute(POST, request);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.message).toMatch(/50MB|smaller/i);
-    expect(s3SendMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects non-pdf files for recaps", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
-
-    const file = new File(["x"], "not-pdf.png", { type: "image/png" });
-    const { POST } = await import("@/app/api/upload-image/route");
-    const request = makeUploadRequest({ file, type: "recaps" });
-    const response = await invokeRoute(POST, request);
-    expect(response.status).toBe(400);
-    const data = await response.json();
-    expect(data.message).toMatch(/PDF/i);
+    expect(data.message).toMatch(/recap-upload-url/i);
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 

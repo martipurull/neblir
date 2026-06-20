@@ -31,5 +31,19 @@ export const gameRecapDownloadSchema = z.object({
   url: z.string().url(),
 });
 
+export const recapUploadUrlRequestSchema = z
+  .object({
+    gameId: z.string().min(1),
+    fileName: z.string().min(1),
+    fileSizeBytes: z.number().int().positive(),
+  })
+  .strict();
+
+export const recapUploadUrlResponseSchema = z.object({
+  fileKey: z.string().min(1),
+  uploadUrl: z.string().url(),
+});
+
 export type GameRecap = z.infer<typeof gameRecapSchema>;
 export type GameRecapCreate = z.infer<typeof gameRecapCreateSchema>;
+export type RecapUploadUrlRequest = z.infer<typeof recapUploadUrlRequestSchema>;
