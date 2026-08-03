@@ -232,7 +232,7 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
           </svg>
         )}
       </div>
-      <style jsx>{`
+      <style>{`
         .image-loading-skeleton--animated {
           animation: image-skeleton-pulse 1.4s ease-in-out infinite;
         }

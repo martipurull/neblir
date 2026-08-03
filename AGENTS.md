@@ -94,8 +94,9 @@ These rules apply to every task unless the user explicitly overrides them.
 ## 10) Prefer Nullish Coalescing Over Logical OR
 
 - Prefer the nullish coalescing operator (`??`) over logical OR (`||`) when providing a fallback for `null` or `undefined`.
+- This matches ESLint **`@typescript-eslint/prefer-nullish-coalescing`** (“Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator”). Fix that warning in files you touch—do not leave new `||` fallbacks that the rule flags.
 - `??` only substitutes when the left-hand side is `null` or `undefined`; `||` also treats `0`, `""`, and `false` as missing, which can hide valid values.
-- Use `||` only when you intentionally want to fall back for any falsy value.
+- Use `||` only when you intentionally want to fall back for any falsy value (and only if the ESLint rule allows it in that context, e.g. after a boolean coercion the rule accepts).
 
 ## 11) React Hooks Must Run Unconditionally
 

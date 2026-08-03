@@ -26,9 +26,12 @@ const ALLOWED_UPLOAD_PREFIXES = [
   "custom_items-",
   "custom_enemies-",
   "unique_items-",
+  "custom_vehicles-",
+  "unique_vehicles-",
   "games-",
   "characters-",
   "items-",
+  "vehicles-",
   "maps-",
   "recaps-",
 ] as const;

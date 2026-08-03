@@ -1,7 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
-import type { CharacterDetail } from "@/app/lib/types/character";
+import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
 import { Button } from "@/app/components/shared/Button";
@@ -9,6 +9,7 @@ import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemMo
 import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
+  formatItemLocationLabel,
   sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
@@ -32,7 +33,7 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
+type InventoryEntry = ItemCharacter;
 
 const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
 const STORED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_8rem] gap-3";
@@ -94,8 +95,8 @@ function InventoryList({
             operational &&
             !hasEquippedSlots;
           const location =
-            variant === "stored" && entry.itemLocation?.trim()
-              ? entry.itemLocation.trim()
+            variant === "stored"
+              ? formatItemLocationLabel(entry.itemLocation)
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
@@ -231,9 +232,7 @@ function InventorySectionContent({
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
   const [editUniqueItemId, setEditUniqueItemId] = useState<string | null>(null);
-  const [detailEntry, setDetailEntry] = useState<
-    NonNullable<CharacterDetail["inventory"]>[number] | null
-  >(null);
+  const [detailEntry, setDetailEntry] = useState<InventoryEntry | null>(null);
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
@@ -278,9 +277,7 @@ function InventorySectionContent({
     return !isOverCarryLimit(carriedWeight, maxCarryWeight);
   }, [character.combatInformation?.maxCarryWeight, inventory]);
 
-  const handleAutoEquip = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number]
-  ) => {
+  const handleAutoEquip = async (entry: InventoryEntry) => {
     if (!mutate) return;
     setEquippingId(entry.id);
     setEquipError(null);
@@ -300,9 +297,7 @@ function InventorySectionContent({
     }
   };
 
-  const handleUnequip = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number]
-  ) => {
+  const handleUnequip = async (entry: InventoryEntry) => {
     if (!entry.equipSlots?.length || !mutate) return;
     setUnequippingId(entry.id);
     try {

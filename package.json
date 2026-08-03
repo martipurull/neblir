@@ -35,6 +35,7 @@
     "data:import:reference": "tsx prisma/scripts/importReferenceEntries.ts",
     "data:import:reference-json": "tsx prisma/scripts/upsertReferenceEntriesFromFile.ts",
     "data:import:items": "tsx prisma/scripts/upsertItemsFromFile.ts",
+    "data:import:vehicles": "tsx prisma/scripts/upsertVehiclesFromFile.ts",
     "data:seed:official": "tsx prisma/scripts/seedOfficialDataFromFiles.ts",
     "data:seed:official:dry-run": "tsx prisma/scripts/seedOfficialDataFromFiles.ts --dry-run",
     "worker:discord": "tsx scripts/discord-outbox-worker.ts",

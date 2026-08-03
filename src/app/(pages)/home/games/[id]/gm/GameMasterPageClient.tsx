@@ -11,6 +11,7 @@ import { CreateGameImageModal } from "@/app/components/games/CreateGameImageModa
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
+import { GiveVehicleToCharacterModal } from "@/app/components/games/GiveVehicleToCharacterModal";
 import { InviteUsersModal } from "@/app/components/games/InviteUsersModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -80,6 +81,7 @@ export function GameMasterPageClient() {
   const [browseEnemiesOpen, setBrowseEnemiesOpen] = useState(false);
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
+  const [giveVehicleModalOpen, setGiveVehicleModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [loreEntryModalOpen, setLoreEntryModalOpen] = useState(false);
   const [recapModalOpen, setRecapModalOpen] = useState(false);
@@ -264,6 +266,7 @@ export function GameMasterPageClient() {
           onCreateCustom={() => setCustomItemModalOpen(true)}
           onCreateUnique={() => setUniqueItemModalOpen(true)}
           onGiveItem={() => setGiveItemModalOpen(true)}
+          onGiveVehicle={() => setGiveVehicleModalOpen(true)}
         />
 
         <GmCustomEnemiesSection
@@ -547,6 +550,13 @@ export function GameMasterPageClient() {
         gameId={game.id}
         game={game}
         onClose={() => setGiveItemModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <GiveVehicleToCharacterModal
+        isOpen={giveVehicleModalOpen}
+        gameId={game.id}
+        game={game}
+        onClose={() => setGiveVehicleModalOpen(false)}
         onSuccess={() => void mutate()}
       />
       <GmNpcInitiativeRollModal

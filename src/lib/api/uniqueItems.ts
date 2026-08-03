@@ -5,15 +5,14 @@ import {
   type UniqueItemCreateResponse,
   type UniqueItemUpdate,
 } from "@/app/lib/types/item";
+import type { z } from "zod";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
 
-export type UniqueItemListItem = {
-  id: string;
-  name: string;
-  ownerUserId: string;
-};
+export type UniqueItemListItem = z.infer<
+  typeof uniqueItemListResponseSchema
+>[number];
 
 export type UniqueItemDetailRecord = Record<string, unknown> & {
   id: string;

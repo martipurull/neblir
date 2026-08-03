@@ -119,6 +119,7 @@ export function computeCharacterRequestData(
     gameId: _gameId,
     gameLinks: _gameLinks,
     gameLinkIsPublic: _gameLinkIsPublic,
+    vehicles: _vehicles,
     generalInformation,
     ...requestWithoutPathAndWallet
   } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
@@ -128,6 +129,7 @@ export function computeCharacterRequestData(
     gameId?: string;
     gameLinks?: Array<{ gameId: string; isPublic: boolean }>;
     gameLinkIsPublic?: boolean;
+    vehicles?: unknown;
     generalInformation: {
       race: Race;
       specialAbilityName?: SpecialAbilityName;

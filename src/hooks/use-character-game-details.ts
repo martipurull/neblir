@@ -8,10 +8,20 @@ import useSWR from "swr";
  */
 export function useCharacterGameDetails(
   characterId: string | null,
-  gameLinks: { gameId: string }[] | null | undefined
+  gameLinks: { gameId?: string | null }[] | null | undefined
 ) {
   const sortedIds = useMemo(
-    () => [...new Set((gameLinks ?? []).map((g) => g.gameId))].sort(),
+    () =>
+      Array.from(
+        new Set(
+          (gameLinks ?? [])
+            .map((g) => g.gameId)
+            .filter(
+              (gameId): gameId is string =>
+                typeof gameId === "string" && gameId.length > 0
+            )
+        )
+      ).sort(),
     [gameLinks]
   );
 

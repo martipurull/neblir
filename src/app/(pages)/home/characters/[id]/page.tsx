@@ -40,5 +40,5 @@ export default function CharacterDetailPage() {
     );
   }
 
-  return <CharacterDetailView character={character} mutate={mutate} />;
+  return <CharacterDetailView character={character} mutateAction={mutate} />;
 }

@@ -2,6 +2,7 @@ import { getAllFeatures } from "@/app/lib/prisma/feature";
 import { getEnemies } from "@/app/lib/prisma/enemy";
 import { getItems } from "@/app/lib/prisma/item";
 import { getMaps } from "@/app/lib/prisma/map";
+import { getVehicles } from "@/app/lib/prisma/vehicle";
 import { getPaths } from "@/app/lib/prisma/path";
 import { getReferenceEntries } from "@/app/lib/prisma/referenceEntry";
 import { scrubCatalogueExportMeta } from "@/app/lib/catalogueSeedScrub";
@@ -24,6 +25,12 @@ export async function buildCatalogueSeedDataExport(
   if (want.has("items")) {
     const rows = await getItems();
     data.items = rows.map((row) =>
+      scrubCatalogueExportMeta(jsonRoundTrip(row))
+    );
+  }
+  if (want.has("vehicles")) {
+    const rows = await getVehicles();
+    data.vehicles = rows.map((row) =>
       scrubCatalogueExportMeta(jsonRoundTrip(row))
     );
   }

@@ -128,7 +128,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         return buildStandaloneResolvedItem(uniqueItem);
       }
 
-      if (uniqueItem.itemId == null) return uniqueItem;
+      if (uniqueItem.itemId == null) {
+        return buildStandaloneResolvedItem(uniqueItem);
+      }
 
       const template =
         uniqueItem.sourceType === "GLOBAL_ITEM"
@@ -137,7 +139,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
               where: { id: uniqueItem.itemId },
             });
 
-      if (!template) return uniqueItem;
+      if (!template) {
+        return buildStandaloneResolvedItem(uniqueItem);
+      }
 
       const templateApi =
         "gameId" in template

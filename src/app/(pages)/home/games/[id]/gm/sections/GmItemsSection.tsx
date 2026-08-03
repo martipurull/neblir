@@ -9,6 +9,7 @@ type GmItemsSectionProps = {
   onCreateCustom: () => void;
   onCreateUnique: () => void;
   onGiveItem: () => void;
+  onGiveVehicle: () => void;
 };
 
 export function GmItemsSection({
@@ -16,6 +17,7 @@ export function GmItemsSection({
   onCreateCustom,
   onCreateUnique,
   onGiveItem,
+  onGiveVehicle,
 }: GmItemsSectionProps) {
   return (
     <InfoCard border>
@@ -26,6 +28,12 @@ export function GmItemsSection({
           className={`inline-block ${appButtonVariantClassName.primarySm}`}
         >
           Browse custom items
+        </Link>
+        <Link
+          href={`/home/games/${gameId}/custom-vehicles`}
+          className={`inline-block ${appButtonVariantClassName.primarySm}`}
+        >
+          Browse custom vehicles
         </Link>
         <Button
           type="button"
@@ -50,6 +58,14 @@ export function GmItemsSection({
           onClick={onGiveItem}
         >
           Give item to character
+        </Button>
+        <Button
+          type="button"
+          variant="primarySm"
+          fullWidth={false}
+          onClick={onGiveVehicle}
+        >
+          Give vehicle to character
         </Button>
       </div>
     </InfoCard>

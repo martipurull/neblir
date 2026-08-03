@@ -4,7 +4,7 @@ import type {
 } from "@/app/lib/levelUpPaths";
 import type { ItemWithId } from "@/lib/api/items";
 
-type ItemBrowseDamage = {
+export type ItemBrowseDamage = {
   damageType: Array<
     | "BULLET"
     | "BLADE"
@@ -31,6 +31,59 @@ type ItemBrowseDamage = {
     successfulDefenceResult: string;
   } | null;
 };
+
+type ItemBrowseDamageLike =
+  | {
+      damageType?: readonly string[] | null;
+      diceType?: number | null;
+      numberOfDice?: number | null;
+      areaType?: "RADIUS" | "CONE" | null;
+      coneLength?: number | null;
+      primaryRadius?: number | null;
+      secondaryRadius?: number | null;
+      areaEffect?: {
+        defenceReactionCost?: number | null;
+        defenceRoll?: string | null;
+        successfulDefenceResult?: string | null;
+      } | null;
+    }
+  | null
+  | undefined;
+
+export function normalizeItemBrowseDamage(
+  damage: ItemBrowseDamageLike
+): ItemBrowseDamage | null {
+  if (!damage) return null;
+  if (
+    !Array.isArray(damage.damageType) ||
+    typeof damage.diceType !== "number" ||
+    typeof damage.numberOfDice !== "number"
+  ) {
+    return null;
+  }
+  const areaEffect =
+    damage.areaEffect &&
+    typeof damage.areaEffect.defenceReactionCost === "number" &&
+    typeof damage.areaEffect.defenceRoll === "string" &&
+    typeof damage.areaEffect.successfulDefenceResult === "string"
+      ? {
+          defenceReactionCost: damage.areaEffect.defenceReactionCost,
+          defenceRoll: damage.areaEffect.defenceRoll,
+          successfulDefenceResult: damage.areaEffect.successfulDefenceResult,
+        }
+      : null;
+
+  return {
+    damageType: damage.damageType as ItemBrowseDamage["damageType"],
+    diceType: damage.diceType,
+    numberOfDice: damage.numberOfDice,
+    areaType: damage.areaType ?? null,
+    coneLength: damage.coneLength ?? null,
+    primaryRadius: damage.primaryRadius ?? null,
+    secondaryRadius: damage.secondaryRadius ?? null,
+    areaEffect,
+  };
+}
 
 /** Shape used by `BrowseItemDetailModal` for global + custom items */
 export type ItemBrowseDetailFields = {
@@ -93,7 +146,7 @@ export function itemWithIdToBrowseDetail(
     gridDefenceBonus: item.gridDefenceBonus ?? null,
     effectiveRange: item.effectiveRange ?? null,
     maxRange: item.maxRange ?? null,
-    damage: item.damage as ItemBrowseDetailFields["damage"],
+    damage: normalizeItemBrowseDamage(item.damage),
     usage: item.usage ?? null,
     notes: item.notes ?? null,
     modifiesAttribute: item.modifiesAttribute ?? null,
