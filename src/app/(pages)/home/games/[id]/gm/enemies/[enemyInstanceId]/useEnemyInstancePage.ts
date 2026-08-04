@@ -22,9 +22,10 @@ import {
 } from "@/lib/api/game";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RollHighlightMode } from "@/app/components/shared/RollResultQuickModal";
 import {
+  decideEnemyHealthDelta,
   enemyHpBarTone,
   mergeEnemyInstancePatch,
   rollDice,
@@ -67,6 +68,10 @@ export function useEnemyInstancePage() {
   const [initiativeAdjustBusy, setInitiativeAdjustBusy] = useState(false);
   const [initiativeListOpen, setInitiativeListOpen] = useState(false);
 
+  /** Latest enemy for rapid optimistic clicks — never stash persist flags inside setState. */
+  const enemyRef = useRef<EnemyInstanceDetailResponse | null>(null);
+  enemyRef.current = enemy;
+
   const load = useCallback(
     async (options?: { silent?: boolean }) => {
       if (!gameId || !enemyInstanceId) return;
@@ -80,6 +85,7 @@ export function useEnemyInstancePage() {
           getEnemyInstance(gameId, enemyInstanceId),
           getGameById(gameId).catch(() => null),
         ]);
+        enemyRef.current = data;
         setEnemy(data);
         setGameDetail(game);
         setBanner(null);
@@ -118,48 +124,32 @@ export function useEnemyInstancePage() {
 
   const applyEnemyPatch = useCallback(
     (build: (prev: EnemyInstanceDetailResponse) => EnemyInstancePatch) => {
-      let pending:
-        | { instanceId: string; patch: EnemyInstancePatch }
-        | undefined;
-      setEnemy((cur) => {
-        if (!cur) return cur;
-        const patch = build(cur);
-        pending = { instanceId: cur.id, patch };
-        return mergeEnemyInstancePatch(cur, patch);
-      });
-      if (!pending) return;
+      const cur = enemyRef.current;
+      if (!cur) return;
+      const patch = build(cur);
+      const next = mergeEnemyInstancePatch(cur, patch);
+      enemyRef.current = next;
+      setEnemy(next);
       setBanner(null);
-      void persistEnemyPatchRequest(pending.instanceId, pending.patch);
+      void persistEnemyPatchRequest(cur.id, patch);
     },
     [persistEnemyPatchRequest]
   );
 
   const applyHealthDelta = useCallback(
     (delta: number) => {
-      /** Persist payload after optimistic merge — read outside updater for API call only. */
-      let persistAfter:
-        | { instanceId: string; patch: EnemyInstancePatch }
-        | undefined;
-      setEnemy((cur) => {
-        if (!cur) return cur;
-        const next = Math.max(0, cur.currentHealth + delta);
-        if (next === 0 && cur.currentHealth > 0) {
-          /* Open modal asynchronously so we never rely on outer flags after setEnemy:
-           * React Strict Mode may invoke this updater twice; reading a `pending`
-           * variable set inside the updater after setEnemy returns is unreliable. */
-          queueMicrotask(() => setZeroHpPromptOpen(true));
-          return cur;
-        }
-        const patch: EnemyInstancePatch = { currentHealth: next };
-        persistAfter = { instanceId: cur.id, patch };
-        return mergeEnemyInstancePatch(cur, patch);
-      });
-      if (!persistAfter) return;
+      const cur = enemyRef.current;
+      if (!cur) return;
+      const decision = decideEnemyHealthDelta(cur.currentHealth, delta);
+      if (decision.kind === "prompt") {
+        setZeroHpPromptOpen(true);
+        return;
+      }
+      const next = mergeEnemyInstancePatch(cur, decision.patch);
+      enemyRef.current = next;
+      setEnemy(next);
       setBanner(null);
-      void persistEnemyPatchRequest(
-        persistAfter.instanceId,
-        persistAfter.patch
-      );
+      void persistEnemyPatchRequest(cur.id, decision.patch);
     },
     [persistEnemyPatchRequest]
   );
