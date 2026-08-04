@@ -25,6 +25,12 @@ import {
   linkVisibilityBadgeClassName,
   linkVisibilityLabel,
 } from "@/app/lib/visibilityBadge";
+import {
+  enemyHpBarTone,
+  enemyStatusBadgeClass,
+  enemyStatusLabel,
+  type EnemyInstanceStatus,
+} from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmCustomEnemiesSectionProps = {
@@ -343,18 +349,26 @@ export function GmCustomEnemiesSection({
             {instances.map((inst) => {
               const isPublic = inst.isPublic !== false;
               const visibilityLabel = linkVisibilityLabel(isPublic);
+              const instanceHref = `/home/games/${game.id}/gm/enemies/${inst.id}`;
+              const status = inst.status as EnemyInstanceStatus;
+              const hpTone = enemyHpBarTone(inst.currentHealth, inst.maxHealth);
               return (
                 <li
                   key={inst.id}
-                  className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                  className="relative flex flex-col gap-2 py-2.5 transition-colors hover:bg-black/[0.04] sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="min-w-0 flex flex-1 items-center gap-3">
+                  <Link
+                    href={instanceHref}
+                    className="absolute inset-0 z-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    aria-label={`Open ${inst.name}`}
+                  />
+                  <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
                       {imageUrls[inst.id] ? (
                         <SignedRemoteImage
                           src={imageUrls[inst.id] as string}
                           imageKey={inst.imageKey ?? undefined}
-                          alt={`${inst.name} avatar`}
+                          alt=""
                           width={44}
                           height={44}
                           className="h-11 w-11 object-cover object-top"
@@ -371,24 +385,37 @@ export function GmCustomEnemiesSection({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{inst.name}</p>
-                      <p className="text-xs tabular-nums text-black/70">
-                        HP {inst.currentHealth}/{inst.maxHealth} · Reactions{" "}
-                        {inst.reactionsRemaining}/{inst.reactionsPerRound} ·{" "}
-                        {inst.status}
-                      </p>
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <p className="truncate text-base font-medium">
+                          {inst.name}
+                        </p>
+                        <span className={enemyStatusBadgeClass(status)}>
+                          {enemyStatusLabel(status)}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                        <p className="text-lg font-bold leading-none tabular-nums tracking-tight">
+                          <span className={hpTone.text}>
+                            {inst.currentHealth}
+                          </span>
+                          <span className="text-black">/{inst.maxHealth}</span>
+                          <span className="ml-1.5 text-xs font-semibold uppercase tracking-wide text-black/55">
+                            HP
+                          </span>
+                        </p>
+                        <p className="text-xs tabular-nums text-black/70">
+                          Reactions {inst.reactionsRemaining}/
+                          {inst.reactionsPerRound}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={linkVisibilityBadgeClassName(isPublic)}>
+                  <div className="relative z-10 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`${linkVisibilityBadgeClassName(isPublic)} pointer-events-none`}
+                    >
                       {visibilityLabel}
                     </span>
-                    <Link
-                      href={`/home/games/${game.id}/gm/enemies/${inst.id}`}
-                      className="rounded border border-black/40 px-2 py-1 text-xs font-medium text-black hover:bg-black/5"
-                    >
-                      Manage
-                    </Link>
                     <Button
                       type="button"
                       variant="secondaryOutlineXs"
