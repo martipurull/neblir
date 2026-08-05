@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   characterHealthStatusBadgeClass,
   characterHealthStatusLabel,
+  gmCombatReactionsClassName,
 } from "@/app/(pages)/home/games/[id]/gm/sections/gmCombatDisplay";
 
 describe("characterHealthStatusLabel", () => {
@@ -21,5 +22,16 @@ describe("characterHealthStatusBadgeClass", () => {
     expect(characterHealthStatusBadgeClass("DECEASED")).toContain(
       "neblirDanger"
     );
+  });
+});
+
+describe("gmCombatReactionsClassName", () => {
+  it("uses neblirDanger when remaining is 0", () => {
+    expect(gmCombatReactionsClassName(0)).toContain("neblirDanger");
+  });
+
+  it("uses muted black when remaining is positive", () => {
+    expect(gmCombatReactionsClassName(1)).toContain("text-black/70");
+    expect(gmCombatReactionsClassName(1)).not.toContain("neblirDanger");
   });
 });

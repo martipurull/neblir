@@ -17,6 +17,7 @@ import { useMemo } from "react";
 import {
   characterHealthStatusBadgeClass,
   characterHealthStatusLabel,
+  gmCombatReactionsClassName,
 } from "./gmCombatDisplay";
 import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
 import { GmSectionTitle } from "./GmSectionTitle";
@@ -285,7 +286,11 @@ function CombatTrackerRow({
                   currentHealth={enemy.currentHealth}
                   maxHealth={enemy.maxHealth}
                 />
-                <p className="text-xs tabular-nums text-black/70">
+                <p
+                  className={gmCombatReactionsClassName(
+                    enemy.reactionsRemaining
+                  )}
+                >
                   Reactions {enemy.reactionsRemaining}/{enemy.reactionsPerRound}
                 </p>
               </>
@@ -300,7 +305,12 @@ function CombatTrackerRow({
                   />
                 ) : null}
                 {character.reactionsPerRound != null ? (
-                  <p className="text-xs tabular-nums text-black/70">
+                  <p
+                    className={gmCombatReactionsClassName(
+                      character.reactionsRemaining ??
+                        character.reactionsPerRound
+                    )}
+                  >
                     Reactions{" "}
                     {character.reactionsRemaining ??
                       character.reactionsPerRound}

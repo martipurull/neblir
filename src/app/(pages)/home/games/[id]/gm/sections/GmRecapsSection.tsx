@@ -13,6 +13,7 @@ type GmRecapsSectionProps = {
   deletingRecapId: string | null;
   onRetry: () => void;
   onCreateRecap: () => void;
+  onEditRecap: (recap: GameRecap) => void;
   onDeleteRecap: (recap: GameRecap) => void;
   onDownloadRecap: (recapId: string) => void;
 };
@@ -24,6 +25,7 @@ export function GmRecapsSection({
   deletingRecapId,
   onRetry,
   onCreateRecap,
+  onEditRecap,
   onDeleteRecap,
   onDownloadRecap,
 }: GmRecapsSectionProps) {
@@ -57,8 +59,10 @@ export function GmRecapsSection({
                 key={recap.id}
                 recap={recap}
                 onDownload={onDownloadRecap}
+                canEdit
                 canDelete
                 deleting={deletingRecapId === recap.id}
+                onEdit={onEditRecap}
                 onDelete={onDeleteRecap}
               />
             ))}

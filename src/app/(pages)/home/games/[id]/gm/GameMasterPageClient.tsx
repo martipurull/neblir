@@ -50,6 +50,7 @@ import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteGameImage } from "@/lib/api/gameImages";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
+import type { GameRecap } from "@/app/lib/types/recap";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -86,6 +87,9 @@ export function GameMasterPageClient() {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [loreEntryEditTarget, setLoreEntryEditTarget] =
     useState<ReferenceEntry | null>(null);
+  const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
+    null
+  );
   const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
     null
   );
@@ -259,6 +263,8 @@ export function GameMasterPageClient() {
           </div>
         </div>
 
+        <GmDiceRollerSection gameId={game.id} />
+
         <GmItemsSection
           gameId={game.id}
           onCreateCustom={() => setCustomItemModalOpen(true)}
@@ -321,8 +327,6 @@ export function GameMasterPageClient() {
           }}
         />
 
-        <GmDiceRollerSection gameId={game.id} />
-
         <GmLoreSection
           gameId={game.id}
           onCreateLoreEntry={() => setLoreEntryModalOpen(true)}
@@ -359,7 +363,14 @@ export function GameMasterPageClient() {
           error={recapsError}
           deletingRecapId={deletingRecapId}
           onRetry={() => void refetchRecaps()}
-          onCreateRecap={() => setRecapModalOpen(true)}
+          onCreateRecap={() => {
+            setRecapEditTarget(null);
+            setRecapModalOpen(true);
+          }}
+          onEditRecap={(recap) => {
+            setRecapEditTarget(recap);
+            setRecapModalOpen(true);
+          }}
           onDownloadRecap={(recapId) => {
             void getRecapDownloadUrl(recapId).then((url) => {
               window.open(url, "_blank", "noopener,noreferrer");
@@ -472,11 +483,18 @@ export function GameMasterPageClient() {
         }}
       />
       <CreateGameRecapModal
+        key={recapEditTarget?.id ?? "create"}
         isOpen={recapModalOpen}
         gameId={game.id}
         gameName={game.name}
-        onClose={() => setRecapModalOpen(false)}
+        mode={recapEditTarget ? "edit" : "create"}
+        recap={recapEditTarget}
+        onClose={() => {
+          setRecapModalOpen(false);
+          setRecapEditTarget(null);
+        }}
         onSuccess={() => {
+          setRecapEditTarget(null);
           void refetchRecaps();
         }}
       />

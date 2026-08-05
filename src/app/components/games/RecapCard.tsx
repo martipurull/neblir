@@ -4,16 +4,20 @@ import type { GameRecap } from "@/app/lib/types/recap";
 type RecapCardProps = {
   recap: GameRecap;
   onDownload: (recapId: string) => void;
+  canEdit?: boolean;
   canDelete?: boolean;
   deleting?: boolean;
+  onEdit?: (recap: GameRecap) => void;
   onDelete?: (recap: GameRecap) => void;
 };
 
 export function RecapCard({
   recap,
   onDownload,
+  canEdit = false,
   canDelete = false,
   deleting = false,
+  onEdit,
   onDelete,
 }: RecapCardProps) {
   return (
@@ -39,6 +43,18 @@ export function RecapCard({
         >
           Download
         </Button>
+        {canEdit ? (
+          <Button
+            type="button"
+            variant="solidDark"
+            className="text-xs"
+            fullWidth={false}
+            disabled={deleting}
+            onClick={() => onEdit?.(recap)}
+          >
+            Edit
+          </Button>
+        ) : null}
         {canDelete ? (
           <Button
             type="button"

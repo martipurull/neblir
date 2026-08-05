@@ -5,6 +5,7 @@ import {
   recapUploadUrlResponseSchema,
   type GameRecap,
   type GameRecapCreate,
+  type GameRecapUpdate,
   type RecapUploadUrlRequest,
 } from "@/app/lib/types/recap";
 import { getUserSafeApiError } from "@/lib/userSafeError";
@@ -59,6 +60,31 @@ export async function createGameRecap(
         response.status,
         await readErrorBody(response),
         "Failed to create recap"
+      )
+    );
+  }
+  return gameRecapSchema.parse(await response.json());
+}
+
+export async function updateGameRecap(
+  gameId: string,
+  recapId: string,
+  body: GameRecapUpdate
+): Promise<GameRecap> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/recaps/${encodeURIComponent(recapId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to update recap"
       )
     );
   }

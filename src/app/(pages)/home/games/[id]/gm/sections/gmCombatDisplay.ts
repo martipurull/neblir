@@ -28,3 +28,9 @@ export function characterHealthStatusBadgeClass(status: Status): string {
       return `${statusBadgeBase} border-black/25 bg-black/5 text-black/80`;
   }
 }
+
+export function gmCombatReactionsClassName(remaining: number): string {
+  return remaining <= 0
+    ? "text-xs tabular-nums text-neblirDanger"
+    : "text-xs tabular-nums text-black/70";
+}
