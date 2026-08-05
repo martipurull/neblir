@@ -82,7 +82,7 @@ function CombatantAvatar({
   );
 }
 
-export function GmInitiativeSection({
+export function GmCombatInitiativeSection({
   game,
   initiativeOrder,
   hasInitiativeEntries,

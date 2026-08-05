@@ -22,7 +22,7 @@ import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import {
   GmCoverImageSection,
   GmPremiseSection,
-  GmInitiativeSection,
+  GmCombatInitiativeSection,
   GmDiscordSection,
   GmInvitesSection,
   GmPlayersSection,
@@ -291,11 +291,41 @@ export function GameMasterPageClient() {
 
         <GmDiceRollerSection gameId={game.id} />
 
+        <GmCombatInitiativeSection
+          game={game}
+          initiativeOrder={initiativeOrder}
+          hasInitiativeEntries={hasInitiativeEntries}
+          clearingInitiative={clearingInitiative}
+          initiativeActionId={initiativeActionId}
+          onClearAll={() => void handleClearAllInitiative()}
+          onRemoveEntry={(characterId) =>
+            void handleRemoveInitiativeEntry(characterId)
+          }
+          onAdjustEntry={(characterId, initiativeDelta) =>
+            void handleAdjustInitiativeEntry(characterId, initiativeDelta)
+          }
+          onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
+        />
+
         <GmItemsSection
           gameId={game.id}
           onCreateCustom={() => setCustomItemModalOpen(true)}
           onCreateUnique={() => setUniqueItemModalOpen(true)}
           onGiveItem={() => setGiveItemModalOpen(true)}
+        />
+
+        <GmNpcsSection
+          game={game}
+          onSetVisibility={async (characterId, isPublic) => {
+            await setGameCharacterVisibility(game.id, characterId, isPublic);
+            await mutate();
+          }}
+          onCharacterRemoved={async () => {
+            await mutate();
+          }}
+          onCharactersAdded={async () => {
+            await mutate();
+          }}
         />
 
         <GmCustomEnemiesSection
@@ -312,36 +342,6 @@ export function GameMasterPageClient() {
           onOpenImport={() => setImportCustomEnemiesOpen(true)}
           onOpenCopy={() => setCopyCustomEnemyOpen(true)}
           onMutate={async () => {
-            await mutate();
-          }}
-        />
-
-        <GmInitiativeSection
-          game={game}
-          initiativeOrder={initiativeOrder}
-          hasInitiativeEntries={hasInitiativeEntries}
-          clearingInitiative={clearingInitiative}
-          initiativeActionId={initiativeActionId}
-          onClearAll={() => void handleClearAllInitiative()}
-          onRemoveEntry={(characterId) =>
-            void handleRemoveInitiativeEntry(characterId)
-          }
-          onAdjustEntry={(characterId, initiativeDelta) =>
-            void handleAdjustInitiativeEntry(characterId, initiativeDelta)
-          }
-          onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
-        />
-
-        <GmNpcsSection
-          game={game}
-          onSetVisibility={async (characterId, isPublic) => {
-            await setGameCharacterVisibility(game.id, characterId, isPublic);
-            await mutate();
-          }}
-          onCharacterRemoved={async () => {
-            await mutate();
-          }}
-          onCharactersAdded={async () => {
             await mutate();
           }}
         />
