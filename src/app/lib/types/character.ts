@@ -140,6 +140,8 @@ export const combatInformationSchema = z.object({
   initiativeMod: z.number(), // Needs to be computed
   speed: z.number(), // Needs to be computed
   reactionsPerRound: z.number(), // Needs to be computed
+  /** Remaining this round; omit on older docs — treat as full (see resolveCharacterReactionsRemaining). */
+  reactionsRemaining: z.number().int().nonnegative().optional(),
   armourMod: z.number().default(0),
   armourMaxHP: z.number().default(0),
   armourCurrentHP: z.number().default(0),
@@ -154,6 +156,14 @@ export const combatInformationSchema = z.object({
   meleeDefenceMod: z.number(), // Needs to be computed
   maxCarryWeight: z.number().optional(),
 });
+
+/** Prefer persisted remaining; fall back to full capacity for pre-migration characters. */
+export function resolveCharacterReactionsRemaining(combat: {
+  reactionsPerRound: number;
+  reactionsRemaining?: number | null;
+}): number {
+  return combat.reactionsRemaining ?? combat.reactionsPerRound;
+}
 
 const intelligenceSchema = z.object({
   investigation: z.number().min(1).max(5),

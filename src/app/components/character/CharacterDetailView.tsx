@@ -69,7 +69,9 @@ export function CharacterDetailView({
     mutate ?? noopMutate
   );
   const reactionTracking = useReactionTracking(
-    character.combatInformation?.reactionsPerRound ?? 0
+    character,
+    character.id,
+    mutate ?? noopMutate
   );
 
   const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);

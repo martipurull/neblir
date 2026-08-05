@@ -285,6 +285,7 @@ export function GameMasterPageClient() {
         />
 
         <GmInitiativeSection
+          game={game}
           initiativeOrder={initiativeOrder}
           hasInitiativeEntries={hasInitiativeEntries}
           clearingInitiative={clearingInitiative}
