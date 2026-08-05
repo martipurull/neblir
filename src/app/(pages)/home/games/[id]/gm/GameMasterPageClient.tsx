@@ -12,11 +12,13 @@ import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemMo
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { InviteUsersModal } from "@/app/components/games/InviteUsersModal";
+import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
+import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import {
   GmCoverImageSection,
   GmPremiseSection,
@@ -237,6 +239,8 @@ export function GameMasterPageClient() {
     );
   }
 
+  const isPastNextSession = isPastNextSessionDate(game.nextSession);
+
   return (
     <PageSection>
       <div className="flex flex-col gap-6">
@@ -247,6 +251,17 @@ export function GameMasterPageClient() {
           <p className="mt-1 text-xs text-black/70">
             Set or clear the game&apos;s next session date.
           </p>
+          {isPastNextSession ? (
+            <div
+              role="status"
+              className="mt-3 rounded-md border border-neblirWarning-400 bg-neblirWarning-200/30 px-3 py-2"
+            >
+              <p className="text-sm text-neblirWarning-600">
+                This next session date is in the past. Choose a future date, or
+                select &quot;No next session planned&quot;.
+              </p>
+            </div>
+          ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <ThemedDatePicker
               value={nextSessionValue}
@@ -257,8 +272,19 @@ export function GameMasterPageClient() {
               ariaLabel="Next session date"
               placeholder="Set date"
             />
+            {nextSessionValue ? (
+              <Button
+                type="button"
+                variant="secondaryOutlineXs"
+                fullWidth={false}
+                disabled={nextSessionBusy}
+                onClick={() => void handleNextSessionChange("")}
+              >
+                No next session planned
+              </Button>
+            ) : null}
             {nextSessionError ? (
-              <p className="text-sm text-red-600">{nextSessionError}</p>
+              <p className="text-sm text-neblirDanger">{nextSessionError}</p>
             ) : null}
           </div>
         </div>

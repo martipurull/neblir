@@ -1,9 +1,10 @@
 "use client";
 
-import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
-import type { GameListItem } from "@/app/lib/types/game";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
+import { isPastNextSessionDate } from "@/app/lib/nextSession";
+import type { GameListItem } from "@/app/lib/types/game";
 import Link from "next/link";
 
 type GameListCardProps = {
@@ -25,14 +26,13 @@ function formatNextSessionLabel(
   nextSession: Date | null | undefined,
   isGameMaster: boolean
 ): string {
-  const nextSessionDate = nextSession != null ? new Date(nextSession) : null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isPastNextSession = nextSessionDate != null && nextSessionDate < today;
-  if (nextSessionDate == null || (!isGameMaster && isPastNextSession)) {
+  if (
+    nextSession == null ||
+    (!isGameMaster && isPastNextSessionDate(nextSession))
+  ) {
     return "No date set";
   }
-  return nextSessionDate.toLocaleDateString();
+  return new Date(nextSession).toLocaleDateString();
 }
 
 const premiseScrollClassName =
