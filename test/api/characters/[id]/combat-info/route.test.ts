@@ -62,6 +62,8 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       combatInformation: {
         armourCurrentHP: 2,
         armourMod: 1,
+        reactionsPerRound: 2,
+        reactionsRemaining: 2,
       },
       innateAttributes: {
         dexterity: { agility: 1 },
@@ -79,5 +81,83 @@ describe("/api/characters/[id]/combat-info PATCH", () => {
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
+  });
+
+  it("returns 400 when reactionsRemaining exceeds reactionsPerRound", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { reactionsRemaining: 5 },
+      error: undefined,
+    });
+    getCharacterMock.mockResolvedValue({
+      combatInformation: {
+        armourCurrentHP: 2,
+        armourMod: 1,
+        reactionsPerRound: 2,
+        reactionsRemaining: 2,
+      },
+      innateAttributes: {
+        dexterity: { agility: 1 },
+        strength: { resilience: 1, athletics: 1 },
+        personality: { mentality: 1 },
+      },
+      learnedSkills: { generalSkills: { acrobatics: 1, melee: 1, GRID: 1 } },
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ reactionsRemaining: 5 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(updateCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 when updating reactionsRemaining", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { reactionsRemaining: 1 },
+      error: undefined,
+    });
+    getCharacterMock
+      .mockResolvedValueOnce({
+        combatInformation: {
+          armourCurrentHP: 2,
+          armourMod: 1,
+          reactionsPerRound: 2,
+          reactionsRemaining: 2,
+        },
+        innateAttributes: {
+          dexterity: { agility: 1 },
+          strength: { resilience: 1, athletics: 1 },
+          personality: { mentality: 1 },
+        },
+        learnedSkills: { generalSkills: { acrobatics: 1, melee: 1, GRID: 1 } },
+      })
+      .mockResolvedValueOnce({
+        id: "char-1",
+        combatInformation: {
+          reactionsPerRound: 2,
+          reactionsRemaining: 1,
+        },
+      });
+    updateCharacterMock.mockResolvedValue({ id: "char-1" });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ reactionsRemaining: 1 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      expect.objectContaining({
+        combatInformation: expect.objectContaining({
+          reactionsRemaining: 1,
+        }),
+      })
+    );
   });
 });

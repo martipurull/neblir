@@ -15,6 +15,7 @@ import {
   isPlayerCharacterInGame,
   isPublicKnownNpcInGame,
 } from "@/app/lib/gmUtils";
+import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import { useMemo } from "react";
 
 export default function GameDetailPage() {
@@ -73,15 +74,11 @@ export default function GameDetailPage() {
   }
 
   const isGameMaster = game.isGameMaster === true;
-  const nextSessionDate =
-    game.nextSession != null ? new Date(game.nextSession) : null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isPastNextSession = nextSessionDate != null && nextSessionDate < today;
   const nextSessionLabel =
-    nextSessionDate == null || (!isGameMaster && isPastNextSession)
+    game.nextSession == null ||
+    (!isGameMaster && isPastNextSessionDate(game.nextSession))
       ? "No date set"
-      : nextSessionDate.toLocaleDateString();
+      : new Date(game.nextSession).toLocaleDateString();
   const hasPremise = Boolean(game.premise?.trim());
 
   return (

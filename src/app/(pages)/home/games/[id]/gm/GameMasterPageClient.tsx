@@ -13,15 +13,17 @@ import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiative
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { GiveVehicleToCharacterModal } from "@/app/components/games/GiveVehicleToCharacterModal";
 import { InviteUsersModal } from "@/app/components/games/InviteUsersModal";
+import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
+import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import {
   GmCoverImageSection,
   GmPremiseSection,
-  GmInitiativeSection,
+  GmCombatInitiativeSection,
   GmDiscordSection,
   GmInvitesSection,
   GmPlayersSection,
@@ -43,6 +45,7 @@ import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
   removeGameInitiativeEntry,
+  resetGameCombatReactions,
   setGameCharacterVisibility,
   updateGame,
 } from "@/lib/api/game";
@@ -51,6 +54,7 @@ import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteGameImage } from "@/lib/api/gameImages";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
+import type { GameRecap } from "@/app/lib/types/recap";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -88,6 +92,9 @@ export function GameMasterPageClient() {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [loreEntryEditTarget, setLoreEntryEditTarget] =
     useState<ReferenceEntry | null>(null);
+  const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
+    null
+  );
   const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
     null
   );
@@ -99,6 +106,7 @@ export function GameMasterPageClient() {
     null
   );
   const [clearingInitiative, setClearingInitiative] = useState(false);
+  const [resettingReactions, setResettingReactions] = useState(false);
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
 
@@ -174,6 +182,17 @@ export function GameMasterPageClient() {
     }
   }, [id, mutate]);
 
+  const handleResetCombatReactions = useCallback(async () => {
+    if (!id) return;
+    setResettingReactions(true);
+    try {
+      const updated = await resetGameCombatReactions(id);
+      await mutate(updated, { revalidate: false });
+    } finally {
+      setResettingReactions(false);
+    }
+  }, [id, mutate]);
+
   const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
     PendingInvite[]
   >(
@@ -235,6 +254,8 @@ export function GameMasterPageClient() {
     );
   }
 
+  const isPastNextSession = isPastNextSessionDate(game.nextSession);
+
   return (
     <PageSection>
       <div className="flex flex-col gap-6">
@@ -245,6 +266,17 @@ export function GameMasterPageClient() {
           <p className="mt-1 text-xs text-black/70">
             Set or clear the game&apos;s next session date.
           </p>
+          {isPastNextSession ? (
+            <div
+              role="status"
+              className="mt-3 rounded-md border border-neblirWarning-400 bg-neblirWarning-200/30 px-3 py-2"
+            >
+              <p className="text-sm text-neblirWarning-600">
+                This next session date is in the past. Choose a future date, or
+                select &quot;No next session planned&quot;.
+              </p>
+            </div>
+          ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <ThemedDatePicker
               value={nextSessionValue}
@@ -255,11 +287,42 @@ export function GameMasterPageClient() {
               ariaLabel="Next session date"
               placeholder="Set date"
             />
+            {nextSessionValue ? (
+              <Button
+                type="button"
+                variant="secondaryOutlineXs"
+                fullWidth={false}
+                disabled={nextSessionBusy}
+                onClick={() => void handleNextSessionChange("")}
+              >
+                No next session planned
+              </Button>
+            ) : null}
             {nextSessionError ? (
-              <p className="text-sm text-red-600">{nextSessionError}</p>
+              <p className="text-sm text-neblirDanger">{nextSessionError}</p>
             ) : null}
           </div>
         </div>
+
+        <GmDiceRollerSection gameId={game.id} />
+
+        <GmCombatInitiativeSection
+          game={game}
+          initiativeOrder={initiativeOrder}
+          hasInitiativeEntries={hasInitiativeEntries}
+          clearingInitiative={clearingInitiative}
+          resettingReactions={resettingReactions}
+          initiativeActionId={initiativeActionId}
+          onClearAll={() => void handleClearAllInitiative()}
+          onResetReactions={() => void handleResetCombatReactions()}
+          onRemoveEntry={(characterId) =>
+            void handleRemoveInitiativeEntry(characterId)
+          }
+          onAdjustEntry={(characterId, initiativeDelta) =>
+            void handleAdjustInitiativeEntry(characterId, initiativeDelta)
+          }
+          onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
+        />
 
         <GmItemsSection
           gameId={game.id}
@@ -267,6 +330,20 @@ export function GameMasterPageClient() {
           onCreateUnique={() => setUniqueItemModalOpen(true)}
           onGiveItem={() => setGiveItemModalOpen(true)}
           onGiveVehicle={() => setGiveVehicleModalOpen(true)}
+        />
+
+        <GmNpcsSection
+          game={game}
+          onSetVisibility={async (characterId, isPublic) => {
+            await setGameCharacterVisibility(game.id, characterId, isPublic);
+            await mutate();
+          }}
+          onCharacterRemoved={async () => {
+            await mutate();
+          }}
+          onCharactersAdded={async () => {
+            await mutate();
+          }}
         />
 
         <GmCustomEnemiesSection
@@ -287,43 +364,12 @@ export function GameMasterPageClient() {
           }}
         />
 
-        <GmInitiativeSection
-          initiativeOrder={initiativeOrder}
-          hasInitiativeEntries={hasInitiativeEntries}
-          clearingInitiative={clearingInitiative}
-          initiativeActionId={initiativeActionId}
-          onClearAll={() => void handleClearAllInitiative()}
-          onRemoveEntry={(characterId) =>
-            void handleRemoveInitiativeEntry(characterId)
-          }
-          onAdjustEntry={(characterId, initiativeDelta) =>
-            void handleAdjustInitiativeEntry(characterId, initiativeDelta)
-          }
-          onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
-        />
-
-        <GmNpcsSection
-          game={game}
-          onSetVisibility={async (characterId, isPublic) => {
-            await setGameCharacterVisibility(game.id, characterId, isPublic);
-            await mutate();
-          }}
-          onCharacterRemoved={async () => {
-            await mutate();
-          }}
-          onCharactersAdded={async () => {
-            await mutate();
-          }}
-        />
-
         <GmPlayersSection
           game={game}
           onPlayerRemoved={async () => {
             await mutate();
           }}
         />
-
-        <GmDiceRollerSection gameId={game.id} />
 
         <GmLoreSection
           gameId={game.id}
@@ -361,7 +407,14 @@ export function GameMasterPageClient() {
           error={recapsError}
           deletingRecapId={deletingRecapId}
           onRetry={() => void refetchRecaps()}
-          onCreateRecap={() => setRecapModalOpen(true)}
+          onCreateRecap={() => {
+            setRecapEditTarget(null);
+            setRecapModalOpen(true);
+          }}
+          onEditRecap={(recap) => {
+            setRecapEditTarget(recap);
+            setRecapModalOpen(true);
+          }}
           onDownloadRecap={(recapId) => {
             void getRecapDownloadUrl(recapId).then((url) => {
               window.open(url, "_blank", "noopener,noreferrer");
@@ -474,11 +527,18 @@ export function GameMasterPageClient() {
         }}
       />
       <CreateGameRecapModal
+        key={recapEditTarget?.id ?? "create"}
         isOpen={recapModalOpen}
         gameId={game.id}
         gameName={game.name}
-        onClose={() => setRecapModalOpen(false)}
+        mode={recapEditTarget ? "edit" : "create"}
+        recap={recapEditTarget}
+        onClose={() => {
+          setRecapModalOpen(false);
+          setRecapEditTarget(null);
+        }}
         onSuccess={() => {
+          setRecapEditTarget(null);
           void refetchRecaps();
         }}
       />

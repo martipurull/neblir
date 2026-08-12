@@ -141,6 +141,12 @@ const gameDetailCharacterSchema = gameCharacterSchema.extend({
     initiativeMod: z.number().optional(),
     /** CharacterUser links; used e.g. to detect GM-controlled characters. */
     linkedUserIds: z.array(z.string()).optional(),
+    /** GM-only combat snapshot for initiative / combat tracker. */
+    currentPhysicalHealth: z.number().optional(),
+    maxPhysicalHealth: z.number().optional(),
+    reactionsPerRound: z.number().optional(),
+    reactionsRemaining: z.number().optional(),
+    healthStatus: z.enum(["ALIVE", "DECEASED", "DERANGED"]).optional(),
   }),
 });
 

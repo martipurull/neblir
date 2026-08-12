@@ -27,6 +27,33 @@ export const gameRecapCreateSchema = z
   })
   .strict();
 
+export const gameRecapUpdateSchema = z
+  .object({
+    title: z.string().min(1),
+    summary: nullableStringSchema,
+    fileKey: z.string().min(1).optional(),
+    fileName: z.string().min(1).optional(),
+    fileSizeBytes: z.number().int().positive().optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    const hasAnyFileField =
+      data.fileKey != null ||
+      data.fileName != null ||
+      data.fileSizeBytes != null;
+    const hasAllFileFields =
+      data.fileKey != null &&
+      data.fileName != null &&
+      data.fileSizeBytes != null;
+    if (hasAnyFileField && !hasAllFileFields) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "fileKey, fileName, and fileSizeBytes must all be provided together",
+      });
+    }
+  });
+
 export const gameRecapDownloadSchema = z.object({
   url: z.string().url(),
 });
@@ -46,4 +73,5 @@ export const recapUploadUrlResponseSchema = z.object({
 
 export type GameRecap = z.infer<typeof gameRecapSchema>;
 export type GameRecapCreate = z.infer<typeof gameRecapCreateSchema>;
+export type GameRecapUpdate = z.infer<typeof gameRecapUpdateSchema>;
 export type RecapUploadUrlRequest = z.infer<typeof recapUploadUrlRequestSchema>;

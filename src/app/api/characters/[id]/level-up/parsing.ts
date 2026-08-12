@@ -361,6 +361,11 @@ export function parseCharacterBodyToCompute(
     combatInformation: {
       ...combatInformationSchema.parse(existingCharacter.combatInformation),
       reactionsPerRound: reactionsPerRound,
+      reactionsRemaining: Math.min(
+        existingCharacter.combatInformation.reactionsRemaining ??
+          existingCharacter.combatInformation.reactionsPerRound,
+        reactionsPerRound
+      ),
     },
     learnedSkills,
     innateAttributes,

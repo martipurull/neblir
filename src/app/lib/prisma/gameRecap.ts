@@ -25,6 +25,19 @@ export function createGameRecap(data: {
   return prisma.gameRecap.create({ data });
 }
 
+export function updateGameRecap(
+  id: string,
+  data: {
+    title: string;
+    summary?: string | null;
+    fileKey?: string;
+    fileName?: string;
+    fileSizeBytes?: number;
+  }
+) {
+  return prisma.gameRecap.update({ where: { id }, data });
+}
+
 export function deleteGameRecap(id: string) {
   return prisma.gameRecap.delete({ where: { id } });
 }

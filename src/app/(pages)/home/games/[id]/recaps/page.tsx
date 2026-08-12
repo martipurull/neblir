@@ -7,6 +7,7 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import type { GameRecap } from "@/app/lib/types/recap";
 import { useGame } from "@/hooks/use-game";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
@@ -20,6 +21,9 @@ export default function GameRecapsPage() {
   const { recaps, loading, error, refetch } = useGameRecaps(id);
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
   const [recapModalOpen, setRecapModalOpen] = useState(false);
+  const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
+    null
+  );
   const isGameMaster = game?.isGameMaster === true;
 
   const handleDownload = async (recapId: string) => {
@@ -53,7 +57,10 @@ export default function GameRecapsPage() {
               type="button"
               variant="solidDark"
               fullWidth={false}
-              onClick={() => setRecapModalOpen(true)}
+              onClick={() => {
+                setRecapEditTarget(null);
+                setRecapModalOpen(true);
+              }}
             >
               Upload recap
             </Button>
@@ -72,8 +79,13 @@ export default function GameRecapsPage() {
                 key={recap.id}
                 recap={recap}
                 onDownload={(recapId) => void handleDownload(recapId)}
+                canEdit={isGameMaster}
                 canDelete={isGameMaster}
                 deleting={deletingRecapId === recap.id}
+                onEdit={(entry) => {
+                  setRecapEditTarget(entry);
+                  setRecapModalOpen(true);
+                }}
                 onDelete={(entry) => {
                   if (!id) return;
                   if (
@@ -99,11 +111,18 @@ export default function GameRecapsPage() {
       </div>
       {game ? (
         <CreateGameRecapModal
+          key={recapEditTarget?.id ?? "create"}
           isOpen={recapModalOpen}
           gameId={game.id}
           gameName={game.name}
-          onClose={() => setRecapModalOpen(false)}
+          mode={recapEditTarget ? "edit" : "create"}
+          recap={recapEditTarget}
+          onClose={() => {
+            setRecapModalOpen(false);
+            setRecapEditTarget(null);
+          }}
           onSuccess={() => {
+            setRecapEditTarget(null);
             void refetch();
           }}
         />

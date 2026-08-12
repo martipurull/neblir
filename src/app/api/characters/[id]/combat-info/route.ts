@@ -68,12 +68,35 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("No combat information found in character", 400);
     }
 
-    let updateBody = existingCharacter.combatInformation;
+    let updateBody = {
+      ...existingCharacter.combatInformation,
+      reactionsRemaining:
+        existingCharacter.combatInformation.reactionsRemaining ??
+        existingCharacter.combatInformation.reactionsPerRound,
+    };
+
+    if (parsedBody.reactionsRemaining !== undefined) {
+      if (
+        parsedBody.reactionsRemaining >
+        existingCharacter.combatInformation.reactionsPerRound
+      ) {
+        return errorResponse(
+          "reactionsRemaining cannot exceed reactionsPerRound",
+          400
+        );
+      }
+      updateBody = {
+        ...updateBody,
+        reactionsRemaining: parsedBody.reactionsRemaining,
+      };
+    }
+
     // Handle change in current armour HP
     if (
-      parsedBody.armourCurrentHP &&
+      parsedBody.armourCurrentHP != null &&
       parsedBody.armourCurrentHP !==
-        existingCharacter.combatInformation.armourCurrentHP
+        existingCharacter.combatInformation.armourCurrentHP &&
+      parsedBody.armourCurrentHP !== 0
     ) {
       updateBody = {
         ...updateBody,
