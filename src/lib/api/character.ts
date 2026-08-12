@@ -231,6 +231,7 @@ type HealthUpdateBody = {
 type CombatInfoUpdateBody = {
   armourCurrentHP?: number;
   armourMod?: number;
+  reactionsRemaining?: number;
 };
 
 export async function updateCharacterHealth(

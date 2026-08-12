@@ -25,6 +25,12 @@ import {
   linkVisibilityBadgeClassName,
   linkVisibilityLabel,
 } from "@/app/lib/visibilityBadge";
+import {
+  enemyStatusBadgeClass,
+  enemyStatusLabel,
+  type EnemyInstanceStatus,
+} from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
+import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmCustomEnemiesSectionProps = {
@@ -75,6 +81,7 @@ export function GmCustomEnemiesSection({
   const [removeInstanceError, setRemoveInstanceError] = useState<string | null>(
     null
   );
+  const [instancesExpanded, setInstancesExpanded] = useState(false);
 
   const cancelDeleteCollectionModal = () => {
     if (deleteCollectionSubmitting) return;
@@ -329,107 +336,142 @@ export function GmCustomEnemiesSection({
         )}
       </div>
       <div className="mt-5">
-        <h4 className="text-sm font-semibold text-black/90">
-          Active enemy instances
-        </h4>
-        {instances.length === 0 ? (
-          <p className="mt-1 text-sm text-black/70">
-            No active instances yet. Spawn from a template, or browse official
-            enemies and use &quot;Spawn instance(s)&quot; without copying a
-            template.
-          </p>
-        ) : (
-          <ul className="mt-2 divide-y divide-black/15 border-b border-black/15 text-sm text-black">
-            {instances.map((inst) => {
-              const isPublic = inst.isPublic !== false;
-              const visibilityLabel = linkVisibilityLabel(isPublic);
-              return (
-                <li
-                  key={inst.id}
-                  className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 flex flex-1 items-center gap-3">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                      {imageUrls[inst.id] ? (
-                        <SignedRemoteImage
-                          src={imageUrls[inst.id] as string}
-                          imageKey={inst.imageKey ?? undefined}
-                          alt={`${inst.name} avatar`}
-                          width={44}
-                          height={44}
-                          className="h-11 w-11 object-cover object-top"
-                        />
-                      ) : imageUrls[inst.id] === undefined ? (
-                        <ImageLoadingSkeleton
-                          variant="avatar"
-                          className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                          {inst.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{inst.name}</p>
-                      <p className="text-xs tabular-nums text-black/70">
-                        HP {inst.currentHealth}/{inst.maxHealth} · Reactions{" "}
-                        {inst.reactionsRemaining}/{inst.reactionsPerRound} ·{" "}
-                        {inst.status}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={linkVisibilityBadgeClassName(isPublic)}>
-                      {visibilityLabel}
-                    </span>
+        <Button
+          type="button"
+          variant="lightReferenceDisclosure"
+          aria-expanded={instancesExpanded}
+          onClick={() => setInstancesExpanded((open) => !open)}
+        >
+          <h4 className="text-sm font-semibold text-black/90">
+            Active enemy instances
+            {instances.length > 0 ? (
+              <span className="ml-1.5 font-medium tabular-nums text-black/55">
+                ({instances.length})
+              </span>
+            ) : null}
+          </h4>
+          <span
+            className="shrink-0 text-xs font-semibold text-black/60"
+            aria-hidden
+          >
+            {instancesExpanded ? "▲" : "▼"}
+          </span>
+        </Button>
+        {instancesExpanded ? (
+          instances.length === 0 ? (
+            <p className="mt-1 text-sm text-black/70">
+              No active instances yet. Spawn from a template, or browse official
+              enemies and use &quot;Spawn instance(s)&quot; without copying a
+              template.
+            </p>
+          ) : (
+            <ul className="mt-2 divide-y divide-black/15 border-b border-black/15 text-sm text-black">
+              {instances.map((inst) => {
+                const isPublic = inst.isPublic !== false;
+                const visibilityLabel = linkVisibilityLabel(isPublic);
+                const instanceHref = `/home/games/${game.id}/gm/enemies/${inst.id}`;
+                const status = inst.status as EnemyInstanceStatus;
+                return (
+                  <li
+                    key={inst.id}
+                    className="relative flex flex-col gap-2 py-2.5 transition-colors hover:bg-black/[0.04] sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <Link
-                      href={`/home/games/${game.id}/gm/enemies/${inst.id}`}
-                      className="rounded border border-black/40 px-2 py-1 text-xs font-medium text-black hover:bg-black/5"
-                    >
-                      Manage
-                    </Link>
-                    <Button
-                      type="button"
-                      variant="secondaryOutlineXs"
-                      fullWidth={false}
-                      disabled={busyInstanceId === inst.id}
-                      className="!px-2 !py-1 !text-xs"
-                      onClick={() => {
-                        setBusyInstanceId(inst.id);
-                        void updateEnemyInstance(game.id, inst.id, {
-                          reactionsRemaining: inst.reactionsPerRound,
-                        })
-                          .then(async () => onMutate())
-                          .finally(() => setBusyInstanceId(null));
-                      }}
-                    >
-                      Reset reactions
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="semanticDangerOutline"
-                      fullWidth={false}
-                      disabled={
-                        busyInstanceId === inst.id || removeInstanceSubmitting
-                      }
-                      className="!px-2 !py-1 !text-xs"
-                      onClick={() => {
-                        setRemoveInstanceTarget({
-                          id: inst.id,
-                          name: inst.name,
-                        });
-                        setRemoveInstanceError(null);
-                      }}
-                    >
-                      {busyInstanceId === inst.id ? "Removing…" : "Remove"}
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                      href={instanceHref}
+                      className="absolute inset-0 z-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                      aria-label={`Open ${inst.name}`}
+                    />
+                    <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
+                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+                        {imageUrls[inst.id] ? (
+                          <SignedRemoteImage
+                            src={imageUrls[inst.id] as string}
+                            imageKey={inst.imageKey ?? undefined}
+                            alt=""
+                            width={44}
+                            height={44}
+                            className="h-11 w-11 object-cover object-top"
+                          />
+                        ) : imageUrls[inst.id] === undefined ? (
+                          <ImageLoadingSkeleton
+                            variant="avatar"
+                            className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
+                            {inst.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <p className="truncate text-base font-medium">
+                            {inst.name}
+                          </p>
+                          <span className={enemyStatusBadgeClass(status)}>
+                            {enemyStatusLabel(status)}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                          <GmCombatHpDisplay
+                            currentHealth={inst.currentHealth}
+                            maxHealth={inst.maxHealth}
+                          />
+                          <p className="text-xs tabular-nums text-black/70">
+                            Reactions {inst.reactionsRemaining}/
+                            {inst.reactionsPerRound}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="relative z-10 flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`${linkVisibilityBadgeClassName(isPublic)} pointer-events-none`}
+                      >
+                        {visibilityLabel}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="secondaryOutlineXs"
+                        fullWidth={false}
+                        disabled={busyInstanceId === inst.id}
+                        className="!px-2 !py-1 !text-xs"
+                        onClick={() => {
+                          setBusyInstanceId(inst.id);
+                          void updateEnemyInstance(game.id, inst.id, {
+                            reactionsRemaining: inst.reactionsPerRound,
+                          })
+                            .then(async () => onMutate())
+                            .finally(() => setBusyInstanceId(null));
+                        }}
+                      >
+                        Reset reactions
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="semanticDangerOutline"
+                        fullWidth={false}
+                        disabled={
+                          busyInstanceId === inst.id || removeInstanceSubmitting
+                        }
+                        className="!px-2 !py-1 !text-xs"
+                        onClick={() => {
+                          setRemoveInstanceTarget({
+                            id: inst.id,
+                            name: inst.name,
+                          });
+                          setRemoveInstanceError(null);
+                        }}
+                      >
+                        {busyInstanceId === inst.id ? "Removing…" : "Remove"}
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        ) : null}
       </div>
 
       <DangerConfirmModal

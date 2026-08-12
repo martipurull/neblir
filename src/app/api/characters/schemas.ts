@@ -35,6 +35,7 @@ export const characterCreationRequestSchema = z
         initiativeMod: true,
         speed: true,
         reactionsPerRound: true,
+        reactionsRemaining: true,
         rangeAttackMod: true,
         meleeAttackMod: true,
         rangeDefenceMod: true,

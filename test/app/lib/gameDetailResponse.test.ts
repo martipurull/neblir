@@ -181,6 +181,51 @@ describe("shapeGameForResponse visibility filtering", () => {
     ]);
   });
 
+  it("includes GM-only combat snapshot fields on characters", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      characters: [
+        {
+          id: "gc-owned",
+          gameId: "g-1",
+          characterId: "char-owned",
+          isPublic: false,
+          character: {
+            id: "char-owned",
+            generalInformation: {
+              name: "Owned",
+              surname: "Hero",
+              level: 3,
+              avatarKey: null,
+            },
+            combatInformation: { initiativeMod: 2, reactionsPerRound: 3 },
+            health: {
+              currentPhysicalHealth: 12,
+              maxPhysicalHealth: 20,
+              status: "ALIVE",
+            },
+            users: [{ userId: "player-1" }],
+          },
+        },
+      ],
+    };
+
+    const gmView = shapeGameForResponse(game as any, "gm-1");
+    expect(gmView?.characters?.[0]?.character).toMatchObject({
+      currentPhysicalHealth: 12,
+      maxPhysicalHealth: 20,
+      reactionsPerRound: 3,
+      reactionsRemaining: 3,
+      healthStatus: "ALIVE",
+    });
+
+    const playerView = shapeGameForResponse(game as any, "player-1");
+    expect(playerView?.characters?.[0]?.character.currentPhysicalHealth).toBe(
+      undefined
+    );
+    expect(playerView?.characters?.[0]?.character.healthStatus).toBe(undefined);
+  });
+
   it("filters private enemy instances for non-GM and masks initiative names", () => {
     const game = {
       ...makeGameWithCharacters(),

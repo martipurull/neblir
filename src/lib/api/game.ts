@@ -276,6 +276,41 @@ export async function clearGameInitiative(gameId: string): Promise<GameDetail> {
   return parsed.data;
 }
 
+export async function resetGameCombatReactions(
+  gameId: string
+): Promise<GameDetail> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/combat/reset-reactions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to reset combat reactions"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameDetailSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Game response did not match expected shape");
+  }
+  return parsed.data;
+}
+
 export async function updateGame(
   id: string,
   body: GameUpdateBody

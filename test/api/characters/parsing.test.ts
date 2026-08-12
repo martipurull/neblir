@@ -160,6 +160,7 @@ describe("computeCharacterRequestData", () => {
         initiativeMod: 4,
         speed: 14,
         reactionsPerRound: 1,
+        reactionsRemaining: 1,
         maxCarryWeight: 23,
       });
       expect(result.generalInformation.specialAbility).toEqual({
@@ -175,6 +176,7 @@ describe("computeCharacterRequestData", () => {
       });
       const result = computeCharacterRequestData(input);
       expect(result.combatInformation.reactionsPerRound).toBe(2);
+      expect(result.combatInformation.reactionsRemaining).toBe(2);
     });
 
     it("sets reactionsPerRound to 3 for level 4+", () => {
@@ -183,6 +185,7 @@ describe("computeCharacterRequestData", () => {
       });
       const result = computeCharacterRequestData(input);
       expect(result.combatInformation.reactionsPerRound).toBe(3);
+      expect(result.combatInformation.reactionsRemaining).toBe(3);
     });
 
     it("uses selected special ability for Manfenn", () => {

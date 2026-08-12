@@ -41,6 +41,25 @@ export function mergeEnemyInstancePatch(
   return { ...prev, ...patch };
 }
 
+/**
+ * Decide whether a HP delta should open the zero-HP status prompt or persist.
+ * Kept pure so callers never stash this decision in a setState updater (Strict Mode).
+ */
+export type EnemyHealthDeltaDecision =
+  | { kind: "prompt" }
+  | { kind: "persist"; patch: EnemyInstancePatch };
+
+export function decideEnemyHealthDelta(
+  currentHealth: number,
+  delta: number
+): EnemyHealthDeltaDecision {
+  const next = Math.max(0, currentHealth + delta);
+  if (next === 0 && currentHealth > 0) {
+    return { kind: "prompt" };
+  }
+  return { kind: "persist", patch: { currentHealth: next } };
+}
+
 export function rollD10(times: number): number[] {
   return Array.from(
     { length: times },

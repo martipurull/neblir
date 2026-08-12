@@ -221,6 +221,7 @@ export function computeCharacterRequestData(
           10,
         maxCarryWeight: calculateMaxCarryWeight(parsedCharacterCreationRequest),
         reactionsPerRound: reactionsPerRound,
+        reactionsRemaining: reactionsPerRound,
         rangeAttackMod:
           parsedCharacterCreationRequest.innateAttributes.dexterity.manual +
           parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,

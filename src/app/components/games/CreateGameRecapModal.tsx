@@ -9,10 +9,12 @@ import {
   RECAP_MAX_SIZE_BYTES,
   RECAP_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
+import type { GameRecap } from "@/app/lib/types/recap";
 import {
   createGameRecap,
   deleteUploadedRecapFile,
   requestRecapUploadUrl,
+  updateGameRecap,
   uploadRecapPdfToStorage,
 } from "@/lib/api/recaps";
 import { type FormEvent, useMemo, useRef, useState } from "react";
@@ -21,6 +23,8 @@ type CreateGameRecapModalProps = {
   isOpen: boolean;
   gameId: string;
   gameName: string;
+  mode?: "create" | "edit";
+  recap?: GameRecap | null;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -29,11 +33,14 @@ export function CreateGameRecapModal({
   isOpen,
   gameId,
   gameName,
+  mode = "create",
+  recap = null,
   onClose,
   onSuccess,
 }: CreateGameRecapModalProps) {
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
+  const isEditMode = mode === "edit" && Boolean(recap);
+  const [title, setTitle] = useState(recap?.title ?? "");
+  const [summary, setSummary] = useState(recap?.summary ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,15 +48,18 @@ export function CreateGameRecapModal({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const submitDisabled = useMemo(
-    () => submitting || !title.trim() || !file,
-    [file, submitting, title]
+    () => submitting || !title.trim() || (!isEditMode && !file),
+    [file, isEditMode, submitting, title]
   );
 
   const resetForm = () => {
-    setTitle("");
-    setSummary("");
+    setTitle(recap?.title ?? "");
+    setSummary(recap?.summary ?? "");
     setFile(null);
     setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleClose = () => {
@@ -60,17 +70,23 @@ export function CreateGameRecapModal({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!file) {
+    if (!title.trim()) {
+      setError("Title is required.");
+      return;
+    }
+    if (!isEditMode && !file) {
       setError("PDF file is required.");
       return;
     }
-    if (file.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
-      return;
-    }
-    if (file.size > RECAP_MAX_SIZE_BYTES) {
-      setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
-      return;
+    if (file) {
+      if (file.type !== "application/pdf") {
+        setError("Only PDF files are allowed.");
+        return;
+      }
+      if (file.size > RECAP_MAX_SIZE_BYTES) {
+        setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
+        return;
+      }
     }
 
     let uploadedKey: string | null = null;
@@ -78,22 +94,51 @@ export function CreateGameRecapModal({
       setSubmitting(true);
       setError(null);
 
-      const { fileKey, uploadUrl } = await requestRecapUploadUrl({
-        gameId,
-        fileName: file.name,
-        fileSizeBytes: file.size,
-      });
-      uploadedKey = fileKey;
+      const trimmedTitle = title.trim();
+      const trimmedSummary = summary.trim() || null;
 
-      await uploadRecapPdfToStorage(uploadUrl, file);
-
-      await createGameRecap(gameId, {
-        title: title.trim(),
-        summary: summary.trim() || null,
-        fileKey,
-        fileName: file.name,
-        fileSizeBytes: file.size,
-      });
+      if (isEditMode && recap) {
+        if (file) {
+          const { fileKey, uploadUrl } = await requestRecapUploadUrl({
+            gameId,
+            fileName: file.name,
+            fileSizeBytes: file.size,
+          });
+          uploadedKey = fileKey;
+          await uploadRecapPdfToStorage(uploadUrl, file);
+          await updateGameRecap(gameId, recap.id, {
+            title: trimmedTitle,
+            summary: trimmedSummary,
+            fileKey,
+            fileName: file.name,
+            fileSizeBytes: file.size,
+          });
+        } else {
+          await updateGameRecap(gameId, recap.id, {
+            title: trimmedTitle,
+            summary: trimmedSummary,
+          });
+        }
+      } else {
+        if (!file) {
+          setError("PDF file is required.");
+          return;
+        }
+        const { fileKey, uploadUrl } = await requestRecapUploadUrl({
+          gameId,
+          fileName: file.name,
+          fileSizeBytes: file.size,
+        });
+        uploadedKey = fileKey;
+        await uploadRecapPdfToStorage(uploadUrl, file);
+        await createGameRecap(gameId, {
+          title: trimmedTitle,
+          summary: trimmedSummary,
+          fileKey,
+          fileName: file.name,
+          fileSizeBytes: file.size,
+        });
+      }
 
       resetForm();
       onClose();
@@ -102,7 +147,13 @@ export function CreateGameRecapModal({
       if (uploadedKey) {
         void deleteUploadedRecapFile(uploadedKey);
       }
-      setError(err instanceof Error ? err.message : "Could not upload recap.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : isEditMode
+            ? "Could not update recap."
+            : "Could not upload recap."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -125,15 +176,21 @@ export function CreateGameRecapModal({
   return (
     <GameFormModal
       isOpen={isOpen}
-      title={`Upload recap — ${gameName}`}
-      subtitle="Upload a session PDF players can download from the game page."
-      titleId="create-game-recap-title"
+      title={
+        isEditMode ? `Edit recap — ${gameName}` : `Upload recap — ${gameName}`
+      }
+      subtitle={
+        isEditMode
+          ? "Update the title, summary, or replace the PDF."
+          : "Upload a session PDF players can download from the game page."
+      }
+      titleId={isEditMode ? "edit-game-recap-title" : "create-game-recap-title"}
       error={error}
       onClose={handleClose}
       onSubmit={(event) => void handleSubmit(event)}
       submitting={submitting}
-      submitLabel="Upload recap"
-      submittingLabel="Uploading…"
+      submitLabel={isEditMode ? "Save changes" : "Upload recap"}
+      submittingLabel={isEditMode ? "Saving…" : "Uploading…"}
       submitDisabled={submitDisabled}
     >
       <div>
@@ -162,7 +219,11 @@ export function CreateGameRecapModal({
         />
       </div>
       <div>
-        <FieldLabel id="game-recap-file" label="PDF file" required />
+        <FieldLabel
+          id="game-recap-file"
+          label={isEditMode ? "PDF file (optional replace)" : "PDF file"}
+          required={!isEditMode}
+        />
         <div
           role="button"
           tabIndex={0}
@@ -232,6 +293,11 @@ export function CreateGameRecapModal({
         {file ? (
           <p className="mt-1 text-xs text-white/70">
             Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
+          </p>
+        ) : isEditMode && recap ? (
+          <p className="mt-1 text-xs text-white/70">
+            Current file: {recap.fileName} (
+            {Math.ceil(recap.fileSizeBytes / 1024)} KB)
           </p>
         ) : null}
       </div>

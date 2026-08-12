@@ -81,6 +81,8 @@ export function shapeGameForResponse(
       const isOwnedByCurrentUser = gc.character.users.some(
         (u) => u.userId === userId
       );
+      const health = gc.character.health;
+      const combat = gc.character.combatInformation;
       return {
         ...gc,
         character: {
@@ -90,8 +92,18 @@ export function shapeGameForResponse(
           avatarKey: gi?.avatarKey ?? null,
           isOwnedByCurrentUser,
           generalInformation: gi ?? undefined,
-          initiativeMod: gc.character.combatInformation?.initiativeMod ?? 0,
+          initiativeMod: combat?.initiativeMod ?? 0,
           linkedUserIds: gc.character.users.map((u) => u.userId),
+          ...(isGameMaster
+            ? {
+                currentPhysicalHealth: health?.currentPhysicalHealth,
+                maxPhysicalHealth: health?.maxPhysicalHealth,
+                reactionsPerRound: combat?.reactionsPerRound,
+                reactionsRemaining:
+                  combat?.reactionsRemaining ?? combat?.reactionsPerRound,
+                healthStatus: health?.status,
+              }
+            : {}),
         },
       };
     });

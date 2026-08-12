@@ -225,6 +225,8 @@ type CharacterCombatInformation {
   throwAttackMod   Int
   speed             Int
   reactionsPerRound Int
+  /** Remaining reactions this round; capped by reactionsPerRound. */
+  reactionsRemaining Int
   maxCarryWeight    Int
 }
 
