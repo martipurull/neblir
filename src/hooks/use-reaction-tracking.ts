@@ -12,7 +12,6 @@ import type { KeyedMutator } from "swr";
  */
 export function useReactionTracking(
   character: CharacterDetail | null,
-  characterId: string,
   mutate: KeyedMutator<CharacterDetail | null>
 ) {
   /** Latest character for rapid optimistic clicks; synced outside render. */
@@ -30,7 +29,7 @@ export function useReactionTracking(
   const persistRemaining = useCallback(
     async (nextRemaining: number) => {
       const cur = characterRef.current;
-      if (!cur?.combatInformation || !characterId) return;
+      if (!cur?.combatInformation || !cur.id) return;
       const capped = Math.max(
         0,
         Math.min(nextRemaining, cur.combatInformation.reactionsPerRound)
@@ -45,7 +44,7 @@ export function useReactionTracking(
       characterRef.current = nextCharacter;
       void mutate(nextCharacter, false);
       try {
-        const updated = await updateCharacterCombatInfo(characterId, {
+        const updated = await updateCharacterCombatInfo(cur.id, {
           reactionsRemaining: capped,
         });
         characterRef.current = updated;
@@ -54,7 +53,7 @@ export function useReactionTracking(
         await mutate();
       }
     },
-    [characterId, mutate]
+    [mutate]
   );
 
   const useReaction = useCallback(() => {

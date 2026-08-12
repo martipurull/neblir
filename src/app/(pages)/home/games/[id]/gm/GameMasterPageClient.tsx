@@ -44,6 +44,7 @@ import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
   removeGameInitiativeEntry,
+  resetGameCombatReactions,
   setGameCharacterVisibility,
   updateGame,
 } from "@/lib/api/game";
@@ -103,6 +104,7 @@ export function GameMasterPageClient() {
     null
   );
   const [clearingInitiative, setClearingInitiative] = useState(false);
+  const [resettingReactions, setResettingReactions] = useState(false);
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
 
@@ -175,6 +177,17 @@ export function GameMasterPageClient() {
       await mutate(updated, { revalidate: false });
     } finally {
       setClearingInitiative(false);
+    }
+  }, [id, mutate]);
+
+  const handleResetCombatReactions = useCallback(async () => {
+    if (!id) return;
+    setResettingReactions(true);
+    try {
+      const updated = await resetGameCombatReactions(id);
+      await mutate(updated, { revalidate: false });
+    } finally {
+      setResettingReactions(false);
     }
   }, [id, mutate]);
 
@@ -296,8 +309,10 @@ export function GameMasterPageClient() {
           initiativeOrder={initiativeOrder}
           hasInitiativeEntries={hasInitiativeEntries}
           clearingInitiative={clearingInitiative}
+          resettingReactions={resettingReactions}
           initiativeActionId={initiativeActionId}
           onClearAll={() => void handleClearAllInitiative()}
+          onResetReactions={() => void handleResetCombatReactions()}
           onRemoveEntry={(characterId) =>
             void handleRemoveInitiativeEntry(characterId)
           }
