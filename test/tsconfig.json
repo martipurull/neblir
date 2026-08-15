@@ -3,10 +3,9 @@
   "compilerOptions": {
     "strict": false,
     "noEmit": true,
-    "baseUrl": "..",
     "paths": {
-      "@/app/api/*/route": ["test/types/routes.d.ts"],
-      "@/*": ["src/*"]
+      "@/app/api/*/route": ["./types/routes.d.ts"],
+      "@/*": ["../src/*"]
     },
     "types": ["vitest/globals", "node"]
   },
