@@ -69,7 +69,10 @@ export function CharacterDetailView({
     character,
     mutateAction ?? noopMutate
   );
-  const reactionTracking = useReactionTracking(character, mutate ?? noopMutate);
+  const reactionTracking = useReactionTracking(
+    character,
+    mutateAction ?? noopMutate
+  );
 
   const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);
   const [singleAttributeRollSelection, setSingleAttributeRollSelection] =
