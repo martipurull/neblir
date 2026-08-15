@@ -1,3 +1,7 @@
+import {
+  canReadReferenceEntry,
+  canWriteGameScopedReferenceEntry,
+} from "@/app/lib/authz/referenceEntry";
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   deleteReferenceEntry,
@@ -5,40 +9,18 @@ import {
   updateReferenceEntry,
 } from "@/app/lib/prisma/referenceEntry";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
-import { getGame, userIsInGame } from "@/app/lib/prisma/game";
+import { getGame } from "@/app/lib/prisma/game";
+import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { referenceEntryUpdateSchema } from "@/app/lib/types/reference";
 import { auth } from "@/auth";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 
 const route = "/api/reference-entries/[id]";
-
-async function canReadReferenceEntry(
-  entry: { gameId: string | null; access: "PLAYER" | "GAME_MASTER" },
-  userId: string
-): Promise<boolean> {
-  if (!entry.gameId) return entry.access === "PLAYER";
-
-  const inGame = await userIsInGame(entry.gameId, userId);
-  if (!inGame) return false;
-
-  if (entry.access === "PLAYER") return true;
-  const game = await getGame(entry.gameId);
-  return game?.gameMaster === userId;
-}
-
-async function canWriteGameScopedReferenceEntry(
-  entry: { gameId: string | null },
-  userId: string
-): Promise<boolean> {
-  if (!entry.gameId) return false;
-
-  const game = await getGame(entry.gameId);
-  return game?.gameMaster === userId;
-}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -177,6 +159,32 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       );
       if (!canWrite) {
         return errorResponse("You cannot delete this reference entry", 403);
+      }
+    }
+
+    const config = getR2Config();
+    const attachments = existing.attachments ?? [];
+    if (config) {
+      for (const attachment of attachments) {
+        if (!isDeletableUploadKey(attachment.fileKey)) continue;
+        try {
+          await config.s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: config.bucketName,
+              Key: attachment.fileKey,
+            })
+          );
+        } catch (error) {
+          logger.error({
+            method: "DELETE",
+            route,
+            message: "Failed to delete lore attachment from storage",
+            error,
+            details: serializeError(error),
+            fileKey: attachment.fileKey,
+            attachmentId: attachment.id,
+          });
+        }
       }
     }
 

@@ -183,12 +183,12 @@ export default function GameDetailPage() {
             </span>
           </Link>
           <Link
-            href={`/home/games/${game.id}/images`}
+            href={`/home/games/${game.id}/files`}
             className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >
-            <span className="text-sm font-semibold text-black">Images</span>
+            <span className="text-sm font-semibold text-black">Files</span>
             <span className="mt-1 block text-xs text-black/70">
-              Visual materials
+              Images, PDFs, and handouts
             </span>
           </Link>
           <Link

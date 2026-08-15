@@ -1,6 +1,11 @@
 import { getGameRecapById } from "@/app/lib/prisma/gameRecap";
 import { userIsInGame } from "@/app/lib/prisma/game";
 import { getR2Config } from "@/app/lib/r2";
+import { sanitizeAttachmentFilenamePart } from "@/app/api/shared/filename";
+import {
+  contentDispositionHeader,
+  parseFileUrlDisposition,
+} from "@/app/api/shared/fileUrlDisposition";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -35,12 +40,19 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("File download is not configured", 500);
     }
 
+    const filename = sanitizeAttachmentFilenamePart(recap.fileName, "file.pdf");
+    const disposition = parseFileUrlDisposition(
+      request.nextUrl.searchParams.get("disposition")
+    );
     const signedUrl = await getSignedUrl(
       config.s3Client,
       new GetObjectCommand({
         Bucket: config.bucketName,
         Key: recap.fileKey,
-        ResponseContentDisposition: `attachment; filename="${recap.fileName}"`,
+        ResponseContentDisposition: contentDispositionHeader(
+          disposition,
+          filename
+        ),
         ResponseContentType: "application/pdf",
       }),
       { expiresIn: 3600 }

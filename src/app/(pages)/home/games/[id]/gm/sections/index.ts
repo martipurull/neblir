@@ -8,7 +8,7 @@ export { GmItemsSection } from "./GmItemsSection";
 export { GmDiscordSection } from "./GmDiscordSection";
 export { GmLoreSection } from "./GmLoreSection";
 export { GmRecapsSection } from "./GmRecapsSection";
-export { GmImagesSection } from "./GmImagesSection";
+export { GmFilesSection } from "./GmFilesSection";
 export { GmNpcsSection } from "./GmNpcsSection";
 export { GmDiceRollerSection } from "./GmDiceRollerSection";
 export { GmDangerZoneSection } from "./GmDangerZoneSection";

@@ -5,20 +5,38 @@ import { TextField } from "@/app/components/shared/TextField";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
+import { Button } from "@/app/components/shared/Button";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
 import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import {
+  IMAGE_MAX_SIZE_BYTES,
+  IMAGE_MAX_SIZE_LABEL,
+  PDF_MAX_SIZE_BYTES,
+  PDF_MAX_SIZE_LABEL,
+} from "@/app/lib/constants/uploadLimits";
+import {
   createReferenceEntry,
   updateReferenceEntry,
 } from "@/lib/api/referenceEntries";
+import {
+  createReferenceEntryAttachment,
+  deleteReferenceEntryAttachment,
+  deleteUploadedLoreFile,
+  getReferenceEntryAttachments,
+  requestLoreAttachmentUploadUrl,
+  uploadLoreFileToStorage,
+} from "@/lib/api/loreAttachments";
 import type {
   ReferenceAccess,
   ReferenceEntry,
 } from "@/app/lib/types/reference";
+import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
+import { isImageFileName, isPdfFileName } from "@/app/lib/r2UploadKeys";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import useSWR from "swr";
 
 type CreateGameLoreEntryModalProps = {
   isOpen: boolean;
@@ -28,6 +46,12 @@ type CreateGameLoreEntryModalProps = {
   entry?: ReferenceEntry | null;
   onClose: () => void;
   onSuccess?: () => void;
+};
+
+type PendingLoreAttachment = {
+  fileKey: string;
+  fileName: string;
+  fileSizeBytes: number;
 };
 
 function slugifyTitle(title: string): string {
@@ -55,6 +79,14 @@ export function CreateGameLoreEntryModal({
   const [access, setAccess] = useState<ReferenceAccess>("PLAYER");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAttachments, setPendingAttachments] = useState<
+    PendingLoreAttachment[]
+  >([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState<
+    string | null
+  >(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const editor = useEditor({
     extensions: RICH_TEXT_EXTENSIONS,
@@ -68,6 +100,13 @@ export function CreateGameLoreEntryModal({
     },
   });
   const isEditMode = mode === "edit" && Boolean(entry);
+
+  const { data: existingAttachments = [], mutate: mutateAttachments } = useSWR<
+    ReferenceEntryAttachment[]
+  >(
+    isOpen && isEditMode && entry ? ["lore-attachments", entry.id] : null,
+    ([, entryId]) => getReferenceEntryAttachments(entryId as string)
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -91,9 +130,16 @@ export function CreateGameLoreEntryModal({
   }, [isOpen, isEditMode, entry, editor]);
 
   const submitDisabled = useMemo(
-    () => submitting || title.trim().length === 0,
-    [submitting, title]
+    () => submitting || uploadingAttachment || title.trim().length === 0,
+    [submitting, title, uploadingAttachment]
   );
+
+  const cleanupPending = () => {
+    for (const attachment of pendingAttachments) {
+      void deleteUploadedLoreFile(attachment.fileKey);
+    }
+    setPendingAttachments([]);
+  };
 
   const resetForm = () => {
     setError(null);
@@ -102,15 +148,73 @@ export function CreateGameLoreEntryModal({
     setTagsInput("");
     setAccess("PLAYER");
     editor?.commands.setContent(EMPTY_RICH_TEXT_DOC);
+    setPendingAttachments([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleClose = () => {
-    if (submitting) return;
+    if (submitting || uploadingAttachment) return;
+    cleanupPending();
     resetForm();
     onClose();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const addAttachmentFile = async (file: File | null) => {
+    if (!file) return;
+    const isPdf = file.type === "application/pdf" || isPdfFileName(file.name);
+    if (isPdf) {
+      if (file.size > PDF_MAX_SIZE_BYTES) {
+        setError(`PDF must be ${PDF_MAX_SIZE_LABEL} or smaller.`);
+        return;
+      }
+    } else if (isImageFileName(file.name)) {
+      if (file.size > IMAGE_MAX_SIZE_BYTES) {
+        setError(`Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller.`);
+        return;
+      }
+    } else {
+      setError("Please choose an image (PNG, JPEG, GIF, WebP) or a PDF.");
+      return;
+    }
+
+    setUploadingAttachment(true);
+    setError(null);
+    try {
+      const { fileKey, uploadUrl } = await requestLoreAttachmentUploadUrl({
+        gameId,
+        referenceEntryId: isEditMode && entry ? entry.id : undefined,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+      });
+      await uploadLoreFileToStorage(uploadUrl, file);
+      if (isEditMode && entry) {
+        await createReferenceEntryAttachment(entry.id, {
+          fileKey,
+          fileName: file.name,
+          fileSizeBytes: file.size,
+        });
+        await mutateAttachments();
+      } else {
+        setPendingAttachments((current) => [
+          ...current,
+          {
+            fileKey,
+            fileName: file.name,
+            fileSizeBytes: file.size,
+          },
+        ]);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not upload attachment."
+      );
+    } finally {
+      setUploadingAttachment(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
@@ -135,7 +239,7 @@ export function CreateGameLoreEntryModal({
           contentJson,
         });
       } else {
-        await createReferenceEntry({
+        const created = await createReferenceEntry({
           category: "CAMPAIGN_LORE",
           gameId,
           title: trimmedTitle,
@@ -146,6 +250,9 @@ export function CreateGameLoreEntryModal({
           sortOrder: 0,
           contentJson,
         });
+        for (const attachment of pendingAttachments) {
+          await createReferenceEntryAttachment(created.id, attachment);
+        }
       }
       resetForm();
       onClose();
@@ -189,7 +296,7 @@ export function CreateGameLoreEntryModal({
           variant="dark"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. The Fall of Arithem"
+          placeholder="e.g. A history of the Northern Federation"
           disabled={submitting}
         />
       </div>
@@ -216,7 +323,7 @@ export function CreateGameLoreEntryModal({
           variant="dark"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
-          placeholder="e.g. history, factions, city"
+          placeholder="e.g. history, factions, economy"
           disabled={submitting}
         />
         <p className="mt-1 text-xs text-white/70">Separate tags with commas.</p>
@@ -255,6 +362,101 @@ export function CreateGameLoreEntryModal({
             <p className="text-sm text-white/70">Loading editor…</p>
           )}
         </div>
+      </div>
+
+      <div>
+        <FieldLabel id="game-lore-attachments" label="Attachments" />
+        <p className="mb-2 text-xs text-white/70">
+          Optional images (max {IMAGE_MAX_SIZE_LABEL}) or PDFs (max{" "}
+          {PDF_MAX_SIZE_LABEL}) players can open or download with this lore
+          entry.
+        </p>
+        {isEditMode && existingAttachments.length > 0 ? (
+          <ul className="mb-2 space-y-1">
+            {existingAttachments.map((attachment) => (
+              <li
+                key={attachment.id}
+                className="flex items-center justify-between gap-2 text-xs text-white/80"
+              >
+                <span className="truncate">{attachment.fileName}</span>
+                <Button
+                  type="button"
+                  variant="danger"
+                  className="text-xs"
+                  fullWidth={false}
+                  disabled={
+                    submitting || deletingAttachmentId === attachment.id
+                  }
+                  onClick={() => {
+                    if (!entry) return;
+                    setDeletingAttachmentId(attachment.id);
+                    void deleteReferenceEntryAttachment(entry.id, attachment.id)
+                      .then(async () => {
+                        await mutateAttachments();
+                      })
+                      .finally(() => {
+                        setDeletingAttachmentId(null);
+                      });
+                  }}
+                >
+                  {deletingAttachmentId === attachment.id
+                    ? "Removing…"
+                    : "Remove"}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {pendingAttachments.length > 0 ? (
+          <ul className="mb-2 space-y-1">
+            {pendingAttachments.map((attachment) => (
+              <li
+                key={attachment.fileKey}
+                className="flex items-center justify-between gap-2 text-xs text-white/80"
+              >
+                <span className="truncate">{attachment.fileName}</span>
+                <Button
+                  type="button"
+                  variant="danger"
+                  className="text-xs"
+                  fullWidth={false}
+                  disabled={submitting}
+                  onClick={() => {
+                    void deleteUploadedLoreFile(attachment.fileKey);
+                    setPendingAttachments((current) =>
+                      current.filter(
+                        (item) => item.fileKey !== attachment.fileKey
+                      )
+                    );
+                  }}
+                >
+                  Remove
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <Button
+          type="button"
+          variant="modalFooterSecondary"
+          fullWidth={false}
+          disabled={submitting || uploadingAttachment}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {uploadingAttachment ? "Uploading…" : "Add file"}
+        </Button>
+        <input
+          ref={fileInputRef}
+          id="game-lore-attachments"
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf"
+          disabled={submitting || uploadingAttachment}
+          onChange={(event) => {
+            const nextFile = event.target.files?.[0] ?? null;
+            void addAttachmentFile(nextFile);
+          }}
+          className="sr-only"
+        />
       </div>
     </GameFormModal>
   );

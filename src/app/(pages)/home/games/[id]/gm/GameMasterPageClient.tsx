@@ -7,7 +7,7 @@ import { CopyCustomEnemyModal } from "@/app/components/games/CopyCustomEnemyModa
 import { ImportCustomEnemiesModal } from "@/app/components/games/ImportCustomEnemiesModal";
 import { CreateGameLoreEntryModal } from "@/app/components/games/CreateGameLoreEntryModal";
 import { CreateGameRecapModal } from "@/app/components/games/CreateGameRecapModal";
-import { CreateGameImageModal } from "@/app/components/games/CreateGameImageModal";
+import { CreateGameFileModal } from "@/app/components/games/CreateGameFileModal";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
@@ -29,7 +29,7 @@ import {
   GmItemsSection,
   GmCustomEnemiesSection,
   GmLoreSection,
-  GmImagesSection,
+  GmFilesSection,
   GmRecapsSection,
   GmNpcsSection,
   GmDiceRollerSection,
@@ -37,7 +37,7 @@ import {
 } from "./sections";
 import { useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
-import { useGameImages } from "@/hooks/use-game-images";
+import { useGameFiles } from "@/hooks/use-game-files";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
 import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import {
@@ -50,7 +50,7 @@ import {
 } from "@/lib/api/game";
 import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
-import { deleteGameImage } from "@/lib/api/gameImages";
+import { deleteGameFile, getGameFileUrl } from "@/lib/api/gameFiles";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import type { GameRecap } from "@/app/lib/types/recap";
@@ -87,7 +87,7 @@ export function GameMasterPageClient() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [loreEntryModalOpen, setLoreEntryModalOpen] = useState(false);
   const [recapModalOpen, setRecapModalOpen] = useState(false);
-  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [fileModalOpen, setFileModalOpen] = useState(false);
   const [loreEntryEditTarget, setLoreEntryEditTarget] =
     useState<ReferenceEntry | null>(null);
   const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
@@ -97,7 +97,7 @@ export function GameMasterPageClient() {
     null
   );
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
-  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
     useState(false);
   const [initiativeActionId, setInitiativeActionId] = useState<string | null>(
@@ -214,11 +214,11 @@ export function GameMasterPageClient() {
     refetch: refetchRecaps,
   } = useGameRecaps(id);
   const {
-    images,
-    loading: imagesLoading,
-    error: imagesError,
-    refetch: refetchImages,
-  } = useGameImages(id);
+    files,
+    loading: filesLoading,
+    error: filesError,
+    refetch: refetchFiles,
+  } = useGameFiles(id);
 
   if (loading || (!game && !error)) {
     return (
@@ -412,8 +412,13 @@ export function GameMasterPageClient() {
             setRecapEditTarget(recap);
             setRecapModalOpen(true);
           }}
+          onOpenRecap={(recapId) => {
+            void getRecapDownloadUrl(recapId, "inline").then((url) => {
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+          }}
           onDownloadRecap={(recapId) => {
-            void getRecapDownloadUrl(recapId).then((url) => {
+            void getRecapDownloadUrl(recapId, "attachment").then((url) => {
               window.open(url, "_blank", "noopener,noreferrer");
             });
           }}
@@ -435,28 +440,38 @@ export function GameMasterPageClient() {
               });
           }}
         />
-        <GmImagesSection
-          images={images}
-          loading={imagesLoading}
-          error={imagesError}
-          deletingImageId={deletingImageId}
-          onRetry={() => void refetchImages()}
-          onCreateImage={() => setImageModalOpen(true)}
-          onDeleteImage={(image) => {
+        <GmFilesSection
+          files={files}
+          loading={filesLoading}
+          error={filesError}
+          deletingFileId={deletingFileId}
+          onRetry={() => void refetchFiles()}
+          onCreateFile={() => setFileModalOpen(true)}
+          onOpenFile={(file) => {
+            void getGameFileUrl(file.id, "inline").then((url) => {
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+          }}
+          onDownloadFile={(file) => {
+            void getGameFileUrl(file.id, "attachment").then((url) => {
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+          }}
+          onDeleteFile={(file) => {
             if (
               !window.confirm(
-                `Delete image "${image.title}"? This cannot be undone.`
+                `Delete file "${file.title}"? This cannot be undone.`
               )
             ) {
               return;
             }
-            setDeletingImageId(image.id);
-            void deleteGameImage(game.id, image.id)
+            setDeletingFileId(file.id);
+            void deleteGameFile(game.id, file.id)
               .then(async () => {
-                await refetchImages();
+                await refetchFiles();
               })
               .finally(() => {
-                setDeletingImageId(null);
+                setDeletingFileId(null);
               });
           }}
         />
@@ -539,13 +554,13 @@ export function GameMasterPageClient() {
           void refetchRecaps();
         }}
       />
-      <CreateGameImageModal
-        isOpen={imageModalOpen}
+      <CreateGameFileModal
+        isOpen={fileModalOpen}
         gameId={game.id}
         gameName={game.name}
-        onClose={() => setImageModalOpen(false)}
+        onClose={() => setFileModalOpen(false)}
         onSuccess={() => {
-          void refetchImages();
+          void refetchFiles();
         }}
       />
       <CreateCustomItemModal

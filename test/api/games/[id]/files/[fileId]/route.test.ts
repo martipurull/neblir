@@ -7,17 +7,17 @@ import {
 } from "../../../../helpers";
 
 const getGameMock = vi.fn();
-const getGameImageByIdMock = vi.fn();
-const deleteGameImageMock = vi.fn();
+const getGameFileByIdMock = vi.fn();
+const deleteGameFileMock = vi.fn();
 const s3SendMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   getGame: getGameMock,
 }));
 
-vi.mock("@/app/lib/prisma/gameImage", () => ({
-  getGameImageById: getGameImageByIdMock,
-  deleteGameImage: deleteGameImageMock,
+vi.mock("@/app/lib/prisma/gameFile", () => ({
+  getGameFileById: getGameFileByIdMock,
+  deleteGameFile: deleteGameFileMock,
 }));
 
 vi.mock("@aws-sdk/client-s3", () => ({
@@ -26,15 +26,15 @@ vi.mock("@aws-sdk/client-s3", () => ({
       send: s3SendMock,
     };
   }),
-  DeleteObjectCommand: vi.fn().mockImplementation(function () {
-    return {};
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    return args;
   }),
   PutObjectCommand: vi.fn().mockImplementation(function () {
     return {};
   }),
 }));
 
-describe("DELETE /api/games/[id]/images/[imageId]", () => {
+describe("DELETE /api/games/[id]/files/[fileId]", () => {
   const envBackup = process.env;
 
   beforeEach(() => {
@@ -48,11 +48,11 @@ describe("DELETE /api/games/[id]/images/[imageId]", () => {
 
   it("returns 401 when unauthenticated", async () => {
     const { DELETE } =
-      await import("@/app/api/games/[id]/images/[imageId]/route");
+      await import("@/app/api/games/[id]/files/[fileId]/route");
     const response = await invokeRoute(
       DELETE,
       makeUnauthedRequest(),
-      makeParams({ id: "g-1", imageId: "img-1" })
+      makeParams({ id: "g-1", fileId: "f-1" })
     );
     expect(response.status).toBe(401);
   });
@@ -60,30 +60,48 @@ describe("DELETE /api/games/[id]/images/[imageId]", () => {
   it("returns 403 when requester is not GM", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     const { DELETE } =
-      await import("@/app/api/games/[id]/images/[imageId]/route");
+      await import("@/app/api/games/[id]/files/[fileId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "u-1"),
-      makeParams({ id: "g-1", imageId: "img-1" })
+      makeParams({ id: "g-1", fileId: "f-1" })
     );
     expect(response.status).toBe(403);
   });
 
-  it("deletes game image for GM", async () => {
+  it("returns 404 when file does not belong to the game", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
-    getGameImageByIdMock.mockResolvedValue({
-      id: "img-1",
-      gameId: "g-1",
-      imageKey: "games-ref-1.png",
+    getGameFileByIdMock.mockResolvedValue({
+      id: "f-1",
+      gameId: "other",
+      fileKey: "files-citadel.png",
     });
     const { DELETE } =
-      await import("@/app/api/games/[id]/images/[imageId]/route");
+      await import("@/app/api/games/[id]/files/[fileId]/route");
     const response = await invokeRoute(
       DELETE,
       makeAuthedRequest(undefined, "gm-1"),
-      makeParams({ id: "g-1", imageId: "img-1" })
+      makeParams({ id: "g-1", fileId: "f-1" })
+    );
+    expect(response.status).toBe(404);
+    expect(deleteGameFileMock).not.toHaveBeenCalled();
+  });
+
+  it("deletes game file for GM", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    getGameFileByIdMock.mockResolvedValue({
+      id: "f-1",
+      gameId: "g-1",
+      fileKey: "files-citadel-abc.png",
+    });
+    const { DELETE } =
+      await import("@/app/api/games/[id]/files/[fileId]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(undefined, "gm-1"),
+      makeParams({ id: "g-1", fileId: "f-1" })
     );
     expect(response.status).toBe(204);
-    expect(deleteGameImageMock).toHaveBeenCalledWith("img-1");
+    expect(deleteGameFileMock).toHaveBeenCalledWith("f-1");
   });
 });
