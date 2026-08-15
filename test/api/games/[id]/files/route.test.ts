@@ -82,8 +82,9 @@ describe("GET /api/games/[id]/files", () => {
 
   it("returns files for game members", async () => {
     userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     getGameFilesMock.mockResolvedValue([
-      { id: "f-1", title: "Industrial compound map" },
+      { id: "f-1", title: "Industrial compound map", access: "PLAYER" },
     ]);
     const { GET } = await import("@/app/api/games/[id]/files/route");
     const response = await invokeRoute(
@@ -93,9 +94,45 @@ describe("GET /api/games/[id]/files", () => {
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual([
-      { id: "f-1", title: "Industrial compound map" },
+      { id: "f-1", title: "Industrial compound map", access: "PLAYER" },
     ]);
     expect(getGameFilesMock).toHaveBeenCalledWith("g-1");
+  });
+
+  it("hides GM-only files from players", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    getGameFilesMock.mockResolvedValue([
+      { id: "f-1", title: "Player map", access: "PLAYER" },
+      { id: "f-2", title: "Secret notes", access: "GAME_MASTER" },
+    ]);
+    const { GET } = await import("@/app/api/games/[id]/files/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "u-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([
+      { id: "f-1", title: "Player map", access: "PLAYER" },
+    ]);
+  });
+
+  it("returns GM-only files to the game master", async () => {
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    getGameFilesMock.mockResolvedValue([
+      { id: "f-1", title: "Player map", access: "PLAYER" },
+      { id: "f-2", title: "Secret notes", access: "GAME_MASTER" },
+    ]);
+    const { GET } = await import("@/app/api/games/[id]/files/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toHaveLength(2);
   });
 });
 
@@ -142,6 +179,7 @@ describe("POST /api/games/[id]/files", () => {
       title: "Industrial compound map",
       description: "Map of the industrial compound",
       kind: "IMAGE",
+      access: "PLAYER",
       fileKey: "files-industrial-compound-map-abc.png",
       fileName: "industrial-compound-map.png",
       fileSizeBytes: 1234,
@@ -164,11 +202,31 @@ describe("POST /api/games/[id]/files", () => {
       title: "Handout",
       description: null,
       kind: "PDF",
+      access: "PLAYER",
       fileKey: "files-handout-abc.pdf",
       fileName: "handout.pdf",
       fileSizeBytes: 1234,
       uploadedByUserId: "gm-1",
     });
+  });
+
+  it("creates a GM-only file when access is GAME_MASTER", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    createGameFileMock.mockResolvedValue({
+      id: "f-3",
+      ...pdfBody,
+      access: "GAME_MASTER",
+    });
+    const { POST } = await import("@/app/api/games/[id]/files/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...pdfBody, access: "GAME_MASTER" }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createGameFileMock).toHaveBeenCalledWith(
+      expect.objectContaining({ access: "GAME_MASTER" })
+    );
   });
 
   it("returns 400 when kind and file key do not match", async () => {

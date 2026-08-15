@@ -7,6 +7,7 @@ import {
 
 const getGameFileByIdMock = vi.fn();
 const userIsInGameMock = vi.fn();
+const getGameMock = vi.fn();
 const getSignedUrlMock = vi.fn();
 const getObjectCommandCtorMock = vi.fn();
 
@@ -16,6 +17,7 @@ vi.mock("@/app/lib/prisma/gameFile", () => ({
 
 vi.mock("@/app/lib/prisma/game", () => ({
   userIsInGame: userIsInGameMock,
+  getGame: getGameMock,
 }));
 
 vi.mock("@aws-sdk/s3-request-presigner", () => ({
@@ -155,5 +157,39 @@ describe("GET /api/game-file-url", () => {
         ResponseContentDisposition: expect.stringContaining("attachment"),
       })
     );
+  });
+
+  it("returns 403 when a player requests a GM-only file", async () => {
+    getGameFileByIdMock.mockResolvedValue({
+      id: "f-3",
+      gameId: "g-1",
+      kind: "PDF",
+      access: "GAME_MASTER",
+      fileKey: "files-secret.pdf",
+      fileName: "secret.pdf",
+    });
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { GET } = await import("@/app/api/game-file-url/route");
+    const response = await invokeRoute(GET, makeRequest("f-3"));
+    expect(response.status).toBe(403);
+    expect(getSignedUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a signed url when the GM requests a GM-only file", async () => {
+    getGameFileByIdMock.mockResolvedValue({
+      id: "f-3",
+      gameId: "g-1",
+      kind: "PDF",
+      access: "GAME_MASTER",
+      fileKey: "files-secret.pdf",
+      fileName: "secret.pdf",
+    });
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ gameMaster: "user-1" });
+    getSignedUrlMock.mockResolvedValue("https://signed.example/secret");
+    const { GET } = await import("@/app/api/game-file-url/route");
+    const response = await invokeRoute(GET, makeRequest("f-3"));
+    expect(response.status).toBe(200);
   });
 });

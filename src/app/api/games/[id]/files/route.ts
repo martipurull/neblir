@@ -31,8 +31,13 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("You are not part of this game", 403);
     }
 
+    const game = await getGame(id);
+    const isGameMaster = game?.gameMaster === userId;
     const files = await getGameFiles(id);
-    return NextResponse.json(files, { status: 200 });
+    const visibleFiles = isGameMaster
+      ? files
+      : files.filter((file) => file.access !== "GAME_MASTER");
+    return NextResponse.json(visibleFiles, { status: 200 });
   } catch (error) {
     const details = serializeError(error);
     logger.error({
@@ -118,6 +123,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       kind: parsed.data.kind,
+      access: parsed.data.access,
       fileKey: parsed.data.fileKey,
       fileName: parsed.data.fileName,
       fileSizeBytes: parsed.data.fileSizeBytes,

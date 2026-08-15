@@ -1,5 +1,5 @@
+import { canReadGameFile } from "@/app/lib/authz/gameFile";
 import { getGameFileById } from "@/app/lib/prisma/gameFile";
-import { userIsInGame } from "@/app/lib/prisma/game";
 import { getR2Config } from "@/app/lib/r2";
 import { imageContentTypeFromFileName } from "@/app/lib/r2UploadKeys";
 import { sanitizeAttachmentFilenamePart } from "@/app/api/shared/filename";
@@ -31,9 +31,9 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("File not found", 404);
     }
 
-    const inGame = await userIsInGame(file.gameId, request.auth.user.id);
-    if (!inGame) {
-      return errorResponse("You are not part of this game", 403);
+    const canRead = await canReadGameFile(file, request.auth.user.id);
+    if (!canRead) {
+      return errorResponse("You cannot access this file", 403);
     }
 
     const config = getR2Config();

@@ -14,6 +14,7 @@ type GmFilesSectionProps = {
   deletingFileId: string | null;
   onRetry: () => void;
   onCreateFile: () => void;
+  onEditFile: (file: GameFile) => void;
   onDeleteFile: (file: GameFile) => void;
   onOpenFile: (file: GameFile) => void;
   onDownloadFile: (file: GameFile) => void;
@@ -26,6 +27,7 @@ export function GmFilesSection({
   deletingFileId,
   onRetry,
   onCreateFile,
+  onEditFile,
   onDeleteFile,
   onOpenFile,
   onDownloadFile,
@@ -38,7 +40,7 @@ export function GmFilesSection({
     <InfoCard border>
       <GmSectionTitle>Files</GmSectionTitle>
       <p className="mt-1 text-sm text-black/70">
-        Upload images and PDFs for players to view and download.
+        Upload images and PDFs. Mark each file as player-visible or GM only.
       </p>
       <div className="mt-3">
         <Button
@@ -65,7 +67,10 @@ export function GmFilesSection({
                 file={file}
                 fileUrl={fileUrls[file.id]}
                 canDelete
+                canEdit
+                showAccessBadge
                 deleting={deletingFileId === file.id}
+                onEdit={onEditFile}
                 onDelete={onDeleteFile}
                 onOpen={onOpenFile}
                 onDownload={onDownloadFile}

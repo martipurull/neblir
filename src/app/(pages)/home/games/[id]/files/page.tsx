@@ -22,6 +22,7 @@ export default function GameFilesPage() {
   const { files, loading, error, refetch } = useGameFiles(id);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [fileModalOpen, setFileModalOpen] = useState(false);
+  const [fileEditTarget, setFileEditTarget] = useState<GameFile | null>(null);
   const fileUrls = useGameFileUrls(
     files.filter((file) => file.kind === "IMAGE")
   );
@@ -63,7 +64,10 @@ export default function GameFilesPage() {
               type="button"
               variant="solidDark"
               fullWidth={false}
-              onClick={() => setFileModalOpen(true)}
+              onClick={() => {
+                setFileEditTarget(null);
+                setFileModalOpen(true);
+              }}
             >
               Upload file
             </Button>
@@ -83,9 +87,15 @@ export default function GameFilesPage() {
                 file={file}
                 fileUrl={fileUrls[file.id]}
                 canDelete={isGameMaster}
+                canEdit={isGameMaster}
+                showAccessBadge={isGameMaster}
                 deleting={deletingFileId === file.id}
                 onOpen={(entry) => void handleOpen(entry)}
                 onDownload={(entry) => void handleDownload(entry)}
+                onEdit={(entry) => {
+                  setFileEditTarget(entry);
+                  setFileModalOpen(true);
+                }}
                 onDelete={(entry) => {
                   if (
                     !window.confirm(
@@ -110,11 +120,18 @@ export default function GameFilesPage() {
       </div>
       {game ? (
         <CreateGameFileModal
+          key={fileEditTarget?.id ?? "create"}
           isOpen={fileModalOpen}
           gameId={game.id}
           gameName={game.name}
-          onClose={() => setFileModalOpen(false)}
+          mode={fileEditTarget ? "edit" : "create"}
+          file={fileEditTarget}
+          onClose={() => {
+            setFileModalOpen(false);
+            setFileEditTarget(null);
+          }}
           onSuccess={() => {
+            setFileEditTarget(null);
             void refetch();
           }}
         />

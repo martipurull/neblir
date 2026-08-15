@@ -7,16 +7,36 @@ type GameFileCardProps = {
   fileUrl?: string | null;
   canDelete?: boolean;
   deleting?: boolean;
+  showAccessBadge?: boolean;
+  canEdit?: boolean;
+  onEdit?: (file: GameFile) => void;
   onDelete?: (file: GameFile) => void;
   onOpen: (file: GameFile) => void;
   onDownload: (file: GameFile) => void;
 };
+
+function AccessBadge({ access }: { access: GameFile["access"] }) {
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+        access === "GAME_MASTER"
+          ? "border-black/40 bg-black/10 text-black"
+          : "border-customPrimary/60 bg-customPrimary/10 text-black"
+      }`}
+    >
+      {access === "GAME_MASTER" ? "GM only" : "Player"}
+    </span>
+  );
+}
 
 export function GameFileCard({
   file,
   fileUrl,
   canDelete = false,
   deleting = false,
+  showAccessBadge = false,
+  canEdit = false,
+  onEdit,
   onDelete,
   onOpen,
   onDownload,
@@ -32,6 +52,11 @@ export function GameFileCard({
         <p className="truncate text-sm font-semibold text-black">
           {file.title}
         </p>
+        {showAccessBadge ? (
+          <div className="mt-1">
+            <AccessBadge access={file.access} />
+          </div>
+        ) : null}
         <p className="truncate text-xs text-black/65">
           {new Date(file.createdAt).toLocaleDateString()} • {file.fileName}
         </p>
@@ -57,6 +82,18 @@ export function GameFileCard({
           >
             Download
           </Button>
+          {canEdit ? (
+            <Button
+              type="button"
+              variant="solidDark"
+              className="text-xs"
+              fullWidth={false}
+              disabled={deleting}
+              onClick={() => onEdit?.(file)}
+            >
+              Edit
+            </Button>
+          ) : null}
           {canDelete ? (
             <Button
               type="button"

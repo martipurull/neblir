@@ -54,6 +54,7 @@ import { deleteGameFile, getGameFileUrl } from "@/lib/api/gameFiles";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import type { GameRecap } from "@/app/lib/types/recap";
+import type { GameFile } from "@/app/lib/types/gameFile";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -93,6 +94,7 @@ export function GameMasterPageClient() {
   const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
     null
   );
+  const [fileEditTarget, setFileEditTarget] = useState<GameFile | null>(null);
   const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
     null
   );
@@ -446,7 +448,14 @@ export function GameMasterPageClient() {
           error={filesError}
           deletingFileId={deletingFileId}
           onRetry={() => void refetchFiles()}
-          onCreateFile={() => setFileModalOpen(true)}
+          onCreateFile={() => {
+            setFileEditTarget(null);
+            setFileModalOpen(true);
+          }}
+          onEditFile={(file) => {
+            setFileEditTarget(file);
+            setFileModalOpen(true);
+          }}
           onOpenFile={(file) => {
             void getGameFileUrl(file.id, "inline").then((url) => {
               window.open(url, "_blank", "noopener,noreferrer");
@@ -539,7 +548,7 @@ export function GameMasterPageClient() {
         }}
       />
       <CreateGameRecapModal
-        key={recapEditTarget?.id ?? "create"}
+        key={recapEditTarget?.id ?? "create-recap"}
         isOpen={recapModalOpen}
         gameId={game.id}
         gameName={game.name}
@@ -555,11 +564,18 @@ export function GameMasterPageClient() {
         }}
       />
       <CreateGameFileModal
+        key={fileEditTarget?.id ?? "create-file"}
         isOpen={fileModalOpen}
         gameId={game.id}
         gameName={game.name}
-        onClose={() => setFileModalOpen(false)}
+        mode={fileEditTarget ? "edit" : "create"}
+        file={fileEditTarget}
+        onClose={() => {
+          setFileModalOpen(false);
+          setFileEditTarget(null);
+        }}
         onSuccess={() => {
+          setFileEditTarget(null);
           void refetchFiles();
         }}
       />

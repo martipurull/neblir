@@ -5,6 +5,7 @@ import {
   gameFileUploadUrlResponseSchema,
   type GameFile,
   type GameFileCreate,
+  type GameFileUpdate,
   type GameFileUploadUrlRequest,
 } from "@/app/lib/types/gameFile";
 import { getUserSafeApiError } from "@/lib/userSafeError";
@@ -59,6 +60,31 @@ export async function createGameFile(
         response.status,
         await readErrorBody(response),
         "Failed to create file"
+      )
+    );
+  }
+  return gameFileSchema.parse(await response.json());
+}
+
+export async function updateGameFile(
+  gameId: string,
+  fileId: string,
+  body: GameFileUpdate
+): Promise<GameFile> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/files/${encodeURIComponent(fileId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to update file"
       )
     );
   }

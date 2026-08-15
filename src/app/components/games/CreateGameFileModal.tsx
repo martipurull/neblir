@@ -5,6 +5,7 @@ import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { TextField } from "@/app/components/shared/TextField";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { Button } from "@/app/components/shared/Button";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import {
   IMAGE_MAX_SIZE_BYTES,
@@ -17,8 +18,10 @@ import {
   createGameFile,
   deleteUploadedGameFile,
   requestGameFileUploadUrl,
+  updateGameFile,
   uploadGameFilePdfToStorage,
 } from "@/lib/api/gameFiles";
+import type { GameFile, GameFileAccess } from "@/app/lib/types/gameFile";
 import {
   useCallback,
   useMemo,
@@ -32,6 +35,8 @@ type CreateGameFileModalProps = {
   isOpen: boolean;
   gameId: string;
   gameName: string;
+  mode?: "create" | "edit";
+  file?: GameFile | null;
   onClose: () => void;
   onSuccess?: () => void;
 };
@@ -46,11 +51,17 @@ export function CreateGameFileModal({
   isOpen,
   gameId,
   gameName,
+  mode = "create",
+  file = null,
   onClose,
   onSuccess,
 }: CreateGameFileModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const isEditMode = mode === "edit" && Boolean(file);
+  const [title, setTitle] = useState(file?.title ?? "");
+  const [description, setDescription] = useState(file?.description ?? "");
+  const [access, setAccess] = useState<GameFileAccess>(
+    file?.access ?? "PLAYER"
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -70,19 +81,20 @@ export function CreateGameFileModal({
   } = imageUpload;
 
   const submitDisabled = useMemo(
-    () => submitting || !title.trim() || (!imageKey && !pdfFile),
-    [imageKey, pdfFile, submitting, title]
+    () => submitting || !title.trim() || (!isEditMode && !imageKey && !pdfFile),
+    [imageKey, isEditMode, pdfFile, submitting, title]
   );
 
   const reset = useCallback(() => {
-    setTitle("");
-    setDescription("");
+    setTitle(file?.title ?? "");
+    setDescription(file?.description ?? "");
+    setAccess(file?.access ?? "PLAYER");
     setError(null);
     setPdfFile(null);
     setImageMeta(null);
     resetImageUpload();
     if (fileInputRef.current) fileInputRef.current.value = "";
-  }, [resetImageUpload]);
+  }, [file, resetImageUpload]);
 
   const handleClose = useCallback(() => {
     if (submitting) return;
@@ -148,8 +160,41 @@ export function CreateGameFileModal({
       setError(null);
       const trimmedTitle = title.trim();
       const trimmedDescription = description.trim() || null;
+      const metadata = {
+        title: trimmedTitle,
+        description: trimmedDescription,
+        access,
+      };
 
-      if (pdfFile) {
+      if (isEditMode && file) {
+        if (pdfFile) {
+          const { fileKey, uploadUrl } = await requestGameFileUploadUrl({
+            gameId,
+            fileName: pdfFile.name,
+            fileSizeBytes: pdfFile.size,
+            kind: "PDF",
+          });
+          uploadedPdfKey = fileKey;
+          await uploadGameFilePdfToStorage(uploadUrl, pdfFile);
+          await updateGameFile(gameId, file.id, {
+            ...metadata,
+            kind: "PDF",
+            fileKey,
+            fileName: pdfFile.name,
+            fileSizeBytes: pdfFile.size,
+          });
+        } else if (imageKey && imageMeta) {
+          await updateGameFile(gameId, file.id, {
+            ...metadata,
+            kind: "IMAGE",
+            fileKey: imageKey,
+            fileName: imageMeta.fileName,
+            fileSizeBytes: imageMeta.fileSizeBytes,
+          });
+        } else {
+          await updateGameFile(gameId, file.id, metadata);
+        }
+      } else if (pdfFile) {
         const { fileKey, uploadUrl } = await requestGameFileUploadUrl({
           gameId,
           fileName: pdfFile.name,
@@ -159,8 +204,7 @@ export function CreateGameFileModal({
         uploadedPdfKey = fileKey;
         await uploadGameFilePdfToStorage(uploadUrl, pdfFile);
         await createGameFile(gameId, {
-          title: trimmedTitle,
-          description: trimmedDescription,
+          ...metadata,
           kind: "PDF",
           fileKey,
           fileName: pdfFile.name,
@@ -168,8 +212,7 @@ export function CreateGameFileModal({
         });
       } else if (imageKey && imageMeta) {
         await createGameFile(gameId, {
-          title: trimmedTitle,
-          description: trimmedDescription,
+          ...metadata,
           kind: "IMAGE",
           fileKey: imageKey,
           fileName: imageMeta.fileName,
@@ -187,7 +230,13 @@ export function CreateGameFileModal({
       if (uploadedPdfKey) {
         void deleteUploadedGameFile(uploadedPdfKey);
       }
-      setError(err instanceof Error ? err.message : "Could not upload file.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : isEditMode
+            ? "Could not update file."
+            : "Could not upload file."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -196,15 +245,21 @@ export function CreateGameFileModal({
   return (
     <GameFormModal
       isOpen={isOpen}
-      title={`Upload file — ${gameName}`}
-      subtitle="Upload an image or PDF for players to view and download."
-      titleId="create-game-file-title"
+      title={
+        isEditMode ? `Edit file — ${gameName}` : `Upload file — ${gameName}`
+      }
+      subtitle={
+        isEditMode
+          ? "Update the title, access, or replace the image or PDF."
+          : "Upload an image or PDF. Choose whether players can see it, or keep it GM only."
+      }
+      titleId={isEditMode ? "edit-game-file-title" : "create-game-file-title"}
       error={error}
       onClose={handleClose}
       onSubmit={(event) => void handleSubmit(event)}
       submitting={submitting}
-      submitLabel="Upload file"
-      submittingLabel="Uploading…"
+      submitLabel={isEditMode ? "Save changes" : "Upload file"}
+      submittingLabel={isEditMode ? "Saving…" : "Uploading…"}
       submitDisabled={submitDisabled}
     >
       <div>
@@ -232,10 +287,27 @@ export function CreateGameFileModal({
           disabled={submitting}
         />
       </div>
+      <div>
+        <p className="mb-2 text-sm font-bold text-white lg:text-center">
+          Access
+        </p>
+        <RadioGroup
+          name="game-file-access"
+          value={access}
+          onChange={(value) => setAccess(value as GameFileAccess)}
+          options={[
+            { value: "PLAYER", label: "Player" },
+            { value: "GAME_MASTER", label: "Game master" },
+          ]}
+          tone="inverse"
+          variant="boxed"
+          disabled={submitting}
+        />
+      </div>
       {imageKey ? (
         <ImageUploadDropzone
           id="game-file-image"
-          label="Image file"
+          label={isEditMode ? "Image file (optional replace)" : "Image file"}
           imageKey={imageKey}
           onFileChange={(file) => selectFile(file)}
           onDrop={handleDrop}
@@ -249,7 +321,11 @@ export function CreateGameFileModal({
         />
       ) : (
         <div>
-          <FieldLabel id="game-file-file" label="File" required />
+          <FieldLabel
+            id="game-file-file"
+            label={isEditMode ? "File (optional replace)" : "File"}
+            required={!isEditMode}
+          />
           <div
             role="button"
             tabIndex={0}
@@ -315,6 +391,11 @@ export function CreateGameFileModal({
           {pdfFile ? (
             <p className="mt-1 text-xs text-white/70">
               Selected: {pdfFile.name} ({Math.ceil(pdfFile.size / 1024)} KB)
+            </p>
+          ) : isEditMode && file ? (
+            <p className="mt-1 text-xs text-white/70">
+              Current file: {file.fileName} (
+              {Math.ceil(file.fileSizeBytes / 1024)} KB)
             </p>
           ) : null}
         </div>
