@@ -1,18 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { Button } from "@/app/components/shared/Button";
 import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 
 type AddCharactersResponse = {
   success: boolean;
@@ -270,9 +269,6 @@ export function AddCharactersToGameModal({
                 const avatarUrl = c.avatarKey
                   ? (imageUrls[c.id] ?? undefined)
                   : null;
-                const initials =
-                  c.name.charAt(0).toUpperCase() +
-                  (c.surname?.charAt(0).toUpperCase() ?? "");
 
                 return (
                   <li key={c.id}>
@@ -290,24 +286,13 @@ export function AddCharactersToGameModal({
                         label={<span className="sr-only">{name}</span>}
                         className="shrink-0"
                       />
-                      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/30 bg-paleBlue/10">
-                        {avatarUrl ? (
-                          <SignedRemoteImage
-                            src={avatarUrl}
-                            imageKey={c.avatarKey ?? undefined}
-                            alt=""
-                            fill
-                            sizes="36px"
-                            className="object-cover object-top"
-                          />
-                        ) : avatarUrl === undefined ? (
-                          <ImageLoadingSkeleton variant="avatar" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/90">
-                            {initials}
-                          </div>
-                        )}
-                      </div>
+                      <RemoteAvatar
+                        imageUrl={avatarUrl}
+                        imageKey={c.avatarKey}
+                        alt=""
+                        size={36}
+                        className="h-9 w-9 border border-white/30"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold">{name}</p>
                         <p className="mt-0.5 text-xs text-white/75">

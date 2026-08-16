@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { enemyStatusBadgeClass, enemyStatusLabel } from "../enemyInstanceUtils";
 
 type EnemyInstanceHeaderProps = {
@@ -20,27 +19,13 @@ export function EnemyInstanceHeader({
 }: EnemyInstanceHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-      <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-black/15 bg-paleBlue/20">
-        {imageUrl ? (
-          <SignedRemoteImage
-            src={imageUrl}
-            imageKey={enemy.imageKey ?? undefined}
-            alt=""
-            fill
-            className="object-cover object-top"
-            sizes="112px"
-          />
-        ) : imageUrl === undefined ? (
-          <ImageLoadingSkeleton
-            variant="avatar"
-            className="h-full w-full [&_svg]:h-28 [&_svg]:w-28"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-black">
-            {enemy.name.charAt(0).toUpperCase()}
-          </div>
-        )}
-      </div>
+      <RemoteAvatar
+        imageUrl={imageUrl}
+        imageKey={enemy.imageKey}
+        alt=""
+        size={112}
+        className="h-28 w-28 border border-black/15"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <PageTitle>{enemy.name}</PageTitle>

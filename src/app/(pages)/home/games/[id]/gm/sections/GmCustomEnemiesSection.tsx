@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { InfoCard } from "@/app/components/shared/InfoCard";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import type { GameDetail } from "@/app/lib/types/game";
 import {
   deleteCustomEnemy,
@@ -18,7 +18,6 @@ import {
   updateEnemyInstance,
 } from "@/lib/api/enemyInstances";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import {
@@ -224,27 +223,13 @@ export function GmCustomEnemiesSection({
                 className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0 flex flex-1 items-center gap-3">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                    {imageUrls[e.id] ? (
-                      <SignedRemoteImage
-                        src={imageUrls[e.id] as string}
-                        imageKey={e.imageKey ?? undefined}
-                        alt={`${e.name} avatar`}
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 object-cover object-top"
-                      />
-                    ) : imageUrls[e.id] === undefined ? (
-                      <ImageLoadingSkeleton
-                        variant="avatar"
-                        className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                        {e.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
+                  <RemoteAvatar
+                    imageUrl={imageUrls[e.id]}
+                    imageKey={e.imageKey}
+                    alt={`${e.name} avatar`}
+                    size={44}
+                    className="h-11 w-11"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-black">{e.name}</p>
                     <p className="truncate tabular-nums text-xs text-black/70">
@@ -382,27 +367,13 @@ export function GmCustomEnemiesSection({
                       aria-label={`Open ${inst.name}`}
                     />
                     <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                        {imageUrls[inst.id] ? (
-                          <SignedRemoteImage
-                            src={imageUrls[inst.id] as string}
-                            imageKey={inst.imageKey ?? undefined}
-                            alt=""
-                            width={44}
-                            height={44}
-                            className="h-11 w-11 object-cover object-top"
-                          />
-                        ) : imageUrls[inst.id] === undefined ? (
-                          <ImageLoadingSkeleton
-                            variant="avatar"
-                            className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                            {inst.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
+                      <RemoteAvatar
+                        imageUrl={imageUrls[inst.id]}
+                        imageKey={inst.imageKey}
+                        alt=""
+                        size={44}
+                        className="h-11 w-11"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 flex-wrap items-center gap-2">
                           <p className="truncate text-base font-medium">

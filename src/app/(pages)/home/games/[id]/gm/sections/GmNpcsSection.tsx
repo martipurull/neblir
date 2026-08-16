@@ -4,9 +4,8 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import type { GameDetail } from "@/app/lib/types/game";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { Button } from "@/app/components/shared/Button";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
@@ -83,27 +82,13 @@ export function GmNpcsSection({
                   className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:basis-2/3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                      {npcImageUrls[char.id] ? (
-                        <SignedRemoteImage
-                          src={npcImageUrls[char.id] as string}
-                          imageKey={char.avatarKey ?? undefined}
-                          alt={`${name} avatar`}
-                          width={44}
-                          height={44}
-                          className="h-11 w-11 object-cover object-top"
-                        />
-                      ) : npcImageUrls[char.id] === undefined ? (
-                        <ImageLoadingSkeleton
-                          variant="avatar"
-                          className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                          {name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
+                    <RemoteAvatar
+                      imageUrl={npcImageUrls[char.id]}
+                      imageKey={char.avatarKey}
+                      alt={`${name} avatar`}
+                      size={44}
+                      className="h-11 w-11"
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
                         {name}
