@@ -1,3 +1,4 @@
+import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -19,7 +20,10 @@ export async function GET(request: NextRequest) {
     if (!parsed.gameId) {
       return NextResponse.redirect(new URL("/home/games", url.origin));
     }
-    const redirectUrl = new URL(`/home/games/${parsed.gameId}/gm`, url.origin);
+    const redirectUrl = new URL(
+      gameMasterTableSettingsPath(parsed.gameId),
+      url.origin
+    );
     if (guildId) {
       redirectUrl.searchParams.set("discordGuildId", guildId);
     }

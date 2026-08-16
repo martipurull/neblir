@@ -138,7 +138,7 @@ export default function GameDetailPage() {
                 Game Master
               </span>
               <span className="mt-1 block text-xs text-black/70">
-                Invites, items, give items
+                Dice, combat, NPCs, and enemies
               </span>
             </Link>
           )}

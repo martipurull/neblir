@@ -9,8 +9,9 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
-import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
+import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
 import { isImageFileName } from "@/app/lib/r2UploadKeys";
+import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
 import { useGame } from "@/hooks/use-game";
 import { useSignedFileUrls } from "@/hooks/use-game-file-urls";
 import { getLoreAttachmentUrl } from "@/lib/api/loreAttachments";
@@ -136,7 +137,11 @@ export default function GameLoreEntryPage() {
     );
   }
 
-  if (entry.gameId !== gameId || entry.category !== "CAMPAIGN_LORE") {
+  if (
+    !gameId ||
+    entry.gameId !== gameId ||
+    entry.category !== "CAMPAIGN_LORE"
+  ) {
     return (
       <PageSection>
         <ErrorState
@@ -154,10 +159,14 @@ export default function GameLoreEntryPage() {
     <PageSection>
       <div className="mb-4 flex items-center gap-2">
         <Link
-          href={`/home/games/${gameId}/gm`}
+          href={
+            game?.isGameMaster
+              ? gameMasterTableSettingsPath(gameId)
+              : `/home/games/${gameId}/lore`
+          }
           className="text-sm text-black/70 hover:underline"
         >
-          ← Back to game master
+          {game?.isGameMaster ? "← Back to table settings" : "← Back to lore"}
         </Link>
       </div>
       <PageTitle>{entry.title}</PageTitle>

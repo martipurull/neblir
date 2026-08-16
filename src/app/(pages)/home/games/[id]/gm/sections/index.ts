@@ -12,3 +12,4 @@ export { GmFilesSection } from "./GmFilesSection";
 export { GmNpcsSection } from "./GmNpcsSection";
 export { GmDiceRollerSection } from "./GmDiceRollerSection";
 export { GmDangerZoneSection } from "./GmDangerZoneSection";
+export { GmTableSettingsCard } from "./GmTableSettingsCard";

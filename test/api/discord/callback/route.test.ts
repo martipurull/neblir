@@ -12,7 +12,7 @@ describe("/api/discord/callback", () => {
     expect(response.headers.get("location")).toMatch(/\/home\/games$/);
   });
 
-  it("redirects to game GM with discordGuildId when state decodes", async () => {
+  it("redirects to table settings with discordGuildId when state decodes", async () => {
     const state = Buffer.from(JSON.stringify({ gameId: "game-abc" })).toString(
       "base64url"
     );
@@ -23,7 +23,7 @@ describe("/api/discord/callback", () => {
     const response = await GET(request);
     expect(response.status).toBe(307);
     const loc = response.headers.get("location");
-    expect(loc).toContain("/home/games/game-abc/gm");
+    expect(loc).toContain("/home/games/game-abc/gm/table-settings");
     expect(loc).toContain("discordGuildId=discord-guild-99");
     expect(loc).toContain("discordConnected=1");
   });
