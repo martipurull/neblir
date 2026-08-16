@@ -2,21 +2,19 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { formatSignedModifier } from "@/app/lib/enemyDetailsView";
+import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
-import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { GameDetail } from "@/app/lib/types/game";
-import { submitGameInitiative } from "@/lib/api/game";
-import { useCallback, useMemo, useState } from "react";
-function rollD10(): number {
-  return Math.floor(Math.random() * 10) + 1;
-}
+import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
+import { useCallback, useMemo } from "react";
 
 export interface GmNpcInitiativeRollModalProps {
   isOpen: boolean;
   onClose: () => void;
   game: GameDetail;
-  onSuccess: () => void | Promise<void>;
+  onSuccess: (game: GameDetail) => void | Promise<void>;
 }
 
 export function GmNpcInitiativeRollModal({
@@ -25,8 +23,10 @@ export function GmNpcInitiativeRollModal({
   game,
   onSuccess,
 }: GmNpcInitiativeRollModalProps) {
-  const [rollingId, setRollingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { isPending, enqueueRoll, error } = useQueuedGmCombatantInitiative({
+    game,
+    onRolled: onSuccess,
+  });
 
   const npcRows = useMemo(
     () =>
@@ -36,15 +36,6 @@ export function GmNpcInitiativeRollModal({
     [game]
   );
 
-  const hasRolled = useCallback(
-    (combatantType: "CHARACTER" | "ENEMY", combatantId: string) =>
-      (game.initiativeOrder ?? []).some(
-        (e) =>
-          e.combatantType === combatantType && e.combatantId === combatantId
-      ),
-    [game.initiativeOrder]
-  );
-
   const handleRoll = useCallback(
     async (
       combatantType: "CHARACTER" | "ENEMY",
@@ -52,75 +43,29 @@ export function GmNpcInitiativeRollModal({
       initiativeModifier: number,
       combatantName?: string
     ) => {
-      setError(null);
-      setRollingId(`${combatantType}:${combatantId}`);
-      try {
-        const rolledValue = rollD10();
-        if (combatantType === "CHARACTER") {
-          await submitGameInitiative(game.id, {
-            combatantType: "CHARACTER",
-            combatantId,
-            ...(combatantName?.trim()
-              ? { combatantName: combatantName.trim() }
-              : {}),
-            rolledValue,
-            initiativeModifier,
-          });
-        } else {
-          const trimmedName = combatantName?.trim() ?? "";
-          await submitGameInitiative(game.id, {
-            combatantType: "ENEMY",
-            combatantId,
-            combatantName: trimmedName.length > 0 ? trimmedName : "Enemy",
-            rolledValue,
-            initiativeModifier,
-          });
-        }
-        const isPrivateNpcRoll =
-          combatantType === "CHARACTER"
-            ? isPrivateGameCharacterLink(
-                npcRows.find((gc) => gc.character.id === combatantId)?.isPublic
-              )
-            : isPrivateGameCharacterLink(
-                (game.enemyInstances ?? []).find((ei) => ei.id === combatantId)
-                  ?.isPublic
-              );
-        await emitRollEvent(game.id, {
-          characterId: combatantType === "CHARACTER" ? combatantId : undefined,
-          isPrivate: isPrivateNpcRoll ? true : undefined,
-          rollType: "INITIATIVE",
-          diceExpression: "1d10",
-          results: [rolledValue],
-          total: rolledValue + initiativeModifier,
-          metadata: {
-            initiativeModifier,
-            source: "gmNpcModal",
-            combatantType,
-            combatantId,
-            combatantName: combatantName ?? null,
-            ...(combatantType === "ENEMY"
-              ? {
-                  enemyInstanceId: combatantId,
-                  enemyName: combatantName ?? null,
-                }
-              : {}),
-          },
-        });
-        await onSuccess();
-      } catch (e) {
-        setError(
-          e instanceof Error ? e.message : "Could not register initiative."
-        );
-      } finally {
-        setRollingId(null);
-      }
+      const isPrivate =
+        combatantType === "CHARACTER"
+          ? isPrivateGameCharacterLink(
+              npcRows.find((gc) => gc.character.id === combatantId)?.isPublic
+            )
+          : isPrivateGameCharacterLink(
+              (game.enemyInstances ?? []).find((ei) => ei.id === combatantId)
+                ?.isPublic
+            );
+      await enqueueRoll({
+        combatantType,
+        combatantId,
+        combatantName,
+        initiativeModifier,
+        isPrivate,
+        source: "gmNpcModal",
+      });
     },
-    [game.id, game.enemyInstances, npcRows, onSuccess]
+    [enqueueRoll, game.enemyInstances, npcRows]
   );
 
   if (!isOpen) return null;
 
-  const modLabel = (m: number) => `${m >= 0 ? "+" : ""}${m}`;
   const combinedEnemies = game.enemyInstances ?? [];
 
   return (
@@ -147,8 +92,8 @@ export function GmNpcInitiativeRollModal({
                 const mod = gc.character.initiativeMod ?? 0;
                 const name =
                   `${gc.character.name}${gc.character.surname ? ` ${gc.character.surname}` : ""}`.trim();
-                const done = hasRolled("CHARACTER", id);
-                const busy = rollingId === `CHARACTER:${id}`;
+                const done = hasCombatantInitiativeEntry(game, "CHARACTER", id);
+                const busy = isPending("CHARACTER", id);
                 return (
                   <li
                     key={gc.id}
@@ -169,7 +114,7 @@ export function GmNpcInitiativeRollModal({
                         ? "Rolling…"
                         : done
                           ? "Rolled"
-                          : `Roll (${modLabel(mod)})`}
+                          : `Roll (${formatSignedModifier(mod)})`}
                     </Button>
                   </li>
                 );
@@ -192,8 +137,8 @@ export function GmNpcInitiativeRollModal({
                 const id = enemy.id;
                 const mod = enemy.initiativeModifier ?? 0;
                 const name = enemy.name;
-                const done = hasRolled("ENEMY", id);
-                const busy = rollingId === `ENEMY:${id}`;
+                const done = hasCombatantInitiativeEntry(game, "ENEMY", id);
+                const busy = isPending("ENEMY", id);
                 return (
                   <li
                     key={`enemy-${id}`}
@@ -212,7 +157,7 @@ export function GmNpcInitiativeRollModal({
                         ? "Rolling…"
                         : done
                           ? "Rolled"
-                          : `Roll (${modLabel(mod)})`}
+                          : `Roll (${formatSignedModifier(mod)})`}
                     </Button>
                   </li>
                 );

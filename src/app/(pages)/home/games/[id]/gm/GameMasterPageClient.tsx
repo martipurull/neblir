@@ -14,6 +14,11 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
+import {
+  withAdjustedInitiativeEntry,
+  withClearedInitiative,
+  withRemovedInitiativeEntry,
+} from "@/app/lib/gameInitiativeOptimistic";
 import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import {
   GmCombatInitiativeSection,
@@ -23,7 +28,7 @@ import {
   GmNpcsSection,
   GmTableSettingsCard,
 } from "./sections";
-import { useGame } from "@/hooks/use-game";
+import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
 import {
   adjustGameInitiativeEntry,
@@ -41,7 +46,15 @@ export function GameMasterPageClient() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
-  const { game, loading, error, refetch, mutate } = useGame(id);
+  const {
+    game,
+    loading,
+    error,
+    refetch,
+    mutate,
+    applyGameUpdate,
+    applyOptimisticGameUpdate,
+  } = useGame(id, { refreshInterval: GM_LIVE_GAME_REFRESH_MS });
   const { games: allGames } = useGames();
 
   const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
@@ -81,7 +94,7 @@ export function GameMasterPageClient() {
         const updated = await updateGame(id, {
           nextSession: value ? `${value}T12:00:00.000Z` : null,
         });
-        await mutate(updated, { revalidate: false });
+        await applyGameUpdate(updated);
       } catch (err) {
         setNextSessionError(
           getUserSafeErrorMessage(err, "Failed to update date")
@@ -90,62 +103,63 @@ export function GameMasterPageClient() {
         setNextSessionBusy(false);
       }
     },
-    [id, mutate]
+    [id, applyGameUpdate]
   );
 
   const handleRemoveInitiativeEntry = useCallback(
     async (combatantRef: string) => {
-      if (!id) return;
+      if (!id || !game) return;
       setInitiativeActionId(combatantRef);
       try {
-        const updated = await removeGameInitiativeEntry(id, combatantRef);
-        await mutate(updated, { revalidate: false });
+        await applyOptimisticGameUpdate(
+          withRemovedInitiativeEntry(game, combatantRef),
+          () => removeGameInitiativeEntry(id, combatantRef)
+        );
       } finally {
         setInitiativeActionId(null);
       }
     },
-    [id, mutate]
+    [id, game, applyOptimisticGameUpdate]
   );
 
   const handleAdjustInitiativeEntry = useCallback(
     async (combatantRef: string, initiativeDelta: number) => {
-      if (!id) return;
+      if (!id || !game) return;
       setInitiativeActionId(combatantRef);
       try {
-        const updated = await adjustGameInitiativeEntry(
-          id,
-          combatantRef,
-          initiativeDelta
+        await applyOptimisticGameUpdate(
+          withAdjustedInitiativeEntry(game, combatantRef, initiativeDelta),
+          () => adjustGameInitiativeEntry(id, combatantRef, initiativeDelta)
         );
-        await mutate(updated, { revalidate: false });
       } finally {
         setInitiativeActionId(null);
       }
     },
-    [id, mutate]
+    [id, game, applyOptimisticGameUpdate]
   );
 
   const handleClearAllInitiative = useCallback(async () => {
-    if (!id) return;
+    if (!id || !game) return;
     setClearingInitiative(true);
     try {
-      const updated = await clearGameInitiative(id);
-      await mutate(updated, { revalidate: false });
+      await applyOptimisticGameUpdate(withClearedInitiative(game), () =>
+        clearGameInitiative(id)
+      );
     } finally {
       setClearingInitiative(false);
     }
-  }, [id, mutate]);
+  }, [id, game, applyOptimisticGameUpdate]);
 
   const handleResetCombatReactions = useCallback(async () => {
     if (!id) return;
     setResettingReactions(true);
     try {
       const updated = await resetGameCombatReactions(id);
-      await mutate(updated, { revalidate: false });
+      await applyGameUpdate(updated);
     } finally {
       setResettingReactions(false);
     }
-  }, [id, mutate]);
+  }, [id, applyGameUpdate]);
 
   if (loading || (!game && !error)) {
     return (
@@ -268,6 +282,7 @@ export function GameMasterPageClient() {
           onCharactersAdded={async () => {
             await mutate();
           }}
+          onInitiativeRolled={applyGameUpdate}
         />
 
         <GmCustomEnemiesSection
@@ -286,6 +301,7 @@ export function GameMasterPageClient() {
           onMutate={async () => {
             await mutate();
           }}
+          onInitiativeRolled={applyGameUpdate}
         />
 
         <GmTableSettingsCard gameId={game.id} />
@@ -356,9 +372,7 @@ export function GameMasterPageClient() {
         isOpen={gmInitiativeRollModalOpen}
         onClose={() => setGmInitiativeRollModalOpen(false)}
         game={game}
-        onSuccess={async () => {
-          await mutate();
-        }}
+        onSuccess={(updated) => applyGameUpdate(updated)}
       />
     </PageSection>
   );

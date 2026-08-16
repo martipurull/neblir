@@ -8,6 +8,8 @@ import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import type { GameDetail } from "@/app/lib/types/game";
+import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
+import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import {
   deleteCustomEnemy,
   downloadCustomEnemy,
@@ -18,6 +20,7 @@ import {
   updateEnemyInstance,
 } from "@/lib/api/enemyInstances";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import Link from "next/link";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import {
@@ -30,8 +33,9 @@ import {
   type EnemyInstanceStatus,
 } from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
 import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
+import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
 import { GmSectionTitle } from "./GmSectionTitle";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type GmCustomEnemiesSectionProps = {
   game: GameDetail;
@@ -41,6 +45,7 @@ type GmCustomEnemiesSectionProps = {
   onOpenImport: () => void;
   onOpenCopy: () => void;
   onMutate: () => void | Promise<void>;
+  onInitiativeRolled: (game: GameDetail) => void | Promise<void>;
 };
 
 export function GmCustomEnemiesSection({
@@ -51,6 +56,7 @@ export function GmCustomEnemiesSection({
   onOpenImport,
   onOpenCopy,
   onMutate,
+  onInitiativeRolled,
 }: GmCustomEnemiesSectionProps) {
   const enemies = game.customEnemies ?? [];
   const instances = game.enemyInstances ?? [];
@@ -87,6 +93,14 @@ export function GmCustomEnemiesSection({
     name: string;
     imageKey?: string | null;
   } | null>(null);
+  const {
+    isPending,
+    enqueueRoll,
+    error: instanceRollError,
+  } = useQueuedGmCombatantInitiative({
+    game,
+    onRolled: onInitiativeRolled,
+  });
 
   const cancelDeleteCollectionModal = () => {
     if (deleteCollectionSubmitting) return;
@@ -139,6 +153,20 @@ export function GmCustomEnemiesSection({
       setBusyInstanceId(null);
     }
   };
+
+  const handleRollInstance = useCallback(
+    async (instance: NonNullable<GameDetail["enemyInstances"]>[number]) => {
+      await enqueueRoll({
+        combatantType: "ENEMY",
+        combatantId: instance.id,
+        combatantName: instance.name,
+        initiativeModifier: instance.initiativeModifier ?? 0,
+        isPrivate: isPrivateGameCharacterLink(instance.isPublic),
+        source: "gmEnemyList",
+      });
+    },
+    [enqueueRoll]
+  );
 
   return (
     <InfoCard border>
@@ -376,6 +404,9 @@ export function GmCustomEnemiesSection({
                 const visibilityLabel = linkVisibilityLabel(isPublic);
                 const instanceHref = `/home/games/${game.id}/gm/enemies/${inst.id}`;
                 const status = inst.status as EnemyInstanceStatus;
+                const instanceBusy =
+                  busyInstanceId === inst.id || isPending("ENEMY", inst.id);
+                const isRolling = isPending("ENEMY", inst.id);
                 return (
                   <li
                     key={inst.id}
@@ -425,7 +456,7 @@ export function GmCustomEnemiesSection({
                         type="button"
                         variant="secondaryOutlineXs"
                         fullWidth={false}
-                        disabled={busyInstanceId === inst.id}
+                        disabled={instanceBusy}
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => {
                           setBusyInstanceId(inst.id);
@@ -438,13 +469,23 @@ export function GmCustomEnemiesSection({
                       >
                         Reset reactions
                       </Button>
+                      <GmInitiativeRollButton
+                        hasRolled={hasCombatantInitiativeEntry(
+                          game,
+                          "ENEMY",
+                          inst.id
+                        )}
+                        busy={isRolling}
+                        modifier={inst.initiativeModifier ?? 0}
+                        disabled={instanceBusy && !isRolling}
+                        className="!px-2 !py-1 !text-xs"
+                        onClick={() => void handleRollInstance(inst)}
+                      />
                       <Button
                         type="button"
                         variant="semanticDangerOutline"
                         fullWidth={false}
-                        disabled={
-                          busyInstanceId === inst.id || removeInstanceSubmitting
-                        }
+                        disabled={instanceBusy || removeInstanceSubmitting}
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => {
                           setRemoveInstanceTarget({
@@ -462,6 +503,11 @@ export function GmCustomEnemiesSection({
               })}
             </ul>
           )
+        ) : null}
+        {instancesExpanded && instanceRollError ? (
+          <p className="mt-2 text-sm text-neblirDanger-400">
+            {instanceRollError}
+          </p>
         ) : null}
       </div>
 
