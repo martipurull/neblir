@@ -47,6 +47,9 @@ export type EnemyInstanceDetailResponse = {
   attackRange: number;
   attackThrow: number;
   attackGrid: number;
+  immunities: string[];
+  resistances: string[];
+  vulnerabilities: string[];
   actions: EnemyAction[];
   additionalActions: EnemyAction[];
 };

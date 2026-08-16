@@ -1,9 +1,10 @@
 "use client";
 
+import { EnemyDetailsView } from "@/app/components/games/EnemyDetailsView";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
-import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
+import { enemyTemplateToDetailsModel } from "@/app/lib/enemyDetailsView";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SpawnEnemyInstancesModal } from "@/app/components/games/SpawnEnemyInstancesModal";
 import { addOfficialEnemyToGame, getEnemies } from "@/lib/api/enemies";
@@ -136,7 +137,7 @@ export function BrowseEnemiesModal({
           )}
         </div>
 
-        <div className="rounded border border-white/20 p-3">
+        <div className="max-h-[60vh] overflow-y-auto rounded border border-white/20 p-3">
           {!selected ? (
             <p className="text-sm text-white/75">
               Select an enemy to view details.
@@ -162,37 +163,9 @@ export function BrowseEnemiesModal({
                   </p>
                 </div>
               </div>
-
-              {selected.description ? (
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
-                    Description
-                  </p>
-                  <StoredRichTextHtml
-                    content={selected.description}
-                    className="text-sm text-white/90"
-                  />
-                </div>
-              ) : null}
-
-              {selected.notes ? (
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
-                    Notes
-                  </p>
-                  <StoredRichTextHtml
-                    content={selected.notes}
-                    className="text-sm text-white/90"
-                  />
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
-                <p>Reactions: {selected.numberOfReactions}</p>
-                <p>Actions: {selected.actions.length}</p>
-                <p>Additional: {selected.additionalActions.length}</p>
-                <p>Immunities: {selected.immunities.length}</p>
-              </div>
+              <EnemyDetailsView
+                details={enemyTemplateToDetailsModel(selected)}
+              />
             </div>
           )}
         </div>

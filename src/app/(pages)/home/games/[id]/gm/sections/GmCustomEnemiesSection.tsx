@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import { EnemyDetailsModal } from "@/app/components/games/EnemyDetailsModal";
+import {
+  SpawnEnemyInstancesModal,
+  type SpawnEnemyInstancesSource,
+} from "@/app/components/games/SpawnEnemyInstancesModal";
 import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { InfoCard } from "@/app/components/shared/InfoCard";
@@ -9,10 +13,6 @@ import {
   downloadCustomEnemy,
   downloadGameCustomEnemies,
 } from "@/lib/api/customEnemies";
-import {
-  SpawnEnemyInstancesModal,
-  type SpawnEnemyInstancesSource,
-} from "@/app/components/games/SpawnEnemyInstancesModal";
 import {
   deleteEnemyInstance,
   updateEnemyInstance,
@@ -31,6 +31,7 @@ import {
 } from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
 import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
 import { GmSectionTitle } from "./GmSectionTitle";
+import { useState } from "react";
 
 type GmCustomEnemiesSectionProps = {
   game: GameDetail;
@@ -81,6 +82,11 @@ export function GmCustomEnemiesSection({
     null
   );
   const [instancesExpanded, setInstancesExpanded] = useState(false);
+  const [detailEnemy, setDetailEnemy] = useState<{
+    id: string;
+    name: string;
+    imageKey?: string | null;
+  } | null>(null);
 
   const cancelDeleteCollectionModal = () => {
     if (deleteCollectionSubmitting) return;
@@ -209,7 +215,7 @@ export function GmCustomEnemiesSection({
       </div>
 
       <div className="mt-4">
-        <h4 className="text-sm font-semibold text-black/90">Custom enemies</h4>
+        <h4 className="text-sm font-semibold text-black/90">Game Enemies</h4>
         {enemies.length === 0 ? (
           <p className="mt-1 text-sm text-black/70">
             No enemies in this game yet. Browse official enemies, create one, or
@@ -222,7 +228,19 @@ export function GmCustomEnemiesSection({
                 key={e.id}
                 className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="min-w-0 flex flex-1 items-center gap-3">
+                <Button
+                  type="button"
+                  variant="lightRowHit"
+                  fullWidth={false}
+                  className="flex min-w-0 flex-1 items-center gap-3"
+                  onClick={() =>
+                    setDetailEnemy({
+                      id: e.id,
+                      name: e.name,
+                      imageKey: e.imageKey,
+                    })
+                  }
+                >
                   <RemoteAvatar
                     imageUrl={imageUrls[e.id]}
                     imageKey={e.imageKey}
@@ -230,16 +248,18 @@ export function GmCustomEnemiesSection({
                     size={44}
                     className="h-11 w-11"
                   />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-black">{e.name}</p>
-                    <p className="truncate tabular-nums text-xs text-black/70">
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block truncate font-medium text-black">
+                      {e.name}
+                    </span>
+                    <span className="block truncate tabular-nums text-xs text-black/70">
                       (init {e.initiativeModifier >= 0 ? "+" : ""}
                       {e.initiativeModifier}
                       {e.health != null ? ` · HP ${e.health}` : ""}
                       {e.speed != null ? ` · Spd ${e.speed}` : ""})
-                    </p>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                </Button>
                 <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
                   <Button
                     type="button"
@@ -489,6 +509,19 @@ export function GmCustomEnemiesSection({
         onClose={() => setSpawnSource(null)}
         onSuccess={onMutate}
       />
+
+      {detailEnemy ? (
+        <EnemyDetailsModal
+          key={detailEnemy.id}
+          isOpen
+          gameId={game.id}
+          customEnemyId={detailEnemy.id}
+          enemyName={detailEnemy.name}
+          imageUrl={imageUrls[detailEnemy.id]}
+          imageKey={detailEnemy.imageKey}
+          onClose={() => setDetailEnemy(null)}
+        />
+      ) : null}
     </InfoCard>
   );
 }

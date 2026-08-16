@@ -94,16 +94,19 @@ export function shapeGameForResponse(
           generalInformation: gi ?? undefined,
           initiativeMod: combat?.initiativeMod ?? 0,
           linkedUserIds: gc.character.users.map((u) => u.userId),
-          ...(isGameMaster
-            ? {
-                currentPhysicalHealth: health?.currentPhysicalHealth,
-                maxPhysicalHealth: health?.maxPhysicalHealth,
-                reactionsPerRound: combat?.reactionsPerRound,
-                reactionsRemaining:
-                  combat?.reactionsRemaining ?? combat?.reactionsPerRound,
-                healthStatus: health?.status,
-              }
-            : {}),
+          currentPhysicalHealth: isGameMaster
+            ? health?.currentPhysicalHealth
+            : undefined,
+          maxPhysicalHealth: isGameMaster
+            ? health?.maxPhysicalHealth
+            : undefined,
+          reactionsPerRound: isGameMaster
+            ? combat?.reactionsPerRound
+            : undefined,
+          reactionsRemaining: isGameMaster
+            ? combat?.reactionsRemaining
+            : undefined,
+          healthStatus: isGameMaster ? health?.status : undefined,
         },
       };
     });
@@ -119,7 +122,7 @@ export function shapeGameForResponse(
   return {
     ...gameRest,
     isGameMaster,
-    characters: characters ?? game.characters,
+    characters: characters ?? [],
     enemyInstances: visibleEnemyInstances,
     initiativeOrder: shapeInitiativeOrderForResponse(
       game,

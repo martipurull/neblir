@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
+import { formatEnemyActionCombatLine } from "@/app/lib/enemyDetailsView";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 
 type ActionRow = EnemyInstanceDetailResponse["actions"][number];
@@ -33,51 +34,64 @@ export function EnemyInstanceActionListSection({
         <p className="mt-2 text-sm text-black/70">{emptyMessage}</p>
       ) : (
         <ul className="mt-2 space-y-2">
-          {actions.map((a, idx) => (
-            <li
-              key={`${a.name}-${idx}`}
-              className="rounded border border-black/10 p-3"
-            >
-              <p className="font-medium text-black">{a.name}</p>
-              {a.description ? (
-                <StoredRichTextHtml
-                  content={a.description}
-                  className="mt-1 text-sm text-black/85"
-                />
-              ) : null}
-              <div className="mt-2 flex flex-wrap gap-2">
-                {a.numberOfDiceToHit ? (
-                  <Button
-                    type="button"
-                    variant="secondaryOutlineXs"
-                    fullWidth={false}
-                    onClick={() =>
-                      onRollToHit(a.name, a.numberOfDiceToHit ?? 1)
-                    }
-                  >
-                    Roll to hit ({a.numberOfDiceToHit}d10)
-                  </Button>
+          {actions.map((a, idx) => {
+            const combatLine = formatEnemyActionCombatLine(a);
+            return (
+              <li
+                key={`${a.name}-${idx}`}
+                className="rounded border border-black/10 p-3"
+              >
+                <p className="font-medium text-black">{a.name}</p>
+                {a.description ? (
+                  <StoredRichTextHtml
+                    content={a.description}
+                    className="mt-1 text-sm text-black/85"
+                  />
                 ) : null}
-                {a.numberOfDamageDice && a.damageDiceType ? (
-                  <Button
-                    type="button"
-                    variant="secondaryOutlineXs"
-                    fullWidth={false}
-                    onClick={() =>
-                      onRollDamage(
-                        a.name,
-                        a.numberOfDamageDice ?? 1,
-                        a.damageDiceType ?? 6,
-                        a.damageType
-                      )
-                    }
-                  >
-                    Roll damage ({a.numberOfDamageDice}d{a.damageDiceType})
-                  </Button>
+                {combatLine ? (
+                  <p className="mt-1 text-sm tabular-nums text-black/70">
+                    {combatLine}
+                  </p>
                 ) : null}
-              </div>
-            </li>
-          ))}
+                {a.notes ? (
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-black/80">
+                    {a.notes}
+                  </p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {a.numberOfDiceToHit ? (
+                    <Button
+                      type="button"
+                      variant="secondaryOutlineXs"
+                      fullWidth={false}
+                      onClick={() =>
+                        onRollToHit(a.name, a.numberOfDiceToHit ?? 1)
+                      }
+                    >
+                      Roll to hit ({a.numberOfDiceToHit}d10)
+                    </Button>
+                  ) : null}
+                  {a.numberOfDamageDice && a.damageDiceType ? (
+                    <Button
+                      type="button"
+                      variant="secondaryOutlineXs"
+                      fullWidth={false}
+                      onClick={() =>
+                        onRollDamage(
+                          a.name,
+                          a.numberOfDamageDice ?? 1,
+                          a.damageDiceType ?? 6,
+                          a.damageType
+                        )
+                      }
+                    >
+                      Roll damage ({a.numberOfDamageDice}d{a.damageDiceType})
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
