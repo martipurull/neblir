@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { referenceEntryAttachmentSchema } from "./referenceEntryAttachment";
 
 export const referenceCategorySchema = z.enum([
   "MECHANICS",
@@ -53,6 +54,7 @@ export const referenceEntrySchema = referenceEntryMutableSchema
     id: z.string(),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
+    attachments: z.array(referenceEntryAttachmentSchema).optional().default([]),
   })
   .superRefine(requireGameForCampaignLore);
 

@@ -18,6 +18,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
   const [rolling, setRolling] = useState(false);
   const {
     COMMON_DICE_OPTIONS,
+    QUICK_DICE_SIDES,
     diceCount,
     diceType,
     diceTypeMode,
@@ -78,22 +79,19 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
           <span>Type of dice (sides)</span>
           {diceTypeMode === "quick" ? (
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant={diceType === 10 ? "primarySm" : "secondaryOutlineXs"}
-                fullWidth={false}
-                onClick={() => setDiceTypeAndClearResult(10)}
-              >
-                d10
-              </Button>
-              <Button
-                type="button"
-                variant={diceType === 6 ? "primarySm" : "secondaryOutlineXs"}
-                fullWidth={false}
-                onClick={() => setDiceTypeAndClearResult(6)}
-              >
-                d6
-              </Button>
+              {QUICK_DICE_SIDES.map((sides) => (
+                <Button
+                  key={sides}
+                  type="button"
+                  variant={
+                    diceType === sides ? "primarySm" : "secondaryOutlineXs"
+                  }
+                  fullWidth={false}
+                  onClick={() => setDiceTypeAndClearResult(sides)}
+                >
+                  d{sides}
+                </Button>
+              ))}
               <Button
                 type="button"
                 variant="secondaryOutlineXs"
@@ -138,7 +136,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
                 fullWidth={false}
                 onClick={handleReturnToQuickDice}
               >
-                Back to d10/d6 quick toggle
+                Back to d10/d6/d4 quick toggle
               </Button>
             </div>
           )}

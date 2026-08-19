@@ -107,7 +107,7 @@ export const customEnemyUpdateSchema = customEnemyCreateSchema
   .omit({ gameId: true })
   .partial();
 
-const enemyResponseSchema = enemyBaseSchema.extend({
+export const enemyResponseSchema = enemyBaseSchema.extend({
   id: z.string(),
 });
 export const enemyListResponseSchema = z.array(enemyResponseSchema);

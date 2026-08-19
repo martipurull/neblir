@@ -57,6 +57,9 @@ describe("mergeEnemyInstancePatch", () => {
     attackRange: 0,
     attackThrow: 0,
     attackGrid: 0,
+    immunities: [],
+    resistances: [],
+    vulnerabilities: [],
     actions: [],
     additionalActions: [],
   } satisfies EnemyInstanceDetailResponse;

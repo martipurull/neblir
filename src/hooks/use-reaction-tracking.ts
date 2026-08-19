@@ -1,7 +1,6 @@
 "use client";
 
 import type { CharacterDetail } from "@/app/lib/types/character";
-import { resolveCharacterReactionsRemaining } from "@/app/lib/types/character";
 import { updateCharacterCombatInfo } from "@/lib/api/character";
 import { useCallback, useLayoutEffect, useRef } from "react";
 import type { KeyedMutator } from "swr";
@@ -21,9 +20,7 @@ export function useReactionTracking(
   }, [character]);
 
   const maxReactions = character?.combatInformation?.reactionsPerRound ?? 0;
-  const remaining = character?.combatInformation
-    ? resolveCharacterReactionsRemaining(character.combatInformation)
-    : 0;
+  const remaining = character?.combatInformation?.reactionsRemaining ?? 0;
   const usedReactions = Math.max(0, maxReactions - remaining);
 
   const persistRemaining = useCallback(
@@ -59,9 +56,7 @@ export function useReactionTracking(
   const useReaction = useCallback(() => {
     const cur = characterRef.current;
     if (!cur?.combatInformation) return;
-    const currentRemaining = resolveCharacterReactionsRemaining(
-      cur.combatInformation
-    );
+    const currentRemaining = cur.combatInformation.reactionsRemaining;
     if (currentRemaining <= 0) return;
     void persistRemaining(currentRemaining - 1);
   }, [persistRemaining]);

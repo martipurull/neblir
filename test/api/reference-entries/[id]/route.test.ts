@@ -12,6 +12,7 @@ const deleteReferenceEntryMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const userIsSuperAdminMock = vi.fn();
+const s3SendMock = vi.fn();
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
@@ -30,6 +31,21 @@ vi.mock("@/app/lib/prisma/referenceEntry", () => ({
 vi.mock("@/app/lib/prisma/game", () => ({
   getGame: getGameMock,
   userIsInGame: userIsInGameMock,
+}));
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    return args;
+  }),
+  S3Client: vi.fn(),
+}));
+
+vi.mock("@/app/lib/r2", () => ({
+  getR2Config: vi.fn(() => ({
+    bucketName: "bucket",
+    s3Client: { send: s3SendMock },
+  })),
+  isDeletableUploadKey: vi.fn((key: string) => key.startsWith("lore-")),
 }));
 
 const playerEntry = { id: "r-1", gameId: null, access: "PLAYER" };
@@ -368,6 +384,37 @@ describe("/api/reference-entries/[id] route handlers", () => {
       );
 
       expect(response.status).toBe(204);
+      expect(deleteReferenceEntryMock).toHaveBeenCalledWith("r-1");
+    });
+
+    it("deletes lore attachment objects from storage before deleting the entry", async () => {
+      getReferenceEntryMock.mockResolvedValue({
+        ...playerEntry,
+        gameId: "game-1",
+        attachments: [
+          { id: "a-1", fileKey: "lore-map.pdf" },
+          { id: "a-2", fileKey: "lore-letter.pdf" },
+        ],
+      });
+      getGameMock.mockResolvedValue({ id: "game-1", gameMaster: "user-1" });
+      deleteReferenceEntryMock.mockResolvedValue({});
+      const { DELETE } = await import("@/app/api/reference-entries/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(undefined, "user-1"),
+        makeParams({ id: "r-1" })
+      );
+
+      expect(response.status).toBe(204);
+      expect(s3SendMock).toHaveBeenCalledWith({
+        Bucket: "bucket",
+        Key: "lore-map.pdf",
+      });
+      expect(s3SendMock).toHaveBeenCalledWith({
+        Bucket: "bucket",
+        Key: "lore-letter.pdf",
+      });
       expect(deleteReferenceEntryMock).toHaveBeenCalledWith("r-1");
     });
 

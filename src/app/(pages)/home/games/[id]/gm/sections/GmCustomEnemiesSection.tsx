@@ -1,24 +1,26 @@
-import React, { useState } from "react";
+import { EnemyDetailsModal } from "@/app/components/games/EnemyDetailsModal";
+import {
+  SpawnEnemyInstancesModal,
+  type SpawnEnemyInstancesSource,
+} from "@/app/components/games/SpawnEnemyInstancesModal";
 import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { InfoCard } from "@/app/components/shared/InfoCard";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import type { GameDetail } from "@/app/lib/types/game";
+import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
+import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import {
   deleteCustomEnemy,
   downloadCustomEnemy,
   downloadGameCustomEnemies,
 } from "@/lib/api/customEnemies";
 import {
-  SpawnEnemyInstancesModal,
-  type SpawnEnemyInstancesSource,
-} from "@/app/components/games/SpawnEnemyInstancesModal";
-import {
   deleteEnemyInstance,
   updateEnemyInstance,
 } from "@/lib/api/enemyInstances";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import Link from "next/link";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import {
@@ -31,7 +33,9 @@ import {
   type EnemyInstanceStatus,
 } from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
 import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
+import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
 import { GmSectionTitle } from "./GmSectionTitle";
+import { useCallback, useState } from "react";
 
 type GmCustomEnemiesSectionProps = {
   game: GameDetail;
@@ -41,6 +45,7 @@ type GmCustomEnemiesSectionProps = {
   onOpenImport: () => void;
   onOpenCopy: () => void;
   onMutate: () => void | Promise<void>;
+  onInitiativeRolled: (game: GameDetail) => void | Promise<void>;
 };
 
 export function GmCustomEnemiesSection({
@@ -51,6 +56,7 @@ export function GmCustomEnemiesSection({
   onOpenImport,
   onOpenCopy,
   onMutate,
+  onInitiativeRolled,
 }: GmCustomEnemiesSectionProps) {
   const enemies = game.customEnemies ?? [];
   const instances = game.enemyInstances ?? [];
@@ -82,6 +88,19 @@ export function GmCustomEnemiesSection({
     null
   );
   const [instancesExpanded, setInstancesExpanded] = useState(false);
+  const [detailEnemy, setDetailEnemy] = useState<{
+    id: string;
+    name: string;
+    imageKey?: string | null;
+  } | null>(null);
+  const {
+    isPending,
+    enqueueRoll,
+    error: instanceRollError,
+  } = useQueuedGmCombatantInitiative({
+    game,
+    onRolled: onInitiativeRolled,
+  });
 
   const cancelDeleteCollectionModal = () => {
     if (deleteCollectionSubmitting) return;
@@ -134,6 +153,20 @@ export function GmCustomEnemiesSection({
       setBusyInstanceId(null);
     }
   };
+
+  const handleRollInstance = useCallback(
+    async (instance: NonNullable<GameDetail["enemyInstances"]>[number]) => {
+      await enqueueRoll({
+        combatantType: "ENEMY",
+        combatantId: instance.id,
+        combatantName: instance.name,
+        initiativeModifier: instance.initiativeModifier ?? 0,
+        isPrivate: isPrivateGameCharacterLink(instance.isPublic),
+        source: "gmEnemyList",
+      });
+    },
+    [enqueueRoll]
+  );
 
   return (
     <InfoCard border>
@@ -210,7 +243,7 @@ export function GmCustomEnemiesSection({
       </div>
 
       <div className="mt-4">
-        <h4 className="text-sm font-semibold text-black/90">Custom enemies</h4>
+        <h4 className="text-sm font-semibold text-black/90">Game Enemies</h4>
         {enemies.length === 0 ? (
           <p className="mt-1 text-sm text-black/70">
             No enemies in this game yet. Browse official enemies, create one, or
@@ -223,38 +256,38 @@ export function GmCustomEnemiesSection({
                 key={e.id}
                 className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="min-w-0 flex flex-1 items-center gap-3">
-                  <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                    {imageUrls[e.id] ? (
-                      <SignedRemoteImage
-                        src={imageUrls[e.id] as string}
-                        imageKey={e.imageKey ?? undefined}
-                        alt={`${e.name} avatar`}
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 object-cover object-top"
-                      />
-                    ) : imageUrls[e.id] === undefined ? (
-                      <ImageLoadingSkeleton
-                        variant="avatar"
-                        className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                        {e.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-black">{e.name}</p>
-                    <p className="truncate tabular-nums text-xs text-black/70">
+                <Button
+                  type="button"
+                  variant="lightRowHit"
+                  fullWidth={false}
+                  className="flex min-w-0 flex-1 items-center gap-3"
+                  onClick={() =>
+                    setDetailEnemy({
+                      id: e.id,
+                      name: e.name,
+                      imageKey: e.imageKey,
+                    })
+                  }
+                >
+                  <RemoteAvatar
+                    imageUrl={imageUrls[e.id]}
+                    imageKey={e.imageKey}
+                    alt={`${e.name} avatar`}
+                    size={44}
+                    className="h-11 w-11"
+                  />
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block truncate font-medium text-black">
+                      {e.name}
+                    </span>
+                    <span className="block truncate tabular-nums text-xs text-black/70">
                       (init {e.initiativeModifier >= 0 ? "+" : ""}
                       {e.initiativeModifier}
                       {e.health != null ? ` · HP ${e.health}` : ""}
                       {e.speed != null ? ` · Spd ${e.speed}` : ""})
-                    </p>
-                  </div>
-                </div>
+                    </span>
+                  </span>
+                </Button>
                 <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
                   <Button
                     type="button"
@@ -371,6 +404,9 @@ export function GmCustomEnemiesSection({
                 const visibilityLabel = linkVisibilityLabel(isPublic);
                 const instanceHref = `/home/games/${game.id}/gm/enemies/${inst.id}`;
                 const status = inst.status as EnemyInstanceStatus;
+                const instanceBusy =
+                  busyInstanceId === inst.id || isPending("ENEMY", inst.id);
+                const isRolling = isPending("ENEMY", inst.id);
                 return (
                   <li
                     key={inst.id}
@@ -382,27 +418,13 @@ export function GmCustomEnemiesSection({
                       aria-label={`Open ${inst.name}`}
                     />
                     <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                        {imageUrls[inst.id] ? (
-                          <SignedRemoteImage
-                            src={imageUrls[inst.id] as string}
-                            imageKey={inst.imageKey ?? undefined}
-                            alt=""
-                            width={44}
-                            height={44}
-                            className="h-11 w-11 object-cover object-top"
-                          />
-                        ) : imageUrls[inst.id] === undefined ? (
-                          <ImageLoadingSkeleton
-                            variant="avatar"
-                            className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                            {inst.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
+                      <RemoteAvatar
+                        imageUrl={imageUrls[inst.id]}
+                        imageKey={inst.imageKey}
+                        alt=""
+                        size={44}
+                        className="h-11 w-11"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 flex-wrap items-center gap-2">
                           <p className="truncate text-base font-medium">
@@ -434,7 +456,7 @@ export function GmCustomEnemiesSection({
                         type="button"
                         variant="secondaryOutlineXs"
                         fullWidth={false}
-                        disabled={busyInstanceId === inst.id}
+                        disabled={instanceBusy}
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => {
                           setBusyInstanceId(inst.id);
@@ -447,13 +469,23 @@ export function GmCustomEnemiesSection({
                       >
                         Reset reactions
                       </Button>
+                      <GmInitiativeRollButton
+                        hasRolled={hasCombatantInitiativeEntry(
+                          game,
+                          "ENEMY",
+                          inst.id
+                        )}
+                        busy={isRolling}
+                        modifier={inst.initiativeModifier ?? 0}
+                        disabled={instanceBusy && !isRolling}
+                        className="!px-2 !py-1 !text-xs"
+                        onClick={() => void handleRollInstance(inst)}
+                      />
                       <Button
                         type="button"
                         variant="semanticDangerOutline"
                         fullWidth={false}
-                        disabled={
-                          busyInstanceId === inst.id || removeInstanceSubmitting
-                        }
+                        disabled={instanceBusy || removeInstanceSubmitting}
                         className="!px-2 !py-1 !text-xs"
                         onClick={() => {
                           setRemoveInstanceTarget({
@@ -471,6 +503,11 @@ export function GmCustomEnemiesSection({
               })}
             </ul>
           )
+        ) : null}
+        {instancesExpanded && instanceRollError ? (
+          <p className="mt-2 text-sm text-neblirDanger-400">
+            {instanceRollError}
+          </p>
         ) : null}
       </div>
 
@@ -518,6 +555,19 @@ export function GmCustomEnemiesSection({
         onClose={() => setSpawnSource(null)}
         onSuccess={onMutate}
       />
+
+      {detailEnemy ? (
+        <EnemyDetailsModal
+          key={detailEnemy.id}
+          isOpen
+          gameId={game.id}
+          customEnemyId={detailEnemy.id}
+          enemyName={detailEnemy.name}
+          imageUrl={imageUrls[detailEnemy.id]}
+          imageKey={detailEnemy.imageKey}
+          onClose={() => setDetailEnemy(null)}
+        />
+      ) : null}
     </InfoCard>
   );
 }

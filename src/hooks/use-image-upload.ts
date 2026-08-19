@@ -8,7 +8,8 @@ export type ImageUploadKind =
   | "games"
   | "characters"
   | "items"
-  | "maps";
+  | "maps"
+  | "files";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);

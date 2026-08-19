@@ -1,6 +1,6 @@
 import {
-  RECAP_MAX_SIZE_BYTES,
-  RECAP_MAX_SIZE_LABEL,
+  PDF_MAX_SIZE_BYTES,
+  PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
 import { getGame } from "@/app/lib/prisma/game";
 import { getR2Config } from "@/app/lib/r2";
@@ -53,9 +53,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
     if (!isPdfFileName(fileName)) {
       return errorResponse("Recap upload only supports PDF files", 400);
     }
-    if (fileSizeBytes > RECAP_MAX_SIZE_BYTES) {
+    if (fileSizeBytes > PDF_MAX_SIZE_BYTES) {
       return errorResponse(
-        `File must be ${RECAP_MAX_SIZE_LABEL} or smaller`,
+        `File must be ${PDF_MAX_SIZE_LABEL} or smaller`,
         400
       );
     }

@@ -1,3 +1,10 @@
+/** One-click sides in the general dice roller (d10 is the default). */
+export const QUICK_DICE_SIDES = [10, 6, 4] as const;
+
+export function isQuickDiceSides(sides: number): boolean {
+  return (QUICK_DICE_SIDES as readonly number[]).includes(sides);
+}
+
 /** Options for the “advanced” NdX dice dropdown (shared by GM + character free roll). */
 export const COMMON_DICE_OPTIONS = [
   { value: "d4", label: "d4" },

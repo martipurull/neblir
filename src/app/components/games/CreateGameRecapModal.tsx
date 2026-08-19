@@ -6,8 +6,8 @@ import { TextField } from "@/app/components/shared/TextField";
 import { Button } from "@/app/components/shared/Button";
 import { TextArea } from "@/app/components/shared/TextArea";
 import {
-  RECAP_MAX_SIZE_BYTES,
-  RECAP_MAX_SIZE_LABEL,
+  PDF_MAX_SIZE_BYTES,
+  PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
 import type { GameRecap } from "@/app/lib/types/recap";
 import {
@@ -83,8 +83,8 @@ export function CreateGameRecapModal({
         setError("Only PDF files are allowed.");
         return;
       }
-      if (file.size > RECAP_MAX_SIZE_BYTES) {
-        setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
+      if (file.size > PDF_MAX_SIZE_BYTES) {
+        setError(`PDF must be ${PDF_MAX_SIZE_LABEL} or smaller.`);
         return;
       }
     }
@@ -165,8 +165,8 @@ export function CreateGameRecapModal({
       setError("Only PDF files are allowed.");
       return;
     }
-    if (candidate.size > RECAP_MAX_SIZE_BYTES) {
-      setError(`PDF must be ${RECAP_MAX_SIZE_LABEL} or smaller.`);
+    if (candidate.size > PDF_MAX_SIZE_BYTES) {
+      setError(`PDF must be ${PDF_MAX_SIZE_LABEL} or smaller.`);
       return;
     }
     setError(null);
@@ -274,7 +274,7 @@ export function CreateGameRecapModal({
               Choose file
             </Button>
             <p className="text-xs text-white/80">
-              or drag and drop a PDF here (max {RECAP_MAX_SIZE_LABEL})
+              or drag and drop a PDF here (max {PDF_MAX_SIZE_LABEL})
             </p>
           </div>
         </div>
