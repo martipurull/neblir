@@ -11,8 +11,8 @@
 
 ## Manual E2E Checklist
 
-- [ ] As GM, open game master page and click **Connect Discord**.
-- [ ] Complete Discord OAuth install and return to GM page with guild selected.
+- [ ] As GM, open **Table Settings** and click **Connect Discord**.
+- [ ] Complete Discord OAuth install and return to Table Settings with guild selected.
 - [ ] Select a **text** or **voice** channel (voice uses [Text in Voice](https://discord.com/blog/text-in-voice-chat-channel-announcement-tiv) on that channel’s ID) and click **Save channel**.
 - [ ] Click **Send test message** and verify the message appears in the configured channel.
 - [ ] Roll from character page:

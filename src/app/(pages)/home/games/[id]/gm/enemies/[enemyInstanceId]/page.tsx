@@ -1,8 +1,10 @@
 "use client";
 
+import { EnemyDetailsView } from "@/app/components/games/EnemyDetailsView";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
+import { enemyInstanceToDetailsModel } from "@/app/lib/enemyDetailsView";
 import { EnemyInstanceActionListSection } from "./_components/EnemyInstanceActionListSection";
 import { EnemyInstanceAttackSection } from "./_components/EnemyInstanceAttackSection";
 import { EnemyInstanceDefenceSection } from "./_components/EnemyInstanceDefenceSection";
@@ -72,6 +74,13 @@ export default function EnemyInstancePage() {
           rollPrivacy={page.rollPrivacy}
           isPrivateRoll={page.isPrivateRoll}
           onPrivateRollChange={page.setIsPrivateRoll}
+        />
+
+        <EnemyDetailsView
+          details={enemyInstanceToDetailsModel(enemy)}
+          variant="light"
+          showCombatStats={false}
+          showActions={false}
         />
 
         {page.gameDetail ? (

@@ -22,6 +22,7 @@ import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useUser } from "@/hooks/use-user";
 import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
 import { applyCharacterSectionOrder } from "@/app/lib/characterSectionOrder";
+import { CURRENCY_NAMES, currencyImageKey } from "@/app/lib/types/item";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -155,9 +156,9 @@ export function CharacterDetailView({
         id: character.id,
         imageKey: character.generalInformation.avatarKey,
       },
-      ...(character.wallet ?? []).map((entry) => ({
-        id: entry.currencyName,
-        imageKey: `currency-${entry.currencyName.toLowerCase()}.png`,
+      ...CURRENCY_NAMES.map((currencyName) => ({
+        id: currencyName,
+        imageKey: currencyImageKey(currencyName),
       })),
     ],
     [character]
@@ -218,14 +219,15 @@ export function CharacterDetailView({
         readOnly,
       })
     );
-    const walletSection = getWalletSection(
-      character,
-      imageUrls,
-      character.id,
-      mutateAction ?? noopMutate,
-      readOnly
+    list.push(
+      getWalletSection(
+        character,
+        imageUrls,
+        character.id,
+        readOnly ? undefined : mutateAction,
+        readOnly
+      )
     );
-    if (walletSection) list.push(walletSection);
     if (!readOnly && mutateAction) {
       list.push(getNotesSection(character, mutateAction));
     }
@@ -238,7 +240,6 @@ export function CharacterDetailView({
     handleSingleAttributeRoll,
     imageUrls,
     mutateAction,
-    noopMutate,
     reactionTracking.clearReactions,
     reactionTracking.usedReactions,
     initiativeGameDetails,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 
 interface ResourceListCardProps {
@@ -26,16 +27,19 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   rightAccessory,
   body,
 }) => {
+  const resolvedImageUrl = resolveRemoteImageUrl(imageKey, imageUrl);
   const showImage =
-    imageUrl && typeof imageUrl === "string" && imageUrl.length > 0;
-  const showLoading = imageUrl === undefined;
+    resolvedImageUrl &&
+    typeof resolvedImageUrl === "string" &&
+    resolvedImageUrl.length > 0;
+  const showLoading = resolvedImageUrl === undefined;
 
   const headerRow = (
     <div className="flex items-center gap-3">
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {showImage ? (
           <SignedRemoteImage
-            src={imageUrl}
+            src={resolvedImageUrl}
             imageKey={imageKey ?? undefined}
             alt={imageAlt}
             width={48}

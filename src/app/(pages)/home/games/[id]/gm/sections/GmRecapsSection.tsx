@@ -15,6 +15,7 @@ type GmRecapsSectionProps = {
   onCreateRecap: () => void;
   onEditRecap: (recap: GameRecap) => void;
   onDeleteRecap: (recap: GameRecap) => void;
+  onOpenRecap: (recapId: string) => void;
   onDownloadRecap: (recapId: string) => void;
 };
 
@@ -27,13 +28,14 @@ export function GmRecapsSection({
   onCreateRecap,
   onEditRecap,
   onDeleteRecap,
+  onOpenRecap,
   onDownloadRecap,
 }: GmRecapsSectionProps) {
   return (
     <InfoCard border>
       <GmSectionTitle>Recaps</GmSectionTitle>
       <p className="mt-1 text-sm text-black/70">
-        Upload session recap PDFs for players to download.
+        Upload session recap PDFs for players to view and download.
       </p>
       <div className="mt-3">
         <Button
@@ -58,6 +60,7 @@ export function GmRecapsSection({
               <RecapCard
                 key={recap.id}
                 recap={recap}
+                onOpen={onOpenRecap}
                 onDownload={onDownloadRecap}
                 canEdit
                 canDelete

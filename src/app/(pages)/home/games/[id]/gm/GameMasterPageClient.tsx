@@ -1,46 +1,36 @@
 "use client";
 
-import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
-import { CreateCustomEnemyModal } from "@/app/components/games/CreateCustomEnemyModal";
 import { BrowseEnemiesModal } from "@/app/components/games/BrowseEnemiesModal";
 import { CopyCustomEnemyModal } from "@/app/components/games/CopyCustomEnemyModal";
-import { ImportCustomEnemiesModal } from "@/app/components/games/ImportCustomEnemiesModal";
-import { CreateGameLoreEntryModal } from "@/app/components/games/CreateGameLoreEntryModal";
-import { CreateGameRecapModal } from "@/app/components/games/CreateGameRecapModal";
-import { CreateGameImageModal } from "@/app/components/games/CreateGameImageModal";
+import { CreateCustomEnemyModal } from "@/app/components/games/CreateCustomEnemyModal";
+import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
-import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { GiveVehicleToCharacterModal } from "@/app/components/games/GiveVehicleToCharacterModal";
-import { InviteUsersModal } from "@/app/components/games/InviteUsersModal";
+import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
+import { ImportCustomEnemiesModal } from "@/app/components/games/ImportCustomEnemiesModal";
 import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
+import {
+  withAdjustedInitiativeEntry,
+  withClearedInitiative,
+  withRemovedInitiativeEntry,
+} from "@/app/lib/gameInitiativeOptimistic";
 import { isPastNextSessionDate } from "@/app/lib/nextSession";
 import {
-  GmCoverImageSection,
-  GmPremiseSection,
   GmCombatInitiativeSection,
-  GmDiscordSection,
-  GmInvitesSection,
-  GmPlayersSection,
-  GmItemsSection,
   GmCustomEnemiesSection,
-  GmLoreSection,
-  GmImagesSection,
-  GmRecapsSection,
-  GmNpcsSection,
   GmDiceRollerSection,
-  GmDangerZoneSection,
+  GmItemsSection,
+  GmNpcsSection,
+  GmTableSettingsCard,
 } from "./sections";
-import { useGame } from "@/hooks/use-game";
+import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
-import { useGameImages } from "@/hooks/use-game-images";
-import { useGameRecaps } from "@/hooks/use-game-recaps";
-import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
@@ -49,30 +39,23 @@ import {
   setGameCharacterVisibility,
   updateGame,
 } from "@/lib/api/game";
-import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
-import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
-import { deleteGameImage } from "@/lib/api/gameImages";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import type { ReferenceEntry } from "@/app/lib/types/reference";
-import type { GameRecap } from "@/app/lib/types/recap";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import useSWR from "swr";
-
-type PendingInvite = {
-  invitedUserId: string;
-  invitedUserName: string;
-  invitedUserEmail: string;
-  createdAt: string;
-};
 
 export function GameMasterPageClient() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
-  const discordGuildId = searchParams.get("discordGuildId");
-  const { game, loading, error, refetch, mutate } = useGame(id);
+  const {
+    game,
+    loading,
+    error,
+    refetch,
+    mutate,
+    applyGameUpdate,
+    applyOptimisticGameUpdate,
+  } = useGame(id, { refreshInterval: GM_LIVE_GAME_REFRESH_MS });
   const { games: allGames } = useGames();
 
   const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
@@ -86,20 +69,6 @@ export function GameMasterPageClient() {
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
   const [giveVehicleModalOpen, setGiveVehicleModalOpen] = useState(false);
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [loreEntryModalOpen, setLoreEntryModalOpen] = useState(false);
-  const [recapModalOpen, setRecapModalOpen] = useState(false);
-  const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [loreEntryEditTarget, setLoreEntryEditTarget] =
-    useState<ReferenceEntry | null>(null);
-  const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
-    null
-  );
-  const [deletingLoreEntryId, setDeletingLoreEntryId] = useState<string | null>(
-    null
-  );
-  const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
-  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
     useState(false);
   const [initiativeActionId, setInitiativeActionId] = useState<string | null>(
@@ -127,7 +96,7 @@ export function GameMasterPageClient() {
         const updated = await updateGame(id, {
           nextSession: value ? `${value}T12:00:00.000Z` : null,
         });
-        await mutate(updated, { revalidate: false });
+        await applyGameUpdate(updated);
       } catch (err) {
         setNextSessionError(
           getUserSafeErrorMessage(err, "Failed to update date")
@@ -136,91 +105,63 @@ export function GameMasterPageClient() {
         setNextSessionBusy(false);
       }
     },
-    [id, mutate]
+    [id, applyGameUpdate]
   );
 
   const handleRemoveInitiativeEntry = useCallback(
     async (combatantRef: string) => {
-      if (!id) return;
+      if (!id || !game) return;
       setInitiativeActionId(combatantRef);
       try {
-        const updated = await removeGameInitiativeEntry(id, combatantRef);
-        await mutate(updated, { revalidate: false });
+        await applyOptimisticGameUpdate(
+          withRemovedInitiativeEntry(game, combatantRef),
+          () => removeGameInitiativeEntry(id, combatantRef)
+        );
       } finally {
         setInitiativeActionId(null);
       }
     },
-    [id, mutate]
+    [id, game, applyOptimisticGameUpdate]
   );
 
   const handleAdjustInitiativeEntry = useCallback(
     async (combatantRef: string, initiativeDelta: number) => {
-      if (!id) return;
+      if (!id || !game) return;
       setInitiativeActionId(combatantRef);
       try {
-        const updated = await adjustGameInitiativeEntry(
-          id,
-          combatantRef,
-          initiativeDelta
+        await applyOptimisticGameUpdate(
+          withAdjustedInitiativeEntry(game, combatantRef, initiativeDelta),
+          () => adjustGameInitiativeEntry(id, combatantRef, initiativeDelta)
         );
-        await mutate(updated, { revalidate: false });
       } finally {
         setInitiativeActionId(null);
       }
     },
-    [id, mutate]
+    [id, game, applyOptimisticGameUpdate]
   );
 
   const handleClearAllInitiative = useCallback(async () => {
-    if (!id) return;
+    if (!id || !game) return;
     setClearingInitiative(true);
     try {
-      const updated = await clearGameInitiative(id);
-      await mutate(updated, { revalidate: false });
+      await applyOptimisticGameUpdate(withClearedInitiative(game), () =>
+        clearGameInitiative(id)
+      );
     } finally {
       setClearingInitiative(false);
     }
-  }, [id, mutate]);
+  }, [id, game, applyOptimisticGameUpdate]);
 
   const handleResetCombatReactions = useCallback(async () => {
     if (!id) return;
     setResettingReactions(true);
     try {
       const updated = await resetGameCombatReactions(id);
-      await mutate(updated, { revalidate: false });
+      await applyGameUpdate(updated);
     } finally {
       setResettingReactions(false);
     }
-  }, [id, mutate]);
-
-  const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
-    PendingInvite[]
-  >(
-    game?.isGameMaster && id
-      ? `/api/games/${encodeURIComponent(id)}/invites`
-      : null
-  );
-  const {
-    entries: loreEntries,
-    loading: loreEntriesLoading,
-    error: loreEntriesError,
-    refetch: refetchLoreEntries,
-  } = useReferenceEntries({
-    category: "CAMPAIGN_LORE",
-    gameId: id ?? undefined,
-  });
-  const {
-    recaps,
-    loading: recapsLoading,
-    error: recapsError,
-    refetch: refetchRecaps,
-  } = useGameRecaps(id);
-  const {
-    images,
-    loading: imagesLoading,
-    error: imagesError,
-    refetch: refetchImages,
-  } = useGameImages(id);
+  }, [id, applyGameUpdate]);
 
   if (loading || (!game && !error)) {
     return (
@@ -306,6 +247,14 @@ export function GameMasterPageClient() {
 
         <GmDiceRollerSection gameId={game.id} />
 
+        <GmItemsSection
+          gameId={game.id}
+          onCreateCustom={() => setCustomItemModalOpen(true)}
+          onCreateUnique={() => setUniqueItemModalOpen(true)}
+          onGiveItem={() => setGiveItemModalOpen(true)}
+          onGiveVehicle={() => setGiveVehicleModalOpen(true)}
+        />
+
         <GmCombatInitiativeSection
           game={game}
           initiativeOrder={initiativeOrder}
@@ -324,14 +273,6 @@ export function GameMasterPageClient() {
           onOpenRollModal={() => setGmInitiativeRollModalOpen(true)}
         />
 
-        <GmItemsSection
-          gameId={game.id}
-          onCreateCustom={() => setCustomItemModalOpen(true)}
-          onCreateUnique={() => setUniqueItemModalOpen(true)}
-          onGiveItem={() => setGiveItemModalOpen(true)}
-          onGiveVehicle={() => setGiveVehicleModalOpen(true)}
-        />
-
         <GmNpcsSection
           game={game}
           onSetVisibility={async (characterId, isPublic) => {
@@ -344,6 +285,7 @@ export function GameMasterPageClient() {
           onCharactersAdded={async () => {
             await mutate();
           }}
+          onInitiativeRolled={applyGameUpdate}
         />
 
         <GmCustomEnemiesSection
@@ -362,195 +304,12 @@ export function GameMasterPageClient() {
           onMutate={async () => {
             await mutate();
           }}
+          onInitiativeRolled={applyGameUpdate}
         />
 
-        <GmPlayersSection
-          game={game}
-          onPlayerRemoved={async () => {
-            await mutate();
-          }}
-        />
-
-        <GmLoreSection
-          gameId={game.id}
-          onCreateLoreEntry={() => setLoreEntryModalOpen(true)}
-          onEditLoreEntry={(entry) => {
-            setLoreEntryEditTarget(entry);
-            setLoreEntryModalOpen(true);
-          }}
-          onDeleteLoreEntry={(entry) => {
-            if (
-              !window.confirm(
-                `Delete lore entry "${entry.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingLoreEntryId(entry.id);
-            void deleteReferenceEntry(entry.id)
-              .then(async () => {
-                await refetchLoreEntries();
-              })
-              .finally(() => {
-                setDeletingLoreEntryId(null);
-              });
-          }}
-          deletingEntryId={deletingLoreEntryId}
-          entries={loreEntries}
-          loading={loreEntriesLoading}
-          error={loreEntriesError}
-          onRetry={() => void refetchLoreEntries()}
-        />
-        <GmRecapsSection
-          recaps={recaps}
-          loading={recapsLoading}
-          error={recapsError}
-          deletingRecapId={deletingRecapId}
-          onRetry={() => void refetchRecaps()}
-          onCreateRecap={() => {
-            setRecapEditTarget(null);
-            setRecapModalOpen(true);
-          }}
-          onEditRecap={(recap) => {
-            setRecapEditTarget(recap);
-            setRecapModalOpen(true);
-          }}
-          onDownloadRecap={(recapId) => {
-            void getRecapDownloadUrl(recapId).then((url) => {
-              window.open(url, "_blank", "noopener,noreferrer");
-            });
-          }}
-          onDeleteRecap={(recap) => {
-            if (
-              !window.confirm(
-                `Delete recap "${recap.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingRecapId(recap.id);
-            void deleteGameRecap(game.id, recap.id)
-              .then(async () => {
-                await refetchRecaps();
-              })
-              .finally(() => {
-                setDeletingRecapId(null);
-              });
-          }}
-        />
-        <GmImagesSection
-          images={images}
-          loading={imagesLoading}
-          error={imagesError}
-          deletingImageId={deletingImageId}
-          onRetry={() => void refetchImages()}
-          onCreateImage={() => setImageModalOpen(true)}
-          onDeleteImage={(image) => {
-            if (
-              !window.confirm(
-                `Delete image "${image.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingImageId(image.id);
-            void deleteGameImage(game.id, image.id)
-              .then(async () => {
-                await refetchImages();
-              })
-              .finally(() => {
-                setDeletingImageId(null);
-              });
-          }}
-        />
-
-        <GmInvitesSection
-          onInviteUsers={() => setInviteModalOpen(true)}
-          pendingInvites={pendingInvites}
-        />
-
-        {id && (
-          <GmDiscordSection
-            gameId={id}
-            integration={game.discordIntegration}
-            initialGuildId={discordGuildId}
-            onUpdated={async () => {
-              await mutate();
-            }}
-          />
-        )}
-
-        <GmPremiseSection
-          gameId={game.id}
-          premise={game.premise}
-          onUpdated={async (updated) => {
-            await mutate(updated, { revalidate: false });
-          }}
-        />
-
-        <GmCoverImageSection
-          gameId={game.id}
-          gameName={game.name}
-          imageKey={game.imageKey}
-          onUpdated={async (updated) => {
-            await mutate(updated, { revalidate: false });
-          }}
-        />
-
-        <GmDangerZoneSection gameId={game.id} gameName={game.name} />
+        <GmTableSettingsCard gameId={game.id} />
       </div>
 
-      <InviteUsersModal
-        isOpen={inviteModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        onClose={() => setInviteModalOpen(false)}
-        onSuccess={() => {
-          void mutate();
-          void mutatePendingInvites();
-        }}
-      />
-      <CreateGameLoreEntryModal
-        isOpen={loreEntryModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        mode={loreEntryEditTarget ? "edit" : "create"}
-        entry={loreEntryEditTarget}
-        onClose={() => {
-          setLoreEntryModalOpen(false);
-          setLoreEntryEditTarget(null);
-        }}
-        onSuccess={() => {
-          setLoreEntryEditTarget(null);
-          void mutate();
-          void refetchLoreEntries();
-        }}
-      />
-      <CreateGameRecapModal
-        key={recapEditTarget?.id ?? "create"}
-        isOpen={recapModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        mode={recapEditTarget ? "edit" : "create"}
-        recap={recapEditTarget}
-        onClose={() => {
-          setRecapModalOpen(false);
-          setRecapEditTarget(null);
-        }}
-        onSuccess={() => {
-          setRecapEditTarget(null);
-          void refetchRecaps();
-        }}
-      />
-      <CreateGameImageModal
-        isOpen={imageModalOpen}
-        gameId={game.id}
-        gameName={game.name}
-        onClose={() => setImageModalOpen(false)}
-        onSuccess={() => {
-          void refetchImages();
-        }}
-      />
       <CreateCustomItemModal
         isOpen={customItemModalOpen}
         gameId={game.id}
@@ -623,9 +382,7 @@ export function GameMasterPageClient() {
         isOpen={gmInitiativeRollModalOpen}
         onClose={() => setGmInitiativeRollModalOpen(false)}
         game={game}
-        onSuccess={async () => {
-          await mutate();
-        }}
+        onSuccess={(updated) => applyGameUpdate(updated)}
       />
     </PageSection>
   );

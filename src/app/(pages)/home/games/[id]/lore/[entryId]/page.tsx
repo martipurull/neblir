@@ -2,12 +2,19 @@
 
 import { ReferenceEntryHtml } from "@/app/components/reference/ReferenceEntryHtml";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
+import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
+import { FileKindThumbnail } from "@/app/components/shared/FileKindThumbnail";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
+import { isImageFileName } from "@/app/lib/r2UploadKeys";
+import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
 import { useGame } from "@/hooks/use-game";
+import { useSignedFileUrls } from "@/hooks/use-game-file-urls";
+import { getLoreAttachmentUrl } from "@/lib/api/loreAttachments";
 import { getReferenceEntry } from "@/lib/api/referenceEntries";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -24,6 +31,73 @@ function AccessBadge({ access }: { access: "PLAYER" | "GAME_MASTER" }) {
     >
       {access === "GAME_MASTER" ? "GM only" : "Player"}
     </span>
+  );
+}
+
+function LoreAttachmentList({
+  attachments,
+}: {
+  attachments: ReferenceEntryAttachment[];
+}) {
+  const imageUrls = useSignedFileUrls(
+    attachments
+      .filter((attachment) => isImageFileName(attachment.fileName))
+      .map((attachment) => attachment.id),
+    getLoreAttachmentUrl
+  );
+
+  const openAttachment = (
+    attachmentId: string,
+    disposition: "inline" | "attachment"
+  ) => {
+    void getLoreAttachmentUrl(attachmentId, disposition).then((url) => {
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
+  };
+
+  return (
+    <InfoCard border className="mt-4">
+      <h2 className="text-sm font-semibold text-black">Attachments</h2>
+      <ul className="mt-2 space-y-2">
+        {attachments.map((attachment) => (
+          <li
+            key={attachment.id}
+            className="flex gap-3 rounded-md border border-black/10 bg-paleBlue/40 p-3"
+          >
+            <FileKindThumbnail
+              kind={isImageFileName(attachment.fileName) ? "IMAGE" : "PDF"}
+              title={attachment.fileName}
+              imageUrl={imageUrls[attachment.id]}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-black">
+                {attachment.fileName}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="solidDark"
+                  className="text-xs"
+                  fullWidth={false}
+                  onClick={() => openAttachment(attachment.id, "inline")}
+                >
+                  Open
+                </Button>
+                <Button
+                  type="button"
+                  variant="solidDark"
+                  className="text-xs"
+                  fullWidth={false}
+                  onClick={() => openAttachment(attachment.id, "attachment")}
+                >
+                  Download
+                </Button>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </InfoCard>
   );
 }
 
@@ -63,7 +137,11 @@ export default function GameLoreEntryPage() {
     );
   }
 
-  if (entry.gameId !== gameId || entry.category !== "CAMPAIGN_LORE") {
+  if (
+    !gameId ||
+    entry.gameId !== gameId ||
+    entry.category !== "CAMPAIGN_LORE"
+  ) {
     return (
       <PageSection>
         <ErrorState
@@ -81,10 +159,14 @@ export default function GameLoreEntryPage() {
     <PageSection>
       <div className="mb-4 flex items-center gap-2">
         <Link
-          href={`/home/games/${gameId}/gm`}
+          href={
+            game?.isGameMaster
+              ? gameMasterTableSettingsPath(gameId)
+              : `/home/games/${gameId}/lore`
+          }
           className="text-sm text-black/70 hover:underline"
         >
-          ← Back to game master
+          {game?.isGameMaster ? "← Back to table settings" : "← Back to lore"}
         </Link>
       </div>
       <PageTitle>{entry.title}</PageTitle>
@@ -105,6 +187,9 @@ export default function GameLoreEntryPage() {
           contentHtml={entry.contentHtml}
         />
       </InfoCard>
+      {entry.attachments && entry.attachments.length > 0 ? (
+        <LoreAttachmentList attachments={entry.attachments} />
+      ) : null}
     </PageSection>
   );
 }

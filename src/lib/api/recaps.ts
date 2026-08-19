@@ -152,14 +152,18 @@ export async function deleteGameRecap(
   }
 }
 
-export async function getRecapDownloadUrl(recapId: string): Promise<string> {
-  const response = await fetch(
-    `/api/recap-url?recapId=${encodeURIComponent(recapId)}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+export async function getRecapDownloadUrl(
+  recapId: string,
+  disposition: "inline" | "attachment" = "inline"
+): Promise<string> {
+  const params = new URLSearchParams({
+    recapId,
+    disposition,
+  });
+  const response = await fetch(`/api/recap-url?${params.toString()}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
   if (!response.ok) {
     throw new Error(
       getUserSafeApiError(

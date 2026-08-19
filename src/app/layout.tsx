@@ -5,7 +5,10 @@ import { SerwistProvider } from "./serwist-provider";
 
 export const metadata: Metadata = {
   applicationName: "Neblir",
-  title: "Neblir",
+  title: {
+    default: "Neblir",
+    template: "%s | Neblir",
+  },
   description: "A homebrewed sci-fi TTRPG set in a starless world.",
   manifest: "/manifest.webmanifest",
   icons: {

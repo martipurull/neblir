@@ -1,15 +1,18 @@
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import { InfoCard } from "@/app/components/shared/InfoCard";
+import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import type { GameDetail } from "@/app/lib/types/game";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import { Button } from "@/app/components/shared/Button";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
+import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
@@ -17,6 +20,7 @@ type GmNpcsSectionProps = {
   onSetVisibility: (characterId: string, isPublic: boolean) => Promise<void>;
   onCharacterRemoved: () => void | Promise<void>;
   onCharactersAdded?: () => void | Promise<void>;
+  onInitiativeRolled: (game: GameDetail) => void | Promise<void>;
 };
 
 export function GmNpcsSection({
@@ -24,6 +28,7 @@ export function GmNpcsSection({
   onSetVisibility,
   onCharacterRemoved,
   onCharactersAdded,
+  onInitiativeRolled,
 }: GmNpcsSectionProps) {
   const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
   const [addNpcModalOpen, setAddNpcModalOpen] = useState(false);
@@ -31,6 +36,14 @@ export function GmNpcsSection({
     null
   );
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const {
+    isPending,
+    enqueueRoll,
+    error: rollError,
+  } = useQueuedGmCombatantInitiative({
+    game,
+    onRolled: onInitiativeRolled,
+  });
   const gmReturnTo = `/home/games/${game.id}/gm`;
 
   const npcRows = useMemo(
@@ -55,6 +68,23 @@ export function GmNpcsSection({
     }))
   );
 
+  const handleRollNpc = useCallback(
+    async (gc: (typeof npcRows)[number]) => {
+      const char = gc.character;
+      const name =
+        `${char.name}${char.surname ? ` ${char.surname}` : ""}`.trim();
+      await enqueueRoll({
+        combatantType: "CHARACTER",
+        combatantId: char.id,
+        combatantName: name,
+        initiativeModifier: char.initiativeMod ?? 0,
+        isPrivate: isPrivateGameCharacterLink(gc.isPublic),
+        source: "gmNpcCard",
+      });
+    },
+    [enqueueRoll]
+  );
+
   const renderNpcList = (
     rows: typeof npcRows,
     emptyText: string,
@@ -68,7 +98,8 @@ export function GmNpcsSection({
         {rows.map((gc) => {
           const char = gc.character;
           const name = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
-          const isBusy = updatingCharacterId === char.id;
+          const isUpdating = updatingCharacterId === char.id;
+          const isRolling = isPending("CHARACTER", char.id);
           const targetVisibility = visibility === "Public" ? false : true;
           const toggleLabel =
             visibility === "Public" ? "Make private" : "Make public";
@@ -80,30 +111,16 @@ export function GmNpcsSection({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Link
                   href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${game.id}/gm`)}`}
-                  className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:basis-2/3"
+                  className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:flex-1"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                      {npcImageUrls[char.id] ? (
-                        <SignedRemoteImage
-                          src={npcImageUrls[char.id] as string}
-                          imageKey={char.avatarKey ?? undefined}
-                          alt={`${name} avatar`}
-                          width={44}
-                          height={44}
-                          className="h-11 w-11 object-cover object-top"
-                        />
-                      ) : npcImageUrls[char.id] === undefined ? (
-                        <ImageLoadingSkeleton
-                          variant="avatar"
-                          className="h-full w-full [&_svg]:h-11 [&_svg]:w-11"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                          {name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
+                    <RemoteAvatar
+                      imageUrl={npcImageUrls[char.id]}
+                      imageKey={char.avatarKey}
+                      alt={`${name} avatar`}
+                      size={44}
+                      className="h-11 w-11"
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
                         {name}
@@ -114,7 +131,7 @@ export function GmNpcsSection({
                     </div>
                   </div>
                 </Link>
-                <div className="w-full sm:basis-1/3">
+                <div className="w-full sm:w-auto sm:shrink-0">
                   <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
                     <span
                       className={[
@@ -131,7 +148,7 @@ export function GmNpcsSection({
                       variant="solidDark"
                       className="text-xs max-sm:w-full"
                       fullWidth={false}
-                      disabled={isBusy}
+                      disabled={isUpdating || isRolling}
                       onClick={() => {
                         setUpdateError(null);
                         setUpdatingCharacterId(char.id);
@@ -148,8 +165,20 @@ export function GmNpcsSection({
                           });
                       }}
                     >
-                      {isBusy ? "Updating..." : toggleLabel}
+                      {isUpdating ? "Updating..." : toggleLabel}
                     </Button>
+                    <GmInitiativeRollButton
+                      hasRolled={hasCombatantInitiativeEntry(
+                        game,
+                        "CHARACTER",
+                        char.id
+                      )}
+                      busy={isRolling}
+                      modifier={char.initiativeMod ?? 0}
+                      disabled={isUpdating}
+                      className="text-xs max-sm:w-full"
+                      onClick={() => void handleRollNpc(gc)}
+                    />
                   </div>
                 </div>
               </div>
@@ -215,6 +244,9 @@ export function GmNpcsSection({
       </div>
       {updateError ? (
         <p className="mt-3 text-sm text-neblirDanger-400">{updateError}</p>
+      ) : null}
+      {rollError ? (
+        <p className="mt-3 text-sm text-neblirDanger-400">{rollError}</p>
       ) : null}
       <AddCharactersToGameModal
         isOpen={addNpcModalOpen}

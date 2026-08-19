@@ -1,8 +1,10 @@
 import { Button } from "@/app/components/shared/Button";
+import { FileKindThumbnail } from "@/app/components/shared/FileKindThumbnail";
 import type { GameRecap } from "@/app/lib/types/recap";
 
 type RecapCardProps = {
   recap: GameRecap;
+  onOpen: (recapId: string) => void;
   onDownload: (recapId: string) => void;
   canEdit?: boolean;
   canDelete?: boolean;
@@ -13,6 +15,7 @@ type RecapCardProps = {
 
 export function RecapCard({
   recap,
+  onOpen,
   onDownload,
   canEdit = false,
   canDelete = false,
@@ -21,8 +24,9 @@ export function RecapCard({
   onDelete,
 }: RecapCardProps) {
   return (
-    <li className="rounded-md border border-black/10 bg-paleBlue/40 px-3 py-3">
-      <div className="min-w-0">
+    <li className="flex gap-3 rounded-md border border-black/10 bg-paleBlue/40 p-3">
+      <FileKindThumbnail kind="PDF" title={recap.title} />
+      <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-black">
           {recap.title}
         </p>
@@ -32,41 +36,50 @@ export function RecapCard({
         {recap.summary ? (
           <p className="mt-1 text-xs text-black/80">{recap.summary}</p>
         ) : null}
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="solidDark"
-          fullWidth={false}
-          className="text-xs"
-          onClick={() => onDownload(recap.id)}
-        >
-          Download
-        </Button>
-        {canEdit ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="solidDark"
-            className="text-xs"
             fullWidth={false}
-            disabled={deleting}
-            onClick={() => onEdit?.(recap)}
+            className="text-xs"
+            onClick={() => onOpen(recap.id)}
           >
-            Edit
+            Open
           </Button>
-        ) : null}
-        {canDelete ? (
           <Button
             type="button"
-            variant="danger"
-            className="text-xs"
+            variant="solidDark"
             fullWidth={false}
-            disabled={deleting}
-            onClick={() => onDelete?.(recap)}
+            className="text-xs"
+            onClick={() => onDownload(recap.id)}
           >
-            {deleting ? "Deleting…" : "Delete"}
+            Download
           </Button>
-        ) : null}
+          {canEdit ? (
+            <Button
+              type="button"
+              variant="solidDark"
+              className="text-xs"
+              fullWidth={false}
+              disabled={deleting}
+              onClick={() => onEdit?.(recap)}
+            >
+              Edit
+            </Button>
+          ) : null}
+          {canDelete ? (
+            <Button
+              type="button"
+              variant="danger"
+              className="text-xs"
+              fullWidth={false}
+              disabled={deleting}
+              onClick={() => onDelete?.(recap)}
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          ) : null}
+        </div>
       </div>
     </li>
   );

@@ -52,6 +52,12 @@ describe("r2 helper", () => {
       expect(isDeletableUploadKey("games-cover.png")).toBe(true);
     });
 
+    it("returns true for keys starting with files- and lore-", () => {
+      expect(isDeletableUploadKey("files-citadel-abc.png")).toBe(true);
+      expect(isDeletableUploadKey("files-handout-xyz.pdf")).toBe(true);
+      expect(isDeletableUploadKey("lore-city_map-abc12.pdf")).toBe(true);
+    });
+
     it("returns false for empty or unrelated keys", () => {
       expect(isDeletableUploadKey("")).toBe(false);
       expect(isDeletableUploadKey("random/key.png")).toBe(false);

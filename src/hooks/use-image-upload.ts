@@ -11,7 +11,8 @@ export type ImageUploadKind =
   | "characters"
   | "items"
   | "vehicles"
-  | "maps";
+  | "maps"
+  | "files";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);

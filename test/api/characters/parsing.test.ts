@@ -116,6 +116,7 @@ function makeLevelUpBody(
       initiativeMod: 4,
       speed: 14,
       reactionsPerRound: 1,
+      reactionsRemaining: 1,
       armourMod: 0,
       armourMaxHP: 0,
       armourCurrentHP: 0,

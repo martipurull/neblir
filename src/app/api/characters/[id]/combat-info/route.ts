@@ -70,9 +70,6 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     let updateBody = {
       ...existingCharacter.combatInformation,
-      reactionsRemaining:
-        existingCharacter.combatInformation.reactionsRemaining ??
-        existingCharacter.combatInformation.reactionsPerRound,
     };
 
     if (parsedBody.reactionsRemaining !== undefined) {

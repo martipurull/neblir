@@ -2,7 +2,9 @@
 
 import {
   COMMON_DICE_OPTIONS,
+  QUICK_DICE_SIDES,
   getSidesFromDieOption,
+  isQuickDiceSides,
   rollDie,
 } from "@/app/lib/general-dice";
 import { useCallback, useState } from "react";
@@ -100,7 +102,7 @@ export function useGeneralDiceRollerState() {
   const handleReturnToQuickDice = useCallback(() => {
     setDiceTypeMode("quick");
     setDiceType((current) => {
-      if (current === 6 || current === 10) return current;
+      if (isQuickDiceSides(current)) return current;
       setRollResult(null);
       return 10;
     });
@@ -140,6 +142,7 @@ export function useGeneralDiceRollerState() {
 
   return {
     COMMON_DICE_OPTIONS,
+    QUICK_DICE_SIDES,
     diceCount,
     diceType,
     diceTypeMode,

@@ -35,7 +35,10 @@ export function getReferenceEntries(filters: ReferenceEntryListFilters = {}) {
 }
 
 export function getReferenceEntry(id: string) {
-  return referenceEntryDelegate().findUnique({ where: { id } });
+  return referenceEntryDelegate().findUnique({
+    where: { id },
+    include: { attachments: { orderBy: { createdAt: "asc" } } },
+  });
 }
 
 export function createReferenceEntry(

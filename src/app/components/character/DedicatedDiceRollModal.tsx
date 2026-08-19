@@ -107,6 +107,7 @@ export function DedicatedDiceRollModal({
   const [damageResult, setDamageResult] = useState<number[] | null>(null);
   const {
     COMMON_DICE_OPTIONS,
+    QUICK_DICE_SIDES,
     diceCount: freeDiceCount,
     diceType: freeDiceType,
     diceTypeMode: freeDiceTypeMode,
@@ -522,30 +523,21 @@ export function DedicatedDiceRollModal({
               <span className="text-sm text-white">Sides</span>
               {freeDiceTypeMode === "quick" ? (
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant={
-                      freeDiceType === 10
-                        ? "modalOptionSelected"
-                        : "modalOptionUnselected"
-                    }
-                    fullWidth={false}
-                    onClick={() => setFreeDiceTypeAndClearResult(10)}
-                  >
-                    d10
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={
-                      freeDiceType === 6
-                        ? "modalOptionSelected"
-                        : "modalOptionUnselected"
-                    }
-                    fullWidth={false}
-                    onClick={() => setFreeDiceTypeAndClearResult(6)}
-                  >
-                    d6
-                  </Button>
+                  {QUICK_DICE_SIDES.map((sides) => (
+                    <Button
+                      key={sides}
+                      type="button"
+                      variant={
+                        freeDiceType === sides
+                          ? "modalOptionSelected"
+                          : "modalOptionUnselected"
+                      }
+                      fullWidth={false}
+                      onClick={() => setFreeDiceTypeAndClearResult(sides)}
+                    >
+                      d{sides}
+                    </Button>
+                  ))}
                   <Button
                     type="button"
                     variant="modalOptionUnselected"
@@ -590,7 +582,7 @@ export function DedicatedDiceRollModal({
                     fullWidth={false}
                     onClick={handleReturnToFreeQuickDice}
                   >
-                    Back to d10/d6 quick toggle
+                    Back to d10/d6/d4 quick toggle
                   </Button>
                 </div>
               )}

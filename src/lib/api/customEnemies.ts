@@ -1,3 +1,5 @@
+import { enemyResponseSchema, type EnemyResponse } from "@/app/lib/types/enemy";
+
 type ApiErrorPayload = { message?: string; details?: string };
 export type CustomEnemyTransferFormat = "csv" | "json";
 
@@ -131,4 +133,26 @@ export async function deleteCustomEnemy(
     }
     throw new Error(body?.message ?? `Delete failed (${response.status})`);
   }
+}
+
+export async function getCustomEnemy(
+  gameId: string,
+  customEnemyId: string
+): Promise<EnemyResponse> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/custom-enemies/${encodeURIComponent(customEnemyId)}`,
+    { method: "GET" }
+  );
+  const json: unknown = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const body = json as ApiErrorPayload;
+    throw new Error(
+      body?.message ?? `Failed to fetch enemy (${response.status})`
+    );
+  }
+  const parsed = enemyResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Enemy response did not match expected shape");
+  }
+  return parsed.data;
 }

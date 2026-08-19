@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
 import { useState } from "react";
@@ -49,6 +50,7 @@ export function CharacterHeaderInfo({
   className,
 }: CharacterHeaderInfoProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
+  const resolvedAvatarUrl = resolveRemoteImageUrl(avatarKey, avatarUrl);
 
   return (
     <div className={`flex items-center gap-4 pb-2 ${className ?? ""}`}>
@@ -67,9 +69,9 @@ export function CharacterHeaderInfo({
       ) : null}
 
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-        {avatarUrl ? (
+        {resolvedAvatarUrl ? (
           <a
-            href={avatarUrl}
+            href={resolvedAvatarUrl}
             target="_blank"
             rel="noreferrer"
             className="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
@@ -77,7 +79,7 @@ export function CharacterHeaderInfo({
             title="Open full avatar image"
           >
             <SignedRemoteImage
-              src={avatarUrl}
+              src={resolvedAvatarUrl}
               imageKey={avatarKey ?? undefined}
               alt={`${name} avatar`}
               width={48}
@@ -85,7 +87,7 @@ export function CharacterHeaderInfo({
               className="h-12 w-12 object-cover object-top"
             />
           </a>
-        ) : avatarUrl === undefined ? (
+        ) : resolvedAvatarUrl === undefined ? (
           <ImageLoadingSkeleton
             variant="avatar"
             className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"

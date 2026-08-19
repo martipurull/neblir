@@ -147,7 +147,10 @@ export function useImageUrls(entries: ImageEntry[]): ImageUrlMap {
   return useMemo(() => {
     const result: ImageUrlMap = {};
     for (const entry of entries) {
-      if (!entry.imageKey) continue;
+      if (!entry.imageKey) {
+        result[entry.id] = null;
+        continue;
+      }
       if (resolvedImageKeyById[entry.id] !== entry.imageKey) {
         continue;
       }

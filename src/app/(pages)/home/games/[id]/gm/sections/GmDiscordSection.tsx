@@ -1,6 +1,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
 import type { DiscordIntegration } from "@/app/lib/types/discord";
 import {
   disconnectGameDiscordIntegration,
@@ -153,9 +154,7 @@ export function GmDiscordSection({
                   setChannelId("");
                   setChannels([]);
                   await onUpdated();
-                  router.replace(
-                    `/home/games/${encodeURIComponent(gameId)}/gm`
-                  );
+                  router.replace(gameMasterTableSettingsPath(gameId));
                 })
               }
             >
@@ -206,9 +205,7 @@ export function GmDiscordSection({
               })
                 .then(async () => {
                   setSuccessMessage("Discord channel saved.");
-                  router.replace(
-                    `/home/games/${encodeURIComponent(gameId)}/gm`
-                  );
+                  router.replace(gameMasterTableSettingsPath(gameId));
                   await onUpdated();
                 })
                 .catch((e: unknown) =>

@@ -1,15 +1,15 @@
 "use client";
 
+import { EnemyDetailsView } from "@/app/components/games/EnemyDetailsView";
 import { Button } from "@/app/components/shared/Button";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { enemyTemplateToDetailsModel } from "@/app/lib/enemyDetailsView";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SpawnEnemyInstancesModal } from "@/app/components/games/SpawnEnemyInstancesModal";
 import { addOfficialEnemyToGame, getEnemies } from "@/lib/api/enemies";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useState } from "react";
 
 type BrowseEnemiesModalProps = {
@@ -122,27 +122,13 @@ export function BrowseEnemiesModal({
                     onClick={() => setSelectedEnemyId(enemy.id)}
                     className="w-full"
                   >
-                    <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                      {imageUrls[enemy.id] ? (
-                        <SignedRemoteImage
-                          src={imageUrls[enemy.id] as string}
-                          imageKey={enemy.imageKey ?? undefined}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 object-cover object-top"
-                        />
-                      ) : imageUrls[enemy.id] === undefined ? (
-                        <ImageLoadingSkeleton
-                          variant="avatar"
-                          className="h-full w-full [&_svg]:h-8 [&_svg]:w-8"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-black">
-                          {enemy.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
+                    <RemoteAvatar
+                      imageUrl={imageUrls[enemy.id]}
+                      imageKey={enemy.imageKey}
+                      alt=""
+                      size={32}
+                      className="h-8 w-8"
+                    />
                     <span className="truncate">{enemy.name}</span>
                   </Button>
                 </li>
@@ -151,7 +137,7 @@ export function BrowseEnemiesModal({
           )}
         </div>
 
-        <div className="rounded border border-white/20 p-3">
+        <div className="max-h-[60vh] overflow-y-auto rounded border border-white/20 p-3">
           {!selected ? (
             <p className="text-sm text-white/75">
               Select an enemy to view details.
@@ -159,22 +145,13 @@ export function BrowseEnemiesModal({
           ) : (
             <div className="space-y-3 text-sm text-white">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-                  {imageUrls[selected.id] ? (
-                    <SignedRemoteImage
-                      src={imageUrls[selected.id] as string}
-                      imageKey={selected.imageKey ?? undefined}
-                      alt={`${selected.name} avatar`}
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 object-cover object-top"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-black">
-                      {selected.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <RemoteAvatar
+                  imageUrl={imageUrls[selected.id]}
+                  imageKey={selected.imageKey}
+                  alt={`${selected.name} avatar`}
+                  size={48}
+                  className="h-12 w-12"
+                />
                 <div>
                   <h3 className="text-base font-semibold text-white">
                     {selected.name}
@@ -186,37 +163,9 @@ export function BrowseEnemiesModal({
                   </p>
                 </div>
               </div>
-
-              {selected.description ? (
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
-                    Description
-                  </p>
-                  <StoredRichTextHtml
-                    content={selected.description}
-                    className="text-sm text-white/90"
-                  />
-                </div>
-              ) : null}
-
-              {selected.notes ? (
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/65">
-                    Notes
-                  </p>
-                  <StoredRichTextHtml
-                    content={selected.notes}
-                    className="text-sm text-white/90"
-                  />
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-2 gap-2 text-xs text-white/80">
-                <p>Reactions: {selected.numberOfReactions}</p>
-                <p>Actions: {selected.actions.length}</p>
-                <p>Additional: {selected.additionalActions.length}</p>
-                <p>Immunities: {selected.immunities.length}</p>
-              </div>
+              <EnemyDetailsView
+                details={enemyTemplateToDetailsModel(selected)}
+              />
             </div>
           )}
         </div>

@@ -26,8 +26,13 @@ export default function GameRecapsPage() {
   );
   const isGameMaster = game?.isGameMaster === true;
 
+  const handleOpen = async (recapId: string) => {
+    const url = await getRecapDownloadUrl(recapId, "inline");
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const handleDownload = async (recapId: string) => {
-    const url = await getRecapDownloadUrl(recapId);
+    const url = await getRecapDownloadUrl(recapId, "attachment");
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -78,6 +83,7 @@ export default function GameRecapsPage() {
               <RecapCard
                 key={recap.id}
                 recap={recap}
+                onOpen={(recapId) => void handleOpen(recapId)}
                 onDownload={(recapId) => void handleDownload(recapId)}
                 canEdit={isGameMaster}
                 canDelete={isGameMaster}

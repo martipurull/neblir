@@ -4,7 +4,21 @@ import {
   itemGeneralSkillSchema,
 } from "@/app/lib/itemModifierEnums";
 
-const currencyNameSchema = z.enum(["CONF", "NORD", "NAS", "HUMF", "MRARK"]);
+export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
+export type CurrencyName = (typeof CURRENCY_NAMES)[number];
+
+const currencyNameSchema = z.enum(CURRENCY_NAMES);
+
+export function currencyImageKey(currencyName: string): string {
+  return `currency-${currencyName.toLowerCase()}.png`;
+}
+
+export function getMissingWalletCurrencies(
+  wallet: ReadonlyArray<{ currencyName: string }> | null | undefined
+): CurrencyName[] {
+  const held = new Set((wallet ?? []).map((entry) => entry.currencyName));
+  return CURRENCY_NAMES.filter((name) => !held.has(name));
+}
 
 const currencySchema = z.object({
   currencyName: currencyNameSchema,

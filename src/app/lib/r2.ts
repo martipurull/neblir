@@ -34,6 +34,8 @@ const ALLOWED_UPLOAD_PREFIXES = [
   "vehicles-",
   "maps-",
   "recaps-",
+  "files-",
+  "lore-",
 ] as const;
 
 export function isDeletableUploadKey(key: string): boolean {

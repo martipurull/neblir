@@ -198,7 +198,11 @@ describe("shapeGameForResponse visibility filtering", () => {
               level: 3,
               avatarKey: null,
             },
-            combatInformation: { initiativeMod: 2, reactionsPerRound: 3 },
+            combatInformation: {
+              initiativeMod: 2,
+              reactionsPerRound: 3,
+              reactionsRemaining: 1,
+            },
             health: {
               currentPhysicalHealth: 12,
               maxPhysicalHealth: 20,
@@ -215,7 +219,7 @@ describe("shapeGameForResponse visibility filtering", () => {
       currentPhysicalHealth: 12,
       maxPhysicalHealth: 20,
       reactionsPerRound: 3,
-      reactionsRemaining: 3,
+      reactionsRemaining: 1,
       healthStatus: "ALIVE",
     });
 

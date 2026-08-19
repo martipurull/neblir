@@ -1,14 +1,11 @@
 "use client";
 
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import type { ItemWeaponDamageType } from "@prisma/client";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
+import { weaponDamageTypeLabel } from "@/app/lib/weaponDamageTypeLabel";
+import type { ItemWeaponDamageType } from "@prisma/client";
 
 const OPTIONS = weaponDamageTypeSchema.options;
-
-function labelForDamageType(value: string): string {
-  return value.replace(/_/g, " ");
-}
 
 export type ModalDamageTypeCheckboxGridProps = {
   /** Prefix for stable checkbox ids (e.g. `enemy-immune`). */
@@ -45,7 +42,7 @@ export function ModalDamageTypeCheckboxGrid({
             checked={selected.includes(value)}
             onChange={() => onToggle(value)}
             disabled={disabled}
-            label={labelForDamageType(value)}
+            label={weaponDamageTypeLabel(value)}
           />
         ))}
       </div>

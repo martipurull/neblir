@@ -3,6 +3,7 @@ import type { Race, Religion } from "@prisma/client";
 
 export { RELIGIONS } from "@/app/lib/religion";
 export { RACES } from "@/app/lib/race";
+export { CURRENCY_NAMES } from "@/app/lib/types/item";
 
 /** Default values for character creation form (matches API schema). */
 export function getDefaultCharacterCreationFormValues(): CharacterCreationRequest {
@@ -75,8 +76,6 @@ export function getDefaultCharacterCreationFormValues(): CharacterCreationReques
     gameLinks: [],
   };
 }
-
-export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
 
 /** Race bonus: which attributes get +1 (starting at 2). */
 export const RACE_ATTRIBUTE_BONUSES: Record<

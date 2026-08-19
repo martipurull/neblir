@@ -239,6 +239,58 @@ describe("/api/upload-image POST", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when type is lore", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["%PDF-1.4"], "map.pdf", {
+      type: "application/pdf",
+    });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "lore" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/lore-attachment-upload-url/i);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when type is files and the file is a PDF", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["%PDF-1.4"], "handout.pdf", {
+      type: "application/pdf",
+    });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "files" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.message).toMatch(/game-file-upload-url/i);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 with fileKey prefixed files- when type is files and file is an image", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "citadel.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "files" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^files-/);
+    expect(data.fileKey).toMatch(/\.png$/);
+  });
+
   it("returns 403 when type is items and user is not super admin", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
@@ -482,5 +534,27 @@ describe("/api/upload-image DELETE", () => {
 
     const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
     expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 204 and calls DeleteObject for files- and lore- keys", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const filesKey = "files-citadel-abc123.png";
+    const filesResponse = await invokeRoute(
+      DELETE,
+      makeDeleteRequest({ fileKey: filesKey })
+    );
+    expect(filesResponse.status).toBe(204);
+
+    const loreKey = "lore-city_map-abc123.pdf";
+    const loreResponse = await invokeRoute(
+      DELETE,
+      makeDeleteRequest({ fileKey: loreKey })
+    );
+    expect(loreResponse.status).toBe(204);
   });
 });

@@ -362,8 +362,7 @@ export function parseCharacterBodyToCompute(
       ...combatInformationSchema.parse(existingCharacter.combatInformation),
       reactionsPerRound: reactionsPerRound,
       reactionsRemaining: Math.min(
-        existingCharacter.combatInformation.reactionsRemaining ??
-          existingCharacter.combatInformation.reactionsPerRound,
+        existingCharacter.combatInformation.reactionsRemaining,
         reactionsPerRound
       ),
     },
