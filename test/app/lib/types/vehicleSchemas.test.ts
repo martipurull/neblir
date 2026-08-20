@@ -18,6 +18,7 @@ describe("vehicleSchema", () => {
       travelSpeedKmh: 140,
       combatSpeedMetres: 20,
       manoeuvrability: 3,
+      acceleration: 1,
       maxPassengers: 1,
       locomotionModes: ["LAND"],
       vehicleSizeCategory: "LIGHT",
@@ -35,6 +36,7 @@ describe("vehicleSchema", () => {
       travelSpeedKmh: 1,
       combatSpeedMetres: 1,
       manoeuvrability: 0,
+      acceleration: 1,
       maxPassengers: 1,
       locomotionModes: [],
       vehicleSizeCategory: "LIGHT",
@@ -52,6 +54,7 @@ describe("vehicleSchema", () => {
       travelSpeedKmh: 180,
       combatSpeedMetres: 24,
       manoeuvrability: 4,
+      acceleration: 1,
       maxPassengers: 2,
       locomotionModes: ["LAND", "LAND"],
       vehicleSizeCategory: "STANDARD",
@@ -69,6 +72,7 @@ describe("customVehicleCreateSchema", () => {
       travelSpeedKmh: 60,
       combatSpeedMetres: 10,
       manoeuvrability: 2,
+      acceleration: 1,
       maxPassengers: 4,
       locomotionModes: ["SNOW"],
       vehicleSizeCategory: "STANDARD",
@@ -113,6 +117,34 @@ describe("uniqueVehicleCreateSchema", () => {
       sourceType: "GLOBAL_VEHICLE",
       vehicleId: "veh-1",
       locomotionModesOverride: ["AIR", "AIR"],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts STANDALONE without vehicleId and with full stat overrides", () => {
+    const result = uniqueVehicleCreateSchema.safeParse({
+      gameId: "game-1",
+      sourceType: "STANDALONE",
+      nameOverride: "Custom Flyer",
+      confCostOverride: 5000,
+      descriptionOverride: "One-off airframe.",
+      maxHpOverride: 18,
+      travelSpeedKmhOverride: 200,
+      combatSpeedMetresOverride: 30,
+      manoeuvrabilityOverride: 4,
+      accelerationOverride: 2,
+      maxPassengersOverride: 2,
+      locomotionModesOverride: ["AIR"],
+      vehicleSizeCategoryOverride: "LIGHT",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects STANDALONE when required stat overrides are missing", () => {
+    const result = uniqueVehicleCreateSchema.safeParse({
+      gameId: "game-1",
+      sourceType: "STANDALONE",
+      nameOverride: "Incomplete",
     });
     expect(result.success).toBe(false);
   });

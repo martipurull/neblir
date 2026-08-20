@@ -16,6 +16,14 @@ import {
   type VehicleLocomotion,
   type VehicleSizeCategory,
 } from "@/app/lib/types/vehicle";
+import {
+  VEHICLE_ACCELERATION_LABEL,
+  VEHICLE_COMBAT_SPEED_HELP,
+  VEHICLE_COMBAT_SPEED_LABEL,
+  VEHICLE_MANOEUVRABILITY_LABEL,
+  VEHICLE_TRAVEL_SPEED_HELP,
+  VEHICLE_TRAVEL_SPEED_LABEL,
+} from "@/app/lib/constants/vehicleFields";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import {
   getGameCustomVehicleRecord,
@@ -74,6 +82,7 @@ function customVehicleToForm(vehicle: CustomVehicleResponse) {
     travelSpeedKmh: String(vehicle.travelSpeedKmh),
     combatSpeedMetres: String(vehicle.combatSpeedMetres),
     manoeuvrability: String(vehicle.manoeuvrability),
+    acceleration: String(vehicle.acceleration),
     weight: vehicle.weight != null ? String(vehicle.weight) : "",
     heightMetres:
       vehicle.heightMetres != null ? String(vehicle.heightMetres) : "",
@@ -84,6 +93,7 @@ function customVehicleToForm(vehicle: CustomVehicleResponse) {
     maxPassengers: String(vehicle.maxPassengers),
     vehicleSizeCategory: vehicle.vehicleSizeCategory,
     locomotionModes: vehicle.locomotionModes,
+    membersCanModify: vehicle.membersCanModify === true,
   };
 }
 
@@ -107,6 +117,7 @@ export function CreateCustomVehicleModal({
   const [travelSpeedKmh, setTravelSpeedKmh] = useState("1");
   const [combatSpeedMetres, setCombatSpeedMetres] = useState("1");
   const [manoeuvrability, setManoeuvrability] = useState("0");
+  const [acceleration, setAcceleration] = useState("1");
   const [weight, setWeight] = useState("");
   const [heightMetres, setHeightMetres] = useState("");
   const [maxCargoWeightKg, setMaxCargoWeightKg] = useState("");
@@ -117,12 +128,24 @@ export function CreateCustomVehicleModal({
   const [locomotionModes, setLocomotionModes] = useState<VehicleLocomotion[]>([
     "LAND",
   ]);
+  const [membersCanModify, setMembersCanModify] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [richTextSyncKey, setRichTextSyncKey] = useState(0);
   const imageUpload = useImageUpload("custom_vehicles");
+  const {
+    imageKey,
+    setImageKey,
+    setPendingImageKey,
+    handleFile,
+    handleDrop,
+    handleDragOver,
+    uploading,
+    uploadError,
+    reset: resetImageUpload,
+  } = imageUpload;
 
   const resetForm = useCallback(() => {
     setName("");
@@ -136,6 +159,7 @@ export function CreateCustomVehicleModal({
     setTravelSpeedKmh("1");
     setCombatSpeedMetres("1");
     setManoeuvrability("0");
+    setAcceleration("1");
     setWeight("");
     setHeightMetres("");
     setMaxCargoWeightKg("");
@@ -143,11 +167,12 @@ export function CreateCustomVehicleModal({
     setMaxPassengers("1");
     setVehicleSizeCategory("LIGHT");
     setLocomotionModes(["LAND"]);
-    imageUpload.reset();
+    setMembersCanModify(false);
+    resetImageUpload();
     setError(null);
     setDeleteError(null);
     setRichTextSyncKey((key) => key + 1);
-  }, [imageUpload]);
+  }, [resetImageUpload]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -177,6 +202,7 @@ export function CreateCustomVehicleModal({
         setTravelSpeedKmh(next.travelSpeedKmh);
         setCombatSpeedMetres(next.combatSpeedMetres);
         setManoeuvrability(next.manoeuvrability);
+        setAcceleration(next.acceleration);
         setWeight(next.weight);
         setHeightMetres(next.heightMetres);
         setMaxCargoWeightKg(next.maxCargoWeightKg);
@@ -184,8 +210,9 @@ export function CreateCustomVehicleModal({
         setMaxPassengers(next.maxPassengers);
         setVehicleSizeCategory(next.vehicleSizeCategory);
         setLocomotionModes(next.locomotionModes);
-        imageUpload.setImageKey(next.imageKey);
-        imageUpload.setPendingImageKey(next.imageKey);
+        setMembersCanModify(next.membersCanModify);
+        setImageKey(next.imageKey);
+        setPendingImageKey(next.imageKey);
         setRichTextSyncKey((key) => key + 1);
       } catch (e) {
         if (!cancelled) {
@@ -198,7 +225,14 @@ export function CreateCustomVehicleModal({
     return () => {
       cancelled = true;
     };
-  }, [editCustomVehicleId, gameId, imageUpload, isOpen, resetForm]);
+  }, [
+    editCustomVehicleId,
+    gameId,
+    isOpen,
+    resetForm,
+    setImageKey,
+    setPendingImageKey,
+  ]);
 
   const toggleLocomotion = (mode: VehicleLocomotion, checked: boolean) => {
     setLocomotionModes((current) => {
@@ -213,7 +247,7 @@ export function CreateCustomVehicleModal({
     name: name.trim(),
     brand: brand.trim() || undefined,
     year: optionalNum(year),
-    imageKey: imageUpload.imageKey || undefined,
+    imageKey: imageKey || undefined,
     confCost: optionalNum(confCost),
     costInfo: costInfo.trim() || undefined,
     description: description.trim() || undefined,
@@ -222,6 +256,7 @@ export function CreateCustomVehicleModal({
     travelSpeedKmh: requiredInt(travelSpeedKmh),
     combatSpeedMetres: requiredInt(combatSpeedMetres),
     manoeuvrability: requiredInt(manoeuvrability),
+    acceleration: requiredInt(acceleration),
     weight: optionalNum(weight),
     heightMetres: optionalNum(heightMetres),
     maxCargoWeightKg: optionalNum(maxCargoWeightKg),
@@ -229,6 +264,7 @@ export function CreateCustomVehicleModal({
     maxPassengers: requiredInt(maxPassengers),
     locomotionModes,
     vehicleSizeCategory,
+    membersCanModify,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -455,15 +491,25 @@ export function CreateCustomVehicleModal({
           />
           <ModalNumberField
             id="custom-vehicle-manoeuvrability"
-            label="Manoeuvrability"
+            label={VEHICLE_MANOEUVRABILITY_LABEL}
             value={manoeuvrability}
             onChange={setManoeuvrability}
             disabled={submitting || loadingEdit}
             placeholder="0"
           />
           <ModalNumberField
+            id="custom-vehicle-acceleration"
+            label={VEHICLE_ACCELERATION_LABEL}
+            value={acceleration}
+            onChange={setAcceleration}
+            disabled={submitting || loadingEdit}
+            min={1}
+            placeholder="1"
+          />
+          <ModalNumberField
             id="custom-vehicle-travel-speed"
-            label="Travel speed (km/h)"
+            label={VEHICLE_TRAVEL_SPEED_LABEL}
+            hint={VEHICLE_TRAVEL_SPEED_HELP}
             value={travelSpeedKmh}
             onChange={setTravelSpeedKmh}
             disabled={submitting || loadingEdit}
@@ -472,7 +518,8 @@ export function CreateCustomVehicleModal({
           />
           <ModalNumberField
             id="custom-vehicle-combat-speed"
-            label="Combat speed (metres)"
+            label={VEHICLE_COMBAT_SPEED_LABEL}
+            hint={VEHICLE_COMBAT_SPEED_HELP}
             value={combatSpeedMetres}
             onChange={setCombatSpeedMetres}
             disabled={submitting || loadingEdit}
@@ -568,18 +615,25 @@ export function CreateCustomVehicleModal({
               ))}
             </div>
           </div>
+          <Checkbox
+            checked={membersCanModify}
+            onChange={setMembersCanModify}
+            disabled={submitting || loadingEdit}
+            tone="inverse"
+            label="Allow game members to create unique vehicles from this template"
+          />
         </div>
       </section>
 
       <ImageUploadDropzone
         id="custom-vehicle-image"
         label="Image"
-        imageKey={imageUpload.imageKey}
-        onFileChange={(file) => void imageUpload.handleFile(file)}
-        onDrop={imageUpload.handleDrop}
-        onDragOver={imageUpload.handleDragOver}
-        uploading={imageUpload.uploading}
-        error={imageUpload.uploadError}
+        imageKey={imageKey}
+        onFileChange={(file) => void handleFile(file)}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        uploading={uploading}
+        error={uploadError}
         disabled={submitting || loadingEdit}
         previewLayout="itemThumbnail"
         previewImageAlt={name.trim() ? `${name.trim()} image` : "Vehicle image"}

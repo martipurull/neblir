@@ -26,6 +26,14 @@ import {
   type VehicleLocomotion,
   type VehicleSizeCategory,
 } from "@/app/lib/types/vehicle";
+import {
+  VEHICLE_ACCELERATION_LABEL,
+  VEHICLE_COMBAT_SPEED_HELP,
+  VEHICLE_COMBAT_SPEED_LABEL,
+  VEHICLE_MANOEUVRABILITY_LABEL,
+  VEHICLE_TRAVEL_SPEED_HELP,
+  VEHICLE_TRAVEL_SPEED_LABEL,
+} from "@/app/lib/constants/vehicleFields";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
@@ -48,6 +56,7 @@ type VehicleFormValues = {
   travelSpeedKmh: string;
   combatSpeedMetres: string;
   manoeuvrability: string;
+  acceleration: string;
   weight: string;
   heightMetres: string;
   maxCargoWeightKg: string;
@@ -116,6 +125,7 @@ function vehicleToFormValues(vehicle: VehicleRow): VehicleFormValues {
     travelSpeedKmh: String(vehicle.travelSpeedKmh),
     combatSpeedMetres: String(vehicle.combatSpeedMetres),
     manoeuvrability: String(vehicle.manoeuvrability),
+    acceleration: String(vehicle.acceleration),
     weight: vehicle.weight != null ? String(vehicle.weight) : "",
     heightMetres:
       vehicle.heightMetres != null ? String(vehicle.heightMetres) : "",
@@ -170,6 +180,7 @@ export function SuperAdminVehicleForm({
       travelSpeedKmh: "1",
       combatSpeedMetres: "1",
       manoeuvrability: "0",
+      acceleration: "1",
       weight: "",
       heightMetres: "",
       maxCargoWeightKg: "",
@@ -228,6 +239,7 @@ export function SuperAdminVehicleForm({
       travelSpeedKmh: requiredInt(values.travelSpeedKmh),
       combatSpeedMetres: requiredInt(values.combatSpeedMetres),
       manoeuvrability: requiredInt(values.manoeuvrability),
+      acceleration: requiredInt(values.acceleration),
       weight: optionalFloat(values.weight),
       heightMetres: optionalFloat(values.heightMetres),
       maxCargoWeightKg: optionalFloat(values.maxCargoWeightKg),
@@ -455,25 +467,42 @@ export function SuperAdminVehicleForm({
             />
             <SuperAdminLabeledField
               id="vehicle-manoeuvrability"
-              label="Manoeuvrability"
+              label={VEHICLE_MANOEUVRABILITY_LABEL}
               register={form.register}
               name="manoeuvrability"
               type="number"
             />
             <SuperAdminLabeledField
-              id="vehicle-travel-speed"
-              label="Travel speed (km/h)"
+              id="vehicle-acceleration"
+              label={VEHICLE_ACCELERATION_LABEL}
               register={form.register}
-              name="travelSpeedKmh"
+              name="acceleration"
               type="number"
             />
-            <SuperAdminLabeledField
-              id="vehicle-combat-speed"
-              label="Combat speed (metres)"
-              register={form.register}
-              name="combatSpeedMetres"
-              type="number"
-            />
+            <div>
+              <SuperAdminLabeledField
+                id="vehicle-travel-speed"
+                label={VEHICLE_TRAVEL_SPEED_LABEL}
+                register={form.register}
+                name="travelSpeedKmh"
+                type="number"
+              />
+              <p className="mt-1 text-xs text-black/65">
+                {VEHICLE_TRAVEL_SPEED_HELP}
+              </p>
+            </div>
+            <div>
+              <SuperAdminLabeledField
+                id="vehicle-combat-speed"
+                label={VEHICLE_COMBAT_SPEED_LABEL}
+                register={form.register}
+                name="combatSpeedMetres"
+                type="number"
+              />
+              <p className="mt-1 text-xs text-black/65">
+                {VEHICLE_COMBAT_SPEED_HELP}
+              </p>
+            </div>
             <SuperAdminLabeledField
               id="vehicle-max-passengers"
               label="Max passengers (incl. driver)"

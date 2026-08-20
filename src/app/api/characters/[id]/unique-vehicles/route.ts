@@ -78,7 +78,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
 
     let baseMaxHp: number | null = null;
 
-    if (parsedBody.sourceType === "CUSTOM_VEHICLE") {
+    if (parsedBody.sourceType === "STANDALONE") {
+      baseMaxHp = parsedBody.maxHpOverride ?? null;
+    } else if (parsedBody.sourceType === "CUSTOM_VEHICLE") {
       const template = await getCustomVehicle(parsedBody.vehicleId);
       if (!template) {
         return errorResponse("Template custom vehicle not found", 404);
@@ -87,6 +89,12 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         return errorResponse(
           "Template custom vehicle must belong to the supplied game.",
           400
+        );
+      }
+      if (!isGameMaster && template.membersCanModify !== true) {
+        return errorResponse(
+          "The game master has not allowed members to create unique vehicles from this custom template.",
+          403
         );
       }
       baseMaxHp = template.maxHp ?? null;

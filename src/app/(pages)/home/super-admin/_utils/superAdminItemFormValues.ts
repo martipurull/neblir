@@ -28,6 +28,7 @@ export type SuperAdminItemFormValues = {
   damageDiceType: number;
   damageNumberOfDice: number;
   equippable: boolean;
+  vehicleMountable: boolean;
   equipSlotTypes: EquipSlotType[];
   equipSlotCost: string;
   maxUses?: number;
@@ -102,6 +103,7 @@ export function catalogueItemToFormValues(
     maxRange: numOrUndefined(isWeapon ? item.maxRange : undefined),
     ...damageFields,
     equippable: item.equippable,
+    vehicleMountable: item.vehicleMountable ?? false,
     equipSlotTypes: item.equipSlotTypes ?? [],
     equipSlotCost:
       item.equipSlotCost === null || item.equipSlotCost === undefined

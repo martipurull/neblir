@@ -36,7 +36,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 type InventoryEntry = ItemCharacter;
 
 const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
-const STORED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_8rem] gap-3";
+const STORED_GRID =
+  "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_minmax(5.5rem,11rem)] gap-3";
 
 function InventoryList({
   title,
@@ -48,6 +49,7 @@ function InventoryList({
   unequippingId,
   equippingId,
   readOnly = false,
+  vehicleNamesById,
 }: {
   title: string;
   entries: InventoryEntry[];
@@ -58,6 +60,7 @@ function InventoryList({
   unequippingId: string | null;
   equippingId: string | null;
   readOnly?: boolean;
+  vehicleNamesById?: Readonly<Record<string, string>>;
 }) {
   if (entries.length === 0) return null;
   const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
@@ -96,7 +99,9 @@ function InventoryList({
             !hasEquippedSlots;
           const location =
             variant === "stored"
-              ? formatItemLocationLabel(entry.itemLocation)
+              ? formatItemLocationLabel(entry.itemLocation, {
+                  vehicleNamesById,
+                })
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
@@ -247,6 +252,16 @@ function InventorySectionContent({
     () => character.inventory ?? [],
     [character.inventory]
   );
+  const vehicleNamesById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const vehicle of character.vehicles ?? []) {
+      map[vehicle.id] =
+        vehicle.customName?.trim() ??
+        vehicle.vehicle?.name?.trim() ??
+        "Vehicle";
+    }
+    return map;
+  }, [character.vehicles]);
   const characterGames = useMemo(
     () => Array.from(new Set((character.games ?? []).map((g) => g.gameId))),
     [character.games]
@@ -407,6 +422,7 @@ function InventorySectionContent({
             title="On hand"
             variant="carried"
             entries={carriedInventory}
+            vehicleNamesById={vehicleNamesById}
             onSelectDetail={setDetailEntry}
             onSelectEquip={
               readOnly
@@ -426,6 +442,7 @@ function InventorySectionContent({
             title="Stored"
             variant="stored"
             entries={storedInventory}
+            vehicleNamesById={vehicleNamesById}
             onSelectDetail={setDetailEntry}
             onSelectEquip={null}
             onUnequip={(entry) => {
@@ -508,6 +525,7 @@ function InventorySectionContent({
                 }
               : undefined
           }
+          vehicleNamesById={vehicleNamesById}
         />
       )}
 

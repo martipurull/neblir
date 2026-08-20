@@ -191,22 +191,3 @@ export async function retrieveItemFromVehicleCargo(args: {
     data: { itemLocation: ITEM_LOCATION_CARRIED },
   });
 }
-
-export async function returnAllVehicleCargoToCarried(
-  vehicleCharacterId: string,
-  ownerCharacterId: string
-): Promise<number> {
-  const location = vehicleCargoItemLocation(vehicleCharacterId);
-  const result = await prisma.itemCharacter.updateMany({
-    where: {
-      characterId: ownerCharacterId,
-      itemLocation: location,
-    },
-    data: {
-      itemLocation: ITEM_LOCATION_CARRIED,
-      isEquipped: false,
-      equipSlots: [],
-    },
-  });
-  return result.count;
-}

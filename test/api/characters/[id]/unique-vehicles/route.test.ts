@@ -223,4 +223,97 @@ describe("POST /api/characters/[id]/unique-vehicles", () => {
       { currentHp: 33 }
     );
   });
+
+  it("returns 201 for standalone unique vehicle without template lookup", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    userIsInGameMock.mockResolvedValue(true);
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-vehicles/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          sourceType: "STANDALONE",
+          gameId: "g-1",
+          nameOverride: "Custom Flyer",
+          confCostOverride: 5000,
+          descriptionOverride: "One-off airframe.",
+          maxHpOverride: 18,
+          travelSpeedKmhOverride: 200,
+          combatSpeedMetresOverride: 30,
+          manoeuvrabilityOverride: 4,
+          accelerationOverride: 2,
+          maxPassengersOverride: 2,
+          locomotionModesOverride: ["AIR"],
+          vehicleSizeCategoryOverride: "LIGHT",
+        },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(getVehicleMock).not.toHaveBeenCalled();
+    expect(getCustomVehicleMock).not.toHaveBeenCalled();
+    expect(createUniqueVehicleMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceType: "STANDALONE",
+        nameOverride: "Custom Flyer",
+        accelerationOverride: 2,
+      })
+    );
+    expect(createVehicleCharacterMock).toHaveBeenCalledWith(
+      "char-1",
+      "UNIQUE_VEHICLE",
+      "uv-1",
+      { currentHp: 18 }
+    );
+  });
+
+  it("returns 403 when custom template disallows member unique creation", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    getCustomVehicleMock.mockResolvedValue({
+      id: "cv-1",
+      gameId: "g-1",
+      maxHp: 12,
+      membersCanModify: false,
+    });
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-vehicles/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { sourceType: "CUSTOM_VEHICLE", vehicleId: "cv-1", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(createUniqueVehicleMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 for custom template when membersCanModify is true", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    userIsInGameMock.mockResolvedValue(true);
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    getCustomVehicleMock.mockResolvedValue({
+      id: "cv-1",
+      gameId: "g-1",
+      maxHp: 12,
+      membersCanModify: true,
+    });
+    const { POST } =
+      await import("@/app/api/characters/[id]/unique-vehicles/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { sourceType: "CUSTOM_VEHICLE", vehicleId: "cv-1", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createUniqueVehicleMock).toHaveBeenCalled();
+  });
 });

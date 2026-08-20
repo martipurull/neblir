@@ -2,15 +2,21 @@
 
 1. `maxPassengers` includes the driver.
 2. Multiple identical vehicles are allowed as distinct `VehicleCharacter` rows.
-3. `UniqueVehicle` represents a 1:1 customized template-derived vehicle.
+3. `UniqueVehicle` represents a 1:1 customized vehicle: either template-derived (`GLOBAL_VEHICLE` / `CUSTOM_VEHICLE`) or **standalone** (`STANDALONE`, no template — full catalogue stats stored on the unique row).
 4. Riding changes only the displayed speed for MVP; it does not overwrite character combat stats.
 5. `isBeyondRepair` is a manual boolean; operational/broken-down status is derived from HP.
 6. `VehicleLocomotion[]` must contain at least one entry.
 7. Character-page create/grant flows must send explicit `activeGameId` / `gameId` to the server.
 8. Mounting clears `parkedAt`.
 9. Dismounting requires a non-empty `parkedAt`, which is persisted.
-10. `CustomVehicle` is GM-only.
+10. `CustomVehicle` is GM-only to create/edit/delete the shared template.
 11. `UniqueVehicle` can be created by GMs and players, like unique items.
+12. **`acceleration`** is required on all vehicle types (`Vehicle`, `CustomVehicle`, and standalone unique overrides). Existing rows are backfilled to **1**.
+13. **Travel speed** is the top speed a vehicle can sustain over long distances (km/h). **Combat speed** is metres moved per combat turn.
+14. Character **Vehicles** list rows show a thumbnail (signed image when present, vehicle placeholder skeleton otherwise).
+15. Only items with **`vehicleMountable: true`** (or a unique `vehicleMountableOverride`) can be mounted on a vehicle. Default is **false**; backfill clears mounts that violate this.
+16. Mounted items do **not** auto-modify vehicle stats. Players apply effects by editing a **unique** vehicle’s overrides.
+17. Players edit vehicle stats **only** via `UniqueVehicle` (owned by them, or GM). Official/custom catalogue rows are not edited in place — create a unique vehicle from the template. Custom templates may set **`membersCanModify`** so non-GMs can create unique vehicles from that template; the shared custom template itself remains GM-only to edit.
 
 ## Implementation plan
 
@@ -176,8 +182,9 @@
 
 - Add a `VehicleMountedItem` join model instead of reusing character equip slots.
 - Keep mounted items in character inventory for the initial implementation; mounting links the item to the vehicle rather than transferring ownership.
+- Mounted items use `itemLocation` `vehicle-mounted:<vehicleCharacterId>` so they appear under Stored (not On hand) and do not count toward carried weight. Detach / give / remove clears the mount and returns the item to carried.
 - Add attach/detach APIs and vehicle-detail UI once core vehicle ownership is stable.
-- Mounted items are detached automatically when a vehicle is transferred.
+- Mounted items stay linked when a vehicle is transferred; their inventory ownership moves to the recipient with the vehicle. Giving or deleting a mounted item from inventory clears its mount link.
 - Equipped body-slot items are unequipped when mounted on a vehicle.
 
 ### Phase 9 — Cargo and passengers
@@ -186,7 +193,7 @@
 - Cargo uses inventory `itemLocation` values of the form `vehicle:<vehicleCharacterId>`.
 - Stow/retrieve cargo validates optional `maxCargoWeightKg` and unequips items when stowing.
 - Passenger handling stores `passengerCharacterIds` on `VehicleCharacter`, validates capacity with `maxPassengers` including the driver, and uses shared-game roster selection.
-- Owner dismount clears passengers; vehicle transfer returns cargo to carried inventory and clears passengers/mounts.
+- Owner dismount clears passengers; vehicle transfer moves cargo and mounted items to the recipient with the vehicle, and clears passengers.
 - Guest riders (passengers) hydrate into character detail for header riding display without appearing as owned vehicles.
 
 ## MVP acceptance criteria

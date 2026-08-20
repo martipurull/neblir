@@ -84,9 +84,6 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       if (!vehicle) {
         return errorResponse("Unique vehicle not found", 404);
       }
-      if (vehicle.ownerUserId !== userId) {
-        return errorResponse("Unique vehicle does not belong to you", 403);
-      }
       if (vehicle.gameId !== gameId) {
         return errorResponse(
           "Unique vehicle does not belong to this game",

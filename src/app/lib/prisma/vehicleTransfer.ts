@@ -1,11 +1,11 @@
+import { vehicleCargoItemLocation } from "@/app/lib/constants/inventory";
+import type { VehicleSourceType } from "@/app/lib/types/vehicle";
 import { prisma } from "./client";
 import {
   characterIsInGame,
   charactersShareAnyGame,
   viewerCanGiveItemToRecipient,
 } from "./gameCharacter";
-import type { VehicleSourceType } from "@/app/lib/types/vehicle";
-import { returnAllVehicleCargoToCarried } from "./vehicleCargo";
 
 export class VehicleTransferConflictError extends Error {
   constructor(message: string) {
@@ -162,8 +162,7 @@ export async function performVehicleTransfer(args: {
   }
 
   const passengerIds = row.passengerCharacterIds ?? [];
-
-  await returnAllVehicleCargoToCarried(row.id, args.fromCharacterId);
+  const cargoLocation = vehicleCargoItemLocation(row.id);
 
   await prisma.$transaction(async (tx) => {
     for (const passengerId of passengerIds) {
@@ -179,9 +178,36 @@ export async function performVehicleTransfer(args: {
       }
     }
 
-    // Mount links stay with the giver's inventory items; clear them on transfer.
-    await tx.vehicleMountedItem.deleteMany({
+    // Mounted items stay linked to the vehicle; ownership moves with the giver.
+    const mounts = await tx.vehicleMountedItem.findMany({
       where: { vehicleCharacterId: row.id },
+      select: { itemCharacterId: true },
+    });
+    if (mounts.length > 0) {
+      await tx.itemCharacter.updateMany({
+        where: {
+          id: { in: mounts.map((m) => m.itemCharacterId) },
+          characterId: args.fromCharacterId,
+        },
+        data: {
+          characterId: args.toCharacterId,
+          isEquipped: false,
+          equipSlots: [],
+        },
+      });
+    }
+
+    // Cargo stays in the vehicle; ownership moves to the recipient.
+    await tx.itemCharacter.updateMany({
+      where: {
+        characterId: args.fromCharacterId,
+        itemLocation: cargoLocation,
+      },
+      data: {
+        characterId: args.toCharacterId,
+        isEquipped: false,
+        equipSlots: [],
+      },
     });
 
     await tx.vehicleCharacter.update({

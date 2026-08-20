@@ -35,4 +35,6 @@ export interface ItemDetailModalProps {
   rollPrivacy?: RollPrivacyOptions;
   /** When set, shows an edit control for owned unique items. */
   onEditUniqueItem?: () => void;
+  /** VehicleCharacter id → name for cargo/mount location labels. */
+  vehicleNamesById?: Readonly<Record<string, string>>;
 }

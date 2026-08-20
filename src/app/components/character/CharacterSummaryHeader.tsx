@@ -15,6 +15,10 @@ import {
   HEADER_EQUIP_SLOTS_ROW1,
   HEADER_EQUIP_SLOTS_ROW2,
 } from "@/app/lib/equipUtils";
+import {
+  VEHICLE_COMBAT_SPEED_HELP,
+  VEHICLE_TRAVEL_SPEED_HELP,
+} from "@/app/lib/constants/vehicleFields";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
@@ -297,7 +301,7 @@ export function CharacterSummaryHeader({
               <span className="font-medium">{activeVehicleName}</span>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-black/80">
-              <span>
+              <span title={VEHICLE_COMBAT_SPEED_HELP}>
                 Combat speed{" "}
                 <span className="tabular-nums line-through text-black/55">
                   {combatInformation.speed}m
@@ -307,8 +311,9 @@ export function CharacterSummaryHeader({
                     ? `${activeVehicle.vehicle.combatSpeedMetres}m`
                     : "—"}
                 </span>
+                <span className="text-black/55"> / turn</span>
               </span>
-              <span>
+              <span title={VEHICLE_TRAVEL_SPEED_HELP}>
                 Travel speed{" "}
                 <span className="tabular-nums font-semibold text-black">
                   {activeVehicle.vehicle?.travelSpeedKmh != null

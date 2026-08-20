@@ -9,6 +9,7 @@ import type {
   VehicleSizeCategory,
   VehicleSourceType,
 } from "@/app/lib/types/vehicle";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 import { mapPrismaCustomVehicleToApi, mapPrismaVehicleToApi } from "./vehicle";
 
@@ -17,7 +18,7 @@ type UniqueVehicleRow = {
   ownerUserId: string;
   gameId: string;
   sourceType: VehicleSourceType;
-  vehicleId: string;
+  vehicleId: string | null;
   nameOverride: string | null;
   brandOverride: string | null;
   yearOverride: number | null;
@@ -30,6 +31,7 @@ type UniqueVehicleRow = {
   travelSpeedKmhOverride: number | null;
   combatSpeedMetresOverride: number | null;
   manoeuvrabilityOverride: number | null;
+  accelerationOverride: number | null;
   weightOverride: number | null;
   heightMetresOverride: number | null;
   maxCargoWeightKgOverride: number | null;
@@ -101,13 +103,19 @@ const uniqueVehiclePrisma = prisma as typeof prisma & {
 function mapUniqueVehicleRowToRecord(
   row: UniqueVehicleRow
 ): UniqueVehicleRecord {
+  const sourceType =
+    row.sourceType === "CUSTOM_VEHICLE"
+      ? "CUSTOM_VEHICLE"
+      : row.sourceType === "STANDALONE"
+        ? "STANDALONE"
+        : "GLOBAL_VEHICLE";
+
   return {
     id: row.id,
     ownerUserId: row.ownerUserId,
     gameId: row.gameId,
-    sourceType:
-      row.sourceType === "CUSTOM_VEHICLE" ? "CUSTOM_VEHICLE" : "GLOBAL_VEHICLE",
-    vehicleId: row.vehicleId,
+    sourceType,
+    ...(row.vehicleId != null ? { vehicleId: row.vehicleId } : {}),
     ...(row.nameOverride != null ? { nameOverride: row.nameOverride } : {}),
     ...(row.brandOverride != null ? { brandOverride: row.brandOverride } : {}),
     ...(row.yearOverride != null ? { yearOverride: row.yearOverride } : {}),
@@ -133,6 +141,9 @@ function mapUniqueVehicleRowToRecord(
       : {}),
     ...(row.manoeuvrabilityOverride != null
       ? { manoeuvrabilityOverride: row.manoeuvrabilityOverride }
+      : {}),
+    ...(row.accelerationOverride != null
+      ? { accelerationOverride: row.accelerationOverride }
       : {}),
     ...(row.weightOverride != null
       ? { weightOverride: row.weightOverride }
@@ -164,11 +175,7 @@ export function uniqueVehicleCreateDataFromParsed(
   gameId: string,
   parsed: UniqueVehicleCreate
 ): UniqueVehicleCreateData {
-  return {
-    ownerUserId,
-    gameId,
-    sourceType: parsed.sourceType,
-    vehicleId: parsed.vehicleId,
+  const mutableFields = {
     nameOverride: parsed.nameOverride ?? null,
     brandOverride: parsed.brandOverride ?? null,
     yearOverride: parsed.yearOverride ?? null,
@@ -181,6 +188,7 @@ export function uniqueVehicleCreateDataFromParsed(
     travelSpeedKmhOverride: parsed.travelSpeedKmhOverride ?? null,
     combatSpeedMetresOverride: parsed.combatSpeedMetresOverride ?? null,
     manoeuvrabilityOverride: parsed.manoeuvrabilityOverride ?? null,
+    accelerationOverride: parsed.accelerationOverride ?? null,
     weightOverride: parsed.weightOverride ?? null,
     heightMetresOverride: parsed.heightMetresOverride ?? null,
     maxCargoWeightKgOverride: parsed.maxCargoWeightKgOverride ?? null,
@@ -189,6 +197,24 @@ export function uniqueVehicleCreateDataFromParsed(
     locomotionModesOverride: parsed.locomotionModesOverride ?? null,
     vehicleSizeCategoryOverride: parsed.vehicleSizeCategoryOverride ?? null,
     specialTag: parsed.specialTag ?? null,
+  };
+
+  if (parsed.sourceType === "STANDALONE") {
+    return {
+      ownerUserId,
+      gameId,
+      sourceType: "STANDALONE",
+      vehicleId: null,
+      ...mutableFields,
+    };
+  }
+
+  return {
+    ownerUserId,
+    gameId,
+    sourceType: parsed.sourceType,
+    vehicleId: parsed.vehicleId,
+    ...mutableFields,
   };
 }
 
@@ -232,6 +258,9 @@ function uniqueVehicleUpdateDataFromParsed(
     ...(parsed.manoeuvrabilityOverride !== undefined
       ? { manoeuvrabilityOverride: parsed.manoeuvrabilityOverride ?? null }
       : {}),
+    ...(parsed.accelerationOverride !== undefined
+      ? { accelerationOverride: parsed.accelerationOverride ?? null }
+      : {}),
     ...(parsed.weightOverride !== undefined
       ? { weightOverride: parsed.weightOverride ?? null }
       : {}),
@@ -262,8 +291,24 @@ function uniqueVehicleUpdateDataFromParsed(
   };
 }
 
+function toPrismaUniqueVehicleCreate(
+  data: UniqueVehicleCreateData
+): Prisma.UniqueVehicleUncheckedCreateInput {
+  const entries = Object.entries(data).filter(
+    ([key, value]) =>
+      value !== null &&
+      value !== undefined &&
+      !(key === "vehicleId" && value === null)
+  );
+  return Object.fromEntries(
+    entries
+  ) as Prisma.UniqueVehicleUncheckedCreateInput;
+}
+
 export async function createUniqueVehicle(data: UniqueVehicleCreateData) {
-  const row = await uniqueVehiclePrisma.uniqueVehicle.create({ data });
+  const row = await prisma.uniqueVehicle.create({
+    data: toPrismaUniqueVehicleCreate(data),
+  });
   return mapUniqueVehicleRowToRecord(row);
 }
 
@@ -283,6 +328,45 @@ function overrideLocomotionModes(
     (mode): mode is VehicleLocomotion =>
       mode === "LAND" || mode === "AIR" || mode === "SEA" || mode === "SNOW"
   );
+}
+
+/** Resolved vehicle when there is no global/custom template. */
+function buildStandaloneResolvedVehicle(
+  uniqueVehicle: UniqueVehicleRow
+): ResolvedVehicle {
+  const locomotionModes = overrideLocomotionModes(uniqueVehicle) ?? [];
+  const name =
+    uniqueVehicle.nameOverride?.trim() !== ""
+      ? (uniqueVehicle.nameOverride ?? "Unknown vehicle")
+      : "Unknown vehicle";
+
+  return {
+    id: uniqueVehicle.id,
+    name,
+    brand: uniqueVehicle.brandOverride,
+    year: uniqueVehicle.yearOverride,
+    imageKey: uniqueVehicle.imageKeyOverride,
+    confCost: uniqueVehicle.confCostOverride ?? 0,
+    costInfo: uniqueVehicle.costInfoOverride,
+    description: uniqueVehicle.descriptionOverride ?? "",
+    notes: uniqueVehicle.notesOverride,
+    maxHp: uniqueVehicle.maxHpOverride ?? 0,
+    travelSpeedKmh: uniqueVehicle.travelSpeedKmhOverride ?? 0,
+    combatSpeedMetres: uniqueVehicle.combatSpeedMetresOverride ?? 0,
+    manoeuvrability: uniqueVehicle.manoeuvrabilityOverride ?? 0,
+    acceleration: uniqueVehicle.accelerationOverride ?? 1,
+    weight: uniqueVehicle.weightOverride,
+    heightMetres: uniqueVehicle.heightMetresOverride,
+    maxCargoWeightKg: uniqueVehicle.maxCargoWeightKgOverride,
+    maxMountedItems: uniqueVehicle.maxMountedItemsOverride,
+    maxPassengers: uniqueVehicle.maxPassengersOverride ?? 1,
+    locomotionModes,
+    vehicleSizeCategory: uniqueVehicle.vehicleSizeCategoryOverride,
+    specialTag: uniqueVehicle.specialTag,
+    _resolvedFrom: "UNIQUE_VEHICLE",
+    _uniqueVehicleId: uniqueVehicle.id,
+    gameId: uniqueVehicle.gameId,
+  };
 }
 
 function applyUniqueVehicleOverrides(
@@ -329,6 +413,9 @@ function applyUniqueVehicleOverrides(
     ...(uniqueVehicle.manoeuvrabilityOverride != null && {
       manoeuvrability: uniqueVehicle.manoeuvrabilityOverride,
     }),
+    ...(uniqueVehicle.accelerationOverride != null && {
+      acceleration: uniqueVehicle.accelerationOverride,
+    }),
     ...(uniqueVehicle.weightOverride != null && {
       weight: uniqueVehicle.weightOverride,
     }),
@@ -367,7 +454,18 @@ export async function getResolvedUniqueVehicle(
 
   const base = mapUniqueVehicleRowToRecord(uniqueVehicle);
 
+  if (uniqueVehicle.sourceType === "STANDALONE") {
+    return {
+      ...base,
+      templateVehicle: null,
+      resolvedVehicle: buildStandaloneResolvedVehicle(uniqueVehicle),
+    };
+  }
+
   if (uniqueVehicle.sourceType === "GLOBAL_VEHICLE") {
+    if (!uniqueVehicle.vehicleId) {
+      return { ...base, templateVehicle: null, resolvedVehicle: null };
+    }
     const template = await uniqueVehiclePrisma.vehicle.findUnique({
       where: { id: uniqueVehicle.vehicleId },
     });
@@ -388,6 +486,9 @@ export async function getResolvedUniqueVehicle(
   }
 
   if (uniqueVehicle.sourceType === "CUSTOM_VEHICLE") {
+    if (!uniqueVehicle.vehicleId) {
+      return { ...base, templateVehicle: null, resolvedVehicle: null };
+    }
     const template = await uniqueVehiclePrisma.customVehicle.findUnique({
       where: { id: uniqueVehicle.vehicleId },
     });
@@ -435,20 +536,34 @@ export async function getUniqueVehiclesByGameId(
 
   return Promise.all(
     vehicles.map(async (vehicle) => {
+      if (vehicle.sourceType === "STANDALONE") {
+        const trimmedNameOverride = vehicle.nameOverride?.trim();
+        return {
+          id: vehicle.id,
+          ownerUserId: vehicle.ownerUserId,
+          name:
+            trimmedNameOverride === "" || trimmedNameOverride == null
+              ? "Unknown vehicle"
+              : trimmedNameOverride,
+        };
+      }
+
       const templateName =
-        vehicle.sourceType === "GLOBAL_VEHICLE"
+        vehicle.sourceType === "GLOBAL_VEHICLE" && vehicle.vehicleId
           ? (
               await uniqueVehiclePrisma.vehicle.findUnique({
                 where: { id: vehicle.vehicleId },
                 select: { name: true },
               })
             )?.name
-          : (
-              await uniqueVehiclePrisma.customVehicle.findUnique({
-                where: { id: vehicle.vehicleId },
-                select: { name: true },
-              })
-            )?.name;
+          : vehicle.vehicleId
+            ? (
+                await uniqueVehiclePrisma.customVehicle.findUnique({
+                  where: { id: vehicle.vehicleId },
+                  select: { name: true },
+                })
+              )?.name
+            : undefined;
 
       const trimmedNameOverride = vehicle.nameOverride?.trim();
       return {

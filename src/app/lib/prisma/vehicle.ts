@@ -25,6 +25,7 @@ type VehicleRow = {
   travelSpeedKmh: number;
   combatSpeedMetres: number;
   manoeuvrability: number;
+  acceleration: number;
   weight: number | null;
   heightMetres: number | null;
   maxCargoWeightKg: number | null;
@@ -45,6 +46,7 @@ type CustomVehicleRow = Omit<
   gameId: string;
   confCost: number | null;
   description: string | null;
+  membersCanModify: boolean;
 };
 
 type CustomVehicleCreateData = Omit<CustomVehicleRow, "id">;
@@ -92,6 +94,7 @@ export function mapPrismaVehicleToApi(row: VehicleRow): ResolvedVehicle {
     travelSpeedKmh: row.travelSpeedKmh,
     combatSpeedMetres: row.combatSpeedMetres,
     manoeuvrability: row.manoeuvrability,
+    acceleration: row.acceleration,
     weight: row.weight,
     heightMetres: row.heightMetres,
     maxCargoWeightKg: row.maxCargoWeightKg,
@@ -119,6 +122,7 @@ export function mapPrismaCustomVehicleToApi(
     travelSpeedKmh: row.travelSpeedKmh,
     combatSpeedMetres: row.combatSpeedMetres,
     manoeuvrability: row.manoeuvrability,
+    acceleration: row.acceleration,
     weight: row.weight,
     heightMetres: row.heightMetres,
     maxCargoWeightKg: row.maxCargoWeightKg,
@@ -127,6 +131,7 @@ export function mapPrismaCustomVehicleToApi(
     locomotionModes: row.locomotionModes,
     vehicleSizeCategory: row.vehicleSizeCategory,
     gameId: row.gameId,
+    membersCanModify: row.membersCanModify,
   };
 }
 
@@ -148,6 +153,7 @@ function vehicleCreateDataFromParsed(
     travelSpeedKmh: data.travelSpeedKmh,
     combatSpeedMetres: data.combatSpeedMetres,
     manoeuvrability: data.manoeuvrability,
+    acceleration: data.acceleration,
     weight: data.weight ?? null,
     heightMetres: data.heightMetres ?? null,
     maxCargoWeightKg: data.maxCargoWeightKg ?? null,
@@ -186,6 +192,9 @@ function vehicleUpdateDataFromParsed(
       : {}),
     ...(data.manoeuvrability !== undefined
       ? { manoeuvrability: data.manoeuvrability }
+      : {}),
+    ...(data.acceleration !== undefined
+      ? { acceleration: data.acceleration }
       : {}),
     ...(data.weight !== undefined ? { weight: data.weight ?? null } : {}),
     ...(data.heightMetres !== undefined
@@ -229,6 +238,7 @@ function customVehicleCreateDataFromParsed(
     travelSpeedKmh: data.travelSpeedKmh,
     combatSpeedMetres: data.combatSpeedMetres,
     manoeuvrability: data.manoeuvrability,
+    acceleration: data.acceleration,
     weight: data.weight ?? null,
     heightMetres: data.heightMetres ?? null,
     maxCargoWeightKg: data.maxCargoWeightKg ?? null,
@@ -236,6 +246,7 @@ function customVehicleCreateDataFromParsed(
     maxPassengers: data.maxPassengers,
     locomotionModes: data.locomotionModes,
     vehicleSizeCategory: data.vehicleSizeCategory,
+    membersCanModify: data.membersCanModify ?? false,
   };
 }
 
@@ -263,6 +274,9 @@ function customVehicleUpdateDataFromParsed(
     ...(data.manoeuvrability !== undefined
       ? { manoeuvrability: data.manoeuvrability }
       : {}),
+    ...(data.acceleration !== undefined
+      ? { acceleration: data.acceleration }
+      : {}),
     ...(data.weight !== undefined ? { weight: data.weight ?? null } : {}),
     ...(data.heightMetres !== undefined
       ? { heightMetres: data.heightMetres ?? null }
@@ -281,6 +295,9 @@ function customVehicleUpdateDataFromParsed(
       : {}),
     ...(data.vehicleSizeCategory !== undefined
       ? { vehicleSizeCategory: data.vehicleSizeCategory }
+      : {}),
+    ...(data.membersCanModify !== undefined
+      ? { membersCanModify: data.membersCanModify }
       : {}),
   };
 }

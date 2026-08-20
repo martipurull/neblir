@@ -177,6 +177,10 @@ enum VehicleSourceType {
   GLOBAL_VEHICLE
   CUSTOM_VEHICLE
   UNIQUE_VEHICLE
+  /**
+   * Unique vehicle with no global/custom template (stats stored on the unique row).
+   */
+  STANDALONE
 }
 
 enum VehicleLocomotion {
@@ -480,6 +484,7 @@ model Vehicle {
   travelSpeedKmh              Int
   combatSpeedMetres           Int
   manoeuvrability             Int
+  acceleration                Int
   weight                      Float?
   heightMetres                Float?
   maxCargoWeightKg            Float?
@@ -506,6 +511,7 @@ model CustomVehicle {
   travelSpeedKmh      Int
   combatSpeedMetres   Int
   manoeuvrability     Int
+  acceleration        Int
   weight              Float?
   heightMetres        Float?
   maxCargoWeightKg    Float?
@@ -513,6 +519,11 @@ model CustomVehicle {
   maxPassengers       Int
   locomotionModes     VehicleLocomotion[]
   vehicleSizeCategory VehicleSizeCategory
+  /**
+   * When true, game members (not only the GM) may create a UniqueVehicle
+   * based on this custom template. Editing shared custom templates stays GM-only.
+   */
+  membersCanModify    Boolean             @default(false)
 
   @@index([gameId])
 }
@@ -523,9 +534,9 @@ model UniqueVehicle {
   gameId      String @db.ObjectId
   game        Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  // template it’s based on
+  // template it’s based on (vehicleId null when sourceType is STANDALONE)
   sourceType VehicleSourceType
-  vehicleId  String            @db.ObjectId
+  vehicleId  String?           @db.ObjectId
 
   nameOverride                String?
   brandOverride               String?
@@ -539,6 +550,7 @@ model UniqueVehicle {
   travelSpeedKmhOverride      Int?
   combatSpeedMetresOverride   Int?
   manoeuvrabilityOverride     Int?
+  accelerationOverride        Int?
   weightOverride              Float?
   heightMetresOverride        Float?
   maxCargoWeightKgOverride    Float?
@@ -867,6 +879,8 @@ model Item {
   equippable                  Boolean                    @default(false)
   equipSlotTypes              String[]                   @default([])
   equipSlotCost               Int?
+  /** When true, this item can be mounted on a vehicle (not cargo). */
+  vehicleMountable            Boolean                    @default(false)
   maxUses                     Int?
   modifiesAttribute           ItemAttributePath?
   attributeMod                Int?
@@ -905,6 +919,8 @@ model CustomItem {
   equippable        Boolean?                   @default(false)
   equipSlotTypes    String[]                   @default([])
   equipSlotCost     Int?
+  /** When true, this item can be mounted on a vehicle (not cargo). */
+  vehicleMountable  Boolean?                   @default(false)
   maxUses           Int?
   modifiesAttribute ItemAttributePath?
   attributeMod      Int?
@@ -946,6 +962,7 @@ model UniqueItem {
   equippableOverride        Boolean?
   equipSlotTypesOverride    Json? // String[] when set; null = use template
   equipSlotCostOverride     Int?
+  vehicleMountableOverride  Boolean?
   maxUsesOverride           Int?
   modifiesAttributeOverride ItemAttributePath?
   attributeModOverride      Int?

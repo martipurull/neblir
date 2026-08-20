@@ -158,13 +158,13 @@ describe("POST /api/games/[id]/give-vehicle", () => {
     expect(response.status).toBe(403);
   });
 
-  it("returns 403 when unique vehicle does not belong to requester", async () => {
+  it("returns 403 when unique vehicle belongs to a different game", async () => {
     getGameMock.mockResolvedValue({ id: "game-1", gameMaster: "user-1" });
     characterIsInGameMock.mockResolvedValue(true);
     getUniqueVehicleMock.mockResolvedValue({
       id: "uv-1",
       ownerUserId: "other-user",
-      gameId: "game-1",
+      gameId: "other-game",
     });
     const { POST } = await import("@/app/api/games/[id]/give-vehicle/route");
     const response = await invokeRoute(

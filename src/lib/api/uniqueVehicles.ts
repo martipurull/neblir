@@ -1,6 +1,7 @@
 import {
   uniqueVehicleDetailResponseSchema,
   uniqueVehicleListResponseSchema,
+  type UniqueVehicleCreate,
   type UniqueVehicleDetailResponse,
   type UniqueVehicleListItem,
   type UniqueVehicleUpdate,
@@ -93,6 +94,38 @@ export async function getUniqueVehicleById(
   }
 
   return parsed.data;
+}
+
+export async function createUniqueVehicle(
+  body: UniqueVehicleCreate
+): Promise<{ id: string }> {
+  const response = await fetch("/api/unique-vehicles", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to create unique vehicle"
+      )
+    );
+  }
+
+  const json = (await response.json()) as { id?: string };
+  if (!json.id) {
+    throw new Error("Unique vehicle create response did not include an id");
+  }
+  return { id: json.id };
 }
 
 export async function updateUniqueVehicle(

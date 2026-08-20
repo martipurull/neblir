@@ -5,10 +5,13 @@ import { AddVehicleToCharacterModal } from "@/app/components/character/AddVehicl
 import { VehicleDetailModal } from "@/app/components/character/VehicleDetailModal";
 import { Button } from "@/app/components/shared/Button";
 import { CreateUniqueVehicleModal } from "@/app/components/games/CreateUniqueVehicleModal";
+import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
-import type { CharacterDetail } from "@/app/lib/types/character";
+import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
 import type { VehicleCharacter } from "@/app/lib/types/vehicle";
 import { getGameById } from "@/lib/api/game";
+import { useImageUrls } from "@/hooks/use-image-urls";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 
@@ -37,11 +40,13 @@ function VehicleList({
   entries,
   activeVehicleCharacterId,
   readOnly,
+  imageUrls,
   onSelectDetail,
 }: {
   entries: VehicleCharacter[];
   activeVehicleCharacterId?: string | null;
   readOnly?: boolean;
+  imageUrls: Record<string, string | null | undefined>;
   onSelectDetail: (entry: VehicleCharacter) => void;
 }) {
   if (entries.length === 0) return null;
@@ -50,8 +55,28 @@ function VehicleList({
     <ul className="divide-y divide-black">
       {entries.map((entry) => {
         const isActive = activeVehicleCharacterId === entry.id;
+        const imageKey = entry.vehicle?.imageKey ?? null;
+        const imageUrl = imageUrls[entry.id];
         const content = (
           <>
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border border-black/10 bg-paleBlue/30">
+              {imageKey && imageUrl ? (
+                <SignedRemoteImage
+                  src={imageUrl}
+                  imageKey={imageKey}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-cover object-center"
+                />
+              ) : (
+                <ImageLoadingSkeleton
+                  variant="vehicle"
+                  className="h-full w-full"
+                  animated={imageKey != null && imageUrl === undefined}
+                />
+              )}
+            </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className="break-words text-sm text-black">
@@ -92,7 +117,7 @@ function VehicleList({
         return (
           <li
             key={entry.id}
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 py-2.5"
+            className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-start gap-3 py-2.5"
           >
             {readOnly ? (
               content
@@ -101,7 +126,7 @@ function VehicleList({
                 type="button"
                 variant="lightRowHit"
                 fullWidth={false}
-                className="col-span-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3"
+                className="col-span-3 grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-start gap-3"
                 onClick={() => onSelectDetail(entry)}
               >
                 {content}
@@ -167,6 +192,15 @@ function VehiclesSectionContent({
       ),
     [vehicles]
   );
+  const vehicleImageEntries = useMemo(
+    () =>
+      sortedVehicles.map((entry) => ({
+        id: entry.id,
+        imageKey: entry.vehicle?.imageKey ?? null,
+      })),
+    [sortedVehicles]
+  );
+  const vehicleImageUrls = useImageUrls(vehicleImageEntries);
   const parkedVehicles = useMemo(
     () =>
       sortedVehicles.filter(
@@ -195,6 +229,61 @@ function VehiclesSectionContent({
         entry.sourceType === "GLOBAL_VEHICLE"
           ? null
           : (entry.vehicle?.gameId ?? null);
+      const gameIdSet = new Set(linked);
+      if (restrictGameId != null) gameIdSet.add(restrictGameId);
+      const gameIds = [...gameIdSet];
+      if (gameIds.length === 0) return [];
+
+      const games = await Promise.all(gameIds.map((id) => getGameById(id)));
+
+      const restrictSet =
+        restrictGameId != null
+          ? new Set(
+              (
+                games.find((game) => game.id === restrictGameId)?.characters ??
+                []
+              ).map((gc) => gc.character.id)
+            )
+          : null;
+
+      const byId = new Map<string, string>();
+      for (const game of games) {
+        if (!game) continue;
+        for (const gc of game.characters ?? []) {
+          const currentCharacter = gc.character;
+          if (!isGiveItemRecipientInGame(gc, game, selfId)) continue;
+          if (restrictSet != null && !restrictSet.has(currentCharacter.id))
+            continue;
+          const label =
+            [currentCharacter.name, currentCharacter.surname ?? ""]
+              .filter((value) => String(value).trim())
+              .join(" ")
+              .trim() || currentCharacter.id;
+          if (!byId.has(currentCharacter.id)) {
+            byId.set(currentCharacter.id, label);
+          }
+        }
+      }
+
+      return [...byId.entries()]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    },
+    [character.games, character.id]
+  );
+
+  const resolveItemGiveRecipients = useCallback(
+    async (entry: ItemCharacter) => {
+      const selfId = character.id;
+      const linked = character.games?.map((g) => g.gameId) ?? [];
+      let restrictGameId: string | null = null;
+      if (
+        entry.sourceType === "CUSTOM_ITEM" ||
+        entry.sourceType === "UNIQUE_ITEM"
+      ) {
+        const gid = (entry.item as { gameId?: string } | null)?.gameId;
+        if (gid) restrictGameId = gid;
+      }
       const gameIdSet = new Set(linked);
       if (restrictGameId != null) gameIdSet.add(restrictGameId);
       const gameIds = [...gameIdSet];
@@ -285,6 +374,7 @@ function VehiclesSectionContent({
                 entries={[activeVehicle]}
                 activeVehicleCharacterId={character.activeVehicleCharacterId}
                 readOnly={readOnly}
+                imageUrls={vehicleImageUrls}
                 onSelectDetail={(entry) => setDetailVehicleId(entry.id)}
               />
             </div>
@@ -301,6 +391,7 @@ function VehiclesSectionContent({
                 entries={parkedVehicles}
                 activeVehicleCharacterId={character.activeVehicleCharacterId}
                 readOnly={readOnly}
+                imageUrls={vehicleImageUrls}
                 onSelectDetail={(entry) => setDetailVehicleId(entry.id)}
               />
             </div>
@@ -351,10 +442,11 @@ function VehiclesSectionContent({
 
       {detailEntry && !readOnly && mutate ? (
         <VehicleDetailModal
-          key={`vehicle-detail-${detailEntry.id}-${detailEntry.currentHp}-${detailEntry.isBeyondRepair}-${detailEntry.parkedAt ?? ""}-${detailEntry.notes ?? ""}-${(detailEntry.mountedItems ?? []).map((m) => m.id).join(",")}`}
+          key={`vehicle-detail-${detailEntry.id}`}
           isOpen={Boolean(detailEntry)}
           onCloseAction={() => setDetailVehicleId(null)}
           entry={detailEntry}
+          character={character}
           characterId={character.id}
           inventory={character.inventory ?? []}
           allMountedItemCharacterIds={(character.vehicles ?? []).flatMap(
@@ -362,8 +454,10 @@ function VehiclesSectionContent({
               (vehicle.mountedItems ?? []).map((mount) => mount.itemCharacterId)
           )}
           activeVehicleCharacterId={character.activeVehicleCharacterId}
+          activeGameId={activeGameId}
           mutateAction={mutate}
           resolveGiveRecipientsAction={resolveGiveRecipients}
+          resolveItemGiveRecipientsAction={resolveItemGiveRecipients}
           onEditUniqueVehicleAction={
             detailEntry.sourceType === "UNIQUE_VEHICLE" &&
             detailEntry.vehicle?.gameId

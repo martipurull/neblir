@@ -1,5 +1,10 @@
 import { isItemInventoryOperational } from "@/app/lib/types/item";
 import type { VehicleMountedItem } from "@/app/lib/types/vehicle";
+import {
+  ITEM_LOCATION_CARRIED,
+  isItemCarried,
+  vehicleMountedItemLocation,
+} from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
 import { hydrateItemCharacters } from "./itemCharacter";
 
@@ -131,6 +136,20 @@ export async function attachItemToVehicle(args: {
     );
   }
 
+  if (!isItemCarried(itemCharacter)) {
+    throw new VehicleMountedItemConflictError(
+      "Only carried items can be mounted on a vehicle"
+    );
+  }
+
+  const hydratedInventory = await hydrateItemCharacters([itemCharacter]);
+  const resolved = hydratedInventory[0]?.item;
+  if (resolved?.vehicleMountable !== true) {
+    throw new VehicleMountedItemConflictError(
+      "This item cannot be mounted on a vehicle"
+    );
+  }
+
   const existingMount = await findMountedItemByItemCharacterId(
     args.itemCharacterId
   );
@@ -154,19 +173,17 @@ export async function attachItemToVehicle(args: {
     }
   }
 
+  const mountedLocation = vehicleMountedItemLocation(args.vehicleCharacterId);
+
   const created = await prisma.$transaction(async (tx) => {
-    if (
-      itemCharacter.isEquipped ||
-      (itemCharacter.equipSlots?.length ?? 0) > 0
-    ) {
-      await tx.itemCharacter.update({
-        where: { id: itemCharacter.id },
-        data: {
-          isEquipped: false,
-          equipSlots: [],
-        },
-      });
-    }
+    await tx.itemCharacter.update({
+      where: { id: itemCharacter.id },
+      data: {
+        itemLocation: mountedLocation,
+        isEquipped: false,
+        equipSlots: [],
+      },
+    });
 
     return tx.vehicleMountedItem.create({
       data: {
@@ -208,5 +225,11 @@ export async function detachItemFromVehicle(args: {
     throw new VehicleMountedItemConflictError("Mounted item not found");
   }
 
-  await prisma.vehicleMountedItem.delete({ where: { id: row.id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.vehicleMountedItem.delete({ where: { id: row.id } });
+    await tx.itemCharacter.update({
+      where: { id: row.itemCharacterId },
+      data: { itemLocation: ITEM_LOCATION_CARRIED },
+    });
+  });
 }

@@ -2,6 +2,7 @@
 
 import {
   ITEM_LOCATION_CARRIED,
+  formatItemLocationLabel,
   isItemCarried,
 } from "@/app/lib/constants/inventory";
 import {
@@ -48,6 +49,7 @@ export function ItemDetailModal({
   equipControl,
   rollPrivacy,
   onEditUniqueItem,
+  vehicleNamesById,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -113,7 +115,10 @@ export function ItemDetailModal({
   }, [entry.quantity, entry.id]);
 
   const carried = isItemCarried(entry);
-  const displayLocation = carried ? "On hand" : (entry.itemLocation ?? "—");
+  const displayLocation = carried
+    ? "On hand"
+    : (formatItemLocationLabel(entry.itemLocation, { vehicleNamesById }) ??
+      "—");
 
   const itemImageKey =
     entry.item && "imageKey" in entry.item

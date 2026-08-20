@@ -46,6 +46,7 @@ type VehicleRow = {
   travelSpeedKmh: number;
   combatSpeedMetres: number;
   manoeuvrability: number;
+  acceleration: number;
   weight: number | null;
   heightMetres: number | null;
   maxCargoWeightKg: number | null;
@@ -69,8 +70,12 @@ type UniqueVehicleRow = {
   id: string;
   ownerUserId: string;
   gameId: string;
-  sourceType: "GLOBAL_VEHICLE" | "CUSTOM_VEHICLE" | "UNIQUE_VEHICLE";
-  vehicleId: string;
+  sourceType:
+    | "GLOBAL_VEHICLE"
+    | "CUSTOM_VEHICLE"
+    | "UNIQUE_VEHICLE"
+    | "STANDALONE";
+  vehicleId: string | null;
   nameOverride: string | null;
   brandOverride: string | null;
   yearOverride: number | null;
@@ -83,6 +88,7 @@ type UniqueVehicleRow = {
   travelSpeedKmhOverride: number | null;
   combatSpeedMetresOverride: number | null;
   manoeuvrabilityOverride: number | null;
+  accelerationOverride: number | null;
   weightOverride: number | null;
   heightMetresOverride: number | null;
   maxCargoWeightKgOverride: number | null;
@@ -127,6 +133,7 @@ function baseVehicle(
     travelSpeedKmh: 120,
     combatSpeedMetres: 18,
     manoeuvrability: 2,
+    acceleration: 1,
     weight: null,
     heightMetres: null,
     maxCargoWeightKg: null,
@@ -158,6 +165,7 @@ function baseCustomVehicle(
     travelSpeedKmh: 90,
     combatSpeedMetres: 12,
     manoeuvrability: 1,
+    acceleration: 1,
     weight: null,
     heightMetres: null,
     maxCargoWeightKg: null,
@@ -171,14 +179,16 @@ function baseCustomVehicle(
 
 function baseUniqueVehicle(
   overrides: Partial<UniqueVehicleRow> &
-    Pick<UniqueVehicleRow, "id" | "sourceType" | "gameId" | "vehicleId">
+    Pick<UniqueVehicleRow, "id" | "sourceType" | "gameId"> & {
+      vehicleId?: string | null;
+    }
 ): UniqueVehicleRow {
   return {
     id: overrides.id,
     ownerUserId: "user-1",
     gameId: overrides.gameId,
     sourceType: overrides.sourceType,
-    vehicleId: overrides.vehicleId,
+    vehicleId: overrides.vehicleId ?? null,
     nameOverride: null,
     brandOverride: null,
     yearOverride: null,
@@ -191,6 +201,7 @@ function baseUniqueVehicle(
     travelSpeedKmhOverride: null,
     combatSpeedMetresOverride: null,
     manoeuvrabilityOverride: null,
+    accelerationOverride: null,
     weightOverride: null,
     heightMetresOverride: null,
     maxCargoWeightKgOverride: null,

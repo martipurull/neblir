@@ -4,6 +4,7 @@ import type { GameDetail } from "@/app/lib/types/game";
 import type {
   CustomVehicleResponse,
   ResolvedVehicle,
+  UniqueVehicleListItem,
 } from "@/app/lib/types/vehicle";
 import {
   ModalSelect,
@@ -13,11 +14,15 @@ import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { giveVehicleToCharacter } from "@/lib/api/game";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
+import { getGameUniqueVehicles } from "@/lib/api/uniqueVehicles";
 import { getOfficialVehicles } from "@/lib/api/vehicles";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useState } from "react";
 
-type GiveVehicleSourceType = "GLOBAL_VEHICLE" | "CUSTOM_VEHICLE";
+type GiveVehicleSourceType =
+  | "GLOBAL_VEHICLE"
+  | "CUSTOM_VEHICLE"
+  | "UNIQUE_VEHICLE";
 
 export type GiveVehicleOption = {
   sourceType: GiveVehicleSourceType;
@@ -61,8 +66,12 @@ export function GiveVehicleToCharacterModal({
   const [customVehicles, setCustomVehicles] = useState<CustomVehicleResponse[]>(
     []
   );
+  const [uniqueVehicles, setUniqueVehicles] = useState<UniqueVehicleListItem[]>(
+    []
+  );
   const [loadingGlobal, setLoadingGlobal] = useState(false);
   const [loadingCustom, setLoadingCustom] = useState(false);
+  const [loadingUnique, setLoadingUnique] = useState(false);
   const [characterId, setCharacterId] = useState("");
   const [sourceType, setSourceType] =
     useState<GiveVehicleSourceType>("GLOBAL_VEHICLE");
@@ -99,6 +108,20 @@ export function GiveVehicleToCharacterModal({
     }
   }, [gameId]);
 
+  const loadUniqueVehicles = useCallback(async () => {
+    setLoadingUnique(true);
+    setError(null);
+    try {
+      const vehicles = await getGameUniqueVehicles(gameId);
+      setUniqueVehicles(vehicles);
+    } catch (e) {
+      setError(getUserSafeErrorMessage(e, "Failed to load unique vehicles"));
+      setUniqueVehicles([]);
+    } finally {
+      setLoadingUnique(false);
+    }
+  }, [gameId]);
+
   useEffect(() => {
     if (!isOpen) return;
     setCharacterId("");
@@ -112,7 +135,14 @@ export function GiveVehicleToCharacterModal({
     setVehicleId("");
     void loadGlobalVehicles();
     void loadCustomVehicles();
-  }, [isOpen, loadCustomVehicles, loadGlobalVehicles, lockedVehicle]);
+    void loadUniqueVehicles();
+  }, [
+    isOpen,
+    loadCustomVehicles,
+    loadGlobalVehicles,
+    loadUniqueVehicles,
+    lockedVehicle,
+  ]);
 
   useEffect(() => {
     if (lockedVehicle) return;
@@ -130,11 +160,17 @@ export function GiveVehicleToCharacterModal({
             vehicleId: vehicle.id,
             label: vehicleLabel(vehicle),
           }))
-      : customVehicles.map((vehicle) => ({
-          sourceType: "CUSTOM_VEHICLE" as const,
-          vehicleId: vehicle.id,
-          label: vehicleLabel(vehicle),
-        }));
+      : sourceType === "CUSTOM_VEHICLE"
+        ? customVehicles.map((vehicle) => ({
+            sourceType: "CUSTOM_VEHICLE" as const,
+            vehicleId: vehicle.id,
+            label: vehicleLabel(vehicle),
+          }))
+        : uniqueVehicles.map((vehicle) => ({
+            sourceType: "UNIQUE_VEHICLE" as const,
+            vehicleId: vehicle.id,
+            label: vehicle.name?.trim() || "Unnamed unique vehicle",
+          }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,6 +224,7 @@ export function GiveVehicleToCharacterModal({
   const sourceTypeOptions: ModalSelectOption[] = [
     { value: "GLOBAL_VEHICLE", label: "Official vehicle" },
     { value: "CUSTOM_VEHICLE", label: "Custom vehicle" },
+    { value: "UNIQUE_VEHICLE", label: "Unique vehicle" },
   ];
 
   const selectVehicleOptions: ModalSelectOption[] = vehicleOptions.map(
@@ -204,18 +241,26 @@ export function GiveVehicleToCharacterModal({
         : globalVehicles.length === 0
           ? "No official vehicles"
           : "Select vehicle"
-      : loadingCustom
-        ? "Loading…"
-        : customVehicles.length === 0
-          ? "No custom vehicles"
-          : "Select vehicle";
+      : sourceType === "CUSTOM_VEHICLE"
+        ? loadingCustom
+          ? "Loading…"
+          : customVehicles.length === 0
+            ? "No custom vehicles"
+            : "Select vehicle"
+        : loadingUnique
+          ? "Loading…"
+          : uniqueVehicles.length === 0
+            ? "No unique vehicles"
+            : "Select vehicle";
 
   const resolvedVehicleId = lockedVehicle?.vehicleId ?? vehicleId;
   const sourceLoading =
     (sourceType === "GLOBAL_VEHICLE" &&
       (loadingGlobal || globalVehicles.length === 0)) ||
     (sourceType === "CUSTOM_VEHICLE" &&
-      (loadingCustom || customVehicles.length === 0));
+      (loadingCustom || customVehicles.length === 0)) ||
+    (sourceType === "UNIQUE_VEHICLE" &&
+      (loadingUnique || uniqueVehicles.length === 0));
 
   return (
     <ModalShell

@@ -7,6 +7,11 @@ import type {
   VehiclePassenger,
   VehicleSourceType,
 } from "@/app/lib/types/vehicle";
+import {
+  ITEM_LOCATION_CARRIED,
+  vehicleCargoItemLocation,
+  vehicleMountedItemLocation,
+} from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
 import { resolveUniqueVehicle } from "./uniqueVehicle";
 import { getCustomVehicle, getVehicle } from "./vehicle";
@@ -203,7 +208,37 @@ export async function updateVehicleCharacter(
 }
 
 export async function deleteVehicleCharacter(id: string) {
-  return vehicleCharacterPrisma.vehicleCharacter.delete({ where: { id } });
+  const row = await vehicleCharacterPrisma.vehicleCharacter.findUnique({
+    where: { id },
+    select: { id: true, characterId: true },
+  });
+  if (!row) {
+    return vehicleCharacterPrisma.vehicleCharacter.delete({ where: { id } });
+  }
+
+  const cargoLocation = vehicleCargoItemLocation(id);
+  const mountedLocation = vehicleMountedItemLocation(id);
+
+  return prisma.$transaction(async (tx) => {
+    await tx.itemCharacter.updateMany({
+      where: {
+        OR: [
+          { itemLocation: mountedLocation },
+          {
+            characterId: row.characterId,
+            itemLocation: cargoLocation,
+          },
+        ],
+      },
+      data: {
+        itemLocation: ITEM_LOCATION_CARRIED,
+        isEquipped: false,
+        equipSlots: [],
+      },
+    });
+
+    return tx.vehicleCharacter.delete({ where: { id } });
+  });
 }
 
 async function hydrateVehicleCharacter(

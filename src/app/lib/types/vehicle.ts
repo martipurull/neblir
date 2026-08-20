@@ -7,12 +7,14 @@ const vehicleSourceTypeSchema = z.enum([
   "GLOBAL_VEHICLE",
   "CUSTOM_VEHICLE",
   "UNIQUE_VEHICLE",
+  "STANDALONE",
 ]);
 export type VehicleSourceType = z.infer<typeof vehicleSourceTypeSchema>;
 
 const uniqueVehicleTemplateSourceTypeSchema = z.enum([
   "GLOBAL_VEHICLE",
   "CUSTOM_VEHICLE",
+  "STANDALONE",
 ]);
 
 const vehicleLocomotionSchema = z.enum(["LAND", "AIR", "SEA", "SNOW"]);
@@ -59,6 +61,7 @@ export const resolvedVehicleSchema = z.object({
   travelSpeedKmh: z.number().int().optional().nullable(),
   combatSpeedMetres: z.number().int().optional().nullable(),
   manoeuvrability: z.number().int().optional().nullable(),
+  acceleration: z.number().int().optional().nullable(),
   weight: z.number().optional().nullable(),
   heightMetres: z.number().optional().nullable(),
   maxCargoWeightKg: z.number().optional().nullable(),
@@ -67,9 +70,11 @@ export const resolvedVehicleSchema = z.object({
   locomotionModes: z.array(vehicleLocomotionSchema).optional().default([]),
   vehicleSizeCategory: vehicleSizeCategorySchema.optional().nullable(),
   specialTag: z.string().optional().nullable(),
+  gameId: z.string().optional().nullable(),
+  /** Present when resolved from a CustomVehicle template. */
+  membersCanModify: z.boolean().optional(),
   _resolvedFrom: z.literal("UNIQUE_VEHICLE").optional(),
   _uniqueVehicleId: z.string().nullish(),
-  gameId: z.string().optional().nullable(),
 });
 
 export const vehicleSchema = z.object({
@@ -86,6 +91,7 @@ export const vehicleSchema = z.object({
   travelSpeedKmh: z.number().int(),
   combatSpeedMetres: z.number().int(),
   manoeuvrability: z.number().int(),
+  acceleration: z.number().int(),
   weight: z.number().finite().optional().nullable(),
   heightMetres: z.number().finite().optional().nullable(),
   maxCargoWeightKg: z.number().finite().optional().nullable(),
@@ -113,6 +119,7 @@ export const customVehicleCreateSchema = z.object({
   travelSpeedKmh: z.number().int(),
   combatSpeedMetres: z.number().int(),
   manoeuvrability: z.number().int(),
+  acceleration: z.number().int(),
   weight: z.number().finite().optional().nullable(),
   heightMetres: z.number().finite().optional().nullable(),
   maxCargoWeightKg: z.number().finite().optional().nullable(),
@@ -120,6 +127,11 @@ export const customVehicleCreateSchema = z.object({
   maxPassengers: z.number().int().min(1),
   locomotionModes: locomotionModesSchema,
   vehicleSizeCategory: vehicleSizeCategorySchema,
+  /**
+   * When true, game members may create a UniqueVehicle from this custom template.
+   * Editing the shared custom template remains GM-only.
+   */
+  membersCanModify: z.boolean().optional().default(false),
 });
 export type CustomVehicleCreate = z.infer<typeof customVehicleCreateSchema>;
 
@@ -151,6 +163,7 @@ const uniqueVehicleMutableBodySchema = z.object({
   travelSpeedKmhOverride: z.number().int().optional().nullable(),
   combatSpeedMetresOverride: z.number().int().optional().nullable(),
   manoeuvrabilityOverride: z.number().int().optional().nullable(),
+  accelerationOverride: z.number().int().optional().nullable(),
   weightOverride: z.number().finite().optional().nullable(),
   heightMetresOverride: z.number().finite().optional().nullable(),
   maxCargoWeightKgOverride: z.number().finite().optional().nullable(),
@@ -170,6 +183,23 @@ export const uniqueVehicleCreateSchema = z.union([
     sourceType: z.literal("CUSTOM_VEHICLE"),
     vehicleId: z.string(),
   }),
+  uniqueVehicleMutableBodySchema.extend({
+    sourceType: z.literal("STANDALONE"),
+    nameOverride: z
+      .string()
+      .trim()
+      .min(1, "Name is required for a vehicle without a template"),
+    confCostOverride: z.number().int(),
+    descriptionOverride: z.string(),
+    maxHpOverride: z.number().int(),
+    travelSpeedKmhOverride: z.number().int(),
+    combatSpeedMetresOverride: z.number().int(),
+    manoeuvrabilityOverride: z.number().int(),
+    accelerationOverride: z.number().int(),
+    maxPassengersOverride: z.number().int().min(1),
+    locomotionModesOverride: locomotionModesSchema,
+    vehicleSizeCategoryOverride: vehicleSizeCategorySchema,
+  }),
 ]);
 export type UniqueVehicleCreate = z.infer<typeof uniqueVehicleCreateSchema>;
 
@@ -183,7 +213,7 @@ const uniqueVehicleRecordSchema = uniqueVehicleMutableBodySchema.extend({
   ownerUserId: z.string(),
   gameId: z.string(),
   sourceType: uniqueVehicleTemplateSourceTypeSchema,
-  vehicleId: z.string(),
+  vehicleId: z.string().optional().nullable(),
 });
 export type UniqueVehicleRecord = z.infer<typeof uniqueVehicleRecordSchema>;
 

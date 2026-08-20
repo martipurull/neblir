@@ -16,9 +16,15 @@ import { parseOfficialImportArgv } from "./officialImportCli";
 
 const prisma = new PrismaClient();
 
-const vehicleRowWithOptionalIdSchema = vehicleSchema.and(
-  z.object({ id: z.string().optional() })
-);
+const vehicleRowWithOptionalIdSchema = vehicleSchema
+  .extend({
+    id: z.string().optional(),
+    acceleration: z.number().int().optional(),
+  })
+  .transform((row) => ({
+    ...row,
+    acceleration: row.acceleration ?? 1,
+  }));
 
 type VehicleRow = z.infer<typeof vehicleRowWithOptionalIdSchema>;
 
@@ -187,6 +193,7 @@ async function main() {
           travelSpeedKmh: vehicle.travelSpeedKmh,
           combatSpeedMetres: vehicle.combatSpeedMetres,
           manoeuvrability: vehicle.manoeuvrability,
+          acceleration: vehicle.acceleration ?? 1,
           weight: vehicle.weight ?? null,
           heightMetres: vehicle.heightMetres ?? null,
           maxCargoWeightKg: vehicle.maxCargoWeightKg ?? null,
@@ -216,6 +223,7 @@ async function main() {
         travelSpeedKmh: vehicle.travelSpeedKmh,
         combatSpeedMetres: vehicle.combatSpeedMetres,
         manoeuvrability: vehicle.manoeuvrability,
+        acceleration: vehicle.acceleration ?? 1,
         weight: vehicle.weight ?? null,
         heightMetres: vehicle.heightMetres ?? null,
         maxCargoWeightKg: vehicle.maxCargoWeightKg ?? null,
