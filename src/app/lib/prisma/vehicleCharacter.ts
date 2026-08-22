@@ -68,7 +68,9 @@ const vehicleCharacterPrisma = prisma as typeof prisma & {
       where: { id: string };
     }): Promise<VehicleCharacterRow | null>;
     findMany(args: {
-      where: { characterId: string };
+      where:
+        | { characterId: string }
+        | { sourceType: VehicleSourceType; vehicleId: string };
     }): Promise<VehicleCharacterRow[]>;
     create(args: {
       data: VehicleCharacterCreateData;
@@ -345,19 +347,62 @@ export async function hydrateVehicleCharacters(records: VehicleCharacterRow[]) {
   );
 }
 
-export async function clearActiveVehicleIfMatches(
-  characterId: string,
-  vehicleCharacterId: string
+export async function clearVehicleRiders(
+  vehicleCharacterId: string,
+  options?: { parkedAt?: string }
 ) {
-  const character = await prisma.character.findUnique({
-    where: { id: characterId },
-    select: { activeVehicleCharacterId: true },
+  const vehicle = await vehicleCharacterPrisma.vehicleCharacter.findUnique({
+    where: { id: vehicleCharacterId },
   });
-  if (character?.activeVehicleCharacterId === vehicleCharacterId) {
-    await prisma.character.update({
-      where: { id: characterId },
-      data: { activeVehicleCharacterId: null },
+  if (!vehicle) return;
+
+  const passengerIds = vehicle.passengerCharacterIds ?? [];
+  await prisma.$transaction(async (tx) => {
+    for (const passengerId of passengerIds) {
+      const passenger = await tx.character.findUnique({
+        where: { id: passengerId },
+        select: { activeVehicleCharacterId: true },
+      });
+      if (passenger?.activeVehicleCharacterId === vehicleCharacterId) {
+        await tx.character.update({
+          where: { id: passengerId },
+          data: { activeVehicleCharacterId: null },
+        });
+      }
+    }
+
+    const owner = await tx.character.findUnique({
+      where: { id: vehicle.characterId },
+      select: { activeVehicleCharacterId: true },
     });
+    if (owner?.activeVehicleCharacterId === vehicleCharacterId) {
+      await tx.character.update({
+        where: { id: vehicle.characterId },
+        data: { activeVehicleCharacterId: null },
+      });
+    }
+
+    await tx.vehicleCharacter.update({
+      where: { id: vehicleCharacterId },
+      data: {
+        passengerCharacterIds: [],
+        ...(options?.parkedAt !== undefined
+          ? { parkedAt: options.parkedAt }
+          : {}),
+      },
+    });
+  });
+}
+
+export async function deleteLiveInstancesForUniqueVehicle(
+  uniqueVehicleId: string
+) {
+  const rows = await vehicleCharacterPrisma.vehicleCharacter.findMany({
+    where: { sourceType: "UNIQUE_VEHICLE", vehicleId: uniqueVehicleId },
+  });
+  for (const row of rows) {
+    await clearVehicleRiders(row.id);
+    await deleteVehicleCharacter(row.id);
   }
 }
 
@@ -448,29 +493,7 @@ export async function dismountVehicleForCharacter(
   });
 
   if (ownedVehicle) {
-    const passengerIds = ownedVehicle.passengerCharacterIds ?? [];
-    await prisma.$transaction(async (tx) => {
-      for (const passengerId of passengerIds) {
-        const passenger = await tx.character.findUnique({
-          where: { id: passengerId },
-          select: { activeVehicleCharacterId: true },
-        });
-        if (passenger?.activeVehicleCharacterId === ownedVehicle.id) {
-          await tx.character.update({
-            where: { id: passengerId },
-            data: { activeVehicleCharacterId: null },
-          });
-        }
-      }
-      await tx.vehicleCharacter.update({
-        where: { id: ownedVehicle.id },
-        data: { parkedAt, passengerCharacterIds: [] },
-      });
-      await tx.character.update({
-        where: { id: characterId },
-        data: { activeVehicleCharacterId: null },
-      });
-    });
+    await clearVehicleRiders(ownedVehicle.id, { parkedAt });
     return;
   }
 

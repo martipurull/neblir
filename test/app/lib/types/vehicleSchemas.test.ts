@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   activeVehiclePatchSchema,
+  addVehicleToCharacterSchema,
   customVehicleCreateSchema,
   uniqueVehicleCreateSchema,
   vehicleCharacterPatchSchema,
@@ -147,6 +148,25 @@ describe("uniqueVehicleCreateSchema", () => {
       nameOverride: "Incomplete",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("addVehicleToCharacterSchema", () => {
+  it("requires an explicit gameId", () => {
+    expect(
+      addVehicleToCharacterSchema.safeParse({
+        sourceType: "GLOBAL_VEHICLE",
+        vehicleId: "veh-1",
+      }).success
+    ).toBe(false);
+
+    expect(
+      addVehicleToCharacterSchema.safeParse({
+        sourceType: "GLOBAL_VEHICLE",
+        vehicleId: "veh-1",
+        gameId: "game-1",
+      }).success
+    ).toBe(true);
   });
 });
 

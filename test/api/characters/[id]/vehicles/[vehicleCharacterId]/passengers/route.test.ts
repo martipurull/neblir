@@ -31,9 +31,11 @@ vi.mock("@/app/lib/prisma/vehiclePassengers", () => ({
   removePassengerFromVehicle: (...args: unknown[]) =>
     removePassengerFromVehicleMock(...args),
   VehiclePassengerConflictError: class VehiclePassengerConflictError extends Error {
-    constructor(message: string) {
+    status: 404 | 409;
+    constructor(message: string, status: 404 | 409 = 409) {
       super(message);
       this.name = "VehiclePassengerConflictError";
+      this.status = status;
     }
   },
 }));
@@ -142,5 +144,77 @@ describe("DELETE /api/characters/[id]/vehicles/[vehicleCharacterId]/passengers/[
       vehicleCharacterId: "vc-1",
       passengerCharacterId: "char-2",
     });
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/passengers/[passengerCharacterId]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeUnauthedRequest(),
+      makeParams({
+        id: "char-1",
+        vehicleCharacterId: "vc-1",
+        passengerCharacterId: "char-2",
+      })
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 403 when character is not owned", async () => {
+    belongsMock.mockResolvedValue(false);
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/passengers/[passengerCharacterId]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({
+        id: "char-1",
+        vehicleCharacterId: "vc-1",
+        passengerCharacterId: "char-2",
+      })
+    );
+    expect(response.status).toBe(403);
+  });
+
+  it("returns 404 when the vehicle is missing", async () => {
+    belongsMock.mockResolvedValue(true);
+    getCharacterVehicleRecordMock.mockResolvedValue(null);
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/passengers/[passengerCharacterId]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({
+        id: "char-1",
+        vehicleCharacterId: "vc-1",
+        passengerCharacterId: "char-2",
+      })
+    );
+    expect(response.status).toBe(404);
+  });
+
+  it("returns 404 when the passenger is not on the vehicle", async () => {
+    belongsMock.mockResolvedValue(true);
+    getCharacterVehicleRecordMock.mockResolvedValue({ id: "vc-1" });
+    const { VehiclePassengerConflictError } =
+      await import("@/app/lib/prisma/vehiclePassengers");
+    removePassengerFromVehicleMock.mockRejectedValue(
+      new VehiclePassengerConflictError(
+        "That character is not a passenger on this vehicle"
+      )
+    );
+    const { DELETE } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/passengers/[passengerCharacterId]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({
+        id: "char-1",
+        vehicleCharacterId: "vc-1",
+        passengerCharacterId: "char-2",
+      })
+    );
+    expect(response.status).toBe(409);
   });
 });

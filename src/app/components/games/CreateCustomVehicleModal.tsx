@@ -33,7 +33,7 @@ import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
 } from "@/lib/userSafeError";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const sizeOptions = [
   { value: "LIGHT", label: "Light" },
@@ -97,7 +97,17 @@ function customVehicleToForm(vehicle: CustomVehicleResponse) {
   };
 }
 
-export function CreateCustomVehicleModal({
+export function CreateCustomVehicleModal(props: Props) {
+  if (!props.isOpen) return null;
+  return (
+    <CreateCustomVehicleModalBody
+      key={props.editCustomVehicleId ?? "create"}
+      {...props}
+    />
+  );
+}
+
+function CreateCustomVehicleModalBody({
   isOpen,
   gameId,
   gameName,
@@ -144,42 +154,10 @@ export function CreateCustomVehicleModal({
     handleDragOver,
     uploading,
     uploadError,
-    reset: resetImageUpload,
   } = imageUpload;
 
-  const resetForm = useCallback(() => {
-    setName("");
-    setBrand("");
-    setYear("");
-    setConfCost("");
-    setCostInfo("");
-    setDescription("");
-    setNotes("");
-    setMaxHp("1");
-    setTravelSpeedKmh("1");
-    setCombatSpeedMetres("1");
-    setManoeuvrability("0");
-    setAcceleration("1");
-    setWeight("");
-    setHeightMetres("");
-    setMaxCargoWeightKg("");
-    setMaxMountedItems("");
-    setMaxPassengers("1");
-    setVehicleSizeCategory("LIGHT");
-    setLocomotionModes(["LAND"]);
-    setMembersCanModify(false);
-    resetImageUpload();
-    setError(null);
-    setDeleteError(null);
-    setRichTextSyncKey((key) => key + 1);
-  }, [resetImageUpload]);
-
   useEffect(() => {
-    if (!isOpen) return;
-    if (!editCustomVehicleId) {
-      resetForm();
-      return;
-    }
+    if (!editCustomVehicleId) return;
     let cancelled = false;
     setLoadingEdit(true);
     setError(null);
@@ -225,14 +203,7 @@ export function CreateCustomVehicleModal({
     return () => {
       cancelled = true;
     };
-  }, [
-    editCustomVehicleId,
-    gameId,
-    isOpen,
-    resetForm,
-    setImageKey,
-    setPendingImageKey,
-  ]);
+  }, [editCustomVehicleId, gameId, setImageKey, setPendingImageKey]);
 
   const toggleLocomotion = (mode: VehicleLocomotion, checked: boolean) => {
     setLocomotionModes((current) => {

@@ -36,23 +36,37 @@ export async function validateVehicleTransferParties(
     return { message: "Recipient character not found", status: 404 };
   }
 
-  if (sourceType === "CUSTOM_VEHICLE") {
-    const customVehicle = await prisma.customVehicle.findUnique({
-      where: { id: vehicleId },
-      select: { gameId: true },
-    });
-    if (!customVehicle) {
-      return { message: "Custom vehicle not found", status: 404 };
+  if (sourceType === "CUSTOM_VEHICLE" || sourceType === "UNIQUE_VEHICLE") {
+    const template =
+      sourceType === "CUSTOM_VEHICLE"
+        ? await prisma.customVehicle.findUnique({
+            where: { id: vehicleId },
+            select: { gameId: true },
+          })
+        : await prisma.uniqueVehicle.findUnique({
+            where: { id: vehicleId },
+            select: { gameId: true },
+          });
+    if (!template) {
+      return {
+        message:
+          sourceType === "CUSTOM_VEHICLE"
+            ? "Custom vehicle not found"
+            : "Unique vehicle not found",
+        status: 404,
+      };
     }
 
     const [fromInGame, toInGame] = await Promise.all([
-      characterIsInGame(customVehicle.gameId, fromCharacterId),
-      characterIsInGame(customVehicle.gameId, toCharacterId),
+      characterIsInGame(template.gameId, fromCharacterId),
+      characterIsInGame(template.gameId, toCharacterId),
     ]);
     if (!fromInGame || !toInGame) {
       return {
         message:
-          "That vehicle can only be given to another character in the same custom-vehicle game",
+          sourceType === "CUSTOM_VEHICLE"
+            ? "That vehicle can only be given to another character in the same custom-vehicle game"
+            : "That vehicle can only be given to another character registered for its game",
         status: 403,
       };
     }
@@ -63,46 +77,7 @@ export async function validateVehicleTransferParties(
         viewerUserId,
         fromCharacterId,
         toCharacterId,
-        { restrictGameId: customVehicle.gameId }
-      ))
-    ) {
-      return {
-        message: "You cannot give vehicles to that character",
-        status: 403,
-      };
-    }
-
-    return null;
-  }
-
-  if (sourceType === "UNIQUE_VEHICLE") {
-    const uniqueVehicle = await prisma.uniqueVehicle.findUnique({
-      where: { id: vehicleId },
-      select: { gameId: true },
-    });
-    if (!uniqueVehicle) {
-      return { message: "Unique vehicle not found", status: 404 };
-    }
-
-    const [fromInGame, toInGame] = await Promise.all([
-      characterIsInGame(uniqueVehicle.gameId, fromCharacterId),
-      characterIsInGame(uniqueVehicle.gameId, toCharacterId),
-    ]);
-    if (!fromInGame || !toInGame) {
-      return {
-        message:
-          "That vehicle can only be given to another character registered for its game",
-        status: 403,
-      };
-    }
-
-    if (
-      viewerUserId &&
-      !(await viewerCanGiveItemToRecipient(
-        viewerUserId,
-        fromCharacterId,
-        toCharacterId,
-        { restrictGameId: uniqueVehicle.gameId }
+        { restrictGameId: template.gameId }
       ))
     ) {
       return {

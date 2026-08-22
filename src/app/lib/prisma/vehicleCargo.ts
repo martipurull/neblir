@@ -7,10 +7,11 @@ import type { VehicleCargoItem } from "@/app/lib/types/vehicle";
 import { prisma } from "./client";
 import { hydrateItemCharacters } from "./itemCharacter";
 import { findMountedItemByItemCharacterId } from "./vehicleMountedItem";
+import { VehicleDomainError } from "./vehicleDomainError";
 
-export class VehicleCargoConflictError extends Error {
-  constructor(message: string) {
-    super(message);
+export class VehicleCargoConflictError extends VehicleDomainError {
+  constructor(message: string, status: 404 | 409 = 409) {
+    super(message, status);
     this.name = "VehicleCargoConflictError";
   }
 }
@@ -94,7 +95,10 @@ export async function stowItemAsVehicleCargo(args: {
     },
   });
   if (!vehicle) {
-    throw new VehicleCargoConflictError("Vehicle not found for this character");
+    throw new VehicleCargoConflictError(
+      "Vehicle not found for this character",
+      404
+    );
   }
 
   const item = await prisma.itemCharacter.findFirst({
@@ -102,7 +106,8 @@ export async function stowItemAsVehicleCargo(args: {
   });
   if (!item) {
     throw new VehicleCargoConflictError(
-      "Item not found in this character's inventory"
+      "Item not found in this character's inventory",
+      404
     );
   }
 
@@ -171,7 +176,10 @@ export async function retrieveItemFromVehicleCargo(args: {
     },
   });
   if (!vehicle) {
-    throw new VehicleCargoConflictError("Vehicle not found for this character");
+    throw new VehicleCargoConflictError(
+      "Vehicle not found for this character",
+      404
+    );
   }
 
   const location = vehicleCargoItemLocation(args.vehicleCharacterId);
@@ -183,7 +191,10 @@ export async function retrieveItemFromVehicleCargo(args: {
     },
   });
   if (!item) {
-    throw new VehicleCargoConflictError("Cargo item not found on this vehicle");
+    throw new VehicleCargoConflictError(
+      "Cargo item not found on this vehicle",
+      404
+    );
   }
 
   await prisma.itemCharacter.update({

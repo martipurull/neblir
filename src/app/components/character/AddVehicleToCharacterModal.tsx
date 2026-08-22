@@ -73,7 +73,19 @@ function locomotionLabel(modes: string[]): string {
   return modes.join(" · ") || "—";
 }
 
-export function AddVehicleToCharacterModal({
+export function AddVehicleToCharacterModal(
+  props: AddVehicleToCharacterModalProps
+) {
+  if (!props.isOpen) return null;
+  return (
+    <AddVehicleToCharacterModalBody
+      key={`${props.character.id}-${props.activeGameId ?? "none"}`}
+      {...props}
+    />
+  );
+}
+
+function AddVehicleToCharacterModalBody({
   isOpen,
   onCloseAction,
   character,
@@ -90,12 +102,10 @@ export function AddVehicleToCharacterModal({
   const [addingId, setAddingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
     let cancelled = false;
     const controller = new AbortController();
     setLoading(true);
     setError(null);
-    setSearch("");
 
     void (async () => {
       try {
@@ -127,7 +137,7 @@ export function AddVehicleToCharacterModal({
       cancelled = true;
       controller.abort();
     };
-  }, [activeGameId, isOpen]);
+  }, [activeGameId]);
 
   const filteredOfficial = useMemo(
     () => officialVehicles.filter((row) => matchesQuery(row, search)),
@@ -153,12 +163,17 @@ export function AddVehicleToCharacterModal({
   const imageUrls = useImageUrls(imageEntries);
 
   const handleAdd = async (row: BrowseVehicleRow) => {
+    if (!activeGameId) {
+      setError("Select an active game before adding a vehicle.");
+      return;
+    }
     setAddingId(`${row.sourceType}-${row.id}`);
     setError(null);
     try {
       await addVehicleToCharacter(character.id, {
         sourceType: row.sourceType,
         vehicleId: row.id,
+        gameId: activeGameId,
       });
       await mutateAction();
       onCloseAction();
@@ -261,7 +276,7 @@ export function AddVehicleToCharacterModal({
                             type="button"
                             variant="modalPalePrimary"
                             fullWidth={false}
-                            disabled={isAdding}
+                            disabled={isAdding || !activeGameId}
                             onClick={() => {
                               void handleAdd(row);
                             }}
@@ -339,7 +354,7 @@ export function AddVehicleToCharacterModal({
                               type="button"
                               variant="modalPalePrimary"
                               fullWidth={false}
-                              disabled={isAdding}
+                              disabled={isAdding || !activeGameId}
                               onClick={() => {
                                 void handleAdd(row);
                               }}

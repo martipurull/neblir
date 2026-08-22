@@ -26,9 +26,11 @@ vi.mock("@/app/lib/prisma/vehicleMountedItem", () => ({
   detachItemFromVehicle: (...args: unknown[]) =>
     detachItemFromVehicleMock(...args),
   VehicleMountedItemConflictError: class VehicleMountedItemConflictError extends Error {
-    constructor(message: string) {
+    status: 404 | 409;
+    constructor(message: string, status: 404 | 409 = 409) {
       super(message);
       this.name = "VehicleMountedItemConflictError";
+      this.status = status;
     }
   },
 }));
@@ -105,7 +107,7 @@ describe("DELETE /api/characters/[id]/vehicles/[vehicleCharacterId]/mounted-item
     const { VehicleMountedItemConflictError } =
       await import("@/app/lib/prisma/vehicleMountedItem");
     detachItemFromVehicleMock.mockRejectedValue(
-      new VehicleMountedItemConflictError("Mounted item not found")
+      new VehicleMountedItemConflictError("Mounted item not found", 404)
     );
     const { DELETE } =
       await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/mounted-items/[mountedItemId]/route");

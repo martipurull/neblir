@@ -104,13 +104,14 @@ describe("/api/characters/[id]/vehicles handlers", () => {
 
   it("POST returns 404 when global vehicle is missing", async () => {
     belongsMock.mockResolvedValue(true);
+    inGameMock.mockResolvedValue(true);
     getVehicleMock.mockResolvedValue(null);
     const { POST } = await import("@/app/api/characters/[id]/vehicles/route");
 
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
-        { sourceType: "GLOBAL_VEHICLE", vehicleId: "veh-1" },
+        { sourceType: "GLOBAL_VEHICLE", vehicleId: "veh-1", gameId: "game-1" },
         "user-1"
       ),
       makeParams({ id: "char-1" })
@@ -119,16 +120,36 @@ describe("/api/characters/[id]/vehicles handlers", () => {
     expect(createVehicleCharacterMock).not.toHaveBeenCalled();
   });
 
-  it("POST returns 403 when custom vehicle is outside the character game", async () => {
+  it("POST returns 400 when character is not in the supplied game", async () => {
     belongsMock.mockResolvedValue(true);
-    getCustomVehicleMock.mockResolvedValue({ id: "cv-1", gameId: "game-1" });
     inGameMock.mockResolvedValue(false);
     const { POST } = await import("@/app/api/characters/[id]/vehicles/route");
 
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
-        { sourceType: "CUSTOM_VEHICLE", vehicleId: "cv-1" },
+        { sourceType: "CUSTOM_VEHICLE", vehicleId: "cv-1", gameId: "game-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(createVehicleCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 403 when custom vehicle belongs to a different game", async () => {
+    belongsMock.mockResolvedValue(true);
+    inGameMock.mockResolvedValue(true);
+    getCustomVehicleMock.mockResolvedValue({
+      id: "cv-1",
+      gameId: "game-other",
+    });
+    const { POST } = await import("@/app/api/characters/[id]/vehicles/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { sourceType: "CUSTOM_VEHICLE", vehicleId: "cv-1", gameId: "game-1" },
         "user-1"
       ),
       makeParams({ id: "char-1" })
@@ -139,6 +160,7 @@ describe("/api/characters/[id]/vehicles handlers", () => {
 
   it("POST returns 403 when unique vehicle is not owned by requester", async () => {
     belongsMock.mockResolvedValue(true);
+    inGameMock.mockResolvedValue(true);
     getUniqueVehicleMock.mockResolvedValue({
       id: "uv-1",
       ownerUserId: "other-user",
@@ -149,7 +171,7 @@ describe("/api/characters/[id]/vehicles handlers", () => {
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
-        { sourceType: "UNIQUE_VEHICLE", vehicleId: "uv-1" },
+        { sourceType: "UNIQUE_VEHICLE", vehicleId: "uv-1", gameId: "game-1" },
         "user-1"
       ),
       makeParams({ id: "char-1" })
@@ -178,7 +200,7 @@ describe("/api/characters/[id]/vehicles handlers", () => {
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
-        { sourceType: "UNIQUE_VEHICLE", vehicleId: "uv-1" },
+        { sourceType: "UNIQUE_VEHICLE", vehicleId: "uv-1", gameId: "game-1" },
         "user-1"
       ),
       makeParams({ id: "char-1" })
@@ -188,6 +210,7 @@ describe("/api/characters/[id]/vehicles handlers", () => {
 
   it("POST returns 201 and creates a discrete vehicle row", async () => {
     belongsMock.mockResolvedValue(true);
+    inGameMock.mockResolvedValue(true);
     getVehicleMock.mockResolvedValue({ id: "veh-1", maxHp: 20 });
     createVehicleCharacterMock.mockResolvedValue({ id: "vc-1" });
     const { POST } = await import("@/app/api/characters/[id]/vehicles/route");
@@ -195,7 +218,7 @@ describe("/api/characters/[id]/vehicles handlers", () => {
     const response = await invokeRoute(
       POST,
       makeAuthedRequest(
-        { sourceType: "GLOBAL_VEHICLE", vehicleId: "veh-1" },
+        { sourceType: "GLOBAL_VEHICLE", vehicleId: "veh-1", gameId: "game-1" },
         "user-1"
       ),
       makeParams({ id: "char-1" })

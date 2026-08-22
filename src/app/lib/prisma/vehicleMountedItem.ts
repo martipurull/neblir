@@ -7,6 +7,7 @@ import {
 } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
 import { hydrateItemCharacters } from "./itemCharacter";
+import { VehicleDomainError } from "./vehicleDomainError";
 
 type VehicleMountedItemRow = {
   id: string;
@@ -16,9 +17,9 @@ type VehicleMountedItemRow = {
   createdAt: Date;
 };
 
-export class VehicleMountedItemConflictError extends Error {
-  constructor(message: string) {
-    super(message);
+export class VehicleMountedItemConflictError extends VehicleDomainError {
+  constructor(message: string, status: 404 | 409 = 409) {
+    super(message, status);
     this.name = "VehicleMountedItemConflictError";
   }
 }
@@ -117,7 +118,8 @@ export async function attachItemToVehicle(args: {
   });
   if (!vehicle) {
     throw new VehicleMountedItemConflictError(
-      "Vehicle not found for this character"
+      "Vehicle not found for this character",
+      404
     );
   }
 
@@ -126,7 +128,8 @@ export async function attachItemToVehicle(args: {
   });
   if (!itemCharacter) {
     throw new VehicleMountedItemConflictError(
-      "Item not found in this character's inventory"
+      "Item not found in this character's inventory",
+      404
     );
   }
 
@@ -211,7 +214,8 @@ export async function detachItemFromVehicle(args: {
   });
   if (!vehicle) {
     throw new VehicleMountedItemConflictError(
-      "Vehicle not found for this character"
+      "Vehicle not found for this character",
+      404
     );
   }
 
@@ -222,7 +226,7 @@ export async function detachItemFromVehicle(args: {
     },
   });
   if (!row) {
-    throw new VehicleMountedItemConflictError("Mounted item not found");
+    throw new VehicleMountedItemConflictError("Mounted item not found", 404);
   }
 
   await prisma.$transaction(async (tx) => {

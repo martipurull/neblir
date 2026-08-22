@@ -1,7 +1,7 @@
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import {
   canVehicleBeRidden,
-  clearActiveVehicleIfMatches,
+  clearVehicleRiders,
   deleteVehicleCharacter,
   getCharacterVehicleRecord,
   getHydratedVehicleCharacter,
@@ -94,7 +94,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     if (!canVehicleBeRidden(updated)) {
-      await clearActiveVehicleIfMatches(characterId, vehicleCharacterId);
+      await clearVehicleRiders(vehicleCharacterId);
     }
 
     const hydrated = await getHydratedVehicleCharacter(vehicleCharacterId);
@@ -145,7 +145,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Vehicle not found for this character", 404);
     }
 
-    await clearActiveVehicleIfMatches(characterId, vehicleCharacterId);
+    await clearVehicleRiders(vehicleCharacterId);
     await deleteVehicleCharacter(vehicleCharacterId);
     return new Response(null, { status: 204 });
   } catch (error) {

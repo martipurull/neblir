@@ -66,8 +66,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     });
   } catch (error) {
     if (error instanceof VehicleCargoConflictError) {
-      const status = error.message.includes("not found") ? 404 : 409;
-      return errorResponse(error.message, status);
+      return errorResponse(error.message, error.status);
     }
     logger.error({
       method: "DELETE",

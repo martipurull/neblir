@@ -330,6 +330,7 @@ export const addVehiclePassengerSchema = z.object({
 export const addVehicleToCharacterSchema = z.object({
   sourceType: vehicleSourceTypeSchema,
   vehicleId: z.string(),
+  gameId: z.string().min(1, "Game is required"),
 });
 export type AddVehicleToCharacter = z.infer<typeof addVehicleToCharacterSchema>;
 
@@ -370,11 +371,11 @@ export const vehicleTransferSchema = z.object({
 });
 export type VehicleTransfer = z.infer<typeof vehicleTransferSchema>;
 
-export const giveVehicleSchema = addVehicleToCharacterSchema.and(
-  z.object({
-    characterId: z.string().min(1, "Character is required"),
-  })
-);
+export const giveVehicleSchema = z.object({
+  sourceType: vehicleSourceTypeSchema,
+  vehicleId: z.string(),
+  characterId: z.string().min(1, "Character is required"),
+});
 
 export const activeVehiclePatchSchema = z.discriminatedUnion("action", [
   z.object({

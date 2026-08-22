@@ -71,6 +71,19 @@ describe("/api/vehicles/[id] route handlers", () => {
     expect(response.status).toBe(400);
   });
 
+  it("PATCH returns 403 when requester is not a super admin", async () => {
+    userIsSuperAdminMock.mockResolvedValue(false);
+    const { PATCH } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "Updated" }),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(updateVehicleMock).not.toHaveBeenCalled();
+  });
+
   it("PATCH returns 200 on success", async () => {
     safeParseMock.mockReturnValue({
       data: { name: "Updated" },
@@ -90,6 +103,19 @@ describe("/api/vehicles/[id] route handlers", () => {
       { name: "Updated" },
       { officialCatalogueWrite: true }
     );
+  });
+
+  it("DELETE returns 403 when requester is not a super admin", async () => {
+    userIsSuperAdminMock.mockResolvedValue(false);
+    const { DELETE } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(deleteVehicleMock).not.toHaveBeenCalled();
   });
 
   it("DELETE returns 204 on success", async () => {

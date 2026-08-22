@@ -9,7 +9,7 @@ import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { RichTextField } from "@/app/components/shared/RichTextField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import useSWR from "swr";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
@@ -152,51 +152,81 @@ export function SuperAdminVehicleForm({
 }: {
   editVehicleId?: string;
 } = {}) {
-  const router = useRouter();
   const isEdit = Boolean(editVehicleId?.trim());
-  const imageKeyRef = useRef("");
-  const [status, setStatus] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
   const { data, error, isLoading } = useSWR<VehicleRow>(
     isEdit && editVehicleId ? `/api/vehicles/${editVehicleId}` : null,
     vehicleFetcher
   );
 
-  const form = useForm<VehicleFormValues>({
-    defaultValues: {
-      accessType: "PLAYER",
-      name: "",
-      brand: "",
-      year: "",
-      imageKey: "",
-      confCost: "0",
-      costInfo: "",
-      description: "",
-      notes: "",
-      maxHp: "1",
-      travelSpeedKmh: "1",
-      combatSpeedMetres: "1",
-      manoeuvrability: "0",
-      acceleration: "1",
-      weight: "",
-      heightMetres: "",
-      maxCargoWeightKg: "",
-      maxMountedItems: "",
-      maxPassengers: "1",
-      vehicleSizeCategory: "LIGHT",
-      locomotionModes: ["LAND"],
-    },
-  });
+  if (isEdit && isLoading) {
+    return (
+      <SuperAdminSectionShell
+        title="Edit vehicle"
+        description="Update the official vehicle catalogue entry."
+      >
+        <SuperAdminCatalogueDomainNav domain="vehicles" active="browse" />
+        <InfoCard className="mb-6">
+          <LoadingState text="Loading vehicle…" />
+        </InfoCard>
+      </SuperAdminSectionShell>
+    );
+  }
 
-  useEffect(() => {
-    if (!data) return;
-    const next = vehicleToFormValues(data);
-    imageKeyRef.current = next.imageKey;
-    form.reset(next);
-  }, [data, form]);
+  return (
+    <SuperAdminVehicleFormFields
+      key={data?.id ?? "create"}
+      editVehicleId={editVehicleId}
+      data={data ?? null}
+      loadError={error}
+    />
+  );
+}
+
+function SuperAdminVehicleFormFields({
+  editVehicleId,
+  data,
+  loadError: error,
+}: {
+  editVehicleId?: string;
+  data: VehicleRow | null;
+  loadError: unknown;
+}) {
+  const router = useRouter();
+  const isEdit = Boolean(editVehicleId?.trim());
+  const initialValues = data
+    ? vehicleToFormValues(data)
+    : {
+        accessType: "PLAYER" as const,
+        name: "",
+        brand: "",
+        year: "",
+        imageKey: "",
+        confCost: "0",
+        costInfo: "",
+        description: "",
+        notes: "",
+        maxHp: "1",
+        travelSpeedKmh: "1",
+        combatSpeedMetres: "1",
+        manoeuvrability: "0",
+        acceleration: "1",
+        weight: "",
+        heightMetres: "",
+        maxCargoWeightKg: "",
+        maxMountedItems: "",
+        maxPassengers: "1",
+        vehicleSizeCategory: "LIGHT" as const,
+        locomotionModes: ["LAND"] as VehicleLocomotion[],
+      };
+  const imageKeyRef = useRef(initialValues.imageKey);
+  const [status, setStatus] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const form = useForm<VehicleFormValues>({
+    defaultValues: initialValues,
+  });
 
   const watchedName = useWatch({ control: form.control, name: "name" });
 
@@ -345,12 +375,6 @@ export function SuperAdminVehicleForm({
         domain="vehicles"
         active={isEdit ? "browse" : "create"}
       />
-
-      {isLoading ? (
-        <InfoCard className="mb-6">
-          <LoadingState text="Loading vehicle…" />
-        </InfoCard>
-      ) : null}
 
       {error ? (
         <InfoCard className="mb-6">

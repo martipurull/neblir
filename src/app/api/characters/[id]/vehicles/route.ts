@@ -75,7 +75,14 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const { sourceType, vehicleId } = parsed.data;
+    const { sourceType, vehicleId, gameId } = parsed.data;
+
+    if (!(await characterIsInGame(gameId, characterId))) {
+      return errorResponse(
+        "Character is not linked to the supplied game.",
+        400
+      );
+    }
 
     if (sourceType === "GLOBAL_VEHICLE") {
       const vehicle = await getVehicle(vehicleId);
@@ -89,12 +96,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       if (!vehicle) {
         return errorResponse("Custom vehicle not found", 404);
       }
-      if (
-        !vehicle.gameId ||
-        !(await characterIsInGame(vehicle.gameId, characterId))
-      ) {
+      if (vehicle.gameId !== gameId) {
         return errorResponse(
-          "That custom vehicle can only be added to a character in its game.",
+          "That custom vehicle does not belong to the supplied game.",
           403
         );
       }
@@ -108,9 +112,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       if (vehicle.ownerUserId !== userId) {
         return errorResponse("You can only add your own unique vehicles.", 403);
       }
-      if (!(await characterIsInGame(vehicle.gameId, characterId))) {
+      if (vehicle.gameId !== gameId) {
         return errorResponse(
-          "That unique vehicle can only be added to a character in its game.",
+          "That unique vehicle does not belong to the supplied game.",
           403
         );
       }

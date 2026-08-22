@@ -32,9 +32,11 @@ vi.mock("@/app/lib/prisma/vehicleMountedItem", () => ({
     listMountedItemsForVehicleMock(...args),
   attachItemToVehicle: (...args: unknown[]) => attachItemToVehicleMock(...args),
   VehicleMountedItemConflictError: class VehicleMountedItemConflictError extends Error {
-    constructor(message: string) {
+    status: 404 | 409;
+    constructor(message: string, status: 404 | 409 = 409) {
       super(message);
       this.name = "VehicleMountedItemConflictError";
+      this.status = status;
     }
   },
 }));

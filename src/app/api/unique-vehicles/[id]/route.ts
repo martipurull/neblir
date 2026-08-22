@@ -5,6 +5,7 @@ import {
   getUniqueVehicle,
   updateUniqueVehicle,
 } from "@/app/lib/prisma/uniqueVehicle";
+import { deleteLiveInstancesForUniqueVehicle } from "@/app/lib/prisma/vehicleCharacter";
 import { uniqueVehicleUpdateSchema } from "@/app/lib/types/vehicle";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -150,6 +151,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    await deleteLiveInstancesForUniqueVehicle(id);
     await deleteUniqueVehicle(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {

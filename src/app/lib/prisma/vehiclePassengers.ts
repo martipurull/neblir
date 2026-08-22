@@ -1,10 +1,11 @@
 import type { VehiclePassenger } from "@/app/lib/types/vehicle";
 import { prisma } from "./client";
 import { charactersShareAnyGame } from "./gameCharacter";
+import { VehicleDomainError } from "./vehicleDomainError";
 
-export class VehiclePassengerConflictError extends Error {
-  constructor(message: string) {
-    super(message);
+export class VehiclePassengerConflictError extends VehicleDomainError {
+  constructor(message: string, status: 404 | 409 = 409) {
+    super(message, status);
     this.name = "VehiclePassengerConflictError";
   }
 }
@@ -27,9 +28,13 @@ export function getVehicleOccupantCount(args: {
 } {
   const occupantCount =
     (args.driverPresent ? 1 : 0) + args.passengerCharacterIds.length;
+  const remainingSeats = Math.max(
+    0,
+    args.maxPassengers - 1 - args.passengerCharacterIds.length
+  );
   return {
     occupantCount,
-    remainingSeats: Math.max(0, args.maxPassengers - occupantCount),
+    remainingSeats,
   };
 }
 
@@ -91,7 +96,8 @@ export async function addPassengerToVehicle(args: {
   });
   if (!vehicle) {
     throw new VehiclePassengerConflictError(
-      "Vehicle not found for this character"
+      "Vehicle not found for this character",
+      404
     );
   }
   if (!vehicleCanTakePassengers(vehicle)) {
@@ -122,7 +128,10 @@ export async function addPassengerToVehicle(args: {
     select: { id: true, activeVehicleCharacterId: true },
   });
   if (!passenger) {
-    throw new VehiclePassengerConflictError("Passenger character not found");
+    throw new VehiclePassengerConflictError(
+      "Passenger character not found",
+      404
+    );
   }
   if (
     passenger.activeVehicleCharacterId &&
@@ -137,6 +146,11 @@ export async function addPassengerToVehicle(args: {
     args.vehicleCharacterId,
     args.ownerCharacterId
   );
+  if (!driverPresent) {
+    throw new VehiclePassengerConflictError(
+      "Passengers can only board while the owner is driving"
+    );
+  }
   const { remainingSeats } = getVehicleOccupantCount({
     maxPassengers: args.maxPassengers,
     driverPresent,
@@ -175,7 +189,8 @@ export async function removePassengerFromVehicle(args: {
   });
   if (!vehicle) {
     throw new VehiclePassengerConflictError(
-      "Vehicle not found for this character"
+      "Vehicle not found for this character",
+      404
     );
   }
 

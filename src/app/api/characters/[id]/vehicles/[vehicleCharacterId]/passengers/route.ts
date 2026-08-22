@@ -71,8 +71,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     return NextResponse.json({ vehicle: hydrated }, { status: 201 });
   } catch (error) {
     if (error instanceof VehiclePassengerConflictError) {
-      const status = error.message.includes("not found") ? 404 : 409;
-      return errorResponse(error.message, status);
+      return errorResponse(error.message, error.status);
     }
     logger.error({
       method: "POST",

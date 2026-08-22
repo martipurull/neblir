@@ -1,6 +1,7 @@
 /**
- * Set acceleration = 1 on all Vehicle and CustomVehicle rows, and on UniqueVehicle
- * rows that have no accelerationOverride yet.
+ * Set acceleration = 1 on all Vehicle and CustomVehicle rows, and on standalone
+ * UniqueVehicle rows that have no accelerationOverride yet. Template-derived
+ * unique vehicles keep a null override so they inherit the template value.
  *
  * Usage: npx tsx prisma/scripts/backfillVehicleAcceleration.ts [--dry-run]
  */
@@ -16,7 +17,7 @@ async function main() {
     prisma.vehicle.count(),
     prisma.customVehicle.count(),
     prisma.uniqueVehicle.count({
-      where: { accelerationOverride: null },
+      where: { accelerationOverride: null, sourceType: "STANDALONE" },
     }),
   ]);
 
@@ -33,7 +34,7 @@ async function main() {
     prisma.vehicle.updateMany({ data: { acceleration: 1 } }),
     prisma.customVehicle.updateMany({ data: { acceleration: 1 } }),
     prisma.uniqueVehicle.updateMany({
-      where: { accelerationOverride: null },
+      where: { accelerationOverride: null, sourceType: "STANDALONE" },
       data: { accelerationOverride: 1 },
     }),
   ]);

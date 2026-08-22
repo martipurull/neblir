@@ -49,7 +49,7 @@ describe("vehicle cargo location helpers", () => {
 });
 
 describe("vehicle occupant capacity", () => {
-  it("counts the driver toward maxPassengers", () => {
+  it("always reserves the driver seat in remaining capacity", () => {
     expect(
       getVehicleOccupantCount({
         maxPassengers: 2,
@@ -64,6 +64,14 @@ describe("vehicle occupant capacity", () => {
         driverPresent: false,
         passengerCharacterIds: ["char-2"],
       })
-    ).toEqual({ occupantCount: 1, remainingSeats: 1 });
+    ).toEqual({ occupantCount: 1, remainingSeats: 0 });
+
+    expect(
+      getVehicleOccupantCount({
+        maxPassengers: 2,
+        driverPresent: false,
+        passengerCharacterIds: [],
+      })
+    ).toEqual({ occupantCount: 0, remainingSeats: 1 });
   });
 });

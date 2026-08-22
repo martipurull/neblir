@@ -54,7 +54,19 @@ function vehicleLabel(
   return brand ? `${name} — ${brand}` : name;
 }
 
-export function GiveVehicleToCharacterModal({
+export function GiveVehicleToCharacterModal(
+  props: GiveVehicleToCharacterModalProps
+) {
+  if (!props.isOpen) return null;
+  return (
+    <GiveVehicleToCharacterModalBody
+      key={props.lockedVehicle?.vehicleId ?? "pick"}
+      {...props}
+    />
+  );
+}
+
+function GiveVehicleToCharacterModalBody({
   isOpen,
   gameId,
   game,
@@ -73,9 +85,10 @@ export function GiveVehicleToCharacterModal({
   const [loadingCustom, setLoadingCustom] = useState(false);
   const [loadingUnique, setLoadingUnique] = useState(false);
   const [characterId, setCharacterId] = useState("");
-  const [sourceType, setSourceType] =
-    useState<GiveVehicleSourceType>("GLOBAL_VEHICLE");
-  const [vehicleId, setVehicleId] = useState("");
+  const [sourceType, setSourceType] = useState<GiveVehicleSourceType>(
+    lockedVehicle?.sourceType ?? "GLOBAL_VEHICLE"
+  );
+  const [vehicleId, setVehicleId] = useState(lockedVehicle?.vehicleId ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,31 +136,16 @@ export function GiveVehicleToCharacterModal({
   }, [gameId]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setCharacterId("");
-    setError(null);
-    if (lockedVehicle) {
-      setSourceType(lockedVehicle.sourceType);
-      setVehicleId(lockedVehicle.vehicleId);
-      return;
-    }
-    setSourceType("GLOBAL_VEHICLE");
-    setVehicleId("");
+    if (lockedVehicle) return;
     void loadGlobalVehicles();
     void loadCustomVehicles();
     void loadUniqueVehicles();
   }, [
-    isOpen,
     loadCustomVehicles,
     loadGlobalVehicles,
     loadUniqueVehicles,
     lockedVehicle,
   ]);
-
-  useEffect(() => {
-    if (lockedVehicle) return;
-    setVehicleId("");
-  }, [sourceType, lockedVehicle]);
 
   const vehicleOptions: GiveVehicleOption[] =
     sourceType === "GLOBAL_VEHICLE"
@@ -198,15 +196,6 @@ export function GiveVehicleToCharacterModal({
   };
 
   const handleClose = () => {
-    setCharacterId("");
-    if (lockedVehicle) {
-      setSourceType(lockedVehicle.sourceType);
-      setVehicleId(lockedVehicle.vehicleId);
-    } else {
-      setSourceType("GLOBAL_VEHICLE");
-      setVehicleId("");
-    }
-    setError(null);
     onClose();
   };
 
@@ -343,9 +332,10 @@ export function GiveVehicleToCharacterModal({
               value={sourceType}
               options={sourceTypeOptions}
               disabled={submitting}
-              onChange={(value) =>
-                setSourceType(value as GiveVehicleSourceType)
-              }
+              onChange={(value) => {
+                setSourceType(value as GiveVehicleSourceType);
+                setVehicleId("");
+              }}
             />
 
             <ModalSelect

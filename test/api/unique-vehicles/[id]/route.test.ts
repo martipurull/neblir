@@ -10,6 +10,7 @@ const getResolvedUniqueVehicleMock = vi.fn();
 const getUniqueVehicleMock = vi.fn();
 const updateUniqueVehicleMock = vi.fn();
 const deleteUniqueVehicleMock = vi.fn();
+const deleteLiveInstancesForUniqueVehicleMock = vi.fn();
 const safeParseMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
@@ -19,6 +20,10 @@ vi.mock("@/app/lib/prisma/uniqueVehicle", () => ({
   getUniqueVehicle: getUniqueVehicleMock,
   updateUniqueVehicle: updateUniqueVehicleMock,
   deleteUniqueVehicle: deleteUniqueVehicleMock,
+}));
+
+vi.mock("@/app/lib/prisma/vehicleCharacter", () => ({
+  deleteLiveInstancesForUniqueVehicle: deleteLiveInstancesForUniqueVehicleMock,
 }));
 
 vi.mock("@/app/lib/prisma/game", () => ({
@@ -54,6 +59,22 @@ describe("/api/unique-vehicles/[id] route handlers", () => {
       makeParams({ id: "u-1" })
     );
     expect(response.status).toBe(404);
+  });
+
+  it("GET returns 403 when requester is neither owner nor in the game", async () => {
+    getResolvedUniqueVehicleMock.mockResolvedValue({
+      id: "u-1",
+      ownerUserId: "user-2",
+      gameId: "g-1",
+    });
+    userIsInGameMock.mockResolvedValue(false);
+    const { GET } = await import("@/app/api/unique-vehicles/[id]/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({ id: "u-1" })
+    );
+    expect(response.status).toBe(403);
   });
 
   it("GET returns 200 when requester owns vehicle", async () => {
@@ -124,6 +145,7 @@ describe("/api/unique-vehicles/[id] route handlers", () => {
       gameId: "g-1",
     });
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    deleteLiveInstancesForUniqueVehicleMock.mockResolvedValue(undefined);
     deleteUniqueVehicleMock.mockResolvedValue(undefined);
     const { DELETE } = await import("@/app/api/unique-vehicles/[id]/route");
 
@@ -133,6 +155,8 @@ describe("/api/unique-vehicles/[id] route handlers", () => {
       makeParams({ id: "u-1" })
     );
     expect(response.status).toBe(204);
+    expect(deleteLiveInstancesForUniqueVehicleMock).toHaveBeenCalledWith("u-1");
+    expect(deleteUniqueVehicleMock).toHaveBeenCalledWith("u-1");
   });
 
   it("DELETE returns 403 when requester is neither owner nor game master", async () => {

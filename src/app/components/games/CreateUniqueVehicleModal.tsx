@@ -85,7 +85,17 @@ function vehicleLabel(
     : (vehicle.name ?? "Unnamed vehicle");
 }
 
-export function CreateUniqueVehicleModal({
+export function CreateUniqueVehicleModal(props: Props) {
+  if (!props.isOpen) return null;
+  return (
+    <CreateUniqueVehicleModalBody
+      key={props.editUniqueVehicleId ?? "create"}
+      {...props}
+    />
+  );
+}
+
+function CreateUniqueVehicleModalBody({
   isOpen,
   gameId,
   gameName,

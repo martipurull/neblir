@@ -10,7 +10,7 @@ const belongsMock = vi.fn();
 const getCharacterVehicleRecordMock = vi.fn();
 const updateVehicleCharacterMock = vi.fn();
 const getHydratedVehicleCharacterMock = vi.fn();
-const clearActiveVehicleIfMatchesMock = vi.fn();
+const clearVehicleRidersMock = vi.fn();
 const deleteVehicleCharacterMock = vi.fn();
 const canVehicleBeRiddenMock = vi.fn();
 
@@ -25,8 +25,7 @@ vi.mock("@/app/lib/prisma/vehicleCharacter", () => ({
     updateVehicleCharacterMock(...args),
   getHydratedVehicleCharacter: (...args: unknown[]) =>
     getHydratedVehicleCharacterMock(...args),
-  clearActiveVehicleIfMatches: (...args: unknown[]) =>
-    clearActiveVehicleIfMatchesMock(...args),
+  clearVehicleRiders: (...args: unknown[]) => clearVehicleRidersMock(...args),
   deleteVehicleCharacter: (...args: unknown[]) =>
     deleteVehicleCharacterMock(...args),
   canVehicleBeRidden: (...args: unknown[]) => canVehicleBeRiddenMock(...args),
@@ -93,10 +92,7 @@ describe("/api/characters/[id]/vehicles/[vehicleCharacterId] handlers", () => {
     expect(updateVehicleCharacterMock).toHaveBeenCalledWith("vc-1", {
       currentHp: -2,
     });
-    expect(clearActiveVehicleIfMatchesMock).toHaveBeenCalledWith(
-      "char-1",
-      "vc-1"
-    );
+    expect(clearVehicleRidersMock).toHaveBeenCalledWith("vc-1");
   });
 
   it("PATCH returns 400 on invalid body", async () => {
@@ -142,10 +138,7 @@ describe("/api/characters/[id]/vehicles/[vehicleCharacterId] handlers", () => {
       makeParams({ id: "char-1", vehicleCharacterId: "vc-1" })
     );
     expect(response.status).toBe(204);
-    expect(clearActiveVehicleIfMatchesMock).toHaveBeenCalledWith(
-      "char-1",
-      "vc-1"
-    );
+    expect(clearVehicleRidersMock).toHaveBeenCalledWith("vc-1");
     expect(deleteVehicleCharacterMock).toHaveBeenCalledWith("vc-1");
   });
 });
