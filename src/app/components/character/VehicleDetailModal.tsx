@@ -115,6 +115,8 @@ export function VehicleDetailModal({
   >([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
+  const [alreadyRidingWarningOpen, setAlreadyRidingWarningOpen] =
+    useState(false);
   const [mountItemId, setMountItemId] = useState("");
   const [mountStatHint, setMountStatHint] = useState<string | null>(null);
   const [mountedDetailItemId, setMountedDetailItemId] = useState<string | null>(
@@ -271,10 +273,45 @@ export function VehicleDetailModal({
       await action();
       await mutateAction();
     } catch (e) {
-      setActionError(getUserSafeErrorMessage(e, "Vehicle action failed"));
+      const message = getUserSafeErrorMessage(e, "Vehicle action failed");
+      if (
+        label === "mount" &&
+        message.includes("Dismount the current vehicle")
+      ) {
+        setAlreadyRidingWarningOpen(true);
+        return;
+      }
+      setActionError(message);
     } finally {
       setBusyAction(null);
     }
+  };
+
+  const riddenVehicleName = useMemo(() => {
+    const ridden = (character.vehicles ?? []).find(
+      (vehicle) => vehicle.id === activeVehicleCharacterId
+    );
+    return (
+      ridden?.customName ?? ridden?.vehicle?.name ?? "your current vehicle"
+    );
+  }, [activeVehicleCharacterId, character.vehicles]);
+
+  const isAlreadyRidingAnotherVehicle = Boolean(
+    activeVehicleCharacterId && activeVehicleCharacterId !== entry.id
+  );
+
+  const requestMount = () => {
+    if (isAlreadyRidingAnotherVehicle) {
+      setActionError(null);
+      setAlreadyRidingWarningOpen(true);
+      return;
+    }
+    void runAction("mount", async () => {
+      await updateCharacterActiveVehicle(characterId, {
+        action: "mount",
+        vehicleCharacterId: entry.id,
+      });
+    });
   };
 
   const requestTransfer = () => {
@@ -494,14 +531,7 @@ export function VehicleDetailModal({
                   variant="modalPalePrimary"
                   fullWidth={false}
                   disabled={busyAction != null || !entry.canBeRidden}
-                  onClick={() => {
-                    void runAction("mount", async () => {
-                      await updateCharacterActiveVehicle(characterId, {
-                        action: "mount",
-                        vehicleCharacterId: entry.id,
-                      });
-                    });
-                  }}
+                  onClick={requestMount}
                 >
                   {entry.canBeRidden ? "Mount vehicle" : "Cannot be ridden"}
                 </Button>
@@ -976,6 +1006,22 @@ export function VehicleDetailModal({
           <p className="text-sm text-neblirDanger-400">{actionError}</p>
         ) : null}
       </div>
+
+      <DangerConfirmModal
+        isOpen={alreadyRidingWarningOpen}
+        variant="modalBackground"
+        hideCancel
+        title="Already riding a vehicle"
+        description={
+          <>
+            Dismount {riddenVehicleName} before mounting another vehicle. You
+            can ride at most one vehicle at a time.
+          </>
+        }
+        confirmLabel="OK"
+        onCancel={() => setAlreadyRidingWarningOpen(false)}
+        onConfirm={() => setAlreadyRidingWarningOpen(false)}
+      />
 
       <DangerConfirmModal
         isOpen={transferConfirmOpen}

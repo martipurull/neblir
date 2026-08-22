@@ -24,7 +24,7 @@ type GiveVehicleSourceType =
   | "CUSTOM_VEHICLE"
   | "UNIQUE_VEHICLE";
 
-export type GiveVehicleOption = {
+type GiveVehicleOption = {
   sourceType: GiveVehicleSourceType;
   vehicleId: string;
   label: string;
