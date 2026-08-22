@@ -358,6 +358,70 @@ describe("/api/upload-image POST", () => {
     expect(userIsSuperAdminMock).toHaveBeenCalled();
     expect(s3SendMock).toHaveBeenCalledTimes(1);
   });
+
+  it("returns 403 when type is vehicles and user is not super admin", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    userIsSuperAdminMock.mockResolvedValueOnce(false);
+
+    const file = new File(["x"], "speeder.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "vehicles" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 with fileKey prefixed vehicles- when type is vehicles and user is super admin", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "Speeder.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "vehicles" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^vehicles-/);
+    expect(data.fileKey).toMatch(/\.png$/);
+    expect(userIsSuperAdminMock).toHaveBeenCalled();
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 201 with fileKey prefixed custom_vehicles- when type is custom_vehicles", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "custom.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "custom_vehicles" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^custom_vehicles-/);
+  });
+
+  it("returns 201 with fileKey prefixed unique_vehicles- when type is unique_vehicles", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "unique.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "unique_vehicles" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^unique_vehicles-/);
+  });
 });
 
 describe("/api/upload-image DELETE", () => {

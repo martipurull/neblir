@@ -16,9 +16,12 @@ const ALLOWED_TYPES = [
   "custom_items",
   "custom_enemies",
   "unique_items",
+  "custom_vehicles",
+  "unique_vehicles",
   "games",
   "characters",
   "items",
+  "vehicles",
   "maps",
   "files",
 ] as const satisfies readonly UploadKeyType[];
@@ -53,12 +56,12 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, files",
+        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, files, custom_vehicles, unique_vehicles, vehicles",
         400
       );
     }
 
-    if (type === "items" || type === "maps") {
+    if (type === "items" || type === "vehicles" || type === "maps") {
       if (!(await userIsSuperAdmin(request.auth.user.id))) {
         return errorResponse("Forbidden", 403);
       }

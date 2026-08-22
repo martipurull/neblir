@@ -15,6 +15,7 @@ import {
   weaponDamageTypeSchema,
 } from "./item";
 import { gameCharacterWithGameSchema } from "./game";
+import { vehicleCharacterSchema } from "./vehicle";
 import { Race, Religion, Status } from "@prisma/client";
 import { specialAbilityNameSchemaValues } from "../specialAbility";
 
@@ -64,6 +65,7 @@ const resolvedItemSchema = z
     equippable: z.boolean().optional().nullable(),
     equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
     equipSlotCost: equipSlotCostSchema.optional().nullable(),
+    vehicleMountable: z.boolean().optional().nullable(),
     modifiesAttribute: itemAttributePathSchema.optional().nullable(),
     attributeMod: z.number().int().optional().nullable(),
     modifiesSkill: itemGeneralSkillSchema.optional().nullable(),
@@ -91,6 +93,8 @@ export const itemCharacterSchema = z.object({
   itemLocation: z.string().optional(),
   item: resolvedItemSchema.nullable(),
 });
+export type ResolvedItem = z.infer<typeof resolvedItemSchema>;
+export type ItemCharacter = z.infer<typeof itemCharacterSchema>;
 
 export const generalInformationSchema = z.object({
   name: z.string(),
@@ -247,6 +251,11 @@ export const characterSchema = z.object({
     .array(z.lazy(() => itemCharacterSchema))
     .optional()
     .nullish(),
+  vehicles: z
+    .array(z.lazy(() => vehicleCharacterSchema))
+    .optional()
+    .nullish(),
+  activeVehicleCharacterId: z.string().optional().nullish(),
   notes: characterNotesSchema.optional().nullish(),
   paths: z
     .array(z.lazy(() => pathSchema))

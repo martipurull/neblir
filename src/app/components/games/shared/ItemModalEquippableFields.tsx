@@ -11,6 +11,8 @@ type Props = {
   onToggleEquipSlot: (value: string) => void;
   equipSlotCost: string;
   onEquipSlotCostChange: (value: string) => void;
+  vehicleMountable?: boolean;
+  onVehicleMountableChange?: (value: boolean) => void;
 };
 
 export function ItemModalEquippableFields({
@@ -21,6 +23,8 @@ export function ItemModalEquippableFields({
   onToggleEquipSlot,
   equipSlotCost,
   onEquipSlotCostChange,
+  vehicleMountable = false,
+  onVehicleMountableChange,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -31,6 +35,15 @@ export function ItemModalEquippableFields({
         tone="inverse"
         label="Can be equipped"
       />
+      {onVehicleMountableChange ? (
+        <Checkbox
+          checked={vehicleMountable}
+          onChange={onVehicleMountableChange}
+          disabled={disabled}
+          tone="inverse"
+          label="Can be mounted on a vehicle"
+        />
+      ) : null}
       {equippable && (
         <>
           <div>

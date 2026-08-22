@@ -12,6 +12,7 @@ export type ModalNumberFieldProps = {
   /** Passed to FieldLabel. Defaults to true (required marker). */
   required?: boolean;
   placeholder?: string;
+  hint?: string;
   min?: number;
   max?: number;
   step?: number;
@@ -28,6 +29,7 @@ export function ModalNumberField({
   disabled,
   required = true,
   placeholder,
+  hint,
   min,
   max,
   step = 1,
@@ -36,6 +38,7 @@ export function ModalNumberField({
   return (
     <div>
       <FieldLabel id={id} label={label} required={required} />
+      {hint ? <p className="mb-1 text-xs text-white/60">{hint}</p> : null}
       <NumberField
         id={id}
         value={value}

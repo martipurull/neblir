@@ -26,6 +26,7 @@ describe("characterSections registry", () => {
       "paths",
       "features",
       "inventory",
+      "vehicles",
       "wallet",
       "notes",
     ]);

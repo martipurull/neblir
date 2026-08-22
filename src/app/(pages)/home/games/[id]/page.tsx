@@ -174,6 +174,17 @@ export default function GameDetailPage() {
             </span>
           </Link>
           <Link
+            href={`/home/games/${game.id}/custom-vehicles`}
+            className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
+          >
+            <span className="text-sm font-semibold text-black">
+              Custom Vehicles
+            </span>
+            <span className="mt-1 block text-xs text-black/70">
+              Browse game vehicle templates
+            </span>
+          </Link>
+          <Link
             href={`/home/games/${game.id}/lore`}
             className="block rounded-md border border-black p-4 transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
           >

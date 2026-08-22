@@ -5,14 +5,14 @@ import {
 } from "@/app/lib/types/item";
 import {
   itemCharacterSchema,
-  type CharacterDetail,
+  type ItemCharacter,
 } from "@/app/lib/types/character";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 /** Item as returned from GET /api/items (includes id) */
 export type ItemWithId = ItemResponse;
 
-export type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
+export type InventoryEntry = ItemCharacter;
 
 type ApiErrorPayload = { message?: string; details?: string };
 

@@ -1,11 +1,19 @@
 "use client";
 
+import { BrowseCustomEnemiesModal } from "@/app/components/games/BrowseCustomEnemiesModal";
+import { BrowseCustomItemsModal } from "@/app/components/games/BrowseCustomItemsModal";
+import { BrowseCustomVehiclesModal } from "@/app/components/games/BrowseCustomVehiclesModal";
 import { BrowseEnemiesModal } from "@/app/components/games/BrowseEnemiesModal";
+import { BrowseItemsModal } from "@/app/components/games/BrowseItemsModal";
+import { BrowseVehiclesModal } from "@/app/components/games/BrowseVehiclesModal";
 import { CopyCustomEnemyModal } from "@/app/components/games/CopyCustomEnemyModal";
 import { CreateCustomEnemyModal } from "@/app/components/games/CreateCustomEnemyModal";
 import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
+import { CreateCustomVehicleModal } from "@/app/components/games/CreateCustomVehicleModal";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
+import { CreateUniqueVehicleModal } from "@/app/components/games/CreateUniqueVehicleModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
+import { GiveVehicleToCharacterModal } from "@/app/components/games/GiveVehicleToCharacterModal";
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
 import { ImportCustomEnemiesModal } from "@/app/components/games/ImportCustomEnemiesModal";
 import { Button } from "@/app/components/shared/Button";
@@ -27,6 +35,7 @@ import {
   GmItemsSection,
   GmNpcsSection,
   GmTableSettingsCard,
+  GmVehiclesSection,
 } from "./sections";
 import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
@@ -58,6 +67,7 @@ export function GameMasterPageClient() {
   const { games: allGames } = useGames();
 
   const [customItemModalOpen, setCustomItemModalOpen] = useState(false);
+  const [customVehicleModalOpen, setCustomVehicleModalOpen] = useState(false);
   const [customEnemyModalOpen, setCustomEnemyModalOpen] = useState(false);
   const [editCustomEnemyId, setEditCustomEnemyId] = useState<string | null>(
     null
@@ -65,8 +75,16 @@ export function GameMasterPageClient() {
   const [importCustomEnemiesOpen, setImportCustomEnemiesOpen] = useState(false);
   const [copyCustomEnemyOpen, setCopyCustomEnemyOpen] = useState(false);
   const [browseEnemiesOpen, setBrowseEnemiesOpen] = useState(false);
+  const [browseCustomEnemiesOpen, setBrowseCustomEnemiesOpen] = useState(false);
+  const [browseItemsOpen, setBrowseItemsOpen] = useState(false);
+  const [browseCustomItemsOpen, setBrowseCustomItemsOpen] = useState(false);
+  const [browseVehiclesOpen, setBrowseVehiclesOpen] = useState(false);
+  const [browseCustomVehiclesOpen, setBrowseCustomVehiclesOpen] =
+    useState(false);
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
+  const [uniqueVehicleModalOpen, setUniqueVehicleModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
+  const [giveVehicleModalOpen, setGiveVehicleModalOpen] = useState(false);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
     useState(false);
   const [initiativeActionId, setInitiativeActionId] = useState<string | null>(
@@ -245,13 +263,6 @@ export function GameMasterPageClient() {
 
         <GmDiceRollerSection gameId={game.id} />
 
-        <GmItemsSection
-          gameId={game.id}
-          onCreateCustom={() => setCustomItemModalOpen(true)}
-          onCreateUnique={() => setUniqueItemModalOpen(true)}
-          onGiveItem={() => setGiveItemModalOpen(true)}
-        />
-
         <GmCombatInitiativeSection
           game={game}
           initiativeOrder={initiativeOrder}
@@ -292,16 +303,29 @@ export function GameMasterPageClient() {
             setCustomEnemyModalOpen(true);
           }}
           onOpenBrowse={() => setBrowseEnemiesOpen(true)}
-          onEdit={(enemyId) => {
-            setCustomEnemyModalOpen(false);
-            setEditCustomEnemyId(enemyId);
-          }}
+          onOpenBrowseCustom={() => setBrowseCustomEnemiesOpen(true)}
           onOpenImport={() => setImportCustomEnemiesOpen(true)}
           onOpenCopy={() => setCopyCustomEnemyOpen(true)}
           onMutate={async () => {
             await mutate();
           }}
           onInitiativeRolled={applyGameUpdate}
+        />
+
+        <GmItemsSection
+          onBrowseCatalogue={() => setBrowseItemsOpen(true)}
+          onBrowseCustom={() => setBrowseCustomItemsOpen(true)}
+          onCreateCustom={() => setCustomItemModalOpen(true)}
+          onCreateUnique={() => setUniqueItemModalOpen(true)}
+          onGiveItem={() => setGiveItemModalOpen(true)}
+        />
+
+        <GmVehiclesSection
+          onBrowseCatalogue={() => setBrowseVehiclesOpen(true)}
+          onBrowseCustom={() => setBrowseCustomVehiclesOpen(true)}
+          onCreateCustom={() => setCustomVehicleModalOpen(true)}
+          onCreateUnique={() => setUniqueVehicleModalOpen(true)}
+          onGiveVehicle={() => setGiveVehicleModalOpen(true)}
         />
 
         <GmTableSettingsCard gameId={game.id} />
@@ -312,6 +336,13 @@ export function GameMasterPageClient() {
         gameId={game.id}
         gameName={game.name}
         onClose={() => setCustomItemModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <CreateCustomVehicleModal
+        isOpen={customVehicleModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setCustomVehicleModalOpen(false)}
         onSuccess={() => void mutate()}
       />
       <CreateCustomEnemyModal
@@ -352,6 +383,59 @@ export function GameMasterPageClient() {
           await mutate();
         }}
       />
+      <BrowseCustomEnemiesModal
+        isOpen={browseCustomEnemiesOpen}
+        game={game}
+        gameName={game.name}
+        onClose={() => setBrowseCustomEnemiesOpen(false)}
+        onEdit={(enemyId) => {
+          setCustomEnemyModalOpen(false);
+          setEditCustomEnemyId(enemyId);
+        }}
+        onSuccess={async () => {
+          await mutate();
+        }}
+      />
+      <BrowseItemsModal
+        isOpen={browseItemsOpen}
+        gameId={game.id}
+        game={game}
+        gameName={game.name}
+        onClose={() => setBrowseItemsOpen(false)}
+        onSuccess={async () => {
+          await mutate();
+        }}
+      />
+      <BrowseCustomItemsModal
+        isOpen={browseCustomItemsOpen}
+        gameId={game.id}
+        game={game}
+        gameName={game.name}
+        onClose={() => setBrowseCustomItemsOpen(false)}
+        onSuccess={async () => {
+          await mutate();
+        }}
+      />
+      <BrowseVehiclesModal
+        isOpen={browseVehiclesOpen}
+        gameId={game.id}
+        game={game}
+        gameName={game.name}
+        onClose={() => setBrowseVehiclesOpen(false)}
+        onSuccess={async () => {
+          await mutate();
+        }}
+      />
+      <BrowseCustomVehiclesModal
+        isOpen={browseCustomVehiclesOpen}
+        gameId={game.id}
+        game={game}
+        gameName={game.name}
+        onClose={() => setBrowseCustomVehiclesOpen(false)}
+        onSuccess={async () => {
+          await mutate();
+        }}
+      />
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}
         customTemplateGameIds={[game.id]}
@@ -361,11 +445,25 @@ export function GameMasterPageClient() {
         onClose={() => setUniqueItemModalOpen(false)}
         onSuccess={() => void mutate()}
       />
+      <CreateUniqueVehicleModal
+        isOpen={uniqueVehicleModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onCloseAction={() => setUniqueVehicleModalOpen(false)}
+        onSuccessAction={() => void mutate()}
+      />
       <GiveItemToCharacterModal
         isOpen={giveItemModalOpen}
         gameId={game.id}
         game={game}
         onClose={() => setGiveItemModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <GiveVehicleToCharacterModal
+        isOpen={giveVehicleModalOpen}
+        gameId={game.id}
+        game={game}
+        onClose={() => setGiveVehicleModalOpen(false)}
         onSuccess={() => void mutate()}
       />
       <GmNpcInitiativeRollModal

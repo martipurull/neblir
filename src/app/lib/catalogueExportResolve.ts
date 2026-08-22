@@ -1,5 +1,6 @@
 const CATALOGUE_EXPORT_DOMAIN_ORDER = [
   "items",
+  "vehicles",
   "enemies",
   "paths",
   "features",

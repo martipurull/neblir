@@ -25,7 +25,7 @@ const AUTO_EQUIP_SLOT_TRY_ORDER: readonly EquipSlot[] = [
 ] as const;
 
 type CarriedEntryForCapacity = {
-  id: string;
+  id?: string | null;
   status?: ItemStatus;
   equipSlots?: string[];
   item?: {
@@ -150,7 +150,7 @@ export function pickFirstFlexibleEquipSlot(
 /** Whether one more auto-equip (all required slots) is allowed for this stack. */
 export function entryCanAutoEquip(
   entry: CarriedEntryForCapacity & {
-    quantity: number;
+    quantity?: number | null;
     item?: {
       equippable?: boolean | null;
       equipSlotTypes?: string[] | null;
@@ -161,9 +161,11 @@ export function entryCanAutoEquip(
   if (entry.status != null && !isItemInventoryOperational(entry.status)) {
     return false;
   }
+  if (!entry.id) return false;
   if (entry.item?.equippable !== true) return false;
+  const quantity = entry.quantity ?? 0;
   const types = entry.item?.equipSlotTypes;
-  if (getEquippedInstanceCount(entry.equipSlots, types) >= entry.quantity) {
+  if (getEquippedInstanceCount(entry.equipSlots, types) >= quantity) {
     return false;
   }
   const typesList = types?.filter(Boolean) ?? [];

@@ -1,11 +1,15 @@
-import type { CharacterDetail } from "@/app/lib/types/character";
+import type {
+  CharacterDetail,
+  ItemCharacter,
+  ResolvedItem,
+} from "@/app/lib/types/character";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import type { KeyedMutator } from "swr";
 
-export type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
+export type InventoryEntry = ItemCharacter;
 
-export type ResolvedItemNonNull = NonNullable<InventoryEntry["item"]>;
+export type ResolvedItemNonNull = NonNullable<ResolvedItem>;
 
 type ItemDetailEquipControl = {
   carriedInventory: InventoryEntry[];
@@ -31,4 +35,6 @@ export interface ItemDetailModalProps {
   rollPrivacy?: RollPrivacyOptions;
   /** When set, shows an edit control for owned unique items. */
   onEditUniqueItem?: () => void;
+  /** VehicleCharacter id → name for cargo/mount location labels. */
+  vehicleNamesById?: Readonly<Record<string, string>>;
 }

@@ -1,6 +1,11 @@
 import React from "react";
 
-type ImageLoadingSkeletonVariant = "avatar" | "item" | "currency" | "cityscape";
+type ImageLoadingSkeletonVariant =
+  | "avatar"
+  | "item"
+  | "vehicle"
+  | "currency"
+  | "cityscape";
 
 interface ImageLoadingSkeletonProps {
   variant?: ImageLoadingSkeletonVariant;
@@ -12,6 +17,7 @@ interface ImageLoadingSkeletonProps {
 const variantSvgClassName: Record<ImageLoadingSkeletonVariant, string> = {
   avatar: "h-10 w-10 text-black/25",
   item: "h-9 w-9 text-black/25",
+  vehicle: "h-9 w-9 text-black/25",
   currency: "h-6 w-6 text-black/25",
   cityscape: "h-7 w-7 text-black/25",
 };
@@ -20,6 +26,7 @@ const variantBackgroundClassName: Record<ImageLoadingSkeletonVariant, string> =
   {
     avatar: "bg-black/10",
     item: "bg-black/10",
+    vehicle: "bg-black/10",
     currency: "bg-black/10",
     cityscape: "bg-black/10",
   };
@@ -170,6 +177,24 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
               </g>
             </g>
           </svg>
+        ) : variant === "vehicle" ? (
+          <svg
+            viewBox="0 0 48 48"
+            className={variantSvgClassName.vehicle}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.35"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 28h32l-2.5-8.5H10.5L8 28z" />
+            <path d="M6 28v4.5h3M42 28v4.5h-3" />
+            <circle cx="14" cy="33.5" r="3.25" />
+            <circle cx="34" cy="33.5" r="3.25" />
+            <path d="M17.25 33.5h13.5" />
+            <path d="M14.5 19.5h19l2 4.5" opacity="0.55" />
+            <path d="M22 24h4M27 24h4" opacity="0.45" />
+          </svg>
         ) : variant === "currency" ? (
           <svg
             viewBox="0 0 48 48"
@@ -232,7 +257,7 @@ const ImageLoadingSkeleton: React.FC<ImageLoadingSkeletonProps> = ({
           </svg>
         )}
       </div>
-      <style jsx>{`
+      <style>{`
         .image-loading-skeleton--animated {
           animation: image-skeleton-pulse 1.4s ease-in-out infinite;
         }

@@ -38,6 +38,7 @@ function emptyDraft(overrides: Partial<UniqueItemDraft> = {}): UniqueItemDraft {
     weightOverride: "",
     specialTag: "",
     equippableOverride: "",
+    vehicleMountableOverride: "",
     equipSlotTypesOverride: [],
     equipSlotCostOverride: "",
     maxUsesOverride: "",

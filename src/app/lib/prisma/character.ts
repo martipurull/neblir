@@ -5,6 +5,10 @@ import { prisma } from "./client";
 import type { Prisma } from "@prisma/client";
 import { hydrateItemCharacters } from "./itemCharacter";
 import {
+  getHydratedVehicleCharacter,
+  hydrateVehicleCharacters,
+} from "./vehicleCharacter";
+import {
   CharacterCreationTransactionError,
   CharacterDeletionTransactionError,
   ValidationError,
@@ -152,6 +156,7 @@ export async function getCharacter(id: string) {
     include: {
       wallet: true,
       inventory: true,
+      vehicles: true,
       games: {
         include: {
           game: { select: { id: true, name: true } },
@@ -165,7 +170,20 @@ export async function getCharacter(id: string) {
   if (!character) return null;
 
   const rawInventory = character.inventory ?? [];
+  const rawVehicles = character.vehicles ?? [];
   const hydratedInventory = await hydrateItemCharacters(rawInventory);
+  let hydratedVehicles = await hydrateVehicleCharacters(rawVehicles);
+
+  const activeVehicleId = character.activeVehicleCharacterId;
+  if (
+    activeVehicleId &&
+    !hydratedVehicles.some((vehicle) => vehicle.id === activeVehicleId)
+  ) {
+    const guestVehicle = await getHydratedVehicleCharacter(activeVehicleId);
+    if (guestVehicle) {
+      hydratedVehicles = [...hydratedVehicles, guestVehicle];
+    }
+  }
 
   return {
     ...character,
@@ -174,6 +192,7 @@ export async function getCharacter(id: string) {
       quantity: entry.quantity,
     })),
     inventory: hydratedInventory ?? [],
+    vehicles: hydratedVehicles ?? [],
     paths: character.paths.map((pc) => ({
       ...pc.path,
       rank: pc.rank,

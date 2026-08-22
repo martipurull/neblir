@@ -15,6 +15,10 @@ import {
   HEADER_EQUIP_SLOTS_ROW1,
   HEADER_EQUIP_SLOTS_ROW2,
 } from "@/app/lib/equipUtils";
+import {
+  VEHICLE_COMBAT_SPEED_HELP,
+  VEHICLE_TRAVEL_SPEED_HELP,
+} from "@/app/lib/constants/vehicleFields";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
@@ -246,6 +250,17 @@ export function CharacterSummaryHeader({
       : `${formatWeightKgForDisplay(carriedWeight)} kg`;
 
   const canEquip = !!mutate;
+  const activeVehicle = useMemo(
+    () =>
+      (character.vehicles ?? []).find(
+        (entry) => entry.id === character.activeVehicleCharacterId
+      ) ?? null,
+    [character.activeVehicleCharacterId, character.vehicles]
+  );
+  const activeVehicleName =
+    activeVehicle?.customName ??
+    activeVehicle?.vehicle?.name ??
+    "Unknown vehicle";
 
   return (
     <header
@@ -276,6 +291,39 @@ export function CharacterSummaryHeader({
           onOpenDiceRoller={onOpenDiceRoller}
           showCharacterActions={!readOnly}
         />
+
+        {activeVehicle ? (
+          <div className="mt-1 w-full rounded-lg border border-black bg-paleBlue/40 px-3 py-2 text-sm text-black">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="rounded-full border border-customPrimary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-customPrimary">
+                Riding
+              </span>
+              <span className="font-medium">{activeVehicleName}</span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-black/80">
+              <span title={VEHICLE_COMBAT_SPEED_HELP}>
+                Combat speed{" "}
+                <span className="tabular-nums line-through text-black/55">
+                  {combatInformation.speed}m
+                </span>{" "}
+                <span className="tabular-nums font-semibold text-black">
+                  {activeVehicle.vehicle?.combatSpeedMetres != null
+                    ? `${activeVehicle.vehicle.combatSpeedMetres}m`
+                    : "—"}
+                </span>
+                <span className="text-black/55"> / turn</span>
+              </span>
+              <span title={VEHICLE_TRAVEL_SPEED_HELP}>
+                Travel speed{" "}
+                <span className="tabular-nums font-semibold text-black">
+                  {activeVehicle.vehicle?.travelSpeedKmh != null
+                    ? `${activeVehicle.vehicle.travelSpeedKmh}km/h`
+                    : "—"}
+                </span>
+              </span>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-3 w-full">
           {/* Top row: featured stats (always 3 across, fill available width) */}

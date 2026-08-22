@@ -1,7 +1,7 @@
 "use client";
 
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
-import type { CharacterDetail } from "@/app/lib/types/character";
+import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
 import { AddItemToInventoryModal } from "@/app/components/character/AddItemToInventoryModal";
 import { ItemDetailModal } from "@/app/components/character/ItemDetailModal";
 import { Button } from "@/app/components/shared/Button";
@@ -9,6 +9,7 @@ import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemMo
 import {
   getCarriedInventory,
   ITEM_LOCATION_CARRIED,
+  formatItemLocationLabel,
   sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
@@ -32,10 +33,11 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
+type InventoryEntry = ItemCharacter;
 
 const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
-const STORED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_8rem] gap-3";
+const STORED_GRID =
+  "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_minmax(5.5rem,11rem)] gap-3";
 
 function InventoryList({
   title,
@@ -47,6 +49,7 @@ function InventoryList({
   unequippingId,
   equippingId,
   readOnly = false,
+  vehicleNamesById,
 }: {
   title: string;
   entries: InventoryEntry[];
@@ -57,6 +60,7 @@ function InventoryList({
   unequippingId: string | null;
   equippingId: string | null;
   readOnly?: boolean;
+  vehicleNamesById?: Readonly<Record<string, string>>;
 }) {
   if (entries.length === 0) return null;
   const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
@@ -94,8 +98,10 @@ function InventoryList({
             operational &&
             !hasEquippedSlots;
           const location =
-            variant === "stored" && entry.itemLocation?.trim()
-              ? entry.itemLocation.trim()
+            variant === "stored"
+              ? formatItemLocationLabel(entry.itemLocation, {
+                  vehicleNamesById,
+                })
               : null;
           return (
             <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
@@ -231,9 +237,7 @@ function InventorySectionContent({
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
   const [editUniqueItemId, setEditUniqueItemId] = useState<string | null>(null);
-  const [detailEntry, setDetailEntry] = useState<
-    NonNullable<CharacterDetail["inventory"]>[number] | null
-  >(null);
+  const [detailEntry, setDetailEntry] = useState<InventoryEntry | null>(null);
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
@@ -248,6 +252,16 @@ function InventorySectionContent({
     () => character.inventory ?? [],
     [character.inventory]
   );
+  const vehicleNamesById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const vehicle of character.vehicles ?? []) {
+      map[vehicle.id] =
+        vehicle.customName?.trim() ??
+        vehicle.vehicle?.name?.trim() ??
+        "Vehicle";
+    }
+    return map;
+  }, [character.vehicles]);
   const characterGames = useMemo(
     () => Array.from(new Set((character.games ?? []).map((g) => g.gameId))),
     [character.games]
@@ -278,9 +292,7 @@ function InventorySectionContent({
     return !isOverCarryLimit(carriedWeight, maxCarryWeight);
   }, [character.combatInformation?.maxCarryWeight, inventory]);
 
-  const handleAutoEquip = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number]
-  ) => {
+  const handleAutoEquip = async (entry: InventoryEntry) => {
     if (!mutate) return;
     setEquippingId(entry.id);
     setEquipError(null);
@@ -300,9 +312,7 @@ function InventorySectionContent({
     }
   };
 
-  const handleUnequip = async (
-    entry: NonNullable<CharacterDetail["inventory"]>[number]
-  ) => {
+  const handleUnequip = async (entry: InventoryEntry) => {
     if (!entry.equipSlots?.length || !mutate) return;
     setUnequippingId(entry.id);
     try {
@@ -412,6 +422,7 @@ function InventorySectionContent({
             title="On hand"
             variant="carried"
             entries={carriedInventory}
+            vehicleNamesById={vehicleNamesById}
             onSelectDetail={setDetailEntry}
             onSelectEquip={
               readOnly
@@ -431,6 +442,7 @@ function InventorySectionContent({
             title="Stored"
             variant="stored"
             entries={storedInventory}
+            vehicleNamesById={vehicleNamesById}
             onSelectDetail={setDetailEntry}
             onSelectEquip={null}
             onUnequip={(entry) => {
@@ -513,6 +525,7 @@ function InventorySectionContent({
                 }
               : undefined
           }
+          vehicleNamesById={vehicleNamesById}
         />
       )}
 

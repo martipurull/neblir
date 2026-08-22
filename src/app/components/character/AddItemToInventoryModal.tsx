@@ -1,6 +1,9 @@
 "use client";
 
-import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
+import {
+  itemWithIdToBrowseDetail,
+  type ItemBrowseDetailFields,
+} from "@/app/lib/types/itemBrowseDetail";
 import { addItemToCharacterInventory } from "@/lib/api/items";
 import type { ItemWithId } from "@/lib/api/items";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -198,12 +201,19 @@ export function AddItemToInventoryModal({
   );
 
   const handleAddFromDetail = useCallback(
-    async (item: ItemBrowseDetailFields, quantity: number) => {
+    async (_item: ItemBrowseDetailFields, quantity: number) => {
       if (!selectedRow) return;
       await addRowToInventory(selectedRow, quantity);
     },
     [addRowToInventory, selectedRow]
   );
+
+  const selectedDetailItem =
+    selectedRow == null
+      ? null
+      : selectedRow.source === "GLOBAL"
+        ? itemWithIdToBrowseDetail(selectedRow.item)
+        : selectedRow.item;
 
   if (!isOpen) return null;
 
@@ -326,7 +336,7 @@ export function AddItemToInventoryModal({
       <BrowseItemDetailModal
         isOpen={selectedRow != null}
         onClose={() => setSelectedRow(null)}
-        item={selectedRow?.item ?? null}
+        item={selectedDetailItem}
         onAddToInventory={handleAddFromDetail}
         isAdding={addingKey === selectedRow?.key}
       />

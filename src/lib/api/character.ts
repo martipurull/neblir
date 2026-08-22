@@ -5,7 +5,7 @@ import {
   type CharacterDetail,
   type CharacterNoteEntry,
 } from "@/app/lib/types/character";
-import { walletSchema } from "@/app/lib/types/item";
+import { walletSchema, type Currency } from "@/app/lib/types/item";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import type { SoldierFavouriteWeaponUpdate } from "@/app/lib/types/path";
 import { getUserSafeApiError } from "@/lib/userSafeError";
@@ -300,7 +300,7 @@ export async function updateCharacterCombatInfo(
   return parsed.data;
 }
 
-export type WalletEntry = { currencyName: string; quantity: number };
+export type WalletEntry = Currency;
 
 export async function addWalletCurrency(
   characterId: string,

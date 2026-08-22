@@ -146,6 +146,12 @@ export function SuperAdminPageClient() {
           Enemies
         </Link>
         <Link
+          href="/home/super-admin/vehicles/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Vehicles
+        </Link>
+        <Link
           href="/home/super-admin/reference/browse"
           className={superAdminNavLinkClassName}
         >
@@ -188,6 +194,12 @@ export function SuperAdminPageClient() {
           Enemies
         </Link>
         <Link
+          href="/home/super-admin/vehicles"
+          className={superAdminNavLinkClassName}
+        >
+          Vehicles
+        </Link>
+        <Link
           href="/home/super-admin/reference"
           className={superAdminNavLinkClassName}
         >
@@ -209,9 +221,9 @@ export function SuperAdminPageClient() {
           Downloads current database rows as JSON (one file).{" "}
           <strong>Touched domains</strong> matches the drift banner list (after
           acknowledge, that list is empty until the next catalogue write).{" "}
-          <strong>All domains</strong> includes items, enemies, paths, features,
-          global maps, and global reference entries—use when refreshing full
-          snapshots.
+          <strong>All domains</strong> includes items, vehicles, enemies, paths,
+          features, global maps, and global reference entries—use when
+          refreshing full snapshots.
         </p>
         {bundleExportError ? (
           <p className="mt-2 text-sm text-neblirDanger-600" role="alert">
@@ -258,6 +270,7 @@ export function SuperAdminPageClient() {
         <p className="mt-2 text-sm text-black/80">
           Forms POST to{" "}
           <code className="rounded bg-black/5 px-1">/api/items</code>,{" "}
+          <code className="rounded bg-black/5 px-1">/api/vehicles</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/paths</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/features</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/enemies</code>,{" "}
