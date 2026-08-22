@@ -282,6 +282,9 @@ export function csvRowToItem(row: Record<string, string>): Item {
     notes: parseOptionalString(row.notes),
     weight: parseOptionalFloat(row.weight) ?? 0,
     equippable: parseBoolean(row.equippable),
+    vehicleMountable: parseBoolean(
+      getColumn(row, "vehicleMountable", "vehicle_mountable")
+    ),
     equipSlotTypes: parseEquipSlotTypes(
       getColumn(row, "equipSlotTypes", "equip_slot_types", "Equip Slot Types")
     ),
@@ -456,6 +459,7 @@ function itemToMongoDoc(item: Item): Record<string, unknown> {
     type: item.type,
     weight: item.weight,
     equippable: item.equippable ?? false,
+    vehicleMountable: item.vehicleMountable ?? false,
     equipSlotTypes: itemWithEquip.equipSlotTypes ?? [],
     equipSlotCost: itemWithEquip.equipSlotCost ?? null,
     maxUses: item.maxUses ?? null,

@@ -2,8 +2,11 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { getCarriedInventory } from "@/app/lib/constants/inventory";
-import type { CharacterDetail } from "@/app/lib/types/character";
-import type { EquipSlot } from "@/app/lib/types/character";
+import type {
+  CharacterDetail,
+  EquipSlot,
+  ItemCharacter,
+} from "@/app/lib/types/character";
 import type { DisplayEquipSlot } from "@/app/lib/equipUtils";
 import {
   entryCanAutoEquip,
@@ -15,7 +18,7 @@ import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInvent
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useMemo, useState } from "react";
-type InventoryEntry = NonNullable<CharacterDetail["inventory"]>[number];
+type InventoryEntry = ItemCharacter;
 type ResolvedItem = NonNullable<InventoryEntry["item"]>;
 
 const SLOT_MODAL_LABELS: Record<DisplayEquipSlot, string> = {

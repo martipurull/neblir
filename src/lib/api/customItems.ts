@@ -1,4 +1,7 @@
-import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
+import {
+  normalizeItemBrowseDamage,
+  type ItemBrowseDetailFields,
+} from "@/app/lib/types/itemBrowseDetail";
 import {
   customItemListResponseSchema,
   customItemResponseSchema,
@@ -35,7 +38,7 @@ function mapCustomItemJsonToBrowseDetail(
     gridDefenceBonus: data.gridDefenceBonus ?? null,
     effectiveRange: data.effectiveRange ?? null,
     maxRange: data.maxRange ?? null,
-    damage: data.damage ?? undefined,
+    damage: normalizeItemBrowseDamage(data.damage),
     usage: data.usage ?? null,
     notes: data.notes ?? null,
     modifiesAttribute: data.modifiesAttribute ?? null,

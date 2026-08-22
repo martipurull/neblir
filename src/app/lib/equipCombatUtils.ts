@@ -15,13 +15,16 @@ import { getCarriedInventory } from "./constants/inventory";
 import type { CharacterDetail } from "./types/character";
 
 type InventoryEntry = {
-  id?: string;
+  id?: string | null;
+  customName?: string | null;
+  quantity?: number | null;
   status?: ItemStatus;
-  currentUses?: number;
-  equipSlots?: string[];
+  currentUses?: number | null;
+  equipSlots?: string[] | null;
   itemLocation?: string | null;
   item?: {
-    attackRoll?: string[] | readonly string[];
+    name?: string | null;
+    attackRoll?: string[] | readonly string[] | null;
     attackMeleeBonus?: number | null;
     attackRangeBonus?: number | null;
     attackThrowBonus?: number | null;
@@ -31,9 +34,9 @@ type InventoryEntry = {
     gridDefenceBonus?: number | null;
     maxUses?: number | null;
     damage?: {
-      numberOfDice: number;
-      diceType: number;
-      damageType: string[];
+      numberOfDice?: number | null;
+      diceType?: number | null;
+      damageType?: string[] | null;
     } | null;
   } | null;
 };
@@ -42,7 +45,9 @@ function inventoryRowOperational(entry: { status?: ItemStatus }): boolean {
   return isItemInventoryOperational(entry.status ?? "FUNCTIONAL");
 }
 
-function isEquippedInBrainSlot(entry: { equipSlots?: string[] }): boolean {
+function isEquippedInBrainSlot(entry: {
+  equipSlots?: string[] | null;
+}): boolean {
   return (entry.equipSlots ?? []).some((s) => s === "BRAIN");
 }
 
@@ -114,14 +119,20 @@ export type AttackModifierOption = {
 function formatWeaponDamage(
   damage:
     | {
-        numberOfDice: number;
-        diceType: number;
-        damageType: string[];
+        numberOfDice?: number | null;
+        diceType?: number | null;
+        damageType?: string[] | null;
       }
     | null
     | undefined
 ): string {
-  if (!damage?.damageType?.length) return "";
+  if (
+    !damage?.damageType?.length ||
+    damage.numberOfDice == null ||
+    damage.diceType == null
+  ) {
+    return "";
+  }
   const dice = `${damage.numberOfDice}d${damage.diceType}`;
   const types = damage.damageType.map((t) => t.toLowerCase()).join(", ");
   return `${dice}, ${types}`;
@@ -191,9 +202,7 @@ export function getAttackModifierArrays(character: CharacterDetail): {
     const rangeBonus = entry.item.attackRangeBonus ?? 0;
     const throwBonus = entry.item.attackThrowBonus ?? 0;
     const weaponName = entry.customName ?? entry.item.name ?? "—";
-    const dmg = entry.item.damage as
-      | { numberOfDice: number; diceType: number; damageType: string[] }
-      | undefined;
+    const dmg = entry.item.damage;
     const damageText = formatWeaponDamage(dmg);
     const numberOfDice = dmg?.numberOfDice ?? 1;
     const diceType = dmg?.diceType ?? 4;
@@ -383,7 +392,7 @@ export function getGridDefenceDice(character: CharacterDetail): number {
 }
 
 function inventoryEntryOccupiesBodyOrHead(entry: {
-  equipSlots?: string[];
+  equipSlots?: string[] | null;
 }): boolean {
   return (entry.equipSlots ?? []).some((s) => s === "BODY" || s === "HEAD");
 }

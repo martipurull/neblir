@@ -6,6 +6,7 @@ import {
   pickFirstFlexibleEquipSlot,
 } from "@/app/lib/equipUtils";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
+import { prisma } from "@/app/lib/prisma/client";
 import {
   deleteItemCharacter,
   getCharacterInventory,
@@ -258,7 +259,16 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         updateData.equipSlots = [];
         updateData.isEquipped = false;
       }
-      await updateItemCharacter(itemCharacterId, updateData);
+      // Location changes clear vehicle mounts (Take with you / Leave somewhere).
+      await prisma.$transaction(async (tx) => {
+        await tx.vehicleMountedItem.deleteMany({
+          where: { itemCharacterId },
+        });
+        await tx.itemCharacter.update({
+          where: { id: itemCharacterId },
+          data: updateData,
+        });
+      });
     } else if (action === "setCurrentUses") {
       const { currentUses } = parsed.data;
       if (!isItemInventoryOperational(entry.status) && currentUses > 0) {

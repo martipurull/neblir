@@ -11,7 +11,18 @@ export function getWeaponDamage(
 ): WeaponDamageSlice | null {
   if (item?.type !== "WEAPON") return null;
   if (!("damage" in item) || !item.damage) return null;
-  return item.damage;
+  if (
+    item.damage.numberOfDice == null ||
+    item.damage.diceType == null ||
+    !Array.isArray(item.damage.damageType)
+  ) {
+    return null;
+  }
+  return {
+    numberOfDice: item.damage.numberOfDice,
+    diceType: item.damage.diceType,
+    damageType: item.damage.damageType,
+  };
 }
 
 export function hasExtraWeaponCombatStats(item: ResolvedItemNonNull): boolean {

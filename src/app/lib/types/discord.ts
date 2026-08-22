@@ -24,6 +24,8 @@ const discordChannelSchema = z.object({
   channelType: z.number(),
 });
 
+export type DiscordGuildChannel = z.infer<typeof discordChannelSchema>;
+
 export const discordGuildChannelsResponseSchema = z.object({
   guildId: z.string(),
   guildName: z.string(),

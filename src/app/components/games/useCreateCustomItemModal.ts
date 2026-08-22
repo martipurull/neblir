@@ -44,6 +44,7 @@ function populateFormFromCustomItem(
     setCostInfo: (v: string) => void;
     setConfCost: (v: string) => void;
     setEquippable: (v: boolean) => void;
+    setVehicleMountable: (v: boolean) => void;
     setEquipSlotTypes: (v: string[]) => void;
     setEquipSlotCost: (v: string) => void;
     setMaxUses: (v: string) => void;
@@ -78,6 +79,7 @@ function populateFormFromCustomItem(
   setters.setCostInfo(item.costInfo ?? "");
   setters.setConfCost(optionalNumStr(item.confCost));
   setters.setEquippable(item.equippable ?? false);
+  setters.setVehicleMountable(item.vehicleMountable ?? false);
   setters.setEquipSlotTypes(item.equipSlotTypes ?? []);
   setters.setEquipSlotCost(optionalNumStr(item.equipSlotCost));
   setters.setMaxUses(optionalNumStr(item.maxUses));
@@ -133,6 +135,7 @@ export function useCreateCustomItemModal({
   const [costInfo, setCostInfo] = useState("");
   const [confCost, setConfCost] = useState<string>("");
   const [equippable, setEquippable] = useState(false);
+  const [vehicleMountable, setVehicleMountable] = useState(false);
   const [equipSlotTypes, setEquipSlotTypes] = useState<string[]>([]);
   const [equipSlotCost, setEquipSlotCost] = useState<string>("");
   const [maxUses, setMaxUses] = useState<string>("");
@@ -222,6 +225,7 @@ export function useCreateCustomItemModal({
     setCostInfo("");
     setConfCost("");
     setEquippable(false);
+    setVehicleMountable(false);
     setEquipSlotTypes([]);
     setEquipSlotCost("");
     setMaxUses("");
@@ -260,6 +264,7 @@ export function useCreateCustomItemModal({
       setCostInfo(draft.costInfo);
       setConfCost(draft.confCost);
       setEquippable(draft.equippable);
+      setVehicleMountable(draft.vehicleMountable);
       setEquipSlotTypes(draft.equipSlotTypes);
       setEquipSlotCost(draft.equipSlotCost);
       setMaxUses(draft.maxUses);
@@ -300,6 +305,7 @@ export function useCreateCustomItemModal({
       costInfo,
       confCost,
       equippable,
+      vehicleMountable,
       equipSlotTypes,
       equipSlotCost,
       maxUses,
@@ -334,6 +340,7 @@ export function useCreateCustomItemModal({
     costInfo,
     confCost,
     equippable,
+    vehicleMountable,
     equipSlotTypes,
     equipSlotCost,
     maxUses,
@@ -409,6 +416,7 @@ export function useCreateCustomItemModal({
           setCostInfo,
           setConfCost,
           setEquippable,
+          setVehicleMountable,
           setEquipSlotTypes,
           setEquipSlotCost,
           setMaxUses,
@@ -465,6 +473,7 @@ export function useCreateCustomItemModal({
       usage: optionalStoredRichHtml(usage),
       costInfo: costInfo.trim() || undefined,
       equippable,
+      vehicleMountable,
       equipSlotTypes: equipSlotTypes.length ? equipSlotTypes : [],
     };
     if (confCost !== "") {
@@ -633,6 +642,8 @@ export function useCreateCustomItemModal({
     setConfCost,
     equippable,
     setEquippable,
+    vehicleMountable,
+    setVehicleMountable,
     equipSlotTypes,
     equipSlotCost,
     setEquipSlotCost,

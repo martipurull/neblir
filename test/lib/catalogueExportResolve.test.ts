@@ -5,11 +5,11 @@ describe("resolveCatalogueExportDomains", () => {
   it("returns explicit domains when domainsParam is set", () => {
     const { domains, error } = resolveCatalogueExportDomains({
       scope: "touched",
-      domainsParam: "items,maps",
+      domainsParam: "items,vehicles,maps",
       touchedDomains: [],
     });
     expect(error).toBeUndefined();
-    expect(domains).toEqual(["items", "maps"]);
+    expect(domains).toEqual(["items", "vehicles", "maps"]);
   });
 
   it("returns error for unknown domain", () => {
@@ -30,17 +30,18 @@ describe("resolveCatalogueExportDomains", () => {
     });
     expect(error).toBeUndefined();
     expect(domains).toContain("items");
+    expect(domains).toContain("vehicles");
     expect(domains).toContain("reference");
-    expect(domains.length).toBe(6);
+    expect(domains.length).toBe(7);
   });
 
   it("filters touched domains to known set", () => {
     const { domains, error } = resolveCatalogueExportDomains({
       scope: "touched",
       domainsParam: null,
-      touchedDomains: ["items", "nope", "maps"],
+      touchedDomains: ["items", "vehicles", "nope", "maps"],
     });
     expect(error).toBeUndefined();
-    expect(domains).toEqual(["items", "maps"]);
+    expect(domains).toEqual(["items", "vehicles", "maps"]);
   });
 });

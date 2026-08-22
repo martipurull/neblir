@@ -20,6 +20,8 @@ interface DangerConfirmModalProps {
   panelClassName?: string;
   /** `modalBackground` matches character note modals (purple panel, pale blue text). */
   variant?: "default" | "modalBackground";
+  /** Hide the cancel button (acknowledge-only warnings). */
+  hideCancel?: boolean;
 }
 
 const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
@@ -35,6 +37,7 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
   confirmSubmittingLabel,
   panelClassName,
   variant = "default",
+  hideCancel = false,
 }) => {
   if (!isOpen) {
     return null;
@@ -98,16 +101,18 @@ const DangerConfirmModal: React.FC<DangerConfirmModalProps> = ({
         <div
           className={`flex shrink-0 flex-wrap justify-end gap-3 border-t px-5 py-4 sm:px-6 ${footerBorder}`}
         >
-          <Button
-            type="button"
-            variant={isModalBg ? "modalPaleOutline" : "secondary"}
-            fullWidth={false}
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="!px-3 !py-2"
-          >
-            {cancelLabel}
-          </Button>
+          {hideCancel ? null : (
+            <Button
+              type="button"
+              variant={isModalBg ? "modalPaleOutline" : "secondary"}
+              fullWidth={false}
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="!px-3 !py-2"
+            >
+              {cancelLabel}
+            </Button>
+          )}
           <Button
             variant="danger"
             fullWidth={false}

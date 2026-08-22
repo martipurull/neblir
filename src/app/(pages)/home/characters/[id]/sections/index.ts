@@ -6,5 +6,6 @@ export { getCombatSection } from "./combat";
 export { getPathsSection } from "./paths";
 export { getFeaturesSection } from "./features";
 export { getInventorySection } from "./inventory";
+export { getVehiclesSection } from "./vehicles";
 export { getWalletSection } from "./wallet";
 export { getNotesSection } from "./notes";

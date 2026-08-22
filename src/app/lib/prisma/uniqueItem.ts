@@ -66,6 +66,7 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     equippable: uniqueItem.equippableOverride ?? false,
     equipSlotTypes,
     equipSlotCost: uniqueItem.equipSlotCostOverride ?? null,
+    vehicleMountable: uniqueItem.vehicleMountableOverride ?? false,
     maxUses: uniqueItem.maxUsesOverride ?? null,
     modifiesAttribute:
       uniqueItem.modifiesAttributeOverride == null
@@ -120,6 +121,7 @@ export function prismaDataFromUniqueItemCreate(
     equippableOverride: parsed.equippableOverride ?? undefined,
     equipSlotTypesOverride: parsed.equipSlotTypesOverride ?? undefined,
     equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
+    vehicleMountableOverride: parsed.vehicleMountableOverride ?? undefined,
     maxUsesOverride: parsed.maxUsesOverride ?? parsed.maxUses ?? undefined,
     ...(parsed.isSpeedAlteredOverride !== undefined && {
       isSpeedAlteredOverride: parsed.isSpeedAlteredOverride,
@@ -278,6 +280,9 @@ function applyUniqueItemOverrides(
     ...(uniqueItem.equippableOverride != null && {
       equippable: uniqueItem.equippableOverride,
     }),
+    ...(uniqueItem.vehicleMountableOverride != null && {
+      vehicleMountable: uniqueItem.vehicleMountableOverride,
+    }),
     ...("equipSlotTypesOverride" in uniqueItem &&
       uniqueItem.equipSlotTypesOverride != null && {
         equipSlotTypes: Array.isArray(uniqueItem.equipSlotTypesOverride)
@@ -302,9 +307,16 @@ function applyUniqueItemOverrides(
     ...(uniqueItem.skillModOverride != null && {
       skillMod: uniqueItem.skillModOverride,
     }),
+    ...(uniqueItem.maxUsesOverride != null && {
+      maxUses: uniqueItem.maxUsesOverride,
+    }),
     ...(uniqueItem.isSpeedAlteredOverride != null && {
       isSpeedAltered: uniqueItem.isSpeedAlteredOverride,
     }),
+    specialTag: uniqueItem.specialTag,
+    _resolvedFrom: "UNIQUE_ITEM" as const,
+    _uniqueItemId: uniqueItem.id,
+    ...(uniqueItem.gameId != null && { gameId: uniqueItem.gameId }),
   };
 }
 

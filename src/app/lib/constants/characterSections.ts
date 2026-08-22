@@ -10,6 +10,7 @@ export const CHARACTER_SECTION_IDS = [
   "paths",
   "features",
   "inventory",
+  "vehicles",
   "wallet",
   "notes",
 ] as const;
@@ -26,6 +27,7 @@ export const DEFAULT_CHARACTER_SECTION_ORDER: readonly CharacterSectionId[] = [
   "paths",
   "features",
   "inventory",
+  "vehicles",
   "wallet",
   "notes",
 ];
@@ -40,6 +42,7 @@ export const CHARACTER_SECTION_LABELS: Record<CharacterSectionId, string> = {
   paths: "Paths",
   features: "Features",
   inventory: "Inventory",
+  vehicles: "Vehicles",
   wallet: "Wallet",
   notes: "Notes",
 };

@@ -226,6 +226,8 @@ export function CreateCustomItemModal({
               disabled={f.submitting}
               equippable={f.equippable}
               onEquippableChange={f.setEquippable}
+              vehicleMountable={f.vehicleMountable}
+              onVehicleMountableChange={f.setVehicleMountable}
               equipSlotTypes={f.equipSlotTypes}
               onToggleEquipSlot={f.toggleEquipSlot}
               equipSlotCost={f.equipSlotCost}

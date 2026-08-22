@@ -3,6 +3,7 @@ export type SuperAdminCatalogueCreatedKind =
   | "feature"
   | "path"
   | "enemy"
+  | "vehicle"
   | "map"
   | "reference";
 
@@ -30,6 +31,7 @@ const CATALOGUE_CREATED_PAGE_SEGMENT: Record<
   feature: "features",
   path: "paths",
   enemy: "enemies",
+  vehicle: "vehicles",
   map: "maps",
   reference: "reference",
 };

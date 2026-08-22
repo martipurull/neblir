@@ -59,46 +59,50 @@ enum EquipSlot {
   BRAIN
 }
 
-/** Innate attribute path (matches level-up / character sheet keys). */
+/**
+ * Innate attribute path (matches level-up / character sheet keys).
+ */
 enum ItemAttributePath {
-  INTELLIGENCE_INVESTIGATION @map("intelligence.investigation")
-  INTELLIGENCE_MEMORY @map("intelligence.memory")
-  INTELLIGENCE_DEDUCTION     @map("intelligence.deduction")
-  WISDOM_SENSE               @map("wisdom.sense")
-  WISDOM_PERCEPTION          @map("wisdom.perception")
-  WISDOM_INSIGHT             @map("wisdom.insight")
-  PERSONALITY_PERSUASION     @map("personality.persuasion")
-  PERSONALITY_DECEPTION      @map("personality.deception")
-  PERSONALITY_MENTALITY      @map("personality.mentality")
-  STRENGTH_ATHLETICS         @map("strength.athletics")
-  STRENGTH_RESILIENCE        @map("strength.resilience")
-  STRENGTH_BRUTE_FORCE       @map("strength.bruteForce")
-  DEXTERITY_MANUAL           @map("dexterity.manual")
-  DEXTERITY_STEALTH          @map("dexterity.stealth")
-  DEXTERITY_AGILITY          @map("dexterity.agility")
+  INTELLIGENCE_INVESTIGATION       @map("intelligence.investigation")
+  INTELLIGENCE_MEMORY              @map("intelligence.memory")
+  INTELLIGENCE_DEDUCTION           @map("intelligence.deduction")
+  WISDOM_SENSE                     @map("wisdom.sense")
+  WISDOM_PERCEPTION                @map("wisdom.perception")
+  WISDOM_INSIGHT                   @map("wisdom.insight")
+  PERSONALITY_PERSUASION           @map("personality.persuasion")
+  PERSONALITY_DECEPTION            @map("personality.deception")
+  PERSONALITY_MENTALITY            @map("personality.mentality")
+  STRENGTH_ATHLETICS               @map("strength.athletics")
+  STRENGTH_RESILIENCE              @map("strength.resilience")
+  STRENGTH_BRUTE_FORCE             @map("strength.bruteForce")
+  DEXTERITY_MANUAL                 @map("dexterity.manual")
+  DEXTERITY_STEALTH                @map("dexterity.stealth")
+  DEXTERITY_AGILITY                @map("dexterity.agility")
   CONSTITUTION_RESISTANCE_INTERNAL @map("constitution.resistanceInternal")
   CONSTITUTION_RESISTANCE_EXTERNAL @map("constitution.resistanceExternal")
-  CONSTITUTION_STAMINA       @map("constitution.stamina")
+  CONSTITUTION_STAMINA             @map("constitution.stamina")
 }
 
-/** General skill key (matches CharacterLearnedSkillsGeneralSkills). */
+/**
+ * General skill key (matches CharacterLearnedSkillsGeneralSkills).
+ */
 enum ItemGeneralSkill {
-  MECHANICS                  @map("mechanics")
-  SOFTWARE                   @map("software")
-  GENERAL_KNOWLEDGE          @map("generalKnowledge")
-  HISTORY                    @map("history")
-  DRIVING                    @map("driving")
-  ACROBATICS                 @map("acrobatics")
-  AIM                        @map("aim")
-  MELEE                      @map("melee")
-  GRID                       @map("GRID")
-  RESEARCH                   @map("research")
-  MEDICINE                   @map("medicine")
-  SCIENCE                    @map("science")
-  SURVIVAL                   @map("survival")
-  STREETWISE                 @map("streetwise")
-  PERFORMANCE                @map("performance")
-  MANIPULATION_NEGOTIATION   @map("manipulationNegotiation")
+  MECHANICS                @map("mechanics")
+  SOFTWARE                 @map("software")
+  GENERAL_KNOWLEDGE        @map("generalKnowledge")
+  HISTORY                  @map("history")
+  DRIVING                  @map("driving")
+  ACROBATICS               @map("acrobatics")
+  AIM                      @map("aim")
+  MELEE                    @map("melee")
+  GRID                     @map("GRID")
+  RESEARCH                 @map("research")
+  MEDICINE                 @map("medicine")
+  SCIENCE                  @map("science")
+  SURVIVAL                 @map("survival")
+  STREETWISE               @map("streetwise")
+  PERFORMANCE              @map("performance")
+  MANIPULATION_NEGOTIATION @map("manipulationNegotiation")
 }
 
 enum PathName {
@@ -158,8 +162,38 @@ enum ItemSourceType {
   GLOBAL_ITEM
   CUSTOM_ITEM
   UNIQUE_ITEM
-  /** Unique item with no global/custom template (name & weight stored on the unique row). */
+  /**
+   * Unique item with no global/custom template (name & weight stored on the unique row).
+   */
   STANDALONE
+}
+
+enum VehicleAccessType {
+  PLAYER
+  GAME_MASTER
+}
+
+enum VehicleSourceType {
+  GLOBAL_VEHICLE
+  CUSTOM_VEHICLE
+  UNIQUE_VEHICLE
+  /**
+   * Unique vehicle with no global/custom template (stats stored on the unique row).
+   */
+  STANDALONE
+}
+
+enum VehicleLocomotion {
+  LAND
+  AIR
+  SEA
+  SNOW
+}
+
+enum VehicleSizeCategory {
+  LIGHT
+  STANDARD
+  HEAVY
 }
 
 enum DiscordIntegrationStatus {
@@ -227,7 +261,7 @@ type CharacterCombatInformation {
   meleeDefenceMod   Int
   rangeAttackMod    Int
   rangeDefenceMod   Int
-  throwAttackMod   Int
+  throwAttackMod    Int
   speed             Int
   reactionsPerRound Int
   /** Remaining reactions this round; capped by reactionsPerRound. */
@@ -236,22 +270,26 @@ type CharacterCombatInformation {
 }
 
 type CharacterGeneralInformation {
-  age        Int
-  avatarKey  String?
-  birthplace String
-  /** TipTap rich text stored as HTML string */
-  backstory  String?
-  /** TipTap rich text stored as HTML string */
-  summary    String?
-  level      Int
-  name       String
-  surname    String
-  profession String
-  race       Race
+  age            Int
+  avatarKey      String?
+  birthplace     String
+  /**
+   * TipTap rich text stored as HTML string
+   */
+  backstory      String?
+  /**
+   * TipTap rich text stored as HTML string
+   */
+  summary        String?
+  level          Int
+  name           String
+  surname        String
+  profession     String
+  race           Race
   specialAbility CharacterSpecialAbility?
-  religion   Religion
-  height     Int
-  weight     Int
+  religion       Religion
+  height         Int
+  weight         Int
 }
 
 type CharacterSpecialAbility {
@@ -366,20 +404,22 @@ type ItemDamage {
 }
 
 model Character {
-  id                 String                      @id @default(auto()) @map("_id") @db.ObjectId
-  combatInformation  CharacterCombatInformation
-  generalInformation CharacterGeneralInformation
-  health             CharacterHealth
-  innateAttributes   CharacterInnateAttributes
-  learnedSkills      CharacterLearnedSkills
-  wallet             CharacterCurrency[]
-  inventory          ItemCharacter[]
-  notes              String[]
-  paths              PathCharacter[]
-  features           FeatureCharacter[]
-  games              GameCharacter[]
-  users              CharacterUser[]
-  rollEvents         RollEvent[]
+  id                       String                      @id @default(auto()) @map("_id") @db.ObjectId
+  combatInformation        CharacterCombatInformation
+  generalInformation       CharacterGeneralInformation
+  health                   CharacterHealth
+  innateAttributes         CharacterInnateAttributes
+  learnedSkills            CharacterLearnedSkills
+  wallet                   CharacterCurrency[]
+  inventory                ItemCharacter[]
+  vehicles                 VehicleCharacter[]
+  activeVehicleCharacterId String?                     @db.ObjectId
+  notes                    String[]
+  paths                    PathCharacter[]
+  features                 FeatureCharacter[]
+  games                    GameCharacter[]
+  users                    CharacterUser[]
+  rollEvents               RollEvent[]
 }
 
 model CharacterCurrency {
@@ -408,25 +448,162 @@ model CharacterUser {
 }
 
 model ItemCharacter {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  characterId String   @db.ObjectId
+  characterId String    @db.ObjectId
   character   Character @relation(fields: [characterId], references: [id])
 
   sourceType ItemSourceType
-  itemId     String   @db.ObjectId
+  itemId     String         @db.ObjectId
 
-  quantity       Int         @default(1)
-  currentUses    Int         @default(0)
-  isEquipped     Boolean     @default(false)
-  equipSlots     String[]    @default([])
-  customName     String?
-  status         ItemStatus  @default(FUNCTIONAL)
-  itemLocation   String      @default("carried")
+  quantity     Int        @default(1)
+  currentUses  Int        @default(0)
+  isEquipped   Boolean    @default(false)
+  equipSlots   String[]   @default([])
+  customName   String?
+  status       ItemStatus @default(FUNCTIONAL)
+  itemLocation String     @default("carried")
 
+  @@unique([characterId, sourceType, itemId])
   @@index([characterId])
   @@index([sourceType, itemId])
-  @@unique([characterId, sourceType, itemId])
+}
+
+model Vehicle {
+  id                          String              @id @default(auto()) @map("_id") @db.ObjectId
+  accessType                  VehicleAccessType
+  name                        String
+  brand                       String?
+  year                        Int?
+  imageKey                    String?
+  confCost                    Int
+  costInfo                    String?
+  description                 String
+  notes                       String?
+  maxHp                       Int
+  travelSpeedKmh              Int
+  combatSpeedMetres           Int
+  manoeuvrability             Int
+  acceleration                Int
+  weight                      Float?
+  heightMetres                Float?
+  maxCargoWeightKg            Float?
+  maxMountedItems             Int?
+  maxPassengers               Int
+  locomotionModes             VehicleLocomotion[]
+  vehicleSizeCategory         VehicleSizeCategory
+  protectedFromOfficialImport Boolean             @default(false)
+}
+
+model CustomVehicle {
+  id                  String              @id @default(auto()) @map("_id") @db.ObjectId
+  gameId              String              @db.ObjectId
+  game                Game                @relation(fields: [gameId], references: [id])
+  name                String
+  brand               String?
+  year                Int?
+  imageKey            String?
+  confCost            Int?
+  costInfo            String?
+  description         String?
+  notes               String?
+  maxHp               Int
+  travelSpeedKmh      Int
+  combatSpeedMetres   Int
+  manoeuvrability     Int
+  acceleration        Int
+  weight              Float?
+  heightMetres        Float?
+  maxCargoWeightKg    Float?
+  maxMountedItems     Int?
+  maxPassengers       Int
+  locomotionModes     VehicleLocomotion[]
+  vehicleSizeCategory VehicleSizeCategory
+  /**
+   * When true, game members (not only the GM) may create a UniqueVehicle
+   * based on this custom template. Editing shared custom templates stays GM-only.
+   */
+  membersCanModify    Boolean             @default(false)
+
+  @@index([gameId])
+}
+
+model UniqueVehicle {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId String @db.ObjectId
+  gameId      String @db.ObjectId
+  game        Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  // template it’s based on (vehicleId null when sourceType is STANDALONE)
+  sourceType VehicleSourceType
+  vehicleId  String?           @db.ObjectId
+
+  nameOverride                String?
+  brandOverride               String?
+  yearOverride                Int?
+  imageKeyOverride            String?
+  confCostOverride            Int?
+  costInfoOverride            String?
+  descriptionOverride         String?
+  notesOverride               String?
+  maxHpOverride               Int?
+  travelSpeedKmhOverride      Int?
+  combatSpeedMetresOverride   Int?
+  manoeuvrabilityOverride     Int?
+  accelerationOverride        Int?
+  weightOverride              Float?
+  heightMetresOverride        Float?
+  maxCargoWeightKgOverride    Float?
+  maxMountedItemsOverride     Int?
+  maxPassengersOverride       Int?
+  locomotionModesOverride     Json?
+  vehicleSizeCategoryOverride VehicleSizeCategory?
+  specialTag                  String?
+
+  @@index([ownerUserId])
+  @@index([gameId])
+}
+
+model VehicleCharacter {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  characterId String    @db.ObjectId
+  character   Character @relation(fields: [characterId], references: [id])
+
+  sourceType VehicleSourceType
+  vehicleId  String            @db.ObjectId
+
+  customName     String?
+  currentHp      Int
+  maxHpBonus     Int      @default(0)
+  isBeyondRepair Boolean  @default(false)
+  parkedAt       String?
+  notes          String?
+  /** Other characters riding as passengers (driver is the owner when actively mounted). */
+  passengerCharacterIds String[] @default([])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  mountedItems   VehicleMountedItem[]
+
+  @@index([characterId])
+  @@index([sourceType, vehicleId])
+}
+
+/**
+ * Links a character inventory row (ItemCharacter) to a vehicle instance.
+ * Ownership stays on the character; this is a mount link only.
+ */
+model VehicleMountedItem {
+  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
+  vehicleCharacterId String           @db.ObjectId
+  vehicleCharacter   VehicleCharacter @relation(fields: [vehicleCharacterId], references: [id], onDelete: Cascade)
+  itemCharacterId    String           @db.ObjectId
+  mountSlot          String?
+  createdAt          DateTime         @default(now())
+
+  @@unique([vehicleCharacterId, itemCharacterId])
+  @@unique([itemCharacterId])
+  @@index([vehicleCharacterId])
 }
 
 enum InitiativeCombatantType {
@@ -434,10 +611,12 @@ enum InitiativeCombatantType {
   ENEMY
 }
 
-/** Snapshot per roll; sort for display: total desc, modifier desc, submittedAt asc. */
+/**
+ * Snapshot per roll; sort for display: total desc, modifier desc, submittedAt asc.
+ */
 type InitiativeEntry {
   combatantType      InitiativeCombatantType @default(CHARACTER)
-  combatantId        String   @db.ObjectId
+  combatantId        String                  @db.ObjectId
   combatantName      String
   rolledValue        Int
   initiativeModifier Int
@@ -445,21 +624,23 @@ type InitiativeEntry {
 }
 
 model Game {
-  id               String                  @id @default(auto()) @map("_id") @db.ObjectId
-  gameMaster       String                  @db.ObjectId
-  imageKey         String?
-  name             String
-  premise          String?
-  nextSession      DateTime?
-  lore             String?
-  users            GameUser[]
-  characters       GameCharacter[]
-  customItems      CustomItem[]
-  customEnemies    CustomEnemy[]
-  enemyInstances   EnemyInstance[]
-  uniqueItems      UniqueItem[]
-  invites          GameInvite[]
-  initiativeOrder  InitiativeEntry[]
+  id                 String              @id @default(auto()) @map("_id") @db.ObjectId
+  gameMaster         String              @db.ObjectId
+  imageKey           String?
+  name               String
+  premise            String?
+  nextSession        DateTime?
+  lore               String?
+  users              GameUser[]
+  characters         GameCharacter[]
+  customItems        CustomItem[]
+  customVehicles     CustomVehicle[]
+  customEnemies      CustomEnemy[]
+  enemyInstances     EnemyInstance[]
+  uniqueItems        UniqueItem[]
+  uniqueVehicles     UniqueVehicle[]
+  invites            GameInvite[]
+  initiativeOrder    InitiativeEntry[]
   discordIntegration DiscordIntegration?
   rollEvents       RollEvent[]
   referenceEntries ReferenceEntry[]
@@ -553,15 +734,15 @@ model ReferenceEntryAttachment {
 }
 
 model Map {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String @unique
-  imageKey String
-  description String?
-  gameId String? @db.ObjectId
-  game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
-  protectedFromOfficialImport Boolean @default(false)
+  id                          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                        String    @unique
+  imageKey                    String
+  description                 String?
+  gameId                      String?   @db.ObjectId
+  game                        Game?     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt                   DateTime? @default(now())
+  updatedAt                   DateTime? @updatedAt
+  protectedFromOfficialImport Boolean   @default(false)
 
   @@index([gameId])
   @@index([description])
@@ -572,38 +753,38 @@ model Map {
 
 model DiscordIntegration {
   id                String                   @id @default(auto()) @map("_id") @db.ObjectId
-  gameId             String                   @unique @db.ObjectId
-  guildId            String
-  channelId          String
-  installedByUserId  String                   @db.ObjectId
-  status             DiscordIntegrationStatus @default(ACTIVE)
-  lastError          String?
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
+  gameId            String                   @unique @db.ObjectId
+  guildId           String
+  channelId         String
+  installedByUserId String                   @db.ObjectId
+  status            DiscordIntegrationStatus @default(ACTIVE)
+  lastError         String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
 
-  game             Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  installedByUser  User @relation("DiscordIntegrationInstalledBy", fields: [installedByUserId], references: [id])
-  outbox           DiscordOutbox[]
+  game            Game            @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  installedByUser User            @relation("DiscordIntegrationInstalledBy", fields: [installedByUserId], references: [id])
+  outbox          DiscordOutbox[]
 
   @@index([installedByUserId])
   @@index([guildId, channelId])
 }
 
 model RollEvent {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  gameId        String   @db.ObjectId
-  characterId   String?  @db.ObjectId
-  rollerUserId  String   @db.ObjectId
-  rollType      RollType
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  gameId         String   @db.ObjectId
+  characterId    String?  @db.ObjectId
+  rollerUserId   String   @db.ObjectId
+  rollType       RollType
   diceExpression String?
-  results       Int[]
-  total         Int?
-  metadata      Json?
-  createdAt     DateTime @default(now())
+  results        Int[]
+  total          Int?
+  metadata       Json?
+  createdAt      DateTime @default(now())
 
-  game       Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  character  Character? @relation(fields: [characterId], references: [id])
-  rollerUser User       @relation("RollEventUser", fields: [rollerUserId], references: [id])
+  game       Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  character  Character?     @relation(fields: [characterId], references: [id])
+  rollerUser User           @relation("RollEventUser", fields: [rollerUserId], references: [id])
   outbox     DiscordOutbox?
 
   @@index([gameId, createdAt])
@@ -611,19 +792,19 @@ model RollEvent {
 }
 
 model DiscordOutbox {
-  id            String             @id @default(auto()) @map("_id") @db.ObjectId
-  rollEventId    String             @unique @db.ObjectId
-  integrationId  String             @db.ObjectId
-  status         DiscordOutboxStatus @default(PENDING)
-  attemptCount   Int                @default(0)
-  lastError      String?
-  nextAttemptAt  DateTime           @default(now())
-  sentAt         DateTime?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  rollEventId   String              @unique @db.ObjectId
+  integrationId String              @db.ObjectId
+  status        DiscordOutboxStatus @default(PENDING)
+  attemptCount  Int                 @default(0)
+  lastError     String?
+  nextAttemptAt DateTime            @default(now())
+  sentAt        DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
-  rollEvent    RollEvent           @relation(fields: [rollEventId], references: [id], onDelete: Cascade)
-  integration  DiscordIntegration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  rollEvent   RollEvent          @relation(fields: [rollEventId], references: [id], onDelete: Cascade)
+  integration DiscordIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
   @@index([status, nextAttemptAt])
   @@index([integrationId])
@@ -636,7 +817,7 @@ model GameInvite {
   invitedByUserId String   @db.ObjectId
   createdAt       DateTime @default(now())
 
-  game       Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  game        Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
   invitedUser User @relation("GameInviteInvited", fields: [invitedUserId], references: [id], onDelete: Cascade)
   invitedBy   User @relation("GameInviteInvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
 
@@ -659,9 +840,9 @@ model GameUser {
 }
 
 model GameCharacter {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  gameId      String @db.ObjectId
-  characterId String @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameId      String  @db.ObjectId
+  characterId String  @db.ObjectId
   isPublic    Boolean @default(true)
 
   game      Game      @relation(fields: [gameId], references: [id])
@@ -673,129 +854,135 @@ model GameCharacter {
 }
 
 model Item {
-  id                   String                     @id @default(auto()) @map("_id") @db.ObjectId
-  accessType           ItemAccessType
-  attackRoll           ItemWeaponAttackRollType[]
-  attackMeleeBonus     Int?
-  attackRangeBonus     Int?
-  attackThrowBonus     Int?
-  defenceMeleeBonus    Int?
-  defenceRangeBonus    Int?
-  gridAttackBonus      Int?
-  gridDefenceBonus     Int?
-  effectiveRange       Int?
-  maxRange             Int?
-  confCost             Int
-  costInfo             String?
-  damage               ItemDamage?
-  description          String
-  imageKey             String?
-  name                 String
-  notes                String?
-  type                 ItemType
-  usage                String?
-  weight               Float
-  equippable           Boolean                    @default(false)
-  equipSlotTypes       String[]                   @default([])
-  equipSlotCost        Int?
-  maxUses              Int?
-  modifiesAttribute    ItemAttributePath?
-  attributeMod         Int?
-  modifiesSkill        ItemGeneralSkill?
-  skillMod             Int?
-  isSpeedAltered       Boolean                    @default(false)
-  protectedFromOfficialImport Boolean @default(false)
+  id                          String                     @id @default(auto()) @map("_id") @db.ObjectId
+  accessType                  ItemAccessType
+  attackRoll                  ItemWeaponAttackRollType[]
+  attackMeleeBonus            Int?
+  attackRangeBonus            Int?
+  attackThrowBonus            Int?
+  defenceMeleeBonus           Int?
+  defenceRangeBonus           Int?
+  gridAttackBonus             Int?
+  gridDefenceBonus            Int?
+  effectiveRange              Int?
+  maxRange                    Int?
+  confCost                    Int
+  costInfo                    String?
+  damage                      ItemDamage?
+  description                 String
+  imageKey                    String?
+  name                        String
+  notes                       String?
+  type                        ItemType
+  usage                       String?
+  weight                      Float
+  equippable                  Boolean                    @default(false)
+  equipSlotTypes              String[]                   @default([])
+  equipSlotCost               Int?
+  /** When true, this item can be mounted on a vehicle (not cargo). */
+  vehicleMountable            Boolean                    @default(false)
+  maxUses                     Int?
+  modifiesAttribute           ItemAttributePath?
+  attributeMod                Int?
+  modifiesSkill               ItemGeneralSkill?
+  skillMod                    Int?
+  isSpeedAltered              Boolean                    @default(false)
+  protectedFromOfficialImport Boolean                    @default(false)
 
   soldierFavouriteWeaponPathCharacters PathCharacter[] @relation("SoldierFavouriteWeapon")
 }
 
 model CustomItem {
-  id                   String                     @id @default(auto()) @map("_id") @db.ObjectId
-  gameId               String                     @db.ObjectId
-  game                 Game                       @relation(fields: [gameId], references: [id])
-  attackRoll           ItemWeaponAttackRollType[]
-  attackMeleeBonus     Int?
-  attackRangeBonus     Int?
-  attackThrowBonus     Int?
-  defenceMeleeBonus    Int?
-  defenceRangeBonus    Int?
-  gridAttackBonus      Int?
-  gridDefenceBonus     Int?
-  effectiveRange       Int?
-  maxRange             Int?
-  confCost             Int?
-  costInfo             String?
-  damage               ItemDamage?
-  description          String?
-  imageKey             String?
-  name                 String
-  notes                String?
-  type                 ItemType
-  usage                String?
-  weight               Float
-  equippable           Boolean? @default(false)
-  equipSlotTypes       String[]                   @default([])
-  equipSlotCost        Int?
-  maxUses              Int?
-  modifiesAttribute    ItemAttributePath?
-  attributeMod         Int?
-  modifiesSkill        ItemGeneralSkill?
-  skillMod             Int?
-  isSpeedAltered       Boolean                    @default(false)
+  id                String                     @id @default(auto()) @map("_id") @db.ObjectId
+  gameId            String                     @db.ObjectId
+  game              Game                       @relation(fields: [gameId], references: [id])
+  attackRoll        ItemWeaponAttackRollType[]
+  attackMeleeBonus  Int?
+  attackRangeBonus  Int?
+  attackThrowBonus  Int?
+  defenceMeleeBonus Int?
+  defenceRangeBonus Int?
+  gridAttackBonus   Int?
+  gridDefenceBonus  Int?
+  effectiveRange    Int?
+  maxRange          Int?
+  confCost          Int?
+  costInfo          String?
+  damage            ItemDamage?
+  description       String?
+  imageKey          String?
+  name              String
+  notes             String?
+  type              ItemType
+  usage             String?
+  weight            Float
+  equippable        Boolean?                   @default(false)
+  equipSlotTypes    String[]                   @default([])
+  equipSlotCost     Int?
+  /** When true, this item can be mounted on a vehicle (not cargo). */
+  vehicleMountable  Boolean?                   @default(false)
+  maxUses           Int?
+  modifiesAttribute ItemAttributePath?
+  attributeMod      Int?
+  modifiesSkill     ItemGeneralSkill?
+  skillMod          Int?
+  isSpeedAltered    Boolean                    @default(false)
 }
 
 model UniqueItem {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  ownerUserId String   @db.ObjectId
-  gameId      String?  @db.ObjectId
-  game        Game?    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId String  @db.ObjectId
+  gameId      String? @db.ObjectId
+  game        Game?   @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   // template it’s based on (itemId null when sourceType is STANDALONE)
-  sourceType  ItemSourceType
-  itemId      String?        @db.ObjectId
+  sourceType ItemSourceType
+  itemId     String?        @db.ObjectId
 
   attackRollOverride        ItemWeaponAttackRollType[]
-  attackMeleeBonusOverride Int?
-  attackRangeBonusOverride Int?
-  attackThrowBonusOverride Int?
+  attackMeleeBonusOverride  Int?
+  attackRangeBonusOverride  Int?
+  attackThrowBonusOverride  Int?
   defenceMeleeBonusOverride Int?
   defenceRangeBonusOverride Int?
-  gridAttackBonusOverride  Int?
-  gridDefenceBonusOverride Int?
-  effectiveRangeOverride   Int?
-  maxRangeOverride         Int?
-  confCostOverride         Int?
-  costInfoOverride         String?
-  damageOverride           ItemDamage?
-  descriptionOverride      String?
-  imageKeyOverride        String?
-  nameOverride             String?
-  usageOverride            String?
-  weightOverride           Float?
-  notesOverride            String?
-  specialTag               String?  // e.g. "AMPLIFIED", "PROTOTYPE"
-  equippableOverride       Boolean?
-  equipSlotTypesOverride   Json?  // String[] when set; null = use template
-  equipSlotCostOverride    Int?
-  maxUsesOverride          Int?
+  gridAttackBonusOverride   Int?
+  gridDefenceBonusOverride  Int?
+  effectiveRangeOverride    Int?
+  maxRangeOverride          Int?
+  confCostOverride          Int?
+  costInfoOverride          String?
+  damageOverride            ItemDamage?
+  descriptionOverride       String?
+  imageKeyOverride          String?
+  nameOverride              String?
+  usageOverride             String?
+  weightOverride            Float?
+  notesOverride             String?
+  specialTag                String? // e.g. "AMPLIFIED", "PROTOTYPE"
+  equippableOverride        Boolean?
+  equipSlotTypesOverride    Json? // String[] when set; null = use template
+  equipSlotCostOverride     Int?
+  vehicleMountableOverride  Boolean?
+  maxUsesOverride           Int?
   modifiesAttributeOverride ItemAttributePath?
   attributeModOverride      Int?
   modifiesSkillOverride     ItemGeneralSkill?
   skillModOverride          Int?
   isSpeedAlteredOverride    Boolean?
+
   @@index([ownerUserId])
   @@index([gameId])
 }
 
 model Feature {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  description     String
-  minPathRank     Int
-  maxGrade        Int
-  examples        String[]
-  applicablePaths PathName[]
-  protectedFromOfficialImport Boolean @default(false)
+  id                          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name                        String
+  description                 String
+  minPathRank                 Int
+  maxGrade                    Int
+  examples                    String[]
+  applicablePaths             PathName[]
+  protectedFromOfficialImport Boolean    @default(false)
 
   pathFeature      PathFeature[]
   FeatureCharacter FeatureCharacter[]
@@ -819,11 +1006,11 @@ model FeatureCharacter {
 }
 
 model Path {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        PathName @unique
-  description String?
-  baseFeature String
-  protectedFromOfficialImport Boolean @default(false)
+  id                          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name                        PathName @unique
+  description                 String?
+  baseFeature                 String
+  protectedFromOfficialImport Boolean  @default(false)
 
   PathCharacter PathCharacter[]
 
@@ -860,27 +1047,37 @@ model PathFeature {
 }
 
 model User {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
-  name  String
-  /** Defaults to USER in app logic when unset (existing documents may omit this field). */
-  role  UserRole?
-  /** Optional UI preference. Null/missing means use horizontal carousel fallback. */
-  characterLayoutMode CharacterLayoutMode?
-  /** When true, horizontal carousel wraps from last to first at edges. Null/missing means wrap enabled. */
+  id                    String               @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String               @unique
+  name                  String
+  /**
+   * Defaults to USER in app logic when unset (existing documents may omit this field).
+   */
+  role                  UserRole?
+  /**
+   * Optional UI preference. Null/missing means use horizontal carousel fallback.
+   */
+  characterLayoutMode   CharacterLayoutMode?
+  /**
+   * When true, horizontal carousel wraps from last to first at edges. Null/missing means wrap enabled.
+   */
   characterCarouselWrap Boolean?
-  /** Saved character section order (stable section ids). Empty/missing means default order. */
-  characterSectionOrder String[] @default([])
+  /**
+   * Saved character section order (stable section ids). Empty/missing means default order.
+   */
+  characterSectionOrder String[]             @default([])
 
-  games               GameUser[]
-  characters          CharacterUser[]
-  gameInvitesReceived GameInvite[] @relation("GameInviteInvited")
-  gameInvitesSent     GameInvite[] @relation("GameInviteInvitedBy")
+  games                        GameUser[]
+  characters                   CharacterUser[]
+  gameInvitesReceived          GameInvite[]         @relation("GameInviteInvited")
+  gameInvitesSent              GameInvite[]         @relation("GameInviteInvitedBy")
   discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")
-  rollEvents          RollEvent[] @relation("RollEventUser")
+  rollEvents                   RollEvent[]          @relation("RollEventUser")
 }
 
-/** Singleton row: prompts super admins to sync repo seed files after catalogue edits. */
+/**
+ * Singleton row: prompts super admins to sync repo seed files after catalogue edits.
+ */
 model StaffCatalogueDriftState {
   id                  String   @id @map("_id") @db.ObjectId
   needsSeedRepoUpdate Boolean  @default(false)
@@ -889,68 +1086,69 @@ model StaffCatalogueDriftState {
 }
 
 type EnemyAction {
-  name String
-  description String?
-  numberOfDiceToHit Int?
+  name               String
+  description        String?
+  numberOfDiceToHit  Int?
   numberOfDamageDice Int?
-  damageDiceType Int?
-  damageType ItemWeaponDamageType?
-  notes String?
-  }
+  damageDiceType     Int?
+  damageType         ItemWeaponDamageType?
+  notes              String?
+}
+
 model Enemy {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  protectedFromOfficialImport Boolean @default(false)
-  description String?
-  imageKey String?
-  health Int
-  speed Int
-  initiativeModifier Int
-  numberOfReactions Int
-  defenceMelee Int @default(0)
-  defenceRange Int @default(0)
-  defenceGrid Int @default(0)
-  attackMelee Int @default(0)
-  attackRange Int @default(0)
-  attackThrow Int @default(0)
-  attackGrid Int @default(0)
-  immunities ItemWeaponDamageType[]
-  resistances ItemWeaponDamageType[]
-  vulnerabilities ItemWeaponDamageType[]
-  actions EnemyAction[]
-  additionalActions EnemyAction[]
-  notes String?
-  enemyInstances EnemyInstance[]
+  id                          String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                        String
+  protectedFromOfficialImport Boolean                @default(false)
+  description                 String?
+  imageKey                    String?
+  health                      Int
+  speed                       Int
+  initiativeModifier          Int
+  numberOfReactions           Int
+  defenceMelee                Int                    @default(0)
+  defenceRange                Int                    @default(0)
+  defenceGrid                 Int                    @default(0)
+  attackMelee                 Int                    @default(0)
+  attackRange                 Int                    @default(0)
+  attackThrow                 Int                    @default(0)
+  attackGrid                  Int                    @default(0)
+  immunities                  ItemWeaponDamageType[]
+  resistances                 ItemWeaponDamageType[]
+  vulnerabilities             ItemWeaponDamageType[]
+  actions                     EnemyAction[]
+  additionalActions           EnemyAction[]
+  notes                       String?
+  enemyInstances              EnemyInstance[]
 
   @@unique([name])
   @@index([imageKey])
 }
 
 model CustomEnemy {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  gameId String @db.ObjectId
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  enemyInstances EnemyInstance[]
-  name String
-  description String?
-  imageKey String?
-  health Int
-  speed Int
+  id                 String                 @id @default(auto()) @map("_id") @db.ObjectId
+  gameId             String                 @db.ObjectId
+  game               Game                   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  enemyInstances     EnemyInstance[]
+  name               String
+  description        String?
+  imageKey           String?
+  health             Int
+  speed              Int
   initiativeModifier Int
-  numberOfReactions Int
-  defenceMelee Int @default(0)
-  defenceRange Int @default(0)
-  defenceGrid Int @default(0)
-  attackMelee Int @default(0)
-  attackRange Int @default(0)
-  attackThrow Int @default(0)
-  attackGrid Int @default(0)
-  immunities ItemWeaponDamageType[]
-  resistances ItemWeaponDamageType[]
-  vulnerabilities ItemWeaponDamageType[]
-  actions EnemyAction[]
-  additionalActions EnemyAction[]
-  notes String?
+  numberOfReactions  Int
+  defenceMelee       Int                    @default(0)
+  defenceRange       Int                    @default(0)
+  defenceGrid        Int                    @default(0)
+  attackMelee        Int                    @default(0)
+  attackRange        Int                    @default(0)
+  attackThrow        Int                    @default(0)
+  attackGrid         Int                    @default(0)
+  immunities         ItemWeaponDamageType[]
+  resistances        ItemWeaponDamageType[]
+  vulnerabilities    ItemWeaponDamageType[]
+  actions            EnemyAction[]
+  additionalActions  EnemyAction[]
+  notes              String?
 
   @@index([gameId])
   @@index([name])
@@ -958,41 +1156,43 @@ model CustomEnemy {
 }
 
 model EnemyInstance {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  gameId String @db.ObjectId
-  sourceCustomEnemyId String? @db.ObjectId
+  id                    String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameId                String  @db.ObjectId
+  sourceCustomEnemyId   String? @db.ObjectId
   sourceOfficialEnemyId String? @db.ObjectId
 
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  sourceCustomEnemy CustomEnemy? @relation(fields: [sourceCustomEnemyId], references: [id], onDelete: Cascade)
-  sourceOfficialEnemy Enemy? @relation(fields: [sourceOfficialEnemyId], references: [id], onDelete: Cascade)
+  game                Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  sourceCustomEnemy   CustomEnemy? @relation(fields: [sourceCustomEnemyId], references: [id], onDelete: Cascade)
+  sourceOfficialEnemy Enemy?       @relation(fields: [sourceOfficialEnemyId], references: [id], onDelete: Cascade)
 
-  name String
-  imageKey String?
+  name        String
+  imageKey    String?
   description String?
-  notes String?
-  /** When false, instance name/details are GM-only in game context; rolls default secret on Discord. */
-  isPublic Boolean @default(true)
+  notes       String?
+  /**
+   * When false, instance name/details are GM-only in game context; rolls default secret on Discord.
+   */
+  isPublic    Boolean @default(true)
 
-  maxHealth Int
-  currentHealth Int
-  speed Int
+  maxHealth          Int
+  currentHealth      Int
+  speed              Int
   initiativeModifier Int
-  reactionsPerRound Int
+  reactionsPerRound  Int
   reactionsRemaining Int
-  status EnemyInstanceStatus @default(ACTIVE)
+  status             EnemyInstanceStatus @default(ACTIVE)
 
-  defenceMelee Int @default(0)
-  defenceRange Int @default(0)
-  defenceGrid Int @default(0)
-  attackMelee Int @default(0)
-  attackRange Int @default(0)
-  attackThrow Int @default(0)
-  attackGrid Int @default(0)
-  immunities ItemWeaponDamageType[]
-  resistances ItemWeaponDamageType[]
-  vulnerabilities ItemWeaponDamageType[]
-  actions EnemyAction[]
+  defenceMelee      Int                    @default(0)
+  defenceRange      Int                    @default(0)
+  defenceGrid       Int                    @default(0)
+  attackMelee       Int                    @default(0)
+  attackRange       Int                    @default(0)
+  attackThrow       Int                    @default(0)
+  attackGrid        Int                    @default(0)
+  immunities        ItemWeaponDamageType[]
+  resistances       ItemWeaponDamageType[]
+  vulnerabilities   ItemWeaponDamageType[]
+  actions           EnemyAction[]
   additionalActions EnemyAction[]
 
   createdAt DateTime @default(now())

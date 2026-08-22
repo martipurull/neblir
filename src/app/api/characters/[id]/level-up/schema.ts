@@ -87,6 +87,7 @@ export const levelUpCharacterBodySchema = characterSchema
   .omit({
     wallet: true,
     inventory: true,
+    vehicles: true,
     notes: true,
     paths: true,
     features: true,

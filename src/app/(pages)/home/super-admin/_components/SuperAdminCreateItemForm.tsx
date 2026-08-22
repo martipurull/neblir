@@ -196,6 +196,7 @@ export function SuperAdminCreateItemForm({
       damageDiceType: 6,
       damageNumberOfDice: 1,
       equippable: false,
+      vehicleMountable: false,
       equipSlotTypes: [],
       equipSlotCost: "",
       modifiesAttribute: "",
@@ -345,6 +346,7 @@ export function SuperAdminCreateItemForm({
       notes: optionalRichHtml(values.notes),
       weight,
       equippable: values.equippable,
+      vehicleMountable: values.vehicleMountable,
       equipSlotTypes: values.equippable ? values.equipSlotTypes : [],
       ...(values.equippable && equipSlotCostParsed !== undefined
         ? { equipSlotCost: equipSlotCostParsed }
@@ -648,7 +650,7 @@ export function SuperAdminCreateItemForm({
             />
           ) : null}
 
-          <div className="mb-6">
+          <div className="mb-6 space-y-3">
             <Controller
               name="equippable"
               control={form.control}
@@ -663,6 +665,17 @@ export function SuperAdminCreateItemForm({
                     }
                   }}
                   label="Equippable"
+                />
+              )}
+            />
+            <Controller
+              name="vehicleMountable"
+              control={form.control}
+              render={({ field }) => (
+                <Checkbox
+                  checked={field.value}
+                  onChange={field.onChange}
+                  label="Can be mounted on a vehicle"
                 />
               )}
             />

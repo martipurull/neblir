@@ -101,6 +101,7 @@ async function main() {
     "OFFICIAL_DATA_ENEMIES_FILE",
     "OFFICIAL_DATA_ENEMIES_CSV",
   ]);
+  const vehiclesFile = optionalEnv("OFFICIAL_DATA_VEHICLES_FILE");
   const featuresFile = requiredEnvAny([
     "OFFICIAL_DATA_FEATURES_FILE",
     "OFFICIAL_DATA_FEATURES_CSV",
@@ -127,6 +128,22 @@ async function main() {
       ...maybeDry,
     ])
   );
+  if (vehiclesFile) {
+    results.push(
+      runScript("Vehicles", [
+        "prisma/scripts/upsertVehiclesFromFile.ts",
+        vehiclesFile,
+        ...maybeDry,
+      ])
+    );
+  } else {
+    results.push({
+      name: "Vehicles",
+      command: "",
+      status: "skipped",
+      summary: "OFFICIAL_DATA_VEHICLES_FILE not set",
+    });
+  }
   results.push(
     runScript("Paths & Features", [
       "prisma/scripts/upsertPathsAndFeaturesFromFile.ts",

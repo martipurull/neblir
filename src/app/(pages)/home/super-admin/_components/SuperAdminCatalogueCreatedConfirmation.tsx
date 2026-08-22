@@ -109,6 +109,24 @@ const CATALOGUE_CREATED_CONFIG: Record<
     savedFallback: "this enemy",
     recordLabelField: "name",
   },
+  vehicle: {
+    title: "Vehicle created",
+    titleWithRecord: "Official vehicle created",
+    description:
+      "The vehicle is saved in the catalogue. Download JSON for seed data when you are ready to commit it to the repo.",
+    noIdDescription:
+      "This page is opened after you create an official vehicle from the form.",
+    noIdMessage:
+      "No vehicle id was provided. Use the create form, or open this page from the success redirect after creating a vehicle.",
+    createAnotherLabel: "Create another vehicle",
+    createInitialLabel: "Create a vehicle",
+    createFormHref: "/home/super-admin/vehicles",
+    apiSegment: "vehicles",
+    filenamePrefix: "vehicle",
+    loadingText: "Loading vehicle…",
+    savedFallback: "this vehicle",
+    recordLabelField: "name",
+  },
   map: {
     title: "Map created",
     titleWithRecord: "Global map created",

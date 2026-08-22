@@ -134,6 +134,7 @@ describe("resolveCharacterSectionOrderList", () => {
       "paths",
       "features",
       "inventory",
+      "vehicles",
       "wallet",
       "notes",
     ]);
@@ -151,6 +152,7 @@ describe("resolveCharacterSectionOrderList", () => {
       "health",
       "paths",
       "features",
+      "vehicles",
       "wallet",
       "notes",
     ]);
@@ -173,6 +175,7 @@ describe("resolveCharacterSectionOrderList", () => {
       "health",
       "paths",
       "features",
+      "vehicles",
       "wallet",
       "notes",
     ]);

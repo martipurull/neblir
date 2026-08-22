@@ -22,7 +22,10 @@ import {
   type UniqueItemListItem,
 } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
+import {
+  normalizeItemBrowseDamage,
+  type ItemBrowseDetailFields,
+} from "@/app/lib/types/itemBrowseDetail";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -71,11 +74,9 @@ function resolvedUniqueToBrowseDetail(
     effectiveRange:
       (resolved.effectiveRange as number | null | undefined) ?? null,
     maxRange: (resolved.maxRange as number | null | undefined) ?? null,
-    damage:
-      (resolved.damage as
-        | ItemBrowseDetailFields["damage"]
-        | null
-        | undefined) ?? null,
+    damage: normalizeItemBrowseDamage(
+      resolved.damage as ItemBrowseDetailFields["damage"]
+    ),
     usage: (resolved.usage as string | null | undefined) ?? null,
     notes: (resolved.notes as string | null | undefined) ?? null,
     modifiesAttribute:

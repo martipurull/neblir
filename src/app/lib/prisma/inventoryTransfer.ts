@@ -1,5 +1,8 @@
 import type { ItemSourceType, Prisma } from "@prisma/client";
-import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
+import {
+  ITEM_LOCATION_CARRIED,
+  parseVehicleMountedItemLocation,
+} from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
 import {
   characterIsInGame,
@@ -215,6 +218,12 @@ async function transferWithinClient(
     );
   }
 
+  // Giving an item away (fully or partially) clears any vehicle mount link.
+  await db.vehicleMountedItem.deleteMany({
+    where: { itemCharacterId: row.id },
+  });
+  const wasMounted = parseVehicleMountedItemLocation(row.itemLocation) != null;
+
   const currentUses = row.currentUses ?? 0;
   const { transferred: transferredUsesRaw, remaining: giverUsesRaw } =
     splitStackUses(currentUses, row.quantity, quantity);
@@ -237,6 +246,7 @@ async function transferWithinClient(
         equipSlots: newGiverEquip,
         isEquipped: newGiverEquip.length > 0,
         currentUses: giverUses,
+        ...(wasMounted ? { itemLocation: ITEM_LOCATION_CARRIED } : {}),
       },
     });
   }

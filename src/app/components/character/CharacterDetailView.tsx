@@ -34,6 +34,7 @@ import {
   getPathsSection,
   getFeaturesSection,
   getInventorySection,
+  getVehiclesSection,
   getWalletSection,
   getNotesSection,
 } from "@/app/(pages)/home/characters/[id]/sections";
@@ -43,7 +44,7 @@ export type CharacterDetailViewProps = {
   readOnly?: boolean;
   /** Locks the active game context (used for GM read-only view). */
   fixedGameId?: string | null;
-  mutate?: KeyedMutator<CharacterDetail | null>;
+  mutateAction?: KeyedMutator<CharacterDetail | null>;
 };
 
 export function resolveCharacterLayoutMode(
@@ -56,7 +57,7 @@ export function CharacterDetailView({
   character,
   readOnly = false,
   fixedGameId = null,
-  mutate,
+  mutateAction,
 }: CharacterDetailViewProps) {
   const { user } = useUser();
   const noopMutate = useCallback(
@@ -67,9 +68,12 @@ export function CharacterDetailView({
   const { updateHealth, updateArmour } = useCharacterStatUpdates(
     character.id,
     character,
-    mutate ?? noopMutate
+    mutateAction ?? noopMutate
   );
-  const reactionTracking = useReactionTracking(character, mutate ?? noopMutate);
+  const reactionTracking = useReactionTracking(
+    character,
+    mutateAction ?? noopMutate
+  );
 
   const [diceSelection, setDiceSelection] = useState<DiceSelectionItem[]>([]);
   const [singleAttributeRollSelection, setSingleAttributeRollSelection] =
@@ -197,16 +201,22 @@ export function CharacterDetailView({
     ];
     const pathsSection = getPathsSection(character, {
       readOnly,
-      mutate: readOnly ? undefined : mutate,
+      mutate: readOnly ? undefined : mutateAction,
     });
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
     if (featuresSection) list.push(featuresSection);
     list.push(
       getInventorySection(character, activeGameId, {
-        mutate: readOnly ? undefined : mutate,
+        mutate: readOnly ? undefined : mutateAction,
         readOnly,
         rollPrivacy,
+      })
+    );
+    list.push(
+      getVehiclesSection(character, activeGameId, {
+        mutate: readOnly ? undefined : mutateAction,
+        readOnly,
       })
     );
     list.push(
@@ -214,12 +224,12 @@ export function CharacterDetailView({
         character,
         imageUrls,
         character.id,
-        readOnly ? undefined : mutate,
+        readOnly ? undefined : mutateAction,
         readOnly
       )
     );
-    if (!readOnly && mutate) {
-      list.push(getNotesSection(character, mutate));
+    if (!readOnly && mutateAction) {
+      list.push(getNotesSection(character, mutateAction));
     }
     return applyCharacterSectionOrder(list, user?.characterSectionOrder);
   }, [
@@ -229,7 +239,7 @@ export function CharacterDetailView({
     handleDiceSelect,
     handleSingleAttributeRoll,
     imageUrls,
-    mutate,
+    mutateAction,
     reactionTracking.clearReactions,
     reactionTracking.usedReactions,
     initiativeGameDetails,
@@ -259,7 +269,7 @@ export function CharacterDetailView({
         onUseReaction={readOnly ? undefined : reactionTracking.useReaction}
         onHealthUpdate={readOnly ? undefined : updateHealth}
         onArmourUpdate={readOnly ? undefined : updateArmour}
-        mutate={readOnly ? undefined : mutate}
+        mutate={readOnly ? undefined : mutateAction}
         onOpenDiceRoller={
           readOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
         }
@@ -317,7 +327,7 @@ export function CharacterDetailView({
             gameDetails={initiativeGameDetails}
             onRegistered={async () => {
               await refetchInitiativeGames();
-              if (mutate) await mutate();
+              if (mutateAction) await mutateAction();
             }}
             onNavigateToShowOrder={(gameId) => {
               setInitiativeRollOpen(false);

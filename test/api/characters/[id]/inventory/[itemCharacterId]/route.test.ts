@@ -7,12 +7,20 @@ import {
 } from "../../../../helpers";
 
 const deleteItemCharacterMock = vi.fn();
+const getCharacterInventoryMock = vi.fn();
+const updateItemCharacterMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
 const getCharacterMock = vi.fn();
 const updateCharacterMock = vi.fn();
+const vehicleMountedItemDeleteManyMock = vi.fn();
+const itemCharacterUpdateMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/itemCharacter", () => ({
   deleteItemCharacter: deleteItemCharacterMock,
+  getCharacterInventory: (...args: unknown[]) =>
+    getCharacterInventoryMock(...args),
+  updateItemCharacter: (...args: unknown[]) => updateItemCharacterMock(...args),
+  getMaxUsesForItem: vi.fn(),
 }));
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
@@ -22,6 +30,25 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
 vi.mock("@/app/lib/prisma/character", () => ({
   getCharacter: getCharacterMock,
   updateCharacter: updateCharacterMock,
+}));
+
+vi.mock("@/app/lib/prisma/client", () => ({
+  prisma: {
+    $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({
+        vehicleMountedItem: {
+          deleteMany: (...args: unknown[]) =>
+            vehicleMountedItemDeleteManyMock(...args),
+        },
+        itemCharacter: {
+          update: (...args: unknown[]) => itemCharacterUpdateMock(...args),
+        },
+      }),
+  },
+}));
+
+vi.mock("@/app/lib/equipCombatUtils", () => ({
+  computeCombatInfoUpdateForCharacter: () => ({}),
 }));
 
 describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
@@ -78,5 +105,66 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] DELETE", () => {
     );
     expect(response.status).toBe(204);
     expect(deleteItemCharacterMock).toHaveBeenCalledWith("ic-1");
+  });
+});
+
+describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getCharacterMock.mockResolvedValue(null);
+    getCharacterInventoryMock
+      .mockResolvedValueOnce([
+        { id: "ic-1", equipSlots: [], itemLocation: "vehicle-mounted:vc-1" },
+      ])
+      .mockResolvedValueOnce([
+        { id: "ic-1", equipSlots: [], itemLocation: "locker" },
+      ]);
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeUnauthedRequest({ action: "setLocation", itemLocation: "locker" }),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 400 on invalid body", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setLocation" }, "user-1"),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(400);
+  });
+
+  it("clears vehicle mounts when changing item location", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    vehicleMountedItemDeleteManyMock.mockResolvedValue({ count: 1 });
+    itemCharacterUpdateMock.mockResolvedValue({});
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setLocation", itemLocation: "locker" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(vehicleMountedItemDeleteManyMock).toHaveBeenCalledWith({
+      where: { itemCharacterId: "ic-1" },
+    });
+    expect(itemCharacterUpdateMock).toHaveBeenCalledWith({
+      where: { id: "ic-1" },
+      data: { itemLocation: "locker" },
+    });
   });
 });

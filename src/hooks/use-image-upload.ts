@@ -5,9 +5,12 @@ export type ImageUploadKind =
   | "custom_items"
   | "custom_enemies"
   | "unique_items"
+  | "custom_vehicles"
+  | "unique_vehicles"
   | "games"
   | "characters"
   | "items"
+  | "vehicles"
   | "maps"
   | "files";
 

@@ -14,6 +14,7 @@ import {
   connectDiscordStartResponseSchema,
   discordGuildChannelsResponseSchema,
   saveDiscordIntegrationBodySchema,
+  type DiscordGuildChannel,
 } from "@/app/lib/types/discord";
 import type { SubmitInitiativeBody } from "@/app/lib/types/initiative";
 import type { RollEventPayload } from "@/app/lib/types/roll-event";
@@ -407,7 +408,7 @@ export async function getDiscordConnectUrl(gameId: string): Promise<string> {
 export async function getDiscordGuildChannels(
   gameId: string,
   guildId: string
-): Promise<Array<{ id: string; name: string; channelType: number }>> {
+): Promise<DiscordGuildChannel[]> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/discord/channels?guildId=${encodeURIComponent(guildId)}`,
     { method: "GET", headers: { "Content-Type": "application/json" } }
@@ -508,6 +509,42 @@ export async function giveItemToCharacter(
         response.status,
         bodyPayload,
         "Failed to give item to character"
+      )
+    );
+  }
+}
+
+export type GiveVehicleToCharacterBody = {
+  characterId: string;
+  sourceType: "GLOBAL_VEHICLE" | "CUSTOM_VEHICLE" | "UNIQUE_VEHICLE";
+  vehicleId: string;
+};
+
+export async function giveVehicleToCharacter(
+  gameId: string,
+  body: GiveVehicleToCharacterBody
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/give-vehicle`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to give vehicle to character"
       )
     );
   }

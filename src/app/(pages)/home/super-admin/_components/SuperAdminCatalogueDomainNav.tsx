@@ -8,6 +8,7 @@ type SuperAdminCatalogueDomain =
   | "features"
   | "enemies"
   | "reference"
+  | "vehicles"
   | "maps";
 
 const DOMAIN_BASE: Record<SuperAdminCatalogueDomain, string> = {
@@ -16,6 +17,7 @@ const DOMAIN_BASE: Record<SuperAdminCatalogueDomain, string> = {
   features: "/home/super-admin/features",
   enemies: "/home/super-admin/enemies",
   reference: "/home/super-admin/reference",
+  vehicles: "/home/super-admin/vehicles",
   maps: "/home/super-admin/maps",
 };
 
