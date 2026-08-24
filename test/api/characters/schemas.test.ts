@@ -117,3 +117,18 @@ describe("characterCreationRequestSchema", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("characterEditableUpdateSchema", () => {
+  it("accepts primaryPathCharacterId from form open", async () => {
+    const { characterEditableUpdateSchema } =
+      await import("@/app/api/characters/schemas");
+    const result = characterEditableUpdateSchema.safeParse({
+      ...makeCharacterCreationRequest(),
+      primaryPathCharacterId: "pc-primary-1",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.primaryPathCharacterId).toBe("pc-primary-1");
+    }
+  });
+});

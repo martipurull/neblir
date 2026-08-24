@@ -1,6 +1,9 @@
 /** Value for itemLocation when the character has the item on them */
 export const ITEM_LOCATION_CARRIED = "carried" as const;
 
+/** In-place stack quantity ceiling on a holding (browse-add may use a lower cap). */
+export const MAX_STACK_QUANTITY = 999;
+
 const VEHICLE_CARGO_LOCATION_PREFIX = "vehicle:" as const;
 const VEHICLE_MOUNTED_LOCATION_PREFIX = "vehicle-mounted:" as const;
 

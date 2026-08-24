@@ -8,6 +8,7 @@ import {
   statusClassName,
   VEHICLE_STATUS_LABELS,
 } from "@/app/components/character/vehicleDetailModal/VehicleDetailStatRows";
+import { VehicleHoldingEditor } from "@/app/components/character/vehicleDetailModal/VehicleHoldingEditor";
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
@@ -412,6 +413,16 @@ export function VehicleDetailModal({
           </div>
         ) : null}
 
+        <VehicleHoldingEditor
+          key={entry.id}
+          characterId={characterId}
+          vehicleCharacterId={entry.id}
+          nickname={entry.customName ?? ""}
+          maxHpBonus={entry.maxHpBonus}
+          disabled={busyAction != null}
+          mutate={mutateAction}
+        />
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <CurrentHpAdjustRow
             currentHp={entry.currentHp}
@@ -422,7 +433,6 @@ export function VehicleDetailModal({
             }}
           />
           <DetailRow label="Effective max HP" value={entry.effectiveMaxHp} />
-          <DetailRow label="Max HP bonus" value={entry.maxHpBonus} />
           <DetailRow
             label={VEHICLE_COMBAT_SPEED_LABEL}
             hint={VEHICLE_COMBAT_SPEED_HELP}

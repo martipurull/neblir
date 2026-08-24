@@ -1,4 +1,7 @@
-import { ITEM_LOCATION_CARRIED } from "@/app/lib/constants/inventory";
+import {
+  ITEM_LOCATION_CARRIED,
+  MAX_STACK_QUANTITY,
+} from "@/app/lib/constants/inventory";
 import {
   getAutoEquipSlotAdds,
   getEquippedInstanceCount,
@@ -51,6 +54,14 @@ const patchBodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("setStatus"),
     status: itemStatusSchema,
+  }),
+  z.object({
+    action: z.literal("setQuantity"),
+    quantity: z.number().int().min(0).max(MAX_STACK_QUANTITY),
+  }),
+  z.object({
+    action: z.literal("setCustomName"),
+    customName: z.string().nullable(),
   }),
 ]);
 
@@ -300,6 +311,39 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
               isEquipped: false,
             }
           : {}),
+      });
+    } else if (action === "setQuantity") {
+      const { quantity } = parsed.data;
+      if (quantity === 0) {
+        await deleteItemCharacter(itemCharacterId);
+        const characterAfterDelete = await getCharacter(id);
+        if (characterAfterDelete?.combatInformation) {
+          const combatUpdate = computeCombatInfoUpdateForCharacter(
+            characterAfterDelete as CharacterForCombatSync
+          );
+          await updateCharacter(id, {
+            combatInformation: {
+              ...characterAfterDelete.combatInformation,
+              ...combatUpdate,
+            },
+          });
+        }
+        return new NextResponse(null, { status: 204 });
+      }
+      const equippedCount = equipSlots.length;
+      await updateItemCharacter(itemCharacterId, {
+        quantity,
+        ...(equippedCount > quantity
+          ? {
+              equipSlots: equipSlots.slice(0, quantity),
+              isEquipped: quantity > 0,
+            }
+          : {}),
+      });
+    } else if (action === "setCustomName") {
+      const trimmed = parsed.data.customName?.trim() ?? "";
+      await updateItemCharacter(itemCharacterId, {
+        customName: trimmed.length > 0 ? trimmed : null,
       });
     } else {
       await updateItemCharacter(itemCharacterId, {

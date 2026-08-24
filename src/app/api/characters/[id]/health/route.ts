@@ -1,3 +1,5 @@
+import { applyCharacterHealthPatch } from "@/app/lib/applyCharacterHealthPatch";
+import type { CharacterHealthSnapshot } from "@/app/lib/applyCharacterHealthPatch";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { NextResponse } from "next/server";
 import { healthUpdateSchema } from "./schema";
@@ -7,6 +9,35 @@ import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import type { Status } from "@prisma/client";
+
+function toHealthSnapshot(
+  health: CharacterDetailHealth
+): CharacterHealthSnapshot {
+  return {
+    currentPhysicalHealth: health.currentPhysicalHealth,
+    currentMentalHealth: health.currentMentalHealth,
+    maxPhysicalHealth: health.maxPhysicalHealth,
+    maxMentalHealth: health.maxMentalHealth,
+    seriousPhysicalInjuries: health.seriousPhysicalInjuries,
+    seriousTrauma: health.seriousTrauma,
+    deathSaves: health.deathSaves ?? { successes: 0, failures: 0 },
+    madnessSaves: health.madnessSaves ?? { successes: 0, failures: 0 },
+    status: health.status,
+  };
+}
+
+type CharacterDetailHealth = {
+  currentPhysicalHealth: number;
+  currentMentalHealth: number;
+  maxPhysicalHealth: number;
+  maxMentalHealth: number;
+  seriousPhysicalInjuries: number;
+  seriousTrauma: number;
+  deathSaves?: { successes: number; failures: number } | null;
+  madnessSaves?: { successes: number; failures: number } | null;
+  status: Status;
+};
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -68,7 +99,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     if (
-      parsedBody.currentPhysicalHealth &&
+      parsedBody.currentPhysicalHealth != null &&
       parsedBody.currentPhysicalHealth >
         existingCharacter.health.maxPhysicalHealth
     ) {
@@ -87,7 +118,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
     if (
-      parsedBody.currentMentalHealth &&
+      parsedBody.currentMentalHealth != null &&
       parsedBody.currentMentalHealth > existingCharacter.health.maxMentalHealth
     ) {
       logger.error({
@@ -105,27 +136,32 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    let newHealth = {
-      ...existingCharacter.health,
-      ...parsedBody,
-    };
-    if (parsedBody.status === "ALIVE") {
-      newHealth = { ...newHealth, status: "ALIVE" };
-    }
-    if (parsedBody.seriousTrauma && parsedBody.seriousTrauma >= 3) {
-      newHealth = { ...newHealth, status: "DERANGED" };
-    }
-    if (
-      (parsedBody.deathSaves?.failures &&
-        parsedBody.deathSaves.failures >= 3) ||
-      (parsedBody.seriousPhysicalInjuries &&
-        parsedBody.seriousPhysicalInjuries >= 3)
-    ) {
-      newHealth = { ...newHealth, status: "DECEASED" };
+    const {
+      deathSaves: patchDeathSaves,
+      madnessSaves: patchMadnessSaves,
+      ...restPatch
+    } = parsedBody;
+    const applied = applyCharacterHealthPatch(
+      toHealthSnapshot(existingCharacter.health),
+      {
+        ...restPatch,
+        ...(patchDeathSaves != null ? { deathSaves: patchDeathSaves } : {}),
+        ...(patchMadnessSaves != null
+          ? { madnessSaves: patchMadnessSaves }
+          : {}),
+      }
+    );
+    if (!applied.ok) {
+      return errorResponse(applied.error, 400);
     }
 
-    const deathSaves = newHealth.deathSaves ?? { successes: 0, failures: 0 };
-    const healthForPrisma = { ...newHealth, deathSaves };
+    const { madnessSaves, ...healthWithoutOptionalMadness } = applied.health;
+    const healthForPrisma = {
+      ...existingCharacter.health,
+      ...healthWithoutOptionalMadness,
+      deathSaves: applied.health.deathSaves,
+      ...(madnessSaves != null ? { madnessSaves } : {}),
+    };
     await updateCharacter(id, {
       health: healthForPrisma,
     });

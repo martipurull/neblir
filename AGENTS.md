@@ -133,3 +133,17 @@ GitHub Actions and Vercel run on **Linux**; local dev is usually **macOS**. Tool
 1. Check for `Missing: … from lock file` (especially `@esbuild/linux-x64`, `esbuild@0.28.0` under vitest)—lockfile likely pruned on macOS; resync on Node 22.12+ with npm ≥ 11.3, do not add `.npmrc`.
 2. Check for `Cannot find native binding` / missing `@oxc-parser/binding-linux-x64-gnu`—confirm optional deps and npm version; see **`docs/ci-native-deps.md`**.
 3. Check for `husky: not found`—confirm `HUSKY=0` and the `prepare` skip in `package.json`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in this repo’s GitHub Issues via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical roles map 1:1 to GitHub labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.

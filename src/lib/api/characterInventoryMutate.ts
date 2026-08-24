@@ -34,12 +34,27 @@ export async function patchCharacterInventoryEntryAndMutate(
   characterId: string,
   itemCharacterId: string,
   body: UpdateInventoryEntryBody
-): Promise<InventoryEntry> {
+): Promise<InventoryEntry | null> {
   const updated = await updateCharacterInventoryEntry(
     characterId,
     itemCharacterId,
     body
   );
+  if (updated == null) {
+    await mutate(
+      (current) =>
+        current
+          ? {
+              ...current,
+              inventory: (current.inventory ?? []).filter(
+                (entry) => entry.id !== itemCharacterId
+              ),
+            }
+          : current,
+      { revalidate: true }
+    );
+    return null;
+  }
   await mutate(
     (current) =>
       current ? mergeInventoryEntryIntoCharacter(current, updated) : current,

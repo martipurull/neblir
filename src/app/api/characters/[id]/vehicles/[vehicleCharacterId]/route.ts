@@ -66,8 +66,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         currentHp: parsed.data.currentHp,
       });
     } else if (action === "setCustomName") {
-      const customName = parsed.data.customName?.trim() ?? null;
-      await updateVehicleCharacter(vehicleCharacterId, { customName });
+      const trimmed = parsed.data.customName?.trim() ?? "";
+      await updateVehicleCharacter(vehicleCharacterId, {
+        customName: trimmed.length > 0 ? trimmed : null,
+      });
     } else if (action === "setParkedAt") {
       await updateVehicleCharacter(vehicleCharacterId, {
         parkedAt: parsed.data.parkedAt,

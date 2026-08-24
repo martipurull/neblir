@@ -23,6 +23,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
 import { ItemDetailEquipSection } from "./itemDetailModal/ItemDetailEquipSection";
+import { ItemDetailHoldingEditor } from "./itemDetailModal/ItemDetailHoldingEditor";
 import { ItemDetailGiveRemoveSection } from "./itemDetailModal/ItemDetailGiveRemoveSection";
 import { ItemDetailLocationSection } from "./itemDetailModal/ItemDetailLocationSection";
 import { ItemDetailSummaryGrid } from "./itemDetailModal/ItemDetailSummaryGrid";
@@ -303,6 +304,16 @@ export function ItemDetailModal({
               />
             </div>
           )}
+
+          <ItemDetailHoldingEditor
+            key={entry.id}
+            characterId={characterId}
+            itemCharacterId={entry.id}
+            nickname={entry.customName ?? ""}
+            quantity={entry.quantity}
+            mutate={mutate}
+            onHoldingRemoved={onClose}
+          />
 
           <ItemDetailSummaryGrid
             entry={entry}

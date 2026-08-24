@@ -91,13 +91,15 @@ export type UpdateInventoryEntryBody =
   | { action: "setLocation"; itemLocation: string }
   | { action: "setCurrentUses"; currentUses: number }
   | { action: "decrementUse" }
-  | { action: "setStatus"; status: ItemStatus };
+  | { action: "setStatus"; status: ItemStatus }
+  | { action: "setQuantity"; quantity: number }
+  | { action: "setCustomName"; customName: string | null };
 
 export async function updateCharacterInventoryEntry(
   characterId: string,
   itemCharacterId: string,
   body: UpdateInventoryEntryBody
-): Promise<InventoryEntry> {
+): Promise<InventoryEntry | null> {
   const response = await fetch(
     `/api/characters/${encodeURIComponent(characterId)}/inventory/${encodeURIComponent(itemCharacterId)}`,
     {
@@ -109,19 +111,23 @@ export async function updateCharacterInventoryEntry(
   );
 
   if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
+    let errorBody: ApiErrorPayload | undefined;
     try {
-      body = (await response.json()) as ApiErrorPayload;
+      errorBody = (await response.json()) as ApiErrorPayload;
     } catch {
       // ignore
     }
     throw new Error(
       getUserSafeApiError(
         response.status,
-        body,
+        errorBody,
         "Failed to update inventory entry"
       )
     );
+  }
+
+  if (response.status === 204) {
+    return null;
   }
 
   const json = await response.json();

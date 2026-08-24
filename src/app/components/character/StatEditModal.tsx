@@ -21,7 +21,10 @@ export interface StatEditModalProps {
     currentHP?: number;
     seriousInjuries?: number;
     seriousTrauma?: number;
+    hitsAtZero?: number;
   }) => void;
+  /** When true, − at 0 HP records crisis-track failures instead of lowering HP. */
+  hitsAtZeroEnabled?: boolean;
 }
 
 type SessionSnapshot = {
@@ -44,12 +47,14 @@ function QuickAdjustRow({
   min,
   max,
   onAdjust,
+  decreaseDisabled,
 }: {
   label: string;
   value: number;
   min: number;
   max: number;
   onAdjust: (delta: number) => void;
+  decreaseDisabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -61,7 +66,7 @@ function QuickAdjustRow({
           fullWidth={false}
           className="disabled:!opacity-40"
           onClick={() => onAdjust(-1)}
-          disabled={value <= min}
+          disabled={decreaseDisabled ?? value <= min}
           aria-label={`Decrease ${label}`}
         >
           −
@@ -94,6 +99,7 @@ export function StatEditModal({
   seriousInjuries = 0,
   seriousTrauma = 0,
   onUpdate,
+  hitsAtZeroEnabled = false,
 }: StatEditModalProps) {
   /** Frozen for this mount; parent remounts with `key` when the modal is opened. */
   const [sessionStart] = useState<SessionSnapshot>(() => ({
@@ -104,6 +110,7 @@ export function StatEditModal({
   const [draftHP, setDraftHP] = useState(() => currentHP);
   const [draftInjuries, setDraftInjuries] = useState(() => seriousInjuries);
   const [draftTrauma, setDraftTrauma] = useState(() => seriousTrauma);
+  const [draftHitsAtZero, setDraftHitsAtZero] = useState(0);
 
   const flushSessionToParent = () => {
     const start = sessionStart;
@@ -118,11 +125,13 @@ export function StatEditModal({
         currentHP?: number;
         seriousInjuries?: number;
         seriousTrauma?: number;
+        hitsAtZero?: number;
       } = {};
       if (draftHP !== start.hp) updates.currentHP = draftHP;
       if (finalInjuries !== start.injuries) {
         updates.seriousInjuries = finalInjuries;
       }
+      if (draftHitsAtZero > 0) updates.hitsAtZero = draftHitsAtZero;
       if (Object.keys(updates).length > 0) onUpdate(updates);
     } else if (type === "mental") {
       const lost = sessionHpLost(start.hp, draftHP);
@@ -132,9 +141,11 @@ export function StatEditModal({
         currentHP?: number;
         seriousInjuries?: number;
         seriousTrauma?: number;
+        hitsAtZero?: number;
       } = {};
       if (draftHP !== start.hp) updates.currentHP = draftHP;
       if (finalTrauma !== start.trauma) updates.seriousTrauma = finalTrauma;
+      if (draftHitsAtZero > 0) updates.hitsAtZero = draftHitsAtZero;
       if (Object.keys(updates).length > 0) onUpdate(updates);
     } else {
       if (draftHP !== start.hp) onUpdate({ currentHP: draftHP });
@@ -174,6 +185,16 @@ export function StatEditModal({
       : draftTrauma;
 
   const handleHPAdjust = (delta: number) => {
+    if (hitsAtZeroEnabled && sessionStart.hp === 0 && draftHP === 0) {
+      if (delta < 0) {
+        setDraftHitsAtZero((n) => Math.min(3, n + 1));
+        return;
+      }
+      if (delta > 0 && draftHitsAtZero > 0) {
+        setDraftHitsAtZero((n) => Math.max(0, n - 1));
+        return;
+      }
+    }
     setDraftHP((prev) => Math.max(0, Math.min(maxHP, prev + delta)));
   };
 
@@ -235,8 +256,20 @@ export function StatEditModal({
             min={0}
             max={maxHP}
             onAdjust={handleHPAdjust}
+            decreaseDisabled={
+              draftHP <= 0 &&
+              !(hitsAtZeroEnabled && sessionStart.hp === 0) &&
+              draftHitsAtZero === 0
+            }
           />
         )}
+
+        {hitsAtZeroEnabled && draftHitsAtZero > 0 ? (
+          <p className="text-sm text-white/80">
+            Hits at 0 HP this edit: {draftHitsAtZero} (each marks a crisis
+            failure)
+          </p>
+        ) : null}
 
         {type === "physical" && (
           <QuickAdjustRow

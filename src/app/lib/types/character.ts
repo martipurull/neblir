@@ -133,8 +133,14 @@ export const healthSchema = z.object({
   seriousTrauma: z.number().max(3).default(0),
   deathSaves: z
     .object({
-      successes: z.number().max(3).default(0),
-      failures: z.number().max(3).default(0),
+      successes: z.number().int().min(0).max(3).default(0),
+      failures: z.number().int().min(0).max(3).default(0),
+    })
+    .nullish(),
+  madnessSaves: z
+    .object({
+      successes: z.number().int().min(0).max(3).default(0),
+      failures: z.number().int().min(0).max(3).default(0),
     })
     .nullish(),
   status: z.nativeEnum(Status).default("ALIVE"),

@@ -26,6 +26,7 @@ import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import type { Status } from "@prisma/client";
 import React, { useCallback, useMemo, useState } from "react";
 import { AttackRollModal } from "@/app/components/combat/AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
@@ -42,6 +43,11 @@ type HealthPartial = {
   currentMentalHealth?: number;
   seriousPhysicalInjuries?: number;
   seriousTrauma?: number;
+  deathSaves?: { successes: number; failures: number };
+  madnessSaves?: { successes: number; failures: number };
+  status?: Status;
+  physicalHitsAtZero?: number;
+  mentalHitsAtZero?: number;
 };
 
 type ArmourPartial = { armourCurrentHP?: number };
@@ -68,6 +74,11 @@ interface CharacterSummaryHeaderProps {
   onOpenDiceRoller?: () => void;
   /** View-only sheet: no rolls, equipping, or stat edits */
   readOnly?: boolean;
+  /**
+   * When set, overrides whether Update / Level-up actions appear under the name.
+   * Defaults to `!readOnly`.
+   */
+  showCharacterActions?: boolean;
   rollPrivacy?: RollPrivacyOptions;
   className?: string;
 }
@@ -86,9 +97,11 @@ export function CharacterSummaryHeader({
   mutate,
   onOpenDiceRoller,
   readOnly = false,
+  showCharacterActions,
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
   className,
 }: CharacterSummaryHeaderProps) {
+  const characterActionsVisible = showCharacterActions ?? !readOnly;
   const {
     statModalOpen,
     setStatModalOpen,
@@ -289,8 +302,28 @@ export function CharacterSummaryHeader({
               : undefined
           }
           onOpenDiceRoller={onOpenDiceRoller}
-          showCharacterActions={!readOnly}
+          showCharacterActions={characterActionsVisible}
         />
+
+        {character.health.status === "DECEASED" ? (
+          <div
+            className="mt-2 w-full rounded-md border border-neblirDanger bg-paleBlue px-3 py-2 text-center"
+            role="status"
+          >
+            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirDanger-600">
+              Deceased
+            </p>
+          </div>
+        ) : character.health.status === "DERANGED" ? (
+          <div
+            className="mt-2 w-full rounded-md border border-neblirWarning bg-paleBlue px-3 py-2 text-center"
+            role="status"
+          >
+            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirWarning-600">
+              Deranged
+            </p>
+          </div>
+        ) : null}
 
         {activeVehicle ? (
           <div className="mt-1 w-full rounded-lg border border-black bg-paleBlue/40 px-3 py-2 text-sm text-black">
@@ -546,7 +579,15 @@ export function CharacterSummaryHeader({
                 ...(u.seriousInjuries != null && {
                   seriousPhysicalInjuries: u.seriousInjuries,
                 }),
+                ...(u.hitsAtZero != null && {
+                  physicalHitsAtZero: u.hitsAtZero,
+                }),
               })
+            }
+            hitsAtZeroEnabled={
+              health.currentPhysicalHealth === 0 &&
+              health.status !== "DECEASED" &&
+              (health.deathSaves?.successes ?? 0) < 3
             }
           />
         )}
@@ -567,7 +608,15 @@ export function CharacterSummaryHeader({
                 ...(u.seriousTrauma != null && {
                   seriousTrauma: u.seriousTrauma,
                 }),
+                ...(u.hitsAtZero != null && {
+                  mentalHitsAtZero: u.hitsAtZero,
+                }),
               })
+            }
+            hitsAtZeroEnabled={
+              health.currentMentalHealth === 0 &&
+              health.status === "ALIVE" &&
+              (health.madnessSaves?.successes ?? 0) < 3
             }
           />
         )}

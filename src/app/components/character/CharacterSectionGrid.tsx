@@ -20,7 +20,7 @@ export function CharacterSectionGrid({
         {sections.map((section) => (
           <section
             key={section.id}
-            className="flex min-h-0 flex-col rounded-lg border border-black bg-transparent"
+            className={`flex min-h-0 flex-col rounded-lg border border-black bg-transparent ${section.panelClassName ?? ""}`}
           >
             <div className="flex items-center justify-between gap-3 border-b border-black px-4 py-3">
               <h2 className="text-base font-semibold text-black">

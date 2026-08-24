@@ -6,13 +6,17 @@ import {
   type CharacterNoteEntry,
 } from "@/app/lib/types/character";
 import { walletSchema, type Currency } from "@/app/lib/types/item";
-import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import type {
+  CharacterCreationRequest,
+  CharacterEditableUpdateRequest,
+} from "@/app/api/characters/schemas";
 import type { SoldierFavouriteWeaponUpdate } from "@/app/lib/types/path";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 import type {
   LevelUpAttributePath,
   LevelUpGeneralSkill,
 } from "@/app/lib/levelUpPaths";
+import type { Status } from "@prisma/client";
 
 type ApiErrorPayload = { message?: string; details?: string };
 export type { LevelUpAttributePath, LevelUpGeneralSkill };
@@ -22,7 +26,7 @@ export type CharacterCreateBody = CharacterCreationRequest & {
   gameId?: string;
   gameLinkIsPublic?: boolean;
 };
-export type CharacterEditableUpdateBody = CharacterCreationRequest;
+export type CharacterEditableUpdateBody = CharacterEditableUpdateRequest;
 export type CharacterLevelUpBody = {
   healthUpdate: { rolledPhysicalHealth: number; rolledMentalHealth: number };
   pathId: string;
@@ -225,7 +229,10 @@ type HealthUpdateBody = {
   seriousPhysicalInjuries?: number;
   seriousTrauma?: number;
   deathSaves?: { successes: number; failures: number };
-  status?: string;
+  madnessSaves?: { successes: number; failures: number };
+  status?: Status;
+  physicalHitsAtZero?: number;
+  mentalHitsAtZero?: number;
 };
 
 type CombatInfoUpdateBody = {

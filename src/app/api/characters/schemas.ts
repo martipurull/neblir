@@ -86,3 +86,18 @@ export const characterCreationRequestSchema = z
 export type CharacterCreationRequest = z.infer<
   typeof characterCreationRequestSchema
 >;
+
+/**
+ * Update Character body: creation shape plus the PathCharacter id that was
+ * primary (highest rank) when the Update form opened. Used when replacing a
+ * path the character does not already have.
+ */
+export const characterEditableUpdateSchema = characterCreationRequestSchema
+  .extend({
+    primaryPathCharacterId: z.string().min(1).optional(),
+  })
+  .strict();
+
+export type CharacterEditableUpdateRequest = z.infer<
+  typeof characterEditableUpdateSchema
+>;

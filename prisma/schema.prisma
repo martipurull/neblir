@@ -301,6 +301,7 @@ type CharacterHealth {
   currentMentalHealth     Int
   currentPhysicalHealth   Int
   deathSaves              CharacterHealthDeathSaves
+  madnessSaves            CharacterHealthMadnessSaves?
   innateMentalHealth      Int
   innatePhysicalHealth    Int
   maxMentalHealth         Int
@@ -313,6 +314,11 @@ type CharacterHealth {
 }
 
 type CharacterHealthDeathSaves {
+  failures  Int
+  successes Int
+}
+
+type CharacterHealthMadnessSaves {
   failures  Int
   successes Int
 }
