@@ -156,6 +156,7 @@ describe("computeCharacterRequestData", () => {
         maxMentalHealth: 16,
         currentMentalHealth: 16,
         deathSaves: { successes: 0, failures: 0 },
+        madnessSaves: { successes: 0, failures: 0 },
       });
       expect(result.combatInformation).toMatchObject({
         initiativeMod: 4,
@@ -270,6 +271,77 @@ describe("computeCharacterRequestData", () => {
       });
       const result = computeCharacterRequestData(input, true);
       expect(result.learnedSkills).toBeDefined();
+    });
+
+    it("keeps current HP, crisis tracks, and reactions from the level-up body", () => {
+      const base = makeLevelUpBody();
+      const result = computeCharacterRequestData(
+        {
+          ...base,
+          health: {
+            ...base.health,
+            currentPhysicalHealth: 4,
+            currentMentalHealth: 7,
+            deathSaves: { successes: 2, failures: 1 },
+            madnessSaves: { successes: 1, failures: 2 },
+          },
+          combatInformation: {
+            ...base.combatInformation,
+            reactionsRemaining: 1,
+          },
+        },
+        true
+      );
+      expect(result.health).toMatchObject({
+        currentPhysicalHealth: 4,
+        currentMentalHealth: 7,
+        deathSaves: { successes: 2, failures: 1 },
+        madnessSaves: { successes: 1, failures: 2 },
+      });
+      expect(result.combatInformation.reactionsRemaining).toBe(1);
+    });
+  });
+
+  describe("preservePlayState (character update)", () => {
+    it("keeps current HP, crisis tracks, and reactions instead of full-healing", () => {
+      const input = makeCharacterCreationRequest();
+      const result = computeCharacterRequestData(input, false, {
+        preservePlayState: {
+          currentPhysicalHealth: 4,
+          currentMentalHealth: 5,
+          deathSaves: { successes: 2, failures: 1 },
+          madnessSaves: { successes: 0, failures: 2 },
+          reactionsRemaining: 1,
+        },
+      });
+      expect(result.health).toMatchObject({
+        currentPhysicalHealth: 4,
+        currentMentalHealth: 5,
+        maxPhysicalHealth: 16,
+        deathSaves: { successes: 2, failures: 1 },
+        madnessSaves: { successes: 0, failures: 2 },
+      });
+      expect(result.combatInformation.reactionsRemaining).toBe(1);
+    });
+
+    it("clamps current HP and reactions down when caps drop", () => {
+      const input = makeCharacterCreationRequest();
+      const result = computeCharacterRequestData(input, false, {
+        preservePlayState: {
+          currentPhysicalHealth: 20,
+          currentMentalHealth: 20,
+          deathSaves: { successes: 1, failures: 0 },
+          madnessSaves: { successes: 0, failures: 1 },
+          reactionsRemaining: 3,
+        },
+      });
+      expect(result.health.currentPhysicalHealth).toBe(16);
+      expect(result.health.currentMentalHealth).toBe(16);
+      expect(result.health.deathSaves).toEqual({
+        successes: 1,
+        failures: 0,
+      });
+      expect(result.combatInformation.reactionsRemaining).toBe(1);
     });
   });
 

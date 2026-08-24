@@ -78,7 +78,11 @@ export default function CharacterUpdatePage() {
         </p>
       </div>
       <FormProvider {...form}>
-        <CharacterUpdateFormContent />
+        <CharacterUpdateFormContent
+          pathRankById={Object.fromEntries(
+            (character.paths ?? []).map((path) => [path.id, path.rank ?? 1])
+          )}
+        />
       </FormProvider>
     </PageSection>
   );

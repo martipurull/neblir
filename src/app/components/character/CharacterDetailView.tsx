@@ -197,7 +197,12 @@ export function CharacterDetailView({
         readOnly,
       }),
       getGeneralSection(character),
-      getHealthSection(character),
+      getHealthSection(character, {
+        readOnly,
+        gameId: activeGameId,
+        rollIsPrivate: rollPrivacy.defaultPrivateRoll,
+        mutate: readOnly ? undefined : mutateAction,
+      }),
     ];
     const pathsSection = getPathsSection(character, {
       readOnly,

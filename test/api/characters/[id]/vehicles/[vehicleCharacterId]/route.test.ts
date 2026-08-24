@@ -95,6 +95,71 @@ describe("/api/characters/[id]/vehicles/[vehicleCharacterId] handlers", () => {
     expect(clearVehicleRidersMock).toHaveBeenCalledWith("vc-1");
   });
 
+  it("PATCH sets a vehicle nickname and clears it when blank", async () => {
+    belongsMock.mockResolvedValue(true);
+    getCharacterVehicleRecordMock.mockResolvedValue({
+      id: "vc-1",
+      characterId: "char-1",
+      currentHp: 10,
+    });
+    canVehicleBeRiddenMock.mockReturnValue(true);
+    getHydratedVehicleCharacterMock.mockResolvedValue({ id: "vc-1" });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/route");
+
+    const setResponse = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setCustomName", customName: "Red hopper" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", vehicleCharacterId: "vc-1" })
+    );
+    expect(setResponse.status).toBe(200);
+    expect(updateVehicleCharacterMock).toHaveBeenCalledWith("vc-1", {
+      customName: "Red hopper",
+    });
+
+    const clearResponse = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setCustomName", customName: "  " },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", vehicleCharacterId: "vc-1" })
+    );
+    expect(clearResponse.status).toBe(200);
+    expect(updateVehicleCharacterMock).toHaveBeenLastCalledWith("vc-1", {
+      customName: null,
+    });
+  });
+
+  it("PATCH sets max HP bonus on the holding", async () => {
+    belongsMock.mockResolvedValue(true);
+    getCharacterVehicleRecordMock.mockResolvedValue({
+      id: "vc-1",
+      characterId: "char-1",
+      currentHp: 10,
+    });
+    canVehicleBeRiddenMock.mockReturnValue(true);
+    getHydratedVehicleCharacterMock.mockResolvedValue({
+      id: "vc-1",
+      maxHpBonus: 4,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setMaxHpBonus", maxHpBonus: 4 }, "user-1"),
+      makeParams({ id: "char-1", vehicleCharacterId: "vc-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateVehicleCharacterMock).toHaveBeenCalledWith("vc-1", {
+      maxHpBonus: 4,
+    });
+  });
+
   it("PATCH returns 400 on invalid body", async () => {
     belongsMock.mockResolvedValue(true);
     const { PATCH } =

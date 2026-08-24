@@ -13,6 +13,7 @@ import type {
   LevelUpAttributePath,
   LevelUpGeneralSkill,
 } from "@/app/lib/levelUpPaths";
+import type { Status } from "@prisma/client";
 
 type ApiErrorPayload = { message?: string; details?: string };
 export type { LevelUpAttributePath, LevelUpGeneralSkill };
@@ -225,7 +226,10 @@ type HealthUpdateBody = {
   seriousPhysicalInjuries?: number;
   seriousTrauma?: number;
   deathSaves?: { successes: number; failures: number };
-  status?: string;
+  madnessSaves?: { successes: number; failures: number };
+  status?: Status;
+  physicalHitsAtZero?: number;
+  mentalHitsAtZero?: number;
 };
 
 type CombatInfoUpdateBody = {

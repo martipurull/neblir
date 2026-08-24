@@ -167,4 +167,100 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       data: { itemLocation: "locker" },
     });
   });
+
+  it("sets stack quantity on the holding", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockReset();
+    getCharacterInventoryMock
+      .mockResolvedValueOnce([{ id: "ic-1", quantity: 3, equipSlots: [] }])
+      .mockResolvedValueOnce([{ id: "ic-1", quantity: 7, equipSlots: [] }]);
+    updateItemCharacterMock.mockResolvedValue({});
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setQuantity", quantity: 7 }, "user-1"),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateItemCharacterMock).toHaveBeenCalledWith("ic-1", {
+      quantity: 7,
+    });
+  });
+
+  it("deletes the holding when stack quantity is set to 0", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockReset();
+    getCharacterInventoryMock.mockResolvedValue([
+      { id: "ic-1", quantity: 3, equipSlots: [] },
+    ]);
+    deleteItemCharacterMock.mockResolvedValue(undefined);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setQuantity", quantity: 0 }, "user-1"),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(204);
+    expect(deleteItemCharacterMock).toHaveBeenCalledWith("ic-1");
+  });
+
+  it("rejects stack quantity above 999", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockReset();
+    getCharacterInventoryMock.mockResolvedValue([
+      { id: "ic-1", quantity: 3, equipSlots: [] },
+    ]);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setQuantity", quantity: 1000 }, "user-1"),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(updateItemCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("sets and clears a nickname on the holding", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockReset();
+    getCharacterInventoryMock
+      .mockResolvedValueOnce([{ id: "ic-1", quantity: 1, equipSlots: [] }])
+      .mockResolvedValueOnce([
+        { id: "ic-1", quantity: 1, equipSlots: [], customName: "Lucky blade" },
+      ]);
+    updateItemCharacterMock.mockResolvedValue({});
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const setResponse = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setCustomName", customName: "Lucky blade" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(setResponse.status).toBe(200);
+    expect(updateItemCharacterMock).toHaveBeenCalledWith("ic-1", {
+      customName: "Lucky blade",
+    });
+
+    getCharacterInventoryMock
+      .mockResolvedValueOnce([{ id: "ic-1", quantity: 1, equipSlots: [] }])
+      .mockResolvedValueOnce([{ id: "ic-1", quantity: 1, equipSlots: [] }]);
+    const clearResponse = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setCustomName", customName: "  " },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(clearResponse.status).toBe(200);
+    expect(updateItemCharacterMock).toHaveBeenCalledWith("ic-1", {
+      customName: null,
+    });
+  });
 });

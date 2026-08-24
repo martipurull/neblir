@@ -26,6 +26,7 @@ import { useHealthStyles } from "@/hooks/use-health-styles";
 import { useReactionDisplay } from "@/hooks/use-reaction-display";
 import type { KeyedMutator } from "swr";
 import { updateCharacterInventoryEntry } from "@/lib/api/items";
+import type { Status } from "@prisma/client";
 import React, { useCallback, useMemo, useState } from "react";
 import { AttackRollModal } from "@/app/components/combat/AttackRollModal";
 import { CharacterHeaderInfo } from "./CharacterHeaderInfo";
@@ -42,6 +43,11 @@ type HealthPartial = {
   currentMentalHealth?: number;
   seriousPhysicalInjuries?: number;
   seriousTrauma?: number;
+  deathSaves?: { successes: number; failures: number };
+  madnessSaves?: { successes: number; failures: number };
+  status?: Status;
+  physicalHitsAtZero?: number;
+  mentalHitsAtZero?: number;
 };
 
 type ArmourPartial = { armourCurrentHP?: number };
@@ -546,7 +552,15 @@ export function CharacterSummaryHeader({
                 ...(u.seriousInjuries != null && {
                   seriousPhysicalInjuries: u.seriousInjuries,
                 }),
+                ...(u.hitsAtZero != null && {
+                  physicalHitsAtZero: u.hitsAtZero,
+                }),
               })
+            }
+            hitsAtZeroEnabled={
+              health.currentPhysicalHealth === 0 &&
+              health.status !== "DECEASED" &&
+              (health.deathSaves?.successes ?? 0) < 3
             }
           />
         )}
@@ -567,7 +581,15 @@ export function CharacterSummaryHeader({
                 ...(u.seriousTrauma != null && {
                   seriousTrauma: u.seriousTrauma,
                 }),
+                ...(u.hitsAtZero != null && {
+                  mentalHitsAtZero: u.hitsAtZero,
+                }),
               })
+            }
+            hitsAtZeroEnabled={
+              health.currentMentalHealth === 0 &&
+              health.status === "ALIVE" &&
+              (health.madnessSaves?.successes ?? 0) < 3
             }
           />
         )}

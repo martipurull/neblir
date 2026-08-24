@@ -41,11 +41,20 @@ function calculateMaxCarryWeight(
   return baseMaxCarryWeight + strengthMod;
 }
 
+export type PreservePlayState = {
+  currentPhysicalHealth: number;
+  currentMentalHealth: number;
+  deathSaves: { successes: number; failures: number };
+  madnessSaves?: { successes: number; failures: number } | null;
+  reactionsRemaining: number;
+};
+
 export function computeCharacterRequestData(
   parsedCharacterCreationRequest:
     | CharacterCreationRequest
     | LevelUpCharacterBody,
-  isLevelUp: boolean = false
+  isLevelUp: boolean = false,
+  options?: { preservePlayState?: PreservePlayState }
 ) {
   const innatePhysicalHealth = Object.values(
     parsedCharacterCreationRequest.innateAttributes.constitution
@@ -170,6 +179,61 @@ export function computeCharacterRequestData(
       ? rawHealth.currentMentalHealth
       : maxMentalHealth;
 
+  const preservePlayState = options?.preservePlayState;
+  const emptyCrisis = { successes: 0, failures: 0 };
+  const deathFromRaw =
+    rawHealth.deathSaves != null &&
+    typeof rawHealth.deathSaves === "object" &&
+    "successes" in (rawHealth.deathSaves as object)
+      ? (rawHealth.deathSaves as { successes: number; failures: number })
+      : emptyCrisis;
+  const madnessFromRaw =
+    rawHealth.madnessSaves != null &&
+    typeof rawHealth.madnessSaves === "object" &&
+    "successes" in (rawHealth.madnessSaves as object)
+      ? (rawHealth.madnessSaves as { successes: number; failures: number })
+      : emptyCrisis;
+
+  const nextPhysical = preservePlayState
+    ? Math.min(preservePlayState.currentPhysicalHealth, maxPhysicalHealth)
+    : isLevelUp
+      ? Math.min(currentPhysicalHealthInput, maxPhysicalHealth)
+      : maxPhysicalHealth;
+  const nextMental = preservePlayState
+    ? Math.min(preservePlayState.currentMentalHealth, maxMentalHealth)
+    : isLevelUp
+      ? Math.min(currentMentalHealthInput, maxMentalHealth)
+      : maxMentalHealth;
+  const nextDeathSaves = preservePlayState
+    ? preservePlayState.deathSaves
+    : isLevelUp
+      ? deathFromRaw
+      : emptyCrisis;
+  const nextMadnessSaves = preservePlayState
+    ? (preservePlayState.madnessSaves ?? emptyCrisis)
+    : isLevelUp
+      ? madnessFromRaw
+      : emptyCrisis;
+  const combatReactionsRemaining =
+    "reactionsRemaining" in
+      (requestWithoutPathAndWallet.combatInformation ?? {}) &&
+    typeof (
+      requestWithoutPathAndWallet.combatInformation as {
+        reactionsRemaining?: number;
+      }
+    ).reactionsRemaining === "number"
+      ? (
+          requestWithoutPathAndWallet.combatInformation as {
+            reactionsRemaining: number;
+          }
+        ).reactionsRemaining
+      : reactionsPerRound;
+  const nextReactionsRemaining = preservePlayState
+    ? Math.min(preservePlayState.reactionsRemaining, reactionsPerRound)
+    : isLevelUp
+      ? Math.min(combatReactionsRemaining, reactionsPerRound)
+      : reactionsPerRound;
+
   return {
     ...requestWithoutPathAndWallet,
     generalInformation: {
@@ -190,18 +254,12 @@ export function computeCharacterRequestData(
       ...requestWithoutPathAndWallet.health,
       innatePhysicalHealth: innatePhysicalHealth,
       maxPhysicalHealth: maxPhysicalHealth,
-      currentPhysicalHealth: isLevelUp
-        ? Math.min(currentPhysicalHealthInput, maxPhysicalHealth)
-        : maxPhysicalHealth,
+      currentPhysicalHealth: nextPhysical,
       innateMentalHealth: innateMentalHealth,
       maxMentalHealth: maxMentalHealth,
-      currentMentalHealth: isLevelUp
-        ? Math.min(currentMentalHealthInput, maxMentalHealth)
-        : maxMentalHealth,
-      deathSaves: {
-        successes: 0,
-        failures: 0,
-      },
+      currentMentalHealth: nextMental,
+      deathSaves: nextDeathSaves,
+      madnessSaves: nextMadnessSaves,
     },
     combatInformation: (() => {
       const armourMod =
@@ -223,7 +281,7 @@ export function computeCharacterRequestData(
           10,
         maxCarryWeight: calculateMaxCarryWeight(parsedCharacterCreationRequest),
         reactionsPerRound: reactionsPerRound,
-        reactionsRemaining: reactionsPerRound,
+        reactionsRemaining: nextReactionsRemaining,
         rangeAttackMod:
           parsedCharacterCreationRequest.innateAttributes.dexterity.manual +
           parsedCharacterCreationRequest.learnedSkills.generalSkills.aim,

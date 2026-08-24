@@ -186,7 +186,22 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     let computed: ReturnType<typeof computeCharacterRequestData>;
     try {
-      computed = computeCharacterRequestData(parseResult.data);
+      computed = computeCharacterRequestData(parseResult.data, false, {
+        preservePlayState: {
+          currentPhysicalHealth: existingCharacter.health.currentPhysicalHealth,
+          currentMentalHealth: existingCharacter.health.currentMentalHealth,
+          deathSaves: existingCharacter.health.deathSaves ?? {
+            successes: 0,
+            failures: 0,
+          },
+          madnessSaves: existingCharacter.health.madnessSaves ?? {
+            successes: 0,
+            failures: 0,
+          },
+          reactionsRemaining:
+            existingCharacter.combatInformation.reactionsRemaining,
+        },
+      });
     } catch (error) {
       if (error instanceof ValidationError) {
         return errorResponse(error.message, 400);
@@ -217,14 +232,30 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         });
       }
 
-      await tx.pathCharacter.deleteMany({ where: { characterId: id } });
-      await tx.pathCharacter.create({
-        data: {
-          characterId: id,
-          pathId,
-          rank: pathRank,
-        },
-      });
+      const existingPaths = existingCharacter.paths ?? [];
+      const matchingPath = existingPaths.find((path) => path.id === pathId);
+      if (matchingPath?.pathCharacterId) {
+        await tx.pathCharacter.update({
+          where: { id: matchingPath.pathCharacterId },
+          data: { rank: pathRank },
+        });
+      } else {
+        const primaryPath = existingPaths
+          .slice()
+          .sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0];
+        if (primaryPath?.pathCharacterId) {
+          await tx.pathCharacter.delete({
+            where: { id: primaryPath.pathCharacterId },
+          });
+        }
+        await tx.pathCharacter.create({
+          data: {
+            characterId: id,
+            pathId,
+            rank: pathRank,
+          },
+        });
+      }
 
       await tx.featureCharacter.deleteMany({ where: { characterId: id } });
       if (rawInitialFeatures.length > 0) {

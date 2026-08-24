@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
 import { useRef, useCallback } from "react";
+import type { Status } from "@prisma/client";
 
 const DEBOUNCE_MS = 2500;
 
@@ -15,6 +16,11 @@ type HealthPartial = {
   currentMentalHealth?: number;
   seriousPhysicalInjuries?: number;
   seriousTrauma?: number;
+  deathSaves?: { successes: number; failures: number };
+  madnessSaves?: { successes: number; failures: number };
+  status?: Status;
+  physicalHitsAtZero?: number;
+  mentalHitsAtZero?: number;
 };
 
 type ArmourPartial = {
@@ -58,15 +64,20 @@ export function useCharacterStatUpdates(
   const updateHealth = useCallback(
     (partial: HealthPartial) => {
       if (!character) return;
-      const newHealth = { ...character.health, ...partial };
+      const { physicalHitsAtZero, mentalHitsAtZero, ...healthFields } = partial;
+      const newHealth = { ...character.health, ...healthFields };
       const newCharacter = { ...character, health: newHealth };
       void mutate(newCharacter, false);
 
       pendingHealthRef.current = {
+        ...pendingHealthRef.current,
+        ...partial,
         currentPhysicalHealth: newHealth.currentPhysicalHealth,
         currentMentalHealth: newHealth.currentMentalHealth,
         seriousPhysicalInjuries: newHealth.seriousPhysicalInjuries,
         seriousTrauma: newHealth.seriousTrauma,
+        ...(physicalHitsAtZero != null && { physicalHitsAtZero }),
+        ...(mentalHitsAtZero != null && { mentalHitsAtZero }),
       };
 
       if (healthTimeoutRef.current) {

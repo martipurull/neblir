@@ -13,7 +13,13 @@ import type { CharacterUpdateFormValues } from "./schemas";
 import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 
-export function CharacterUpdateFormContent() {
+type CharacterUpdateFormContentProps = {
+  pathRankById: Record<string, number>;
+};
+
+export function CharacterUpdateFormContent({
+  pathRankById,
+}: CharacterUpdateFormContentProps) {
   const {
     steps,
     currentStepIndex,
@@ -60,6 +66,7 @@ export function CharacterUpdateFormContent() {
           <PathAndFeaturesStep
             onInitialFeaturesChange={setInitialFeatures}
             initialFeatures={initialFeatures}
+            pathRankById={pathRankById}
           />
         )}
 
