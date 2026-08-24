@@ -60,6 +60,11 @@ export function CharacterDetailView({
   mutateAction,
 }: CharacterDetailViewProps) {
   const { user } = useUser();
+  const isDeceased = character.health.status === "DECEASED";
+  /** Owner (or GM) page access — Status + name actions stay available when deceased. */
+  const canManageCharacter = !readOnly;
+  /** Sheet interactions locked for GM view or deceased characters. */
+  const sheetReadOnly = readOnly || isDeceased;
   const noopMutate = useCallback(
     async () => character,
     [character]
@@ -112,7 +117,10 @@ export function CharacterDetailView({
     gameDetails: initiativeGameDetails,
     loading: initiativeGamesLoading,
     refetch: refetchInitiativeGames,
-  } = useCharacterGameDetails(readOnly ? null : character.id, character.games);
+  } = useCharacterGameDetails(
+    sheetReadOnly ? null : character.id,
+    character.games
+  );
 
   const activeGameDetail = useMemo(() => {
     if (!activeGameId) return null;
@@ -126,7 +134,7 @@ export function CharacterDetailView({
 
   const handleDiceSelect = useCallback(
     (item: DiceSelectionItem) => {
-      if (readOnly) return;
+      if (sheetReadOnly) return;
       setSingleAttributeRollSelection(null);
       setDiceSelection((prev) => {
         const idx = prev.findIndex((s) => isSameDiceSelection(s, item));
@@ -144,15 +152,15 @@ export function CharacterDetailView({
         return [...prev, item];
       });
     },
-    [readOnly]
+    [sheetReadOnly]
   );
 
   const handleSingleAttributeRoll = useCallback(
     (item: DiceSelectionItem) => {
-      if (readOnly || item.type !== "attribute") return;
+      if (sheetReadOnly || item.type !== "attribute") return;
       setSingleAttributeRollSelection([item]);
     },
-    [readOnly]
+    [sheetReadOnly]
   );
 
   const imageEntries = useMemo(
@@ -176,20 +184,20 @@ export function CharacterDetailView({
     const list: CharacterSectionSlide[] = [
       getAttributesSection(
         character,
-        readOnly ? undefined : diceSelection,
-        readOnly ? undefined : handleDiceSelect,
-        readOnly ? undefined : handleSingleAttributeRoll,
-        readOnly
+        sheetReadOnly ? undefined : diceSelection,
+        sheetReadOnly ? undefined : handleDiceSelect,
+        sheetReadOnly ? undefined : handleSingleAttributeRoll,
+        sheetReadOnly
       ),
       getSkillsSection(
         character,
-        readOnly ? undefined : diceSelection,
-        readOnly ? undefined : handleDiceSelect,
-        readOnly
+        sheetReadOnly ? undefined : diceSelection,
+        sheetReadOnly ? undefined : handleDiceSelect,
+        sheetReadOnly
       ),
       getCombatSection(character, {
         onClearReactions: reactionTracking.clearReactions,
-        usedReactions: readOnly ? 0 : reactionTracking.usedReactions,
+        usedReactions: sheetReadOnly ? 0 : reactionTracking.usedReactions,
         initiative: {
           gameDetails: initiativeGameDetails,
           gamesLoading: initiativeGamesLoading,
@@ -199,36 +207,37 @@ export function CharacterDetailView({
             setInitiativeOrderOpen(true);
           },
         },
-        readOnly,
+        readOnly: sheetReadOnly,
       }),
       getGeneralSection(character),
       getHealthSection(character, {
-        readOnly,
+        readOnly: sheetReadOnly,
+        statusEditable: canManageCharacter,
         gameId: activeGameId,
         rollIsPrivate: rollPrivacy.defaultPrivateRoll,
-        mutate: readOnly ? undefined : mutateAction,
-        healthWritePending: readOnly ? false : healthWritePending,
-        settledCrisisHealth: readOnly ? null : settledCrisisHealth,
+        mutate: canManageCharacter ? mutateAction : undefined,
+        healthWritePending: sheetReadOnly ? false : healthWritePending,
+        settledCrisisHealth: sheetReadOnly ? null : settledCrisisHealth,
       }),
     ];
     const pathsSection = getPathsSection(character, {
-      readOnly,
-      mutate: readOnly ? undefined : mutateAction,
+      readOnly: sheetReadOnly,
+      mutate: sheetReadOnly ? undefined : mutateAction,
     });
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
     if (featuresSection) list.push(featuresSection);
     list.push(
       getInventorySection(character, activeGameId, {
-        mutate: readOnly ? undefined : mutateAction,
-        readOnly,
+        mutate: sheetReadOnly ? undefined : mutateAction,
+        readOnly: sheetReadOnly,
         rollPrivacy,
       })
     );
     list.push(
       getVehiclesSection(character, activeGameId, {
-        mutate: readOnly ? undefined : mutateAction,
-        readOnly,
+        mutate: sheetReadOnly ? undefined : mutateAction,
+        readOnly: sheetReadOnly,
       })
     );
     list.push(
@@ -236,17 +245,18 @@ export function CharacterDetailView({
         character,
         imageUrls,
         character.id,
-        readOnly ? undefined : mutateAction,
-        readOnly
+        sheetReadOnly ? undefined : mutateAction,
+        sheetReadOnly
       )
     );
-    if (!readOnly && mutateAction) {
+    if (!sheetReadOnly && mutateAction) {
       list.push(getNotesSection(character, mutateAction));
     }
     return applyCharacterSectionOrder(list, user?.characterSectionOrder);
   }, [
     character,
-    readOnly,
+    sheetReadOnly,
+    canManageCharacter,
     diceSelection,
     handleDiceSelect,
     handleSingleAttributeRoll,
@@ -279,15 +289,18 @@ export function CharacterDetailView({
         onActiveGameChange={setActiveGameId}
         avatarUrl={avatarUrl}
         avatarKey={avatarKey}
-        usedReactions={readOnly ? undefined : reactionTracking.usedReactions}
-        onUseReaction={readOnly ? undefined : reactionTracking.useReaction}
-        onHealthUpdate={readOnly ? undefined : updateHealth}
-        onArmourUpdate={readOnly ? undefined : updateArmour}
-        mutate={readOnly ? undefined : mutateAction}
-        onOpenDiceRoller={
-          readOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
+        usedReactions={
+          sheetReadOnly ? undefined : reactionTracking.usedReactions
         }
-        readOnly={readOnly}
+        onUseReaction={sheetReadOnly ? undefined : reactionTracking.useReaction}
+        onHealthUpdate={sheetReadOnly ? undefined : updateHealth}
+        onArmourUpdate={sheetReadOnly ? undefined : updateArmour}
+        mutate={sheetReadOnly ? undefined : mutateAction}
+        onOpenDiceRoller={
+          sheetReadOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
+        }
+        readOnly={sheetReadOnly}
+        showCharacterActions={canManageCharacter}
         rollPrivacy={rollPrivacy}
         className="shrink-0"
       />
@@ -301,7 +314,7 @@ export function CharacterDetailView({
         />
       )}
 
-      {!readOnly &&
+      {!sheetReadOnly &&
         (diceSelection.length === 2 || singleAttributeRollSelection) && (
           <DiceRollModal
             isOpen
@@ -322,7 +335,7 @@ export function CharacterDetailView({
           />
         )}
 
-      {!readOnly && (
+      {!sheetReadOnly && (
         <DedicatedDiceRollModal
           isOpen={dedicatedDiceRollerOpen}
           onClose={() => setDedicatedDiceRollerOpen(false)}
@@ -332,7 +345,7 @@ export function CharacterDetailView({
         />
       )}
 
-      {!readOnly && (
+      {!sheetReadOnly && (
         <>
           <InitiativeRollModal
             isOpen={initiativeRollOpen}

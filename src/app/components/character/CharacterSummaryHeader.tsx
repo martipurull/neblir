@@ -74,6 +74,11 @@ interface CharacterSummaryHeaderProps {
   onOpenDiceRoller?: () => void;
   /** View-only sheet: no rolls, equipping, or stat edits */
   readOnly?: boolean;
+  /**
+   * When set, overrides whether Update / Level-up actions appear under the name.
+   * Defaults to `!readOnly`.
+   */
+  showCharacterActions?: boolean;
   rollPrivacy?: RollPrivacyOptions;
   className?: string;
 }
@@ -92,9 +97,11 @@ export function CharacterSummaryHeader({
   mutate,
   onOpenDiceRoller,
   readOnly = false,
+  showCharacterActions,
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
   className,
 }: CharacterSummaryHeaderProps) {
+  const characterActionsVisible = showCharacterActions ?? !readOnly;
   const {
     statModalOpen,
     setStatModalOpen,
@@ -295,8 +302,28 @@ export function CharacterSummaryHeader({
               : undefined
           }
           onOpenDiceRoller={onOpenDiceRoller}
-          showCharacterActions={!readOnly}
+          showCharacterActions={characterActionsVisible}
         />
+
+        {character.health.status === "DECEASED" ? (
+          <div
+            className="mt-2 w-full rounded-md border border-neblirDanger bg-paleBlue px-3 py-2 text-center"
+            role="status"
+          >
+            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirDanger-600">
+              Deceased
+            </p>
+          </div>
+        ) : character.health.status === "DERANGED" ? (
+          <div
+            className="mt-2 w-full rounded-md border border-neblirWarning bg-paleBlue px-3 py-2 text-center"
+            role="status"
+          >
+            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirWarning-600">
+              Deranged
+            </p>
+          </div>
+        ) : null}
 
         {activeVehicle ? (
           <div className="mt-1 w-full rounded-lg border border-black bg-paleBlue/40 px-3 py-2 text-sm text-black">

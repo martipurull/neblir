@@ -1,7 +1,11 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import {
+  CrisisRollResultModal,
+  type CrisisRollResult,
+} from "@/app/components/character/CrisisRollResultModal";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import {
   crisisPoolIsSuccess,
   deathRollDicePoolSize,
@@ -12,17 +16,10 @@ import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import { updateCharacterHealth } from "@/lib/api/character";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import type { Status } from "@prisma/client";
-import { useState } from "react";
-import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
-
-const STATUS_OPTIONS: { value: Status; label: string }[] = [
-  { value: "ALIVE", label: "Alive" },
-  { value: "DECEASED", label: "Deceased" },
-  { value: "DERANGED", label: "Deranged" },
-];
+import { useEffect, useRef, useState } from "react";
 
 type TrackKind = "death" | "madness";
+type ZeroHpWarning = "physical" | "mental" | "both";
 
 function emptyTrack() {
   return { successes: 0, failures: 0 };
@@ -62,8 +59,15 @@ export function HealthCrisisPanel({
   const madness = health.madnessSaves ?? emptyTrack();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [lastRoll, setLastRoll] = useState<string | null>(null);
   const [resetKind, setResetKind] = useState<TrackKind | null>(null);
+  const [rollResult, setRollResult] = useState<CrisisRollResult | null>(null);
+  const [zeroHpWarning, setZeroHpWarning] = useState<ZeroHpWarning | null>(
+    null
+  );
+  const prevSettledHpRef = useRef({
+    physical: health.currentPhysicalHealth,
+    mental: health.currentMentalHealth,
+  });
 
   const visibilityHealth =
     healthWritePending && settledCrisisHealth != null
@@ -72,6 +76,27 @@ export function HealthCrisisPanel({
   const visibilityDeath = visibilityHealth.deathSaves ?? emptyTrack();
   const visibilityMadness = visibilityHealth.madnessSaves ?? emptyTrack();
   const crisisActionsLocked = healthWritePending || busy;
+
+  useEffect(() => {
+    if (readOnly || healthWritePending) return;
+    const prev = prevSettledHpRef.current;
+    const nextPhysical = health.currentPhysicalHealth;
+    const nextMental = health.currentMentalHealth;
+    const physicalDropped = prev.physical > 0 && nextPhysical === 0;
+    const mentalDropped = prev.mental > 0 && nextMental === 0;
+    prevSettledHpRef.current = {
+      physical: nextPhysical,
+      mental: nextMental,
+    };
+    if (physicalDropped && mentalDropped) setZeroHpWarning("both");
+    else if (physicalDropped) setZeroHpWarning("physical");
+    else if (mentalDropped) setZeroHpWarning("mental");
+  }, [
+    health.currentPhysicalHealth,
+    health.currentMentalHealth,
+    healthWritePending,
+    readOnly,
+  ]);
 
   const attrs = character.innateAttributes;
   const deathPool = deathRollDicePoolSize(
@@ -137,9 +162,13 @@ export function HealthCrisisPanel({
       successes: success ? Math.min(3, track.successes + 1) : track.successes,
       failures: success ? track.failures : Math.min(3, track.failures + 1),
     };
-    setLastRoll(
-      `${kind === "death" ? "Death" : "Madness"} roll: ${dice.join(", ")} → ${success ? "success" : "failure"}`
-    );
+    setRollResult({
+      kind,
+      success,
+      dice,
+      successes: next.successes,
+      failures: next.failures,
+    });
     await emitRollEvent(gameId, {
       characterId: character.id,
       isPrivate: rollIsPrivate,
@@ -180,24 +209,27 @@ export function HealthCrisisPanel({
     visibilityMadness.successes > 0 ||
     visibilityMadness.failures > 0;
 
+  const zeroWarningCopy =
+    zeroHpWarning === "both"
+      ? {
+          title: "Physical and mental HP are 0",
+          description:
+            "Your character is down on both tracks. The GM may ask you to make death rolls and/or madness rolls from the Health section.",
+        }
+      : zeroHpWarning === "mental"
+        ? {
+            title: "Mental HP is 0",
+            description:
+              "Your character is at 0 mental HP. The GM may ask you to make madness rolls from the Health section.",
+          }
+        : {
+            title: "Physical HP is 0",
+            description:
+              "Your character is at 0 physical HP. The GM may ask you to make death rolls from the Health section.",
+          };
+
   return (
     <div className="space-y-6">
-      {!readOnly ? (
-        <div>
-          <SelectDropdown
-            id="character-status"
-            label="Status"
-            placeholder="Select status"
-            value={health.status}
-            options={STATUS_OPTIONS}
-            disabled={readOnly || crisisActionsLocked}
-            onChange={(value) => {
-              void patchHealth({ status: value as Status });
-            }}
-          />
-        </div>
-      ) : null}
-
       {healthWritePending ? (
         <p className="text-xs text-black/60">
           Saving health… death and madness sections update when the save
@@ -205,7 +237,6 @@ export function HealthCrisisPanel({
         </p>
       ) : null}
 
-      {lastRoll ? <p className="text-sm text-black/80">{lastRoll}</p> : null}
       {error ? <p className="text-sm text-neblirDanger-600">{error}</p> : null}
 
       {showDeath ? (
@@ -291,6 +322,21 @@ export function HealthCrisisPanel({
             void patchHealth({ madnessSaves: emptyTrack() });
           }
         }}
+      />
+
+      <DangerConfirmModal
+        isOpen={zeroHpWarning != null}
+        title={zeroWarningCopy.title}
+        description={zeroWarningCopy.description}
+        confirmLabel="Got it"
+        hideCancel
+        onCancel={() => setZeroHpWarning(null)}
+        onConfirm={() => setZeroHpWarning(null)}
+      />
+
+      <CrisisRollResultModal
+        result={rollResult}
+        onClose={() => setRollResult(null)}
       />
     </div>
   );
