@@ -1,7 +1,7 @@
 import type { CharacterDetail } from "@/app/lib/types/character";
-import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
+import type { CharacterEditableUpdateRequest } from "@/app/api/characters/schemas";
 
-export type CharacterUpdateFormValues = CharacterCreationRequest;
+export type CharacterUpdateFormValues = CharacterEditableUpdateRequest;
 
 export function toCharacterUpdateFormValues(
   character: CharacterDetail
@@ -51,6 +51,7 @@ export function toCharacterUpdateFormValues(
       pathId: selectedPath?.id ?? "",
       rank: selectedPath?.rank ?? character.generalInformation.level ?? 1,
     },
+    primaryPathCharacterId: selectedPath?.pathCharacterId,
     initialFeatures: (character.features ?? []).map((feature) => ({
       featureId: feature.featureId,
       grade: feature.grade,

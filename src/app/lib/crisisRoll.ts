@@ -1,9 +1,6 @@
-export const CRISIS_SUCCESS_MIN = 8;
+const CRISIS_SUCCESS_MIN = 8;
 
-export function crisisDicePoolSize(
-  attributeScore: number,
-  penalty: number
-): number {
+function crisisDicePoolSize(attributeScore: number, penalty: number): number {
   return Math.max(1, attributeScore - penalty);
 }
 

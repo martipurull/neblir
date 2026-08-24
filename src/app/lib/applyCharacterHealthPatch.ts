@@ -1,6 +1,6 @@
 import type { Status } from "@prisma/client";
 
-export type CrisisTrack = {
+type CrisisTrack = {
   successes: number;
   failures: number;
 };

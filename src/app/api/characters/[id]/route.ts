@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { logger } from "@/logger";
-import { characterCreationRequestSchema } from "../schemas";
+import { characterEditableUpdateSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
 import { getPath } from "@/app/lib/prisma/path";
 import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
@@ -76,8 +76,6 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
   }
 });
 
-const characterEditableUpdateSchema = characterCreationRequestSchema;
-
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
     if (!request.auth?.user) {
@@ -136,9 +134,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const pathId = parseResult.data.path.pathId;
-    const pathRank = parseResult.data.path.rank;
-    const rawInitialFeatures = parseResult.data.initialFeatures ?? [];
+    const {
+      primaryPathCharacterId: primaryPathCharacterIdAtFormOpen,
+      ...updatePayload
+    } = parseResult.data;
+    const pathId = updatePayload.path.pathId;
+    const pathRank = updatePayload.path.rank;
+    const rawInitialFeatures = updatePayload.initialFeatures ?? [];
 
     const path = await getPath(pathId);
     if (!path) {
@@ -186,7 +188,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     let computed: ReturnType<typeof computeCharacterRequestData>;
     try {
-      computed = computeCharacterRequestData(parseResult.data, false, {
+      computed = computeCharacterRequestData(updatePayload, false, {
         preservePlayState: {
           currentPhysicalHealth: existingCharacter.health.currentPhysicalHealth,
           currentMentalHealth: existingCharacter.health.currentMentalHealth,
@@ -221,7 +223,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     await prisma.$transaction(async (tx) => {
       await tx.characterCurrency.deleteMany({ where: { characterId: id } });
-      const nextWallet = parseResult.data.wallet ?? [];
+      const nextWallet = updatePayload.wallet ?? [];
       if (nextWallet.length > 0) {
         await tx.characterCurrency.createMany({
           data: nextWallet.map((entry) => ({
@@ -240,9 +242,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           data: { rank: pathRank },
         });
       } else {
-        const primaryPath = existingPaths
-          .slice()
-          .sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0];
+        const primaryFromFormOpen =
+          primaryPathCharacterIdAtFormOpen != null
+            ? existingPaths.find(
+                (path) =>
+                  path.pathCharacterId === primaryPathCharacterIdAtFormOpen
+              )
+            : undefined;
+        const primaryPath =
+          primaryFromFormOpen ??
+          existingPaths
+            .slice()
+            .sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0];
         if (primaryPath?.pathCharacterId) {
           await tx.pathCharacter.delete({
             where: { id: primaryPath.pathCharacterId },

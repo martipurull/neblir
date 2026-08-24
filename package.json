@@ -28,6 +28,7 @@
     "prisma:backfill:special-abilities": "tsx prisma/scripts/backfillCharacterSpecialAbilities.ts",
     "prisma:backfill:enemy-instance-visibility": "tsx prisma/scripts/backfillEnemyInstanceVisibility.ts",
     "prisma:backfill:character-reactions-remaining": "tsx prisma/scripts/backfillCharacterReactionsRemaining.ts",
+    "prisma:backfill:character-madness-saves": "tsx prisma/scripts/backfillCharacterMadnessSaves.ts",
     "data:import:paths-features": "tsx prisma/scripts/upsertPathsAndFeaturesFromFile.ts",
     "data:import:enemies": "tsx prisma/scripts/upsertEnemiesFromFile.ts",
     "data:import:maps": "tsx prisma/scripts/upsertMapsFromFile.ts",

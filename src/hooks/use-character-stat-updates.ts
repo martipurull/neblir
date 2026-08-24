@@ -6,7 +6,7 @@ import {
   updateCharacterCombatInfo,
 } from "@/lib/api/character";
 import type { KeyedMutator } from "swr";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import type { Status } from "@prisma/client";
 
 const DEBOUNCE_MS = 2500;
@@ -27,6 +27,24 @@ type ArmourPartial = {
   armourCurrentHP?: number;
 };
 
+export type CrisisVisibilityHealth = {
+  currentPhysicalHealth: number;
+  currentMentalHealth: number;
+  deathSaves: { successes: number; failures: number } | null | undefined;
+  madnessSaves: { successes: number; failures: number } | null | undefined;
+};
+
+function toCrisisVisibilityHealth(
+  health: CharacterDetail["health"]
+): CrisisVisibilityHealth {
+  return {
+    currentPhysicalHealth: health.currentPhysicalHealth,
+    currentMentalHealth: health.currentMentalHealth,
+    deathSaves: health.deathSaves,
+    madnessSaves: health.madnessSaves,
+  };
+}
+
 export function useCharacterStatUpdates(
   characterId: string,
   character: CharacterDetail | null,
@@ -36,16 +54,30 @@ export function useCharacterStatUpdates(
   const armourTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingHealthRef = useRef<HealthPartial | null>(null);
   const pendingArmourRef = useRef<ArmourPartial | null>(null);
+  const settledCrisisHealthRef = useRef<CrisisVisibilityHealth | null>(
+    character ? toCrisisVisibilityHealth(character.health) : null
+  );
+  const [healthWritePending, setHealthWritePending] = useState(false);
+
+  if (character && !healthWritePending) {
+    settledCrisisHealthRef.current = toCrisisVisibilityHealth(character.health);
+  }
 
   const saveHealth = useCallback(async () => {
     const payload = pendingHealthRef.current;
     pendingHealthRef.current = null;
-    if (!payload || !characterId) return;
+    if (!payload || !characterId) {
+      setHealthWritePending(false);
+      return;
+    }
     try {
       const updated = await updateCharacterHealth(characterId, payload);
+      settledCrisisHealthRef.current = toCrisisVisibilityHealth(updated.health);
       await mutate(updated, false);
     } catch {
       await mutate();
+    } finally {
+      setHealthWritePending(false);
     }
   }, [characterId, mutate]);
 
@@ -64,6 +96,12 @@ export function useCharacterStatUpdates(
   const updateHealth = useCallback(
     (partial: HealthPartial) => {
       if (!character) return;
+      if (!healthWritePending) {
+        settledCrisisHealthRef.current = toCrisisVisibilityHealth(
+          character.health
+        );
+        setHealthWritePending(true);
+      }
       const { physicalHitsAtZero, mentalHitsAtZero, ...healthFields } = partial;
       const newHealth = { ...character.health, ...healthFields };
       const newCharacter = { ...character, health: newHealth };
@@ -88,7 +126,7 @@ export function useCharacterStatUpdates(
         void saveHealth();
       }, DEBOUNCE_MS);
     },
-    [character, mutate, saveHealth]
+    [character, healthWritePending, mutate, saveHealth]
   );
 
   const updateArmour = useCallback(
@@ -119,5 +157,10 @@ export function useCharacterStatUpdates(
     [character, mutate, saveArmour]
   );
 
-  return { updateHealth, updateArmour };
+  return {
+    updateHealth,
+    updateArmour,
+    healthWritePending,
+    settledCrisisHealth: settledCrisisHealthRef.current,
+  };
 }

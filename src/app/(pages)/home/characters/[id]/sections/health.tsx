@@ -12,6 +12,13 @@ export function getHealthSection(
     gameId?: string | null;
     rollIsPrivate?: boolean;
     mutate?: () => Promise<unknown>;
+    healthWritePending?: boolean;
+    settledCrisisHealth?: {
+      currentPhysicalHealth: number;
+      currentMentalHealth: number;
+      deathSaves: { successes: number; failures: number } | null | undefined;
+      madnessSaves: { successes: number; failures: number } | null | undefined;
+    } | null;
   }
 ): CharacterSectionSlide {
   const health = character.health;
@@ -59,6 +66,8 @@ export function getHealthSection(
           gameId={options?.gameId ?? null}
           rollIsPrivate={options?.rollIsPrivate}
           mutate={options?.mutate ?? (async () => undefined)}
+          healthWritePending={options?.healthWritePending}
+          settledCrisisHealth={options?.settledCrisisHealth}
         />
       </div>
     ),

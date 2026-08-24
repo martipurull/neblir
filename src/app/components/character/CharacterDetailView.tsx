@@ -65,7 +65,12 @@ export function CharacterDetailView({
     [character]
   ) as KeyedMutator<CharacterDetail | null>;
 
-  const { updateHealth, updateArmour } = useCharacterStatUpdates(
+  const {
+    updateHealth,
+    updateArmour,
+    healthWritePending,
+    settledCrisisHealth,
+  } = useCharacterStatUpdates(
     character.id,
     character,
     mutateAction ?? noopMutate
@@ -202,6 +207,8 @@ export function CharacterDetailView({
         gameId: activeGameId,
         rollIsPrivate: rollPrivacy.defaultPrivateRoll,
         mutate: readOnly ? undefined : mutateAction,
+        healthWritePending: readOnly ? false : healthWritePending,
+        settledCrisisHealth: readOnly ? null : settledCrisisHealth,
       }),
     ];
     const pathsSection = getPathsSection(character, {
@@ -251,6 +258,8 @@ export function CharacterDetailView({
     initiativeGamesLoading,
     activeGameId,
     rollPrivacy,
+    healthWritePending,
+    settledCrisisHealth,
     user?.characterSectionOrder,
   ]);
 

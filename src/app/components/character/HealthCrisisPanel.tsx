@@ -34,6 +34,18 @@ type HealthCrisisPanelProps = {
   gameId: string | null;
   rollIsPrivate?: boolean;
   mutate: () => Promise<unknown>;
+  /**
+   * While a debounced header health write is in flight, freeze death/madness
+   * section visibility on this snapshot so optimistic HP changes do not flash
+   * the crisis UI before the PATCH completes.
+   */
+  healthWritePending?: boolean;
+  settledCrisisHealth?: {
+    currentPhysicalHealth: number;
+    currentMentalHealth: number;
+    deathSaves: { successes: number; failures: number } | null | undefined;
+    madnessSaves: { successes: number; failures: number } | null | undefined;
+  } | null;
 };
 
 export function HealthCrisisPanel({
@@ -42,6 +54,8 @@ export function HealthCrisisPanel({
   gameId,
   rollIsPrivate = false,
   mutate,
+  healthWritePending = false,
+  settledCrisisHealth = null,
 }: HealthCrisisPanelProps) {
   const health = character.health;
   const death = health.deathSaves ?? emptyTrack();
@@ -50,6 +64,14 @@ export function HealthCrisisPanel({
   const [busy, setBusy] = useState(false);
   const [lastRoll, setLastRoll] = useState<string | null>(null);
   const [resetKind, setResetKind] = useState<TrackKind | null>(null);
+
+  const visibilityHealth =
+    healthWritePending && settledCrisisHealth != null
+      ? settledCrisisHealth
+      : health;
+  const visibilityDeath = visibilityHealth.deathSaves ?? emptyTrack();
+  const visibilityMadness = visibilityHealth.madnessSaves ?? emptyTrack();
+  const crisisActionsLocked = healthWritePending || busy;
 
   const attrs = character.innateAttributes;
   const deathPool = deathRollDicePoolSize(
@@ -150,13 +172,13 @@ export function HealthCrisisPanel({
   };
 
   const showDeath =
-    health.currentPhysicalHealth === 0 ||
-    death.successes > 0 ||
-    death.failures > 0;
+    visibilityHealth.currentPhysicalHealth === 0 ||
+    visibilityDeath.successes > 0 ||
+    visibilityDeath.failures > 0;
   const showMadness =
-    health.currentMentalHealth === 0 ||
-    madness.successes > 0 ||
-    madness.failures > 0;
+    visibilityHealth.currentMentalHealth === 0 ||
+    visibilityMadness.successes > 0 ||
+    visibilityMadness.failures > 0;
 
   return (
     <div className="space-y-6">
@@ -168,12 +190,19 @@ export function HealthCrisisPanel({
             placeholder="Select status"
             value={health.status}
             options={STATUS_OPTIONS}
-            disabled={busy}
+            disabled={readOnly || crisisActionsLocked}
             onChange={(value) => {
               void patchHealth({ status: value as Status });
             }}
           />
         </div>
+      ) : null}
+
+      {healthWritePending ? (
+        <p className="text-xs text-black/60">
+          Saving health… death and madness sections update when the save
+          finishes.
+        </p>
       ) : null}
 
       {lastRoll ? <p className="text-sm text-black/80">{lastRoll}</p> : null}
@@ -184,17 +213,23 @@ export function HealthCrisisPanel({
           title="Death rolls"
           successes={death.successes}
           failures={death.failures}
-          makeDisabled={readOnly || busy || deathLocked}
-          makeTitle={deathLocked ? deathLockReason : undefined}
+          makeDisabled={readOnly || crisisActionsLocked || deathLocked}
+          makeTitle={
+            healthWritePending
+              ? "Wait for the health save to finish before rolling."
+              : deathLocked
+                ? deathLockReason
+                : undefined
+          }
           makeLabel="Make death roll"
           resetDisabled={
             readOnly ||
-            busy ||
+            crisisActionsLocked ||
             deathBoxesLocked ||
             health.currentPhysicalHealth !== 0 ||
             (death.successes === 0 && death.failures === 0)
           }
-          boxesDisabled={readOnly || busy || deathBoxesLocked}
+          boxesDisabled={readOnly || crisisActionsLocked || deathBoxesLocked}
           boxesTitle={
             deathBoxesLocked
               ? "Death-roll boxes cannot be changed while status is deceased."
@@ -211,17 +246,23 @@ export function HealthCrisisPanel({
           title="Madness rolls"
           successes={madness.successes}
           failures={madness.failures}
-          makeDisabled={readOnly || busy || madnessLocked}
-          makeTitle={madnessLocked ? madnessLockReason : undefined}
+          makeDisabled={readOnly || crisisActionsLocked || madnessLocked}
+          makeTitle={
+            healthWritePending
+              ? "Wait for the health save to finish before rolling."
+              : madnessLocked
+                ? madnessLockReason
+                : undefined
+          }
           makeLabel="Make madness roll"
           resetDisabled={
             readOnly ||
-            busy ||
+            crisisActionsLocked ||
             madnessBoxesLocked ||
             health.currentMentalHealth !== 0 ||
             (madness.successes === 0 && madness.failures === 0)
           }
-          boxesDisabled={readOnly || busy || madnessBoxesLocked}
+          boxesDisabled={readOnly || crisisActionsLocked || madnessBoxesLocked}
           boxesTitle={
             madnessBoxesLocked
               ? "Madness-roll boxes cannot be changed while status is deranged or deceased."
