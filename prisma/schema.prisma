@@ -1188,6 +1188,11 @@ model EnemyInstance {
    * True after the first GM edit of instance name. Spawn name override is not a rename.
    */
   renamed        Boolean @default(false)
+  /**
+   * Whether #{N} is shown on the instance label when not renamed.
+   * False for an unsuffixed singleton spawn; true for a numbered batch (including #1).
+   */
+  numberVisible  Boolean @default(false)
   imageKey    String?
   description String?
   notes       String?

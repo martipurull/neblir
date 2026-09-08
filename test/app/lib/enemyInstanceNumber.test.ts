@@ -16,19 +16,20 @@ describe("allocateEnemyInstanceSpawns", () => {
         name: "NS Gang Member",
         sourceName: "NS Gang Member",
         renamed: false,
+        numberVisible: false,
       },
     ]);
   });
 
-  it("assigns instance numbers 1 through 3 when spawning a first batch of three", () => {
-    expect(
-      allocateEnemyInstanceSpawns({
-        occupied: [],
-        count: 3,
-        sourceName: "NS Gang Member",
-        instanceName: "NS Gang Member",
-      }).map((row) => row.instanceNumber)
-    ).toEqual([1, 2, 3]);
+  it("assigns instance numbers 1 through 3 when spawning a first numbered batch", () => {
+    const rows = allocateEnemyInstanceSpawns({
+      occupied: [],
+      count: 3,
+      sourceName: "NS Gang Member",
+      instanceName: "NS Gang Member",
+    });
+    expect(rows.map((row) => row.instanceNumber)).toEqual([1, 2, 3]);
+    expect(rows.map((row) => row.numberVisible)).toEqual([true, true, true]);
   });
 
   it("continues from the highest instance number still on the table", () => {
@@ -96,6 +97,7 @@ describe("allocateEnemyInstanceSpawns", () => {
         name: "Thugs",
         sourceName: "NS Gang Member",
         renamed: false,
+        numberVisible: false,
       },
     ]);
   });

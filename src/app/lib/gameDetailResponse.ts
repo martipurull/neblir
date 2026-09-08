@@ -1,3 +1,4 @@
+import { withInstanceLabels } from "@/app/lib/enemyInstanceLabel";
 import { sortInitiativeEntries } from "@/app/lib/initiativeOrder";
 import type { getGameWithDetails } from "@/app/lib/prisma/game";
 
@@ -12,17 +13,21 @@ type VisibleCharacterRow = {
   };
 };
 
+type LabeledEnemyInstance = NonNullable<
+  GameWithDetails["enemyInstances"]
+>[number] & { instanceLabel: string };
+
 function shapeInitiativeOrderForResponse(
   game: GameWithDetails,
   visibleCharacters: VisibleCharacterRow[],
-  isGameMaster: boolean
+  labeledEnemyInstances: LabeledEnemyInstance[]
 ) {
   const sorted = sortInitiativeEntries(game.initiativeOrder ?? []);
   const characterById = new Map(
     visibleCharacters.map((gc) => [gc.character.id, gc.character])
   );
   const enemyInstanceById = new Map(
-    (game.enemyInstances ?? []).map((enemy) => [enemy.id, enemy])
+    labeledEnemyInstances.map((enemy) => [enemy.id, enemy])
   );
   return sorted.map((entry) => {
     const ch =
@@ -31,21 +36,14 @@ function shapeInitiativeOrderForResponse(
         : undefined;
     const gi = ch?.generalInformation;
     const enemyInstance = enemyInstanceById.get(entry.combatantId);
-    const enemyIsPublic = enemyInstance?.isPublic !== false;
-    const enemyDisplayName =
-      entry.combatantName ?? enemyInstance?.name ?? "Enemy";
+    const liveEnemyLabel =
+      enemyInstance?.instanceLabel ?? entry.combatantName ?? "Enemy";
     const displayName =
-      entry.combatantType === "CHARACTER"
-        ? (gi?.name ?? null)
-        : !isGameMaster && !enemyIsPublic
-          ? "Enemy"
-          : enemyDisplayName;
+      entry.combatantType === "CHARACTER" ? (gi?.name ?? null) : liveEnemyLabel;
     const displaySurname =
       entry.combatantType === "CHARACTER" ? (gi?.surname ?? null) : null;
     const combatantName =
-      entry.combatantType === "ENEMY" && !isGameMaster && !enemyIsPublic
-        ? "Enemy"
-        : entry.combatantName;
+      entry.combatantType === "ENEMY" ? liveEnemyLabel : entry.combatantName;
     return {
       combatantType: entry.combatantType,
       combatantId: entry.combatantId,
@@ -110,7 +108,11 @@ export function shapeGameForResponse(
         },
       };
     });
-  const visibleEnemyInstances = (game.enemyInstances ?? []).filter((enemy) => {
+  const labeledEnemyInstances = withInstanceLabels(
+    game.enemyInstances ?? [],
+    isGameMaster
+  );
+  const visibleEnemyInstances = labeledEnemyInstances.filter((enemy) => {
     if (isGameMaster) return true;
     return enemy.isPublic !== false;
   });
@@ -127,7 +129,7 @@ export function shapeGameForResponse(
     initiativeOrder: shapeInitiativeOrderForResponse(
       game,
       characters ?? [],
-      isGameMaster
+      labeledEnemyInstances
     ),
     discordIntegration: game.discordIntegration
       ? {

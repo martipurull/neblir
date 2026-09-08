@@ -3,16 +3,19 @@ type EnemyInstanceSpawnAllocation = {
   name: string;
   sourceName: string;
   renamed: false;
+  numberVisible: boolean;
 };
 
-type OccupiedEnemyInstance = {
+export type OccupiedEnemyInstance = {
   instanceNumber?: number | null;
   name: string;
 };
 
-const trailingInstanceNumber = / #(\d+)$/;
+export const trailingInstanceNumber = / #(\d+)$/;
 
-function occupiedInstanceNumber(instance: OccupiedEnemyInstance): number {
+export function resolvedInstanceNumber(
+  instance: OccupiedEnemyInstance
+): number {
   if (instance.instanceNumber != null && instance.instanceNumber >= 1) {
     return instance.instanceNumber;
   }
@@ -29,7 +32,7 @@ function nextInstanceNumbers(
   const maxOccupied =
     occupied.length === 0
       ? 0
-      : Math.max(...occupied.map(occupiedInstanceNumber));
+      : Math.max(...occupied.map(resolvedInstanceNumber));
   return Array.from({ length: count }, (_, i) => maxOccupied + i + 1);
 }
 
@@ -44,10 +47,12 @@ export function allocateEnemyInstanceSpawns({
   sourceName: string;
   instanceName: string;
 }): EnemyInstanceSpawnAllocation[] {
+  const numberVisible = occupied.length > 0 || count > 1;
   return nextInstanceNumbers(occupied, count).map((instanceNumber) => ({
     instanceNumber,
     name: instanceName,
     sourceName,
     renamed: false as const,
+    numberVisible,
   }));
 }

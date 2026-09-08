@@ -64,6 +64,7 @@ export function getGameWithDetails(id: string) {
           instanceNumber: true,
           sourceName: true,
           renamed: true,
+          numberVisible: true,
           isPublic: true,
           imageKey: true,
           maxHealth: true,

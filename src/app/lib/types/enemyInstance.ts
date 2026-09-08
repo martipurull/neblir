@@ -32,6 +32,8 @@ export type EnemyInstanceDetailResponse = {
   instanceNumber?: number | null;
   sourceName?: string | null;
   renamed?: boolean;
+  numberVisible?: boolean;
+  instanceLabel?: string;
   isPublic?: boolean;
   imageKey?: string | null;
   currentHealth: number;

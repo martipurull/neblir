@@ -13,6 +13,7 @@ export function uncheckedSnapshotFromEnemyTemplate(
     | "instanceNumber"
     | "sourceName"
     | "renamed"
+    | "numberVisible"
   >
 ): Prisma.EnemyInstanceUncheckedCreateInput {
   return {

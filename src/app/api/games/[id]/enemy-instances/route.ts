@@ -1,3 +1,4 @@
+import { withInstanceLabels } from "@/app/lib/enemyInstanceLabel";
 import { allocateEnemyInstanceSpawns } from "@/app/lib/enemyInstanceNumber";
 import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
 import { getEnemy } from "@/app/lib/prisma/enemy";
@@ -54,6 +55,7 @@ async function spawnAllocatedInstances(
           instanceNumber: allocation.instanceNumber,
           sourceName: allocation.sourceName,
           renamed: allocation.renamed,
+          numberVisible: allocation.numberVisible,
         })
       )
     );
@@ -75,9 +77,10 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("You do not have access to this game.", 403);
     const rows = await getEnemyInstancesByGame(gameId);
     const isGameMaster = game.gameMaster === request.auth.user.id;
+    const labeled = withInstanceLabels(rows, isGameMaster);
     const visible = isGameMaster
-      ? rows
-      : rows.filter((row) => row.isPublic !== false);
+      ? labeled
+      : labeled.filter((row) => row.isPublic !== false);
     return NextResponse.json(visible);
   } catch (error) {
     logger.error({
@@ -145,7 +148,10 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid source", 400);
     }
 
-    return NextResponse.json({ instances: createdRecords }, { status: 201 });
+    return NextResponse.json(
+      { instances: withInstanceLabels(createdRecords) },
+      { status: 201 }
+    );
   } catch (error) {
     logger.error({
       method: "POST",

@@ -159,7 +159,73 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-1", instanceId: "ei-1" })
       );
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual(instanceRow);
+      expect(await response.json()).toEqual({
+        ...instanceRow,
+        instanceLabel: "Goblin",
+      });
+    });
+
+    it("returns the live numbered instance label", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      getEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        name: "NS Gang Member",
+        instanceNumber: 4,
+        sourceName: "NS Gang Member",
+        renamed: false,
+      });
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
+      const response = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1", instanceId: "ei-1" })
+      );
+      expect(response.status).toBe(200);
+      expect((await response.json()).instanceLabel).toBe("NS Gang Member #4");
+    });
+
+    it("returns renamed parentheses with the frozen source name", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      getEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        name: "Scarface",
+        instanceNumber: 1,
+        sourceName: "NS Gang Member",
+        renamed: true,
+      });
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
+      const response = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1", instanceId: "ei-1" })
+      );
+      expect(response.status).toBe(200);
+      expect((await response.json()).instanceLabel).toBe(
+        "Scarface (NS Gang Member #1)"
+      );
+    });
+
+    it("returns #1 when the instance was spawned as a numbered batch", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      getEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        name: "NS Gang Member",
+        instanceNumber: 1,
+        sourceName: "NS Gang Member",
+        renamed: false,
+        numberVisible: true,
+      });
+      const { GET } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
+      const response = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1", instanceId: "ei-1" })
+      );
+      expect(response.status).toBe(200);
+      expect((await response.json()).instanceLabel).toBe("NS Gang Member #1");
     });
 
     it("returns 500 when getEnemyInstance throws", async () => {
@@ -342,6 +408,58 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
       expect(response.status).toBe(200);
       expect(updateEnemyInstanceMock).toHaveBeenCalledWith("ei-1", {
         name: "Renamed",
+        renamed: true,
+      });
+    });
+
+    it("keeps renamed set when the instance name is changed back", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      getEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        name: "Scarface",
+        renamed: true,
+        instanceNumber: 1,
+        sourceName: "Goblin",
+      });
+      updateEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        name: "Goblin",
+        renamed: true,
+        instanceNumber: 1,
+        sourceName: "Goblin",
+      });
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "Goblin" }, "gm-1"),
+        makeParams({ id: "g-1", instanceId: "ei-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateEnemyInstanceMock).toHaveBeenCalledWith("ei-1", {
+        name: "Goblin",
+        renamed: true,
+      });
+      expect((await response.json()).instanceLabel).toBe("Goblin (Goblin #1)");
+    });
+
+    it("does not set renamed when the instance name is omitted", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      getEnemyInstanceMock.mockResolvedValue(instanceRow);
+      updateEnemyInstanceMock.mockResolvedValue({
+        ...instanceRow,
+        notes: "x",
+      });
+      const { PATCH } =
+        await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ notes: "x" }, "gm-1"),
+        makeParams({ id: "g-1", instanceId: "ei-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateEnemyInstanceMock).toHaveBeenCalledWith("ei-1", {
+        notes: "x",
       });
     });
 

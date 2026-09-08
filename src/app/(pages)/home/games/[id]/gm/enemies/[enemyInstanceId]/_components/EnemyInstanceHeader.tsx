@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
 import { enemyStatusBadgeClass, enemyStatusLabel } from "../enemyInstanceUtils";
 
@@ -28,7 +29,7 @@ export function EnemyInstanceHeader({
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <PageTitle>{enemy.name}</PageTitle>
+          <PageTitle>{instanceLabelOf(enemy)}</PageTitle>
           <Button
             type="button"
             variant="secondaryOutlineXs"

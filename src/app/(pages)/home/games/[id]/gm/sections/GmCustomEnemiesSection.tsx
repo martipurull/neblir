@@ -2,6 +2,7 @@ import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import type { GameDetail } from "@/app/lib/types/game";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
@@ -105,7 +106,7 @@ export function GmCustomEnemiesSection({
       await enqueueRoll({
         combatantType: "ENEMY",
         combatantId: instance.id,
-        combatantName: instance.name,
+        combatantName: instanceLabelOf(instance),
         initiativeModifier: instance.initiativeModifier ?? 0,
         isPrivate: isPrivateGameCharacterLink(instance.isPublic),
         source: "gmEnemyList",
@@ -221,6 +222,7 @@ export function GmCustomEnemiesSection({
               const instanceBusy =
                 busyInstanceId === inst.id || isPending("ENEMY", inst.id);
               const isRolling = isPending("ENEMY", inst.id);
+              const instanceLabel = instanceLabelOf(inst);
               return (
                 <li
                   key={inst.id}
@@ -229,7 +231,7 @@ export function GmCustomEnemiesSection({
                   <Link
                     href={instanceHref}
                     className="absolute inset-0 z-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                    aria-label={`Open ${inst.name}`}
+                    aria-label={`Open ${instanceLabel}`}
                   />
                   <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
                     <RemoteAvatar
@@ -242,7 +244,7 @@ export function GmCustomEnemiesSection({
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
                         <p className="truncate text-base font-medium">
-                          {inst.name}
+                          {instanceLabel}
                         </p>
                         <span className={enemyStatusBadgeClass(status)}>
                           {enemyStatusLabel(status)}
@@ -304,7 +306,7 @@ export function GmCustomEnemiesSection({
                       onClick={() => {
                         setRemoveInstanceTarget({
                           id: inst.id,
-                          name: inst.name,
+                          name: instanceLabel,
                         });
                         setRemoveInstanceError(null);
                       }}

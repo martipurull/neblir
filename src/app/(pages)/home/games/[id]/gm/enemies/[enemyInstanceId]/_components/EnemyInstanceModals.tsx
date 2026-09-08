@@ -6,6 +6,7 @@ import { InitiativeOrderModal } from "@/app/components/combat/InitiativeOrderMod
 import { EditEnemyInstanceModal } from "@/app/components/games/EditEnemyInstanceModal";
 import { EnemyInstanceDiceRollerModal } from "@/app/components/games/EnemyInstanceDiceRollerModal";
 import { RollResultQuickModal } from "@/app/components/shared/RollResultQuickModal";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import type { GameDetail } from "@/app/lib/types/game";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type {
@@ -110,7 +111,7 @@ export function EnemyInstanceModals({
         onClose={() => setDiceRollerOpen(false)}
         gameId={gameId}
         enemyInstanceId={enemy.id}
-        enemyName={enemy.name}
+        enemyName={instanceLabelOf(enemy)}
         rollPrivacy={rollPrivacy}
       />
 

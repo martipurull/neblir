@@ -122,7 +122,9 @@ describe("/api/games/[id]/enemy-instances", () => {
     it("returns 200 and list when player is in game", async () => {
       getGameMock.mockResolvedValue(gmGame);
       userIsInGameMock.mockResolvedValue(true);
-      getEnemyInstancesByGameMock.mockResolvedValue([{ id: "ei-1" }]);
+      getEnemyInstancesByGameMock.mockResolvedValue([
+        { id: "ei-1", name: "Goblin" },
+      ]);
       const { GET } =
         await import("@/app/api/games/[id]/enemy-instances/route");
       const response = await invokeRoute(
@@ -132,7 +134,9 @@ describe("/api/games/[id]/enemy-instances", () => {
       );
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body).toEqual([{ id: "ei-1" }]);
+      expect(body).toEqual([
+        { id: "ei-1", name: "Goblin", instanceLabel: "Goblin" },
+      ]);
       expect(getEnemyInstancesByGameMock).toHaveBeenCalledWith("g-1");
     });
 
@@ -349,6 +353,7 @@ describe("/api/games/[id]/enemy-instances", () => {
         instanceNumber: 1,
         sourceName: "Goblin",
         renamed: false,
+        numberVisible: false,
         sourceCustomEnemyId: "ce-1",
       });
       const body = await response.json();
@@ -359,6 +364,7 @@ describe("/api/games/[id]/enemy-instances", () => {
           instanceNumber: 1,
           sourceName: "Goblin",
           renamed: false,
+          instanceLabel: "Goblin",
         }),
       ]);
     });
@@ -388,6 +394,7 @@ describe("/api/games/[id]/enemy-instances", () => {
         instanceNumber: 1,
         sourceName: "Bandit",
         renamed: false,
+        numberVisible: true,
         sourceOfficialEnemyId: "oe-1",
       });
       expect(createEnemyInstanceMock.mock.calls[1][0]).toMatchObject({
@@ -406,12 +413,14 @@ describe("/api/games/[id]/enemy-instances", () => {
           instanceNumber: 1,
           sourceName: "Bandit",
           renamed: false,
+          instanceLabel: "Brigand #1",
         }),
         expect.objectContaining({
           name: "Brigand",
           instanceNumber: 2,
           sourceName: "Bandit",
           renamed: false,
+          instanceLabel: "Brigand #2",
         }),
       ]);
     });

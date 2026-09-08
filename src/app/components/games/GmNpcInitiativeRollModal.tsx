@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { formatSignedModifier } from "@/app/lib/enemyDetailsView";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
@@ -136,7 +137,7 @@ export function GmNpcInitiativeRollModal({
               {combinedEnemies.map((enemy) => {
                 const id = enemy.id;
                 const mod = enemy.initiativeModifier ?? 0;
-                const name = enemy.name;
+                const instanceLabel = instanceLabelOf(enemy);
                 const done = hasCombatantInitiativeEntry(game, "ENEMY", id);
                 const busy = isPending("ENEMY", id);
                 return (
@@ -145,13 +146,15 @@ export function GmNpcInitiativeRollModal({
                     className="flex items-center justify-between gap-2 rounded border border-white/15 bg-black/20 px-3 py-2"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm text-white">
-                      {name}
+                      {instanceLabel}
                     </span>
                     <Button
                       type="button"
                       variant="modalCompactWarning"
                       disabled={done || busy}
-                      onClick={() => void handleRoll("ENEMY", id, mod, name)}
+                      onClick={() =>
+                        void handleRoll("ENEMY", id, mod, instanceLabel)
+                      }
                     >
                       {busy
                         ? "Rolling…"
