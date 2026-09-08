@@ -86,7 +86,7 @@ function ActionDescriptionRichText({
     >
       {editor ? (
         <>
-          <RichTextToolbar editor={editor} />
+          <RichTextToolbar editor={editor} variant="dark" />
           <EditorContent editor={editor} />
         </>
       ) : (

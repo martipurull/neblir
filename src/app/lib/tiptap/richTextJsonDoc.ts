@@ -1,9 +1,10 @@
+import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richTextExtensions";
+import {
+  isAllowedHttpHref,
+  sanitizeRichTextHtmlAnchors,
+} from "@/app/lib/tiptap/richTextSanitize";
 import type { JSONContent } from "@tiptap/core";
 import { generateHTML } from "@tiptap/html";
-import StarterKit from "@tiptap/starter-kit";
-
-/** Shared with JSON TipTap editors and `generateHTML` so stored JSON round-trips. */
-const RICH_TEXT_JSON_EXTENSIONS = [StarterKit];
 
 export const EMPTY_RICH_TEXT_DOC: JSONContent = {
   type: "doc",
@@ -48,7 +49,36 @@ function parseStoredRichTextDoc(stored: string): JSONContent {
 }
 
 export function storedRichTextJsonToHtml(stored: string): string {
-  const doc = parseStoredRichTextDoc(stored);
+  return richTextJsonDocToHtml(parseStoredRichTextDoc(stored));
+}
+
+export function richTextJsonDocToHtml(doc: JSONContent): string {
   if (isRichTextDocEmpty(doc)) return "";
-  return generateHTML(doc, RICH_TEXT_JSON_EXTENSIONS);
+  return sanitizeRichTextHtmlAnchors(generateHTML(doc, RICH_TEXT_EXTENSIONS));
+}
+
+function sanitizeJsonMarks(
+  marks: NonNullable<JSONContent["marks"]>
+): NonNullable<JSONContent["marks"]> | undefined {
+  const next = marks.filter((mark) => {
+    if (mark.type !== "link") return true;
+    const href =
+      typeof mark.attrs?.href === "string" ? mark.attrs.href : undefined;
+    return isAllowedHttpHref(href);
+  });
+  return next.length > 0 ? next : undefined;
+}
+
+/** Drop link marks whose href is not http(s); other marks stay. */
+export function sanitizeRichTextJsonDoc(doc: JSONContent): JSONContent {
+  const next: JSONContent = { ...doc };
+  if (next.marks?.length) {
+    const marks = sanitizeJsonMarks(next.marks);
+    if (marks) next.marks = marks;
+    else delete next.marks;
+  }
+  if (next.content?.length) {
+    next.content = next.content.map(sanitizeRichTextJsonDoc);
+  }
+  return next;
 }

@@ -2,6 +2,7 @@
 
 import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
+import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import type { GameDetail } from "@/app/lib/types/game";
 import Link from "next/link";
@@ -15,7 +16,10 @@ function CharacterSummaryBlock({ summaryHtml }: { summaryHtml: string }) {
       clampClassName="line-clamp-3"
       measureKey={summaryHtml}
     >
-      <div dangerouslySetInnerHTML={{ __html: summaryHtml }} />
+      <StoredRichTextHtml
+        content={summaryHtml}
+        className="prose prose-sm max-w-none text-black/80"
+      />
     </ExpandableClamp>
   );
 }

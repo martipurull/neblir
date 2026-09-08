@@ -60,6 +60,12 @@
   .rich-text-content em {
     font-style: italic;
   }
+  .rich-text-content u {
+    text-decoration: underline;
+  }
+  .rich-text-content a {
+    @apply text-customPrimary underline;
+  }
   .rich-text-content h1,
   .rich-text-content h2,
   .rich-text-content h3 {
@@ -130,6 +136,12 @@
   }
   .reference-entry-html em {
     font-style: italic;
+  }
+  .reference-entry-html u {
+    text-decoration: underline;
+  }
+  .reference-entry-html a {
+    @apply text-customPrimary underline;
   }
   .reference-entry-html blockquote {
     border-left: 3px solid rgb(0 0 0 / 0.35);

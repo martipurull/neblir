@@ -27,7 +27,7 @@ import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 import type { JSONContent } from "@tiptap/core";
 import { generateJSON } from "@tiptap/html/server";
-import StarterKit from "@tiptap/starter-kit";
+import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richTextExtensions";
 
 const prisma = new PrismaClient();
 
@@ -251,7 +251,7 @@ async function importFile(
 ): Promise<"created" | "updated" | "skipped" | "skippedProtected"> {
   const { sourceFile, displayName } = input;
   const html = await fs.readFile(sourceFile, "utf8");
-  const contentJson = generateJSON(html, [StarterKit]) as JSONContent;
+  const contentJson = generateJSON(html, RICH_TEXT_EXTENSIONS) as JSONContent;
   const title =
     firstHeadingTitle(contentJson) ??
     htmlTitle(html) ??

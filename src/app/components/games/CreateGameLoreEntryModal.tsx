@@ -7,7 +7,10 @@ import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { Button } from "@/app/components/shared/Button";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
-import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
+import {
+  EMPTY_RICH_TEXT_DOC,
+  sanitizeRichTextJsonDoc,
+} from "@/app/lib/tiptap/richTextJsonDoc";
 import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import {
   DOCUMENT_IMAGE_MAX_SIZE_BYTES,
@@ -233,7 +236,9 @@ export function CreateGameLoreEntryModal({
     setSubmitting(true);
     setError(null);
     try {
-      const contentJson: JSONContent = editor?.getJSON() ?? EMPTY_RICH_TEXT_DOC;
+      const contentJson: JSONContent = sanitizeRichTextJsonDoc(
+        editor?.getJSON() ?? EMPTY_RICH_TEXT_DOC
+      );
       const tags = tagsInput
         .split(",")
         .map((tag) => tag.trim())
@@ -363,7 +368,7 @@ export function CreateGameLoreEntryModal({
         >
           {editor ? (
             <>
-              <RichTextToolbar editor={editor} />
+              <RichTextToolbar editor={editor} variant="dark" />
               <EditorContent editor={editor} />
             </>
           ) : (

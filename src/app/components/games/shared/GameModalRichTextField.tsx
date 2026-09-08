@@ -26,7 +26,7 @@ export type GameModalRichTextFieldProps = {
 };
 
 /**
- * TipTap rich text for game modals (same StarterKit + toolbar as lore entries).
+ * TipTap rich text for game modals (shared extensions + toolbar as lore entries).
  * Values persist as HTML strings on the enemy model.
  */
 export function GameModalRichTextField({
@@ -75,7 +75,7 @@ export function GameModalRichTextField({
       >
         {editor ? (
           <>
-            <RichTextToolbar editor={editor} />
+            <RichTextToolbar editor={editor} variant="dark" />
             <EditorContent editor={editor} />
           </>
         ) : (

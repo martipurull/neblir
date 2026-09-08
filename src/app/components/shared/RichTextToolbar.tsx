@@ -5,14 +5,23 @@ import {
   richTextToolbarClassName,
   type RichTextFieldVariant,
 } from "@/app/components/shared/richTextFieldStyles";
+import { isAllowedHttpHref } from "@/app/lib/tiptap/richTextSanitize";
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
-import React from "react";
+import type { ReactNode } from "react";
 
 type RichTextToolbarProps = {
   editor: Editor | null;
   variant?: RichTextFieldVariant;
 };
+
+function promptForLinkHref(previousUrl: string): string | null {
+  const next = window.prompt("URL", previousUrl);
+  if (next === null) return null;
+  const href = next.trim();
+  if (!href) return "";
+  return isAllowedHttpHref(href) ? href : null;
+}
 
 export function RichTextToolbar({
   editor,
@@ -25,6 +34,8 @@ export function RichTextToolbar({
         return {
           bold: false,
           italic: false,
+          underline: false,
+          link: false,
           h2: false,
           bullet: false,
           ordered: false,
@@ -34,6 +45,8 @@ export function RichTextToolbar({
       return {
         bold: ed.isActive("bold"),
         italic: ed.isActive("italic"),
+        underline: ed.isActive("underline"),
+        link: ed.isActive("link"),
         h2: ed.isActive("heading", { level: 2 }),
         bullet: ed.isActive("bulletList"),
         ordered: ed.isActive("orderedList"),
@@ -44,11 +57,24 @@ export function RichTextToolbar({
 
   if (!editor || editor.isDestroyed || !tool) return null;
 
+  const applyLink = () => {
+    const selectionEmpty = editor.state.selection.empty;
+    if (selectionEmpty && !editor.isActive("link")) return;
+    const previousUrl = String(editor.getAttributes("link").href ?? "");
+    const href = promptForLinkHref(previousUrl);
+    if (href === null) return;
+    if (!href) {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+  };
+
   const toolBtn = (
     ariaLabel: string,
     action: () => void,
     isActive: boolean,
-    children: React.ReactNode
+    children: ReactNode
   ) => (
     <Button
       type="button"
@@ -86,6 +112,31 @@ export function RichTextToolbar({
         () => editor.chain().focus().toggleItalic().run(),
         tool.italic,
         <span className="text-sm italic leading-none">I</span>
+      )}
+      {toolBtn(
+        "Underline",
+        () => editor.chain().focus().toggleUnderline().run(),
+        tool.underline,
+        <span className="text-sm underline leading-none">U</span>
+      )}
+      {toolBtn(
+        "Link",
+        applyLink,
+        tool.link,
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4"
+          aria-hidden
+        >
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
       )}
       {toolBtn(
         "Heading",
