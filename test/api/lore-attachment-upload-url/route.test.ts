@@ -159,7 +159,7 @@ describe("POST /api/lore-attachment-upload-url", () => {
     expect(getSignedUrlMock).not.toHaveBeenCalled();
   });
 
-  it("returns 400 when an image is larger than the image limit", async () => {
+  it("returns 400 when a lore image exceeds 50MB", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/lore-attachment-upload-url/route");
     const response = await invokeRoute(
@@ -168,12 +168,36 @@ describe("POST /api/lore-attachment-upload-url", () => {
         {
           gameId: "g-1",
           fileName: "crest.png",
-          fileSizeBytes: 6 * 1024 * 1024,
+          fileSizeBytes: 50 * 1024 * 1024 + 1,
         },
         "gm-1"
       )
     );
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toMatch(/50MB|smaller/i);
     expect(getSignedUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a lore- image key for a 50MB lore image", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/lore-attachment-upload-url/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          gameId: "g-1",
+          fileName: "campaign art.jpeg",
+          fileSizeBytes: 50 * 1024 * 1024,
+        },
+        "gm-1"
+      )
+    );
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.uploadUrl).toBe("https://r2.example/upload");
+    expect(body.fileKey).toMatch(/^lore-/);
+    expect(body.fileKey).toMatch(/\.jpeg$/);
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(1);
   });
 });

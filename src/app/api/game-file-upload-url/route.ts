@@ -1,10 +1,17 @@
 import {
+  DOCUMENT_IMAGE_MAX_SIZE_BYTES,
+  DOCUMENT_IMAGE_MAX_SIZE_LABEL,
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
 import { getGame } from "@/app/lib/prisma/game";
 import { getR2Config } from "@/app/lib/r2";
-import { buildUploadKey, isPdfFileName } from "@/app/lib/r2UploadKeys";
+import {
+  buildUploadKey,
+  contentTypeFromFileName,
+  isImageFileName,
+  isPdfFileName,
+} from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameFileUploadUrlRequestSchema } from "@/app/lib/types/gameFile";
 import { auth } from "@/auth";
@@ -39,7 +46,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const { gameId, fileName, fileSizeBytes } = parsed.data;
+    const { gameId, fileName, fileSizeBytes, kind } = parsed.data;
 
     const game = await getGame(gameId);
     if (!game) {
@@ -49,12 +56,26 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Only the game master can upload files", 403);
     }
 
-    if (!isPdfFileName(fileName)) {
-      return errorResponse("PDF upload only supports PDF files", 400);
+    const kindFromName = isPdfFileName(fileName)
+      ? "PDF"
+      : isImageFileName(fileName)
+        ? "IMAGE"
+        : null;
+    if (!kindFromName || kindFromName !== kind) {
+      return errorResponse(
+        "Game files only support images (PNG, JPEG, GIF, WebP) and PDF files",
+        400
+      );
     }
-    if (fileSizeBytes > PDF_MAX_SIZE_BYTES) {
+    if (kind === "PDF" && fileSizeBytes > PDF_MAX_SIZE_BYTES) {
       return errorResponse(
         `File must be ${PDF_MAX_SIZE_LABEL} or smaller`,
+        400
+      );
+    }
+    if (kind === "IMAGE" && fileSizeBytes > DOCUMENT_IMAGE_MAX_SIZE_BYTES) {
+      return errorResponse(
+        `Image must be ${DOCUMENT_IMAGE_MAX_SIZE_LABEL} or smaller`,
         400
       );
     }
@@ -75,7 +96,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       new PutObjectCommand({
         Bucket: config.bucketName,
         Key: fileKey,
-        ContentType: "application/pdf",
+        ContentType: contentTypeFromFileName(fileName),
       }),
       { expiresIn: PRESIGNED_UPLOAD_EXPIRES_SECONDS }
     );

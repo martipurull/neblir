@@ -8,6 +8,7 @@ import {
   type GameFileUpdate,
   type GameFileUploadUrlRequest,
 } from "@/app/lib/types/gameFile";
+import { contentTypeFromFileName } from "@/app/lib/r2UploadKeys";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -111,7 +112,7 @@ export async function requestGameFileUploadUrl(
   return gameFileUploadUrlResponseSchema.parse(await response.json());
 }
 
-export async function uploadGameFilePdfToStorage(
+export async function uploadGameFileToStorage(
   uploadUrl: string,
   file: File
 ): Promise<void> {
@@ -119,11 +120,11 @@ export async function uploadGameFilePdfToStorage(
     method: "PUT",
     body: file,
     headers: {
-      "Content-Type": "application/pdf",
+      "Content-Type": file.type || contentTypeFromFileName(file.name),
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to upload PDF to storage.");
+    throw new Error("Failed to upload file to storage.");
   }
 }
 

@@ -1,6 +1,6 @@
 import {
-  IMAGE_MAX_SIZE_BYTES,
-  IMAGE_MAX_SIZE_LABEL,
+  DOCUMENT_IMAGE_MAX_SIZE_BYTES,
+  DOCUMENT_IMAGE_MAX_SIZE_LABEL,
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
@@ -91,9 +91,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
     if (kind === "PDF" && fileSizeBytes > PDF_MAX_SIZE_BYTES) {
       return errorResponse(`PDF must be ${PDF_MAX_SIZE_LABEL} or smaller`, 400);
     }
-    if (kind === "IMAGE" && fileSizeBytes > IMAGE_MAX_SIZE_BYTES) {
+    if (kind === "IMAGE" && fileSizeBytes > DOCUMENT_IMAGE_MAX_SIZE_BYTES) {
       return errorResponse(
-        `Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller`,
+        `Image must be ${DOCUMENT_IMAGE_MAX_SIZE_LABEL} or smaller`,
         400
       );
     }

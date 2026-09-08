@@ -75,7 +75,7 @@ export const gameFileUploadUrlRequestSchema = z
     gameId: z.string().min(1),
     fileName: z.string().min(1),
     fileSizeBytes: z.number().int().positive(),
-    kind: z.literal("PDF"),
+    kind: gameFileKindSchema,
   })
   .strict();
 

@@ -61,7 +61,7 @@ describe("POST /api/game-file-upload-url", () => {
     expect(response.status).toBe(403);
   });
 
-  it("returns 400 for non-pdf file names", async () => {
+  it("returns 400 for non-pdf file names when kind is PDF", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/game-file-upload-url/route");
     const response = await invokeRoute(
@@ -80,7 +80,7 @@ describe("POST /api/game-file-upload-url", () => {
     expect(getSignedUrlMock).not.toHaveBeenCalled();
   });
 
-  it("returns 400 when file exceeds 50MB", async () => {
+  it("returns 400 when a PDF exceeds 50MB", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/game-file-upload-url/route");
     const response = await invokeRoute(
@@ -97,6 +97,50 @@ describe("POST /api/game-file-upload-url", () => {
     );
     expect(response.status).toBe(400);
     expect(getSignedUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when a File image exceeds 50MB", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/game-file-upload-url/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          gameId: "g-1",
+          fileName: "scan.jpg",
+          fileSizeBytes: 50 * 1024 * 1024 + 1,
+          kind: "IMAGE",
+        },
+        "gm-1"
+      )
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toMatch(/50MB|smaller/i);
+    expect(getSignedUrlMock).not.toHaveBeenCalled();
+  });
+
+  it("returns presigned upload url and files- image key for a 50MB File image", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/game-file-upload-url/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          gameId: "g-1",
+          fileName: "Session Map.png",
+          fileSizeBytes: 50 * 1024 * 1024,
+          kind: "IMAGE",
+        },
+        "gm-1"
+      )
+    );
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.uploadUrl).toBe("https://r2.example/upload");
+    expect(body.fileKey).toMatch(/^files-/);
+    expect(body.fileKey).toMatch(/\.png$/);
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(1);
   });
 
   it("returns presigned upload url and files- pdf key for GM", async () => {

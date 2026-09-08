@@ -10,8 +10,8 @@ import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
 import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import {
-  IMAGE_MAX_SIZE_BYTES,
-  IMAGE_MAX_SIZE_LABEL,
+  DOCUMENT_IMAGE_MAX_SIZE_BYTES,
+  DOCUMENT_IMAGE_MAX_SIZE_LABEL,
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
@@ -168,8 +168,8 @@ export function CreateGameLoreEntryModal({
         return;
       }
     } else if (isImageFileName(file.name)) {
-      if (file.size > IMAGE_MAX_SIZE_BYTES) {
-        setError(`Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller.`);
+      if (file.size > DOCUMENT_IMAGE_MAX_SIZE_BYTES) {
+        setError(`Image must be ${DOCUMENT_IMAGE_MAX_SIZE_LABEL} or smaller.`);
         return;
       }
     } else {
@@ -367,7 +367,7 @@ export function CreateGameLoreEntryModal({
       <div>
         <FieldLabel id="game-lore-attachments" label="Attachments" />
         <p className="mb-2 text-xs text-white/70">
-          Optional images (max {IMAGE_MAX_SIZE_LABEL}) or PDFs (max{" "}
+          Optional images (max {DOCUMENT_IMAGE_MAX_SIZE_LABEL}) or PDFs (max{" "}
           {PDF_MAX_SIZE_LABEL}) players can open or download with this lore
           entry.
         </p>
