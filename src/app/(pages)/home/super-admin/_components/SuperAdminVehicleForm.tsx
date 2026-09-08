@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -221,6 +222,7 @@ function SuperAdminVehicleFormFields({
   const imageKeyRef = useRef(initialValues.imageKey);
   const [status, setStatus] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -325,8 +327,6 @@ function SuperAdminVehicleFormFields({
 
   const handleDelete = useCallback(async () => {
     if (!isEdit || !editVehicleId) return;
-    if (!window.confirm("Delete this official vehicle from the catalogue?"))
-      return;
     setDeleteError(null);
     setDeleting(true);
     try {
@@ -608,12 +608,6 @@ function SuperAdminVehicleFormFields({
             </InfoCard>
           ) : null}
 
-          {deleteError ? (
-            <InfoCard className="mt-4 border-neblirDanger bg-paleBlue/20">
-              <p className="text-sm text-black">{deleteError}</p>
-            </InfoCard>
-          ) : null}
-
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button
               type="submit"
@@ -634,7 +628,8 @@ function SuperAdminVehicleFormFields({
                 variant="danger"
                 disabled={submitting || deleting}
                 onClick={() => {
-                  void handleDelete();
+                  setDeleteError(null);
+                  setDeleteConfirmOpen(true);
                 }}
               >
                 {deleting ? "Deleting…" : "Delete vehicle"}
@@ -650,6 +645,22 @@ function SuperAdminVehicleFormFields({
       >
         ← Back to vehicles
       </Link>
+      <DangerConfirmModal
+        isOpen={deleteConfirmOpen}
+        title="Delete this official vehicle from the catalogue?"
+        description="This cannot be undone."
+        confirmLabel="Delete vehicle"
+        cancelLabel="Cancel"
+        isSubmitting={deleting}
+        errorMessage={deleteError}
+        onCancel={() => {
+          if (deleting) return;
+          setDeleteConfirmOpen(false);
+        }}
+        onConfirm={() => {
+          void handleDelete();
+        }}
+      />
     </SuperAdminSectionShell>
   );
 }
