@@ -10,6 +10,7 @@ const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const getEnemyInstancesByGameMock = vi.fn();
 const createEnemyInstanceMock = vi.fn();
+const deleteEnemyInstancesForGameMock = vi.fn();
 const getCustomEnemyMock = vi.fn();
 const getEnemyMock = vi.fn();
 
@@ -21,6 +22,7 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/enemyInstance", () => ({
   createEnemyInstance: createEnemyInstanceMock,
   getEnemyInstancesByGame: getEnemyInstancesByGameMock,
+  deleteEnemyInstancesForGame: deleteEnemyInstancesForGameMock,
 }));
 
 vi.mock("@/app/lib/prisma/customEnemy", () => ({
@@ -580,6 +582,138 @@ describe("/api/games/[id]/enemy-instances", () => {
         makeParams({ id: "g-1" })
       );
       expect(response.status).toBe(400);
+    });
+  });
+
+  describe("DELETE", () => {
+    it("returns 401 when unauthenticated", async () => {
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeUnauthedRequest({ instanceIds: ["ei-1"] }),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(401);
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when game id is empty", async () => {
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1"] }, "gm-1"),
+        makeParams({ id: "" })
+      );
+      expect(response.status).toBe(400);
+      expect(getGameMock).not.toHaveBeenCalled();
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when game does not exist", async () => {
+      getGameMock.mockResolvedValue(null);
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1"] }, "gm-1"),
+        makeParams({ id: "g-missing" })
+      );
+      expect(response.status).toBe(404);
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when caller is not game master", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1", "ei-2"] }, "player-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when instanceIds is empty", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: [] }, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(400);
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when instanceIds is missing", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({}, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(400);
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when any instance is missing so nothing is deleted", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      deleteEnemyInstancesForGameMock.mockResolvedValue({
+        deleted: false,
+        reason: "not_found",
+      });
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1", "missing"] }, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(404);
+      expect(deleteEnemyInstancesForGameMock).toHaveBeenCalledWith("g-1", [
+        "ei-1",
+        "missing",
+      ]);
+    });
+
+    it("returns 204 when GM deletes a set of instances", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      deleteEnemyInstancesForGameMock.mockResolvedValue({ deleted: true });
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1", "ei-2"] }, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(204);
+      expect(deleteEnemyInstancesForGameMock).toHaveBeenCalledWith("g-1", [
+        "ei-1",
+        "ei-2",
+      ]);
+    });
+
+    it("returns 500 when deleteEnemyInstancesForGame rejects", async () => {
+      getGameMock.mockResolvedValue(gmGame);
+      deleteEnemyInstancesForGameMock.mockRejectedValue(new Error("db"));
+      const { DELETE } =
+        await import("@/app/api/games/[id]/enemy-instances/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest({ instanceIds: ["ei-1"] }, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(500);
+      expect((await response.json()).message).toBe(
+        "Error deleting enemy instances"
+      );
     });
   });
 });

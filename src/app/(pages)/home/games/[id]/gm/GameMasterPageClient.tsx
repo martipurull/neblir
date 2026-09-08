@@ -309,6 +309,7 @@ export function GameMasterPageClient() {
           onMutate={async () => {
             await mutate();
           }}
+          applyOptimisticGameUpdate={applyOptimisticGameUpdate}
           onInitiativeRolled={applyGameUpdate}
         />
 

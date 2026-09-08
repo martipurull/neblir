@@ -4,12 +4,16 @@ import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
 import { getEnemy } from "@/app/lib/prisma/enemy";
 import {
   createEnemyInstance,
+  deleteEnemyInstancesForGame,
   getEnemyInstancesByGame,
 } from "@/app/lib/prisma/enemyInstance";
 import { uncheckedSnapshotFromEnemyTemplate } from "@/app/lib/prisma/enemyInstanceSnapshot";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
-import { enemyInstanceSpawnBodySchema } from "@/app/lib/types/enemy";
+import {
+  enemyInstanceDeleteSetBodySchema,
+  enemyInstanceSpawnBodySchema,
+} from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
 import type { CustomEnemy, Enemy } from "@prisma/client";
@@ -161,6 +165,52 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     });
     return errorResponse(
       "Error creating enemy instance",
+      500,
+      serializeError(error)
+    );
+  }
+});
+
+export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user) return errorResponse("Unauthorised", 401);
+    const { id: gameId } = (await params) as { id: string };
+    if (!gameId) return errorResponse("Invalid game ID", 400);
+    const game = await getGame(gameId);
+    if (!game) return errorResponse("Game not found", 404);
+    if (game.gameMaster !== request.auth.user.id) {
+      return errorResponse(
+        "Only the game master can remove enemy instances.",
+        403
+      );
+    }
+    const parsed = enemyInstanceDeleteSetBodySchema.safeParse(
+      await request.json()
+    );
+    if (!parsed.success) {
+      return errorResponse(
+        "Invalid request body",
+        400,
+        parsed.error.issues.map((i) => i.message).join(". ")
+      );
+    }
+    const result = await deleteEnemyInstancesForGame(
+      gameId,
+      parsed.data.instanceIds
+    );
+    if (!result.deleted) {
+      return errorResponse("Enemy instance not found", 404);
+    }
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    logger.error({
+      method: "DELETE",
+      route: "/api/games/[id]/enemy-instances",
+      message: "Error deleting enemy instances",
+      error,
+    });
+    return errorResponse(
+      "Error deleting enemy instances",
       500,
       serializeError(error)
     );

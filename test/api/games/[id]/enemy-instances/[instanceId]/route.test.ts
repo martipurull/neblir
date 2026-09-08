@@ -10,7 +10,7 @@ const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const getEnemyInstanceMock = vi.fn();
 const updateEnemyInstanceMock = vi.fn();
-const deleteEnemyInstanceMock = vi.fn();
+const deleteEnemyInstancesForGameMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   getGame: getGameMock,
@@ -20,7 +20,7 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/enemyInstance", () => ({
   getEnemyInstance: getEnemyInstanceMock,
   updateEnemyInstance: updateEnemyInstanceMock,
-  deleteEnemyInstance: deleteEnemyInstanceMock,
+  deleteEnemyInstancesForGame: deleteEnemyInstancesForGameMock,
 }));
 
 describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
@@ -591,7 +591,6 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
 
     it("returns 403 when caller is not game master", async () => {
       getGameMock.mockResolvedValue(gmGame);
-      getEnemyInstanceMock.mockResolvedValue(instanceRow);
       const { DELETE } =
         await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
@@ -600,7 +599,7 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-1", instanceId: "ei-1" })
       );
       expect(response.status).toBe(403);
-      expect(deleteEnemyInstanceMock).not.toHaveBeenCalled();
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
     });
 
     it("returns 400 when game id is empty", async () => {
@@ -625,12 +624,15 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-missing", instanceId: "ei-1" })
       );
       expect(response.status).toBe(404);
-      expect(deleteEnemyInstanceMock).not.toHaveBeenCalled();
+      expect(deleteEnemyInstancesForGameMock).not.toHaveBeenCalled();
     });
 
     it("returns 404 when instance is unknown", async () => {
       getGameMock.mockResolvedValue(gmGame);
-      getEnemyInstanceMock.mockResolvedValue(null);
+      deleteEnemyInstancesForGameMock.mockResolvedValue({
+        deleted: false,
+        reason: "not_found",
+      });
       const { DELETE } =
         await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
@@ -639,14 +641,16 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-1", instanceId: "missing" })
       );
       expect(response.status).toBe(404);
-      expect(deleteEnemyInstanceMock).not.toHaveBeenCalled();
+      expect(deleteEnemyInstancesForGameMock).toHaveBeenCalledWith("g-1", [
+        "missing",
+      ]);
     });
 
     it("returns 404 when instance belongs to another game", async () => {
       getGameMock.mockResolvedValue(gmGame);
-      getEnemyInstanceMock.mockResolvedValue({
-        ...instanceRow,
-        gameId: "other",
+      deleteEnemyInstancesForGameMock.mockResolvedValue({
+        deleted: false,
+        reason: "not_found",
       });
       const { DELETE } =
         await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
@@ -656,13 +660,14 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-1", instanceId: "ei-1" })
       );
       expect(response.status).toBe(404);
-      expect(deleteEnemyInstanceMock).not.toHaveBeenCalled();
+      expect(deleteEnemyInstancesForGameMock).toHaveBeenCalledWith("g-1", [
+        "ei-1",
+      ]);
     });
 
     it("returns 204 when GM deletes instance", async () => {
       getGameMock.mockResolvedValue(gmGame);
-      getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      deleteEnemyInstanceMock.mockResolvedValue(undefined);
+      deleteEnemyInstancesForGameMock.mockResolvedValue({ deleted: true });
       const { DELETE } =
         await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(
@@ -671,13 +676,14 @@ describe("/api/games/[id]/enemy-instances/[instanceId]", () => {
         makeParams({ id: "g-1", instanceId: "ei-1" })
       );
       expect(response.status).toBe(204);
-      expect(deleteEnemyInstanceMock).toHaveBeenCalledWith("ei-1");
+      expect(deleteEnemyInstancesForGameMock).toHaveBeenCalledWith("g-1", [
+        "ei-1",
+      ]);
     });
 
-    it("returns 500 when deleteEnemyInstance rejects", async () => {
+    it("returns 500 when deleteEnemyInstancesForGame rejects", async () => {
       getGameMock.mockResolvedValue(gmGame);
-      getEnemyInstanceMock.mockResolvedValue(instanceRow);
-      deleteEnemyInstanceMock.mockRejectedValue(new Error("db"));
+      deleteEnemyInstancesForGameMock.mockRejectedValue(new Error("db"));
       const { DELETE } =
         await import("@/app/api/games/[id]/enemy-instances/[instanceId]/route");
       const response = await invokeRoute(

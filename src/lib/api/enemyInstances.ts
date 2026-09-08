@@ -66,13 +66,17 @@ export async function updateEnemyInstance(
   }
 }
 
-export async function deleteEnemyInstance(
+export async function deleteEnemyInstances(
   gameId: string,
-  instanceId: string
+  instanceIds: string[]
 ): Promise<void> {
   const response = await fetch(
-    `/api/games/${encodeURIComponent(gameId)}/enemy-instances/${encodeURIComponent(instanceId)}`,
-    { method: "DELETE" }
+    `/api/games/${encodeURIComponent(gameId)}/enemy-instances`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instanceIds }),
+    }
   );
   if (!response.ok && response.status !== 204) {
     let payload: ApiErrorPayload | undefined;

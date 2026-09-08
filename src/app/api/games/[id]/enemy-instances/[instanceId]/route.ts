@@ -1,6 +1,6 @@
 import { withInstanceLabel } from "@/app/lib/enemyInstanceLabel";
 import {
-  deleteEnemyInstance,
+  deleteEnemyInstancesForGame,
   getEnemyInstance,
   updateEnemyInstance,
 } from "@/app/lib/prisma/enemyInstance";
@@ -187,11 +187,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         403
       );
     }
-    const existing = await getEnemyInstance(instanceId);
-    if (existing?.gameId !== gameId) {
+    const result = await deleteEnemyInstancesForGame(gameId, [instanceId]);
+    if (!result.deleted) {
       return errorResponse("Enemy instance not found", 404);
     }
-    await deleteEnemyInstance(instanceId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     logger.error({
