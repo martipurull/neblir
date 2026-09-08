@@ -111,6 +111,34 @@ describe("GET /api/recap-url", () => {
     );
   });
 
+  it("returns a thumbnail url when the recap has a thumbnail key", async () => {
+    getGameRecapByIdMock.mockResolvedValue({
+      id: "r-1",
+      gameId: "g-1",
+      fileKey: "recaps-s1.pdf",
+      fileName: "s1.pdf",
+      thumbnailKey: "recaps-thumb-abc.jpg",
+    });
+    userIsInGameMock.mockResolvedValue(true);
+    getSignedUrlMock
+      .mockResolvedValueOnce("https://signed.example/url")
+      .mockResolvedValueOnce("https://signed.example/thumb");
+    const { GET } = await import("@/app/api/recap-url/route");
+    const response = await invokeRoute(GET, makeRequest("r-1"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      url: "https://signed.example/url",
+      thumbnailUrl: "https://signed.example/thumb",
+    });
+    expect(getObjectCommandCtorMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        Key: "recaps-thumb-abc.jpg",
+        ResponseContentType: "image/jpeg",
+      })
+    );
+  });
+
   it("returns a signed attachment url when disposition=attachment", async () => {
     getGameRecapByIdMock.mockResolvedValue({
       id: "r-1",

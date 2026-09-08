@@ -166,6 +166,33 @@ describe("POST /api/reference-entries/[id]/attachments", () => {
     });
   });
 
+  it("creates a PDF attachment with a thumbnail key", async () => {
+    getReferenceEntryMock.mockResolvedValue(loreEntry);
+    canWriteGameScopedReferenceEntryMock.mockResolvedValue(true);
+    createReferenceEntryAttachmentMock.mockResolvedValue({
+      id: "a-1",
+      ...attachmentBody,
+      thumbnailKey: "lore-thumb-abc.jpg",
+    });
+    const { POST } =
+      await import("@/app/api/reference-entries/[id]/attachments/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { ...attachmentBody, thumbnailKey: "lore-thumb-abc.jpg" },
+        "gm-1"
+      ),
+      makeParams({ id: "r-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createReferenceEntryAttachmentMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileKey: "lore-map-abc.pdf",
+        thumbnailKey: "lore-thumb-abc.jpg",
+      })
+    );
+  });
+
   it("creates an image attachment when requester is GM", async () => {
     const imageBody = {
       fileKey: "lore-crest-abc.png",

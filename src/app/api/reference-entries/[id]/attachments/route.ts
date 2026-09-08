@@ -11,6 +11,7 @@ import { getR2Config } from "@/app/lib/r2";
 import {
   isValidLoreAttachmentFileKey,
   loreAttachmentKindFromFileName,
+  parseOptionalPdfThumbnailKey,
 } from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { referenceEntryAttachmentCreateSchema } from "@/app/lib/types/referenceEntryAttachment";
@@ -106,6 +107,15 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid lore attachment file key", 400);
     }
 
+    const parsedThumbnail = parseOptionalPdfThumbnailKey(
+      parsed.data.thumbnailKey,
+      "lore",
+      kind === "PDF"
+    );
+    if (!parsedThumbnail.ok) {
+      return errorResponse("Invalid thumbnail key", 400);
+    }
+
     const config = getR2Config();
     if (!config) {
       return errorResponse("File upload is not configured", 500);
@@ -133,6 +143,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       fileKey: parsed.data.fileKey,
       fileName: parsed.data.fileName,
       fileSizeBytes: parsed.data.fileSizeBytes,
+      ...(parsedThumbnail.thumbnailKey
+        ? { thumbnailKey: parsedThumbnail.thumbnailKey }
+        : {}),
       uploadedByUserId: userId,
     });
     return NextResponse.json(attachment, { status: 201 });

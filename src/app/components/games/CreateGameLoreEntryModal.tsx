@@ -32,6 +32,7 @@ import type {
   ReferenceEntry,
 } from "@/app/lib/types/reference";
 import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
+import { tryUploadPdfPage1Thumbnail } from "@/app/lib/pdfPage1Thumbnail";
 import { isImageFileName, isPdfFileName } from "@/app/lib/r2UploadKeys";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -52,6 +53,7 @@ type PendingLoreAttachment = {
   fileKey: string;
   fileName: string;
   fileSizeBytes: number;
+  thumbnailKey?: string;
 };
 
 function slugifyTitle(title: string): string {
@@ -137,6 +139,9 @@ export function CreateGameLoreEntryModal({
   const cleanupPending = () => {
     for (const attachment of pendingAttachments) {
       void deleteUploadedLoreFile(attachment.fileKey);
+      if (attachment.thumbnailKey) {
+        void deleteUploadedLoreFile(attachment.thumbnailKey);
+      }
     }
     setPendingAttachments([]);
   };
@@ -180,29 +185,32 @@ export function CreateGameLoreEntryModal({
     setUploadingAttachment(true);
     setError(null);
     try {
-      const { fileKey, uploadUrl } = await requestLoreAttachmentUploadUrl({
-        gameId,
-        referenceEntryId: isEditMode && entry ? entry.id : undefined,
-        fileName: file.name,
-        fileSizeBytes: file.size,
-      });
-      await uploadLoreFileToStorage(uploadUrl, file);
-      if (isEditMode && entry) {
-        await createReferenceEntryAttachment(entry.id, {
-          fileKey,
+      const { fileKey, uploadUrl, thumbnailFileKey, thumbnailUploadUrl } =
+        await requestLoreAttachmentUploadUrl({
+          gameId,
+          referenceEntryId: isEditMode && entry ? entry.id : undefined,
           fileName: file.name,
           fileSizeBytes: file.size,
         });
+      await uploadLoreFileToStorage(uploadUrl, file);
+      const thumbnailKey = isPdf
+        ? await tryUploadPdfPage1Thumbnail({
+            pdf: file,
+            thumbnailFileKey,
+            thumbnailUploadUrl,
+          })
+        : undefined;
+      const payload = {
+        fileKey,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        ...(thumbnailKey ? { thumbnailKey } : {}),
+      };
+      if (isEditMode && entry) {
+        await createReferenceEntryAttachment(entry.id, payload);
         await mutateAttachments();
       } else {
-        setPendingAttachments((current) => [
-          ...current,
-          {
-            fileKey,
-            fileName: file.name,
-            fileSizeBytes: file.size,
-          },
-        ]);
+        setPendingAttachments((current) => [...current, payload]);
       }
     } catch (err) {
       setError(

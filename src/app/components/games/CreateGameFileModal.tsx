@@ -17,6 +17,7 @@ import {
   isPdfFileName,
   type GameFileKind,
 } from "@/app/lib/r2UploadKeys";
+import { tryUploadPdfPage1Thumbnail } from "@/app/lib/pdfPage1Thumbnail";
 import type { GameFile, GameFileAccess } from "@/app/lib/types/gameFile";
 import {
   createGameFile,
@@ -132,6 +133,7 @@ export function CreateGameFileModal({
     }
 
     let uploadedFileKey: string | null = null;
+    let uploadedThumbnailKey: string | null = null;
     try {
       setSubmitting(true);
       setError(null);
@@ -149,20 +151,31 @@ export function CreateGameFileModal({
           setError("Please choose an image (PNG, JPEG, GIF, WebP) or a PDF.");
           return;
         }
-        const { fileKey, uploadUrl } = await requestGameFileUploadUrl({
-          gameId,
-          fileName: selectedFile.name,
-          fileSizeBytes: selectedFile.size,
-          kind,
-        });
+        const { fileKey, uploadUrl, thumbnailFileKey, thumbnailUploadUrl } =
+          await requestGameFileUploadUrl({
+            gameId,
+            fileName: selectedFile.name,
+            fileSizeBytes: selectedFile.size,
+            kind,
+          });
         uploadedFileKey = fileKey;
         await uploadGameFileToStorage(uploadUrl, selectedFile);
+        const thumbnailKey =
+          kind === "PDF"
+            ? await tryUploadPdfPage1Thumbnail({
+                pdf: selectedFile,
+                thumbnailFileKey,
+                thumbnailUploadUrl,
+              })
+            : undefined;
+        uploadedThumbnailKey = thumbnailKey ?? null;
         const filePayload = {
           ...metadata,
           kind,
           fileKey,
           fileName: selectedFile.name,
           fileSizeBytes: selectedFile.size,
+          thumbnailKey: thumbnailKey ?? null,
         };
         if (isEditMode && file) {
           await updateGameFile(gameId, file.id, filePayload);
@@ -182,6 +195,9 @@ export function CreateGameFileModal({
     } catch (err) {
       if (uploadedFileKey) {
         void deleteUploadedGameFile(uploadedFileKey);
+      }
+      if (uploadedThumbnailKey) {
+        void deleteUploadedGameFile(uploadedThumbnailKey);
       }
       setError(
         err instanceof Error

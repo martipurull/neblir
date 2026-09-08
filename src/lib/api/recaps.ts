@@ -93,7 +93,12 @@ export async function updateGameRecap(
 
 export async function requestRecapUploadUrl(
   body: RecapUploadUrlRequest
-): Promise<{ fileKey: string; uploadUrl: string }> {
+): Promise<{
+  fileKey: string;
+  uploadUrl: string;
+  thumbnailFileKey?: string;
+  thumbnailUploadUrl?: string;
+}> {
   const response = await fetch("/api/recap-upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -152,10 +157,10 @@ export async function deleteGameRecap(
   }
 }
 
-export async function getRecapDownloadUrl(
+export async function getRecapDownload(
   recapId: string,
   disposition: "inline" | "attachment" = "inline"
-): Promise<string> {
+): Promise<{ url: string; thumbnailUrl?: string }> {
   const params = new URLSearchParams({
     recapId,
     disposition,
@@ -173,6 +178,12 @@ export async function getRecapDownloadUrl(
       )
     );
   }
-  const parsed = gameRecapDownloadSchema.parse(await response.json());
-  return parsed.url;
+  return gameRecapDownloadSchema.parse(await response.json());
+}
+
+export async function getRecapDownloadUrl(
+  recapId: string,
+  disposition: "inline" | "attachment" = "inline"
+): Promise<string> {
+  return (await getRecapDownload(recapId, disposition)).url;
 }

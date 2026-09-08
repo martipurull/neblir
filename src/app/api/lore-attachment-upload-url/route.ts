@@ -6,6 +6,7 @@ import {
 } from "@/app/lib/constants/uploadLimits";
 import { getGame } from "@/app/lib/prisma/game";
 import { getReferenceEntry } from "@/app/lib/prisma/referenceEntry";
+import { presignPdfThumbnailUpload } from "@/app/lib/pdfThumbnail";
 import { getR2Config } from "@/app/lib/r2";
 import {
   buildUploadKey,
@@ -119,7 +120,19 @@ export const POST = auth(async (request: AuthNextRequest) => {
       { expiresIn: PRESIGNED_UPLOAD_EXPIRES_SECONDS }
     );
 
-    return NextResponse.json({ fileKey, uploadUrl }, { status: 201 });
+    if (kind !== "PDF") {
+      return NextResponse.json({ fileKey, uploadUrl }, { status: 201 });
+    }
+
+    const thumbnail = await presignPdfThumbnailUpload(
+      config,
+      "lore",
+      PRESIGNED_UPLOAD_EXPIRES_SECONDS
+    );
+    return NextResponse.json(
+      { fileKey, uploadUrl, ...thumbnail },
+      { status: 201 }
+    );
   } catch (error) {
     logger.error({
       method: "POST",

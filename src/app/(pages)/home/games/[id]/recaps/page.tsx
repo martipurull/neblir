@@ -10,6 +10,7 @@ import { PageTitle } from "@/app/components/shared/PageTitle";
 import type { GameRecap } from "@/app/lib/types/recap";
 import { useGame } from "@/hooks/use-game";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
+import { useRecapPreviewUrls } from "@/hooks/use-game-file-urls";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -19,6 +20,7 @@ export default function GameRecapsPage() {
   const id = typeof params.id === "string" ? params.id : null;
   const { game } = useGame(id);
   const { recaps, loading, error, refetch } = useGameRecaps(id);
+  const recapThumbnailUrls = useRecapPreviewUrls(recaps);
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
   const [recapModalOpen, setRecapModalOpen] = useState(false);
   const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
@@ -83,6 +85,7 @@ export default function GameRecapsPage() {
               <RecapCard
                 key={recap.id}
                 recap={recap}
+                thumbnailUrl={recapThumbnailUrls[recap.id]}
                 onOpen={(recapId) => void handleOpen(recapId)}
                 onDownload={(recapId) => void handleDownload(recapId)}
                 canEdit={isGameMaster}

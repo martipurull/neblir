@@ -4,6 +4,7 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import type { GameRecap } from "@/app/lib/types/recap";
+import { useRecapPreviewUrls } from "@/hooks/use-game-file-urls";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmRecapsSectionProps = {
@@ -31,6 +32,7 @@ export function GmRecapsSection({
   onOpenRecap,
   onDownloadRecap,
 }: GmRecapsSectionProps) {
+  const recapThumbnailUrls = useRecapPreviewUrls(recaps);
   return (
     <InfoCard border>
       <GmSectionTitle>Recaps</GmSectionTitle>
@@ -60,6 +62,7 @@ export function GmRecapsSection({
               <RecapCard
                 key={recap.id}
                 recap={recap}
+                thumbnailUrl={recapThumbnailUrls[recap.id]}
                 onOpen={onOpenRecap}
                 onDownload={onDownloadRecap}
                 canEdit

@@ -20,6 +20,7 @@ export function createGameRecap(data: {
   fileKey: string;
   fileName: string;
   fileSizeBytes: number;
+  thumbnailKey?: string | null;
   uploadedByUserId: string;
 }) {
   return prisma.gameRecap.create({ data });
@@ -33,6 +34,7 @@ export function updateGameRecap(
     fileKey?: string;
     fileName?: string;
     fileSizeBytes?: number;
+    thumbnailKey?: string | null;
   }
 ) {
   return prisma.gameRecap.update({ where: { id }, data });

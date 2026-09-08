@@ -1,7 +1,11 @@
 import { createGameRecap, getGameRecaps } from "@/app/lib/prisma/gameRecap";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import { getR2Config } from "@/app/lib/r2";
-import { isPdfFileName, isValidRecapFileKey } from "@/app/lib/r2UploadKeys";
+import {
+  isPdfFileName,
+  isValidRecapFileKey,
+  parseOptionalPdfThumbnailKey,
+} from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameRecapCreateSchema } from "@/app/lib/types/recap";
 import { auth } from "@/auth";
@@ -81,6 +85,15 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Recap file name must end with .pdf", 400);
     }
 
+    const parsedThumbnail = parseOptionalPdfThumbnailKey(
+      parsed.data.thumbnailKey,
+      "recaps",
+      true
+    );
+    if (!parsedThumbnail.ok) {
+      return errorResponse("Invalid thumbnail key", 400);
+    }
+
     const config = getR2Config();
     if (!config) {
       return errorResponse("File upload is not configured", 500);
@@ -107,6 +120,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       fileKey: parsed.data.fileKey,
       fileName: parsed.data.fileName,
       fileSizeBytes: parsed.data.fileSizeBytes,
+      ...(parsedThumbnail.thumbnailKey
+        ? { thumbnailKey: parsedThumbnail.thumbnailKey }
+        : {}),
       uploadedByUserId: userId,
     });
     return NextResponse.json(recap, { status: 201 });

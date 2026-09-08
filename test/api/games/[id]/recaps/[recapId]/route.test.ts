@@ -213,6 +213,7 @@ describe("PATCH /api/games/[id]/recaps/[recapId]", () => {
       fileKey: "recaps-new.pdf",
       fileName: "new.pdf",
       fileSizeBytes: 2000,
+      thumbnailKey: null,
     });
     expect(s3SendMock).toHaveBeenCalledTimes(2);
     expect(s3SendMock.mock.calls[0]?.[0]).toEqual({

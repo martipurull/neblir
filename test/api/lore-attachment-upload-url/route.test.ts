@@ -119,6 +119,7 @@ describe("POST /api/lore-attachment-upload-url", () => {
     const body = await response.json();
     expect(body.fileKey).toMatch(/^lore-/);
     expect(body.fileKey).toMatch(/\.pdf$/);
+    expect(body.thumbnailFileKey).toMatch(/^lore-thumb-/);
   });
 
   it("returns a lore- image key for GM using gameId", async () => {

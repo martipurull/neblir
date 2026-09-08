@@ -210,6 +210,31 @@ describe("POST /api/games/[id]/files", () => {
     });
   });
 
+  it("creates a PDF file with a thumbnail key", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    createGameFileMock.mockResolvedValue({
+      id: "f-2",
+      ...pdfBody,
+      thumbnailKey: "files-thumb-abc.jpg",
+    });
+    const { POST } = await import("@/app/api/games/[id]/files/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { ...pdfBody, thumbnailKey: "files-thumb-abc.jpg" },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createGameFileMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileKey: "files-handout-abc.pdf",
+        thumbnailKey: "files-thumb-abc.jpg",
+      })
+    );
+  });
+
   it("creates a GM-only file when access is GAME_MASTER", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     createGameFileMock.mockResolvedValue({

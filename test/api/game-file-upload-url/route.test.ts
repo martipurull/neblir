@@ -163,5 +163,9 @@ describe("POST /api/game-file-upload-url", () => {
     expect(body.uploadUrl).toBe("https://r2.example/upload");
     expect(body.fileKey).toMatch(/^files-/);
     expect(body.fileKey).toMatch(/\.pdf$/);
+    expect(body.thumbnailFileKey).toMatch(/^files-thumb-/);
+    expect(body.thumbnailFileKey).toMatch(/\.jpg$/);
+    expect(body.thumbnailUploadUrl).toBe("https://r2.example/upload");
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(2);
   });
 });

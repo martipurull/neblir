@@ -5,6 +5,7 @@ import {
   isImageFileName,
   isPdfFileName,
   isValidGameFileKey,
+  parseOptionalPdfThumbnailKey,
 } from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameFileCreateSchema } from "@/app/lib/types/gameFile";
@@ -99,6 +100,15 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    const parsedThumbnail = parseOptionalPdfThumbnailKey(
+      parsed.data.thumbnailKey,
+      "files",
+      parsed.data.kind === "PDF"
+    );
+    if (!parsedThumbnail.ok) {
+      return errorResponse("Invalid thumbnail key", 400);
+    }
+
     const config = getR2Config();
     if (!config) {
       return errorResponse("File upload is not configured", 500);
@@ -127,6 +137,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       fileKey: parsed.data.fileKey,
       fileName: parsed.data.fileName,
       fileSizeBytes: parsed.data.fileSizeBytes,
+      ...(parsedThumbnail.thumbnailKey
+        ? { thumbnailKey: parsedThumbnail.thumbnailKey }
+        : {}),
       uploadedByUserId: userId,
     });
     return NextResponse.json(file, { status: 201 });

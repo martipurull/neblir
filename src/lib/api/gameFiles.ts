@@ -94,7 +94,12 @@ export async function updateGameFile(
 
 export async function requestGameFileUploadUrl(
   body: GameFileUploadUrlRequest
-): Promise<{ fileKey: string; uploadUrl: string }> {
+): Promise<{
+  fileKey: string;
+  uploadUrl: string;
+  thumbnailFileKey?: string;
+  thumbnailUploadUrl?: string;
+}> {
   const response = await fetch("/api/game-file-upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -153,10 +158,10 @@ export async function deleteGameFile(
   }
 }
 
-export async function getGameFileUrl(
+export async function getGameFileDownload(
   fileId: string,
   disposition: "inline" | "attachment" = "inline"
-): Promise<string> {
+): Promise<{ url: string; thumbnailUrl?: string }> {
   const params = new URLSearchParams({
     fileId,
     disposition,
@@ -174,6 +179,12 @@ export async function getGameFileUrl(
       )
     );
   }
-  const parsed = gameFileDownloadSchema.parse(await response.json());
-  return parsed.url;
+  return gameFileDownloadSchema.parse(await response.json());
+}
+
+export async function getGameFileUrl(
+  fileId: string,
+  disposition: "inline" | "attachment" = "inline"
+): Promise<string> {
+  return (await getGameFileDownload(fileId, disposition)).url;
 }

@@ -1,6 +1,7 @@
 import { canReadReferenceEntry } from "@/app/lib/authz/referenceEntry";
 import { getReferenceEntryAttachmentById } from "@/app/lib/prisma/referenceEntryAttachment";
 import { getReferenceEntry } from "@/app/lib/prisma/referenceEntry";
+import { signPdfThumbnailGetUrl } from "@/app/lib/pdfThumbnail";
 import { getR2Config } from "@/app/lib/r2";
 import { contentTypeFromFileName, isPdfFileName } from "@/app/lib/r2UploadKeys";
 import { sanitizeAttachmentFilenamePart } from "@/app/api/shared/filename";
@@ -69,7 +70,16 @@ export const GET = auth(async (request: AuthNextRequest) => {
       { expiresIn: 3600 }
     );
 
-    return NextResponse.json({ url: signedUrl }, { status: 200 });
+    const payload: { url: string; thumbnailUrl?: string } = { url: signedUrl };
+    if (attachment.thumbnailKey) {
+      const thumbnailUrl = await signPdfThumbnailGetUrl(
+        config,
+        attachment.thumbnailKey
+      );
+      if (thumbnailUrl) payload.thumbnailUrl = thumbnailUrl;
+    }
+
+    return NextResponse.json(payload, { status: 200 });
   } catch (error) {
     logger.error({
       method: "GET",

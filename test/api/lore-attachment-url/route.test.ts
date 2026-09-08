@@ -126,6 +126,39 @@ describe("GET /api/lore-attachment-url", () => {
     );
   });
 
+  it("returns a thumbnail url when the PDF attachment has a thumbnail key", async () => {
+    getReferenceEntryAttachmentByIdMock.mockResolvedValue({
+      id: "a-1",
+      referenceEntryId: "r-1",
+      fileKey: "lore-map.pdf",
+      fileName: "map.pdf",
+      thumbnailKey: "lore-thumb-abc.jpg",
+    });
+    getReferenceEntryMock.mockResolvedValue({
+      id: "r-1",
+      gameId: "g-1",
+      access: "PLAYER",
+    });
+    canReadReferenceEntryMock.mockResolvedValue(true);
+    getSignedUrlMock
+      .mockResolvedValueOnce("https://signed.example/lore")
+      .mockResolvedValueOnce("https://signed.example/thumb");
+    const { GET } = await import("@/app/api/lore-attachment-url/route");
+    const response = await invokeRoute(GET, makeRequest("a-1"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      url: "https://signed.example/lore",
+      thumbnailUrl: "https://signed.example/thumb",
+    });
+    expect(getObjectCommandCtorMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        Key: "lore-thumb-abc.jpg",
+        ResponseContentType: "image/jpeg",
+      })
+    );
+  });
+
   it("returns a signed attachment url when disposition=attachment", async () => {
     getReferenceEntryAttachmentByIdMock.mockResolvedValue({
       id: "a-1",

@@ -115,6 +115,42 @@ describe("GET /api/game-file-url", () => {
     );
   });
 
+  it("returns a thumbnail url when the PDF has a thumbnail key", async () => {
+    getGameFileByIdMock.mockResolvedValue({
+      id: "f-1",
+      gameId: "g-1",
+      kind: "PDF",
+      fileKey: "files-handout.pdf",
+      fileName: "handout.pdf",
+      thumbnailKey: "files-thumb-abc.jpg",
+    });
+    userIsInGameMock.mockResolvedValue(true);
+    getSignedUrlMock
+      .mockResolvedValueOnce("https://signed.example/pdf")
+      .mockResolvedValueOnce("https://signed.example/thumb");
+    const { GET } = await import("@/app/api/game-file-url/route");
+    const response = await invokeRoute(GET, makeRequest("f-1"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      url: "https://signed.example/pdf",
+      thumbnailUrl: "https://signed.example/thumb",
+    });
+    expect(getObjectCommandCtorMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        Key: "files-handout.pdf",
+        ResponseContentType: "application/pdf",
+      })
+    );
+    expect(getObjectCommandCtorMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        Key: "files-thumb-abc.jpg",
+        ResponseContentType: "image/jpeg",
+      })
+    );
+  });
+
   it("returns a signed inline url for image members", async () => {
     getGameFileByIdMock.mockResolvedValue({
       id: "f-2",

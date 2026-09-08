@@ -23,9 +23,7 @@ export default function GameFilesPage() {
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [fileEditTarget, setFileEditTarget] = useState<GameFile | null>(null);
-  const fileUrls = useGameFileUrls(
-    files.filter((file) => file.kind === "IMAGE")
-  );
+  const fileUrls = useGameFileUrls(files);
   const isGameMaster = game?.isGameMaster === true;
 
   const handleOpen = async (file: GameFile) => {

@@ -9,6 +9,7 @@ import {
   isImageFileName,
   isPdfFileName,
   isValidGameFileKey,
+  parseOptionalPdfThumbnailKey,
 } from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameFileUpdateSchema } from "@/app/lib/types/gameFile";
@@ -113,11 +114,28 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const previousFileKey = file.fileKey;
+    const previousThumbnailKey = file.thumbnailKey ?? null;
+    let nextThumbnailKey: string | null | undefined;
+    if (replacementFile) {
+      const parsedThumbnail = parseOptionalPdfThumbnailKey(
+        parsed.data.thumbnailKey,
+        "files",
+        replacementFile.kind === "PDF"
+      );
+      if (!parsedThumbnail.ok) {
+        return errorResponse("Invalid thumbnail key", 400);
+      }
+      nextThumbnailKey = parsedThumbnail.thumbnailKey ?? null;
+    }
+
     const updated = await updateGameFile(fileId, {
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       access: parsed.data.access,
       ...(replacementFile ?? {}),
+      ...(nextThumbnailKey !== undefined
+        ? { thumbnailKey: nextThumbnailKey }
+        : {}),
     });
 
     if (replacementFile && replacementFile.fileKey !== previousFileKey) {
@@ -138,6 +156,35 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
             error,
             details: serializeError(error),
             previousFileKey,
+            fileId,
+          });
+        }
+      }
+    }
+
+    if (
+      nextThumbnailKey !== undefined &&
+      previousThumbnailKey &&
+      previousThumbnailKey !== nextThumbnailKey
+    ) {
+      const config = getR2Config();
+      if (config && isDeletableUploadKey(previousThumbnailKey)) {
+        try {
+          await config.s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: config.bucketName,
+              Key: previousThumbnailKey,
+            })
+          );
+        } catch (error) {
+          logger.error({
+            method: "PATCH",
+            route,
+            message:
+              "Failed to delete previous game file thumbnail after replace",
+            error,
+            details: serializeError(error),
+            previousThumbnailKey,
             fileId,
           });
         }
@@ -174,6 +221,30 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     if (file?.gameId !== id) return errorResponse("File not found", 404);
 
     const config = getR2Config();
+    if (
+      config &&
+      file.thumbnailKey &&
+      isDeletableUploadKey(file.thumbnailKey)
+    ) {
+      try {
+        await config.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: config.bucketName,
+            Key: file.thumbnailKey,
+          })
+        );
+      } catch (error) {
+        logger.error({
+          method: "DELETE",
+          route,
+          message: "Failed to delete game file thumbnail",
+          error,
+          details: serializeError(error),
+          thumbnailKey: file.thumbnailKey,
+          fileId,
+        });
+      }
+    }
     if (config && isDeletableUploadKey(file.fileKey)) {
       await config.s3Client.send(
         new DeleteObjectCommand({

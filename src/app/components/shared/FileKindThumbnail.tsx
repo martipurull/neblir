@@ -14,11 +14,7 @@ export function FileKindThumbnail({
 }: FileKindThumbnailProps) {
   return (
     <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/15 bg-paleBlue/20 p-1">
-      {kind === "PDF" ? (
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-black/70">
-          PDF
-        </span>
-      ) : imageUrl ? (
+      {imageUrl ? (
         <SignedRemoteImage
           src={imageUrl}
           alt={title}
@@ -26,6 +22,10 @@ export function FileKindThumbnail({
           height={128}
           className="max-h-full max-w-full object-contain object-center"
         />
+      ) : kind === "PDF" ? (
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-black/70">
+          PDF
+        </span>
       ) : imageUrl === null ? (
         <span className="text-[10px] font-semibold uppercase tracking-wide text-black/70">
           IMG

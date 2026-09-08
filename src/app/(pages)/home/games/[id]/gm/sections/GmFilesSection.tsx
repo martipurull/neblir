@@ -32,9 +32,7 @@ export function GmFilesSection({
   onOpenFile,
   onDownloadFile,
 }: GmFilesSectionProps) {
-  const fileUrls = useGameFileUrls(
-    files.filter((file) => file.kind === "IMAGE")
-  );
+  const fileUrls = useGameFileUrls(files);
 
   return (
     <InfoCard border>

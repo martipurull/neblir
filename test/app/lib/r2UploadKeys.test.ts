@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPdfThumbnailKey,
   buildUploadKey,
   imageContentTypeFromFileName,
   isValidGameFileKey,
   isValidLoreAttachmentFileKey,
+  isValidPdfThumbnailKey,
   isValidRecapFileKey,
 } from "@/app/lib/r2UploadKeys";
 
@@ -40,6 +42,17 @@ describe("r2UploadKeys", () => {
     expect(isValidLoreAttachmentFileKey("lore-crest.png", "PDF")).toBe(false);
     expect(isValidLoreAttachmentFileKey("files-map.pdf")).toBe(false);
     expect(isValidRecapFileKey("recaps-s1.pdf")).toBe(true);
+  });
+
+  it("builds and validates PDF thumbnail keys per upload type", () => {
+    expect(buildPdfThumbnailKey("files")).toMatch(
+      /^files-thumb-[a-z0-9]+\.jpg$/
+    );
+    expect(isValidPdfThumbnailKey("files-thumb-abc.jpg", "files")).toBe(true);
+    expect(isValidPdfThumbnailKey("recaps-thumb-abc.jpg", "recaps")).toBe(true);
+    expect(isValidPdfThumbnailKey("lore-thumb-abc.jpg", "lore")).toBe(true);
+    expect(isValidPdfThumbnailKey("files-handout.pdf", "files")).toBe(false);
+    expect(isValidPdfThumbnailKey("files-thumb-abc.jpg", "recaps")).toBe(false);
   });
 
   it("maps image content types from filenames", () => {

@@ -13,7 +13,7 @@ import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
 import { isImageFileName } from "@/app/lib/r2UploadKeys";
 import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
 import { useGame } from "@/hooks/use-game";
-import { useSignedFileUrls } from "@/hooks/use-game-file-urls";
+import { useLoreAttachmentPreviewUrls } from "@/hooks/use-game-file-urls";
 import { getLoreAttachmentUrl } from "@/lib/api/loreAttachments";
 import { getReferenceEntry } from "@/lib/api/referenceEntries";
 import Link from "next/link";
@@ -39,12 +39,7 @@ function LoreAttachmentList({
 }: {
   attachments: ReferenceEntryAttachment[];
 }) {
-  const imageUrls = useSignedFileUrls(
-    attachments
-      .filter((attachment) => isImageFileName(attachment.fileName))
-      .map((attachment) => attachment.id),
-    getLoreAttachmentUrl
-  );
+  const previewUrls = useLoreAttachmentPreviewUrls(attachments);
 
   const openAttachment = (
     attachmentId: string,
@@ -67,7 +62,7 @@ function LoreAttachmentList({
             <FileKindThumbnail
               kind={isImageFileName(attachment.fileName) ? "IMAGE" : "PDF"}
               title={attachment.fileName}
-              imageUrl={imageUrls[attachment.id]}
+              imageUrl={previewUrls[attachment.id]}
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-black">

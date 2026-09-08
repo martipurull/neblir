@@ -89,7 +89,12 @@ export async function deleteReferenceEntryAttachment(
 
 export async function requestLoreAttachmentUploadUrl(
   body: LoreAttachmentUploadUrlRequest
-): Promise<{ fileKey: string; uploadUrl: string }> {
+): Promise<{
+  fileKey: string;
+  uploadUrl: string;
+  thumbnailFileKey?: string;
+  thumbnailUploadUrl?: string;
+}> {
   const response = await fetch("/api/lore-attachment-upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -129,10 +134,10 @@ export async function deleteUploadedLoreFile(fileKey: string): Promise<void> {
   });
 }
 
-export async function getLoreAttachmentUrl(
+export async function getLoreAttachmentDownload(
   attachmentId: string,
   disposition: "inline" | "attachment" = "inline"
-): Promise<string> {
+): Promise<{ url: string; thumbnailUrl?: string }> {
   const params = new URLSearchParams({
     attachmentId,
     disposition,
@@ -153,6 +158,12 @@ export async function getLoreAttachmentUrl(
       )
     );
   }
-  const parsed = loreAttachmentDownloadSchema.parse(await response.json());
-  return parsed.url;
+  return loreAttachmentDownloadSchema.parse(await response.json());
+}
+
+export async function getLoreAttachmentUrl(
+  attachmentId: string,
+  disposition: "inline" | "attachment" = "inline"
+): Promise<string> {
+  return (await getLoreAttachmentDownload(attachmentId, disposition)).url;
 }

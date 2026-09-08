@@ -174,6 +174,39 @@ describe("POST /api/games/[id]/recaps", () => {
     expect(s3SendMock).toHaveBeenCalledTimes(1);
   });
 
+  it("creates a recap with a thumbnail key", async () => {
+    getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
+    createGameRecapMock.mockResolvedValue({
+      id: "r-1",
+      gameId: "g-1",
+      title: "Session 1",
+      thumbnailKey: "recaps-thumb-abc.jpg",
+    });
+    const { POST } = await import("@/app/api/games/[id]/recaps/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          title: "Session 1",
+          summary: "Summary",
+          fileKey: "recaps-s1.pdf",
+          fileName: "s1.pdf",
+          fileSizeBytes: 1234,
+          thumbnailKey: "recaps-thumb-abc.jpg",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createGameRecapMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileKey: "recaps-s1.pdf",
+        thumbnailKey: "recaps-thumb-abc.jpg",
+      })
+    );
+  });
+
   it("returns 400 when recap file is missing from storage", async () => {
     getGameMock.mockResolvedValue({ gameMaster: "gm-1" });
     s3SendMock.mockRejectedValueOnce(new Error("NotFound"));
