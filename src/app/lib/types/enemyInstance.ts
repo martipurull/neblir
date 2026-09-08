@@ -29,6 +29,9 @@ export type EnemyInstanceDetailResponse = {
   id: string;
   gameId: string;
   name: string;
+  instanceNumber?: number | null;
+  sourceName?: string | null;
+  renamed?: boolean;
   isPublic?: boolean;
   imageKey?: string | null;
   currentHealth: number;

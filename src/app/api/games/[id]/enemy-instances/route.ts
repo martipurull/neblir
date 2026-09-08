@@ -1,22 +1,64 @@
+import { allocateEnemyInstanceSpawns } from "@/app/lib/enemyInstanceNumber";
+import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
+import { getEnemy } from "@/app/lib/prisma/enemy";
 import {
   createEnemyInstance,
   getEnemyInstancesByGame,
 } from "@/app/lib/prisma/enemyInstance";
 import { uncheckedSnapshotFromEnemyTemplate } from "@/app/lib/prisma/enemyInstanceSnapshot";
-import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
-import { getEnemy } from "@/app/lib/prisma/enemy";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { enemyInstanceSpawnBodySchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
+import type { CustomEnemy, Enemy } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 
-function instanceDisplayNames(count: number, baseName: string): string[] {
-  if (count <= 1) return [baseName];
-  return Array.from({ length: count }, (_, i) => `${baseName} #${i + 1}`);
+async function spawnAllocatedInstances(
+  template: Enemy | CustomEnemy,
+  options: {
+    gameId: string;
+    count: number;
+    isPublic: boolean;
+    instanceName: string;
+    sourceCustomEnemyId?: string;
+    sourceOfficialEnemyId?: string;
+  }
+) {
+  const occupiedRows = await getEnemyInstancesByGame(options.gameId);
+  const occupied = options.sourceCustomEnemyId
+    ? occupiedRows.filter(
+        (row) => row.sourceCustomEnemyId === options.sourceCustomEnemyId
+      )
+    : occupiedRows.filter(
+        (row) => row.sourceOfficialEnemyId === options.sourceOfficialEnemyId
+      );
+  const allocations = allocateEnemyInstanceSpawns({
+    occupied,
+    count: options.count,
+    sourceName: template.name,
+    instanceName: options.instanceName,
+  });
+  const created = [];
+  for (const allocation of allocations) {
+    created.push(
+      await createEnemyInstance(
+        uncheckedSnapshotFromEnemyTemplate(template, {
+          gameId: options.gameId,
+          name: allocation.name,
+          isPublic: options.isPublic,
+          sourceCustomEnemyId: options.sourceCustomEnemyId,
+          sourceOfficialEnemyId: options.sourceOfficialEnemyId,
+          instanceNumber: allocation.instanceNumber,
+          sourceName: allocation.sourceName,
+          renamed: allocation.renamed,
+        })
+      )
+    );
+  }
+  return created;
 }
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -80,43 +122,25 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       if (source?.gameId !== gameId) {
         return errorResponse("Source enemy not found", 404);
       }
-      const overrideName = parsed.data.nameOverride?.trim();
-      const baseName = overrideName?.length ? overrideName : source.name;
-      const names = instanceDisplayNames(count, baseName);
-      createdRecords = [];
-      for (const name of names) {
-        const row = await createEnemyInstance(
-          uncheckedSnapshotFromEnemyTemplate(source, {
-            gameId,
-            name,
-            isPublic,
-            sourceCustomEnemyId: source.id,
-            sourceOfficialEnemyId: undefined,
-          })
-        );
-        createdRecords.push(row);
-      }
+      createdRecords = await spawnAllocatedInstances(source, {
+        gameId,
+        count,
+        isPublic,
+        instanceName: parsed.data.nameOverride ?? source.name,
+        sourceCustomEnemyId: source.id,
+      });
     } else if (parsed.data.sourceOfficialEnemyId) {
       const source = await getEnemy(parsed.data.sourceOfficialEnemyId);
       if (!source) {
         return errorResponse("Source enemy not found", 404);
       }
-      const overrideName = parsed.data.nameOverride?.trim();
-      const baseName = overrideName?.length ? overrideName : source.name;
-      const names = instanceDisplayNames(count, baseName);
-      createdRecords = [];
-      for (const name of names) {
-        const row = await createEnemyInstance(
-          uncheckedSnapshotFromEnemyTemplate(source, {
-            gameId,
-            name,
-            isPublic,
-            sourceCustomEnemyId: undefined,
-            sourceOfficialEnemyId: source.id,
-          })
-        );
-        createdRecords.push(row);
-      }
+      createdRecords = await spawnAllocatedInstances(source, {
+        gameId,
+        count,
+        isPublic,
+        instanceName: parsed.data.nameOverride ?? source.name,
+        sourceOfficialEnemyId: source.id,
+      });
     } else {
       return errorResponse("Invalid source", 400);
     }
