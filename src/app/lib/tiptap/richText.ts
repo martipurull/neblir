@@ -1,8 +1,7 @@
 import { storedRichTextJsonToHtml } from "@/app/lib/tiptap/richTextJsonDoc";
-import StarterKit from "@tiptap/starter-kit";
+import { sanitizeRichTextHtmlAnchors } from "@/app/lib/tiptap/richTextSanitize";
 
-/** Shared StarterKit stack for app rich text fields (headings, lists, bold, italic, etc.). */
-export const RICH_TEXT_EXTENSIONS = [StarterKit];
+export { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richTextExtensions";
 
 function escapeHtml(s: string): string {
   return s
@@ -57,8 +56,17 @@ export function normalizeStoredHtmlForEditor(
 ): string {
   const s = normalizeStoredRichTextContent(stored);
   if (!s) return "<p></p>";
-  if (looksLikeStoredRichTextHtml(s)) return s;
+  if (looksLikeStoredRichTextHtml(s)) return sanitizeRichTextHtmlAnchors(s);
   return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
+}
+
+function htmlHasVisibleText(html: string): boolean {
+  if (typeof document !== "undefined") {
+    const el = document.createElement("div");
+    el.innerHTML = html;
+    return (el.textContent ?? "").replace(/\s+/g, "").trim().length > 0;
+  }
+  return html.replace(/<[^>]*>/g, "").replace(/\s+/g, "").length > 0;
 }
 
 /**
@@ -68,12 +76,9 @@ export function normalizeStoredHtmlForEditor(
 export function serializeEditorToStoredHtml(html: string): string {
   const t = html.trim();
   if (!t) return "";
-  if (typeof document === "undefined") return t;
-  const el = document.createElement("div");
-  el.innerHTML = t;
-  const text = (el.textContent ?? "").replace(/\s+/g, "").trim();
-  if (!text) return "";
-  return t;
+  const sanitized = sanitizeRichTextHtmlAnchors(t);
+  if (!htmlHasVisibleText(sanitized)) return "";
+  return sanitized;
 }
 
 /** Persist rich text when non-empty; omit field when blank (API optional fields). */
@@ -88,7 +93,7 @@ export function storedRichTextToDisplayHtml(
 ): string {
   const s = normalizeStoredRichTextContent(stored);
   if (!s) return "";
-  if (looksLikeStoredRichTextHtml(s)) return s;
+  if (looksLikeStoredRichTextHtml(s)) return sanitizeRichTextHtmlAnchors(s);
   return `<p>${escapeHtml(s).replace(/\n/g, "<br>")}</p>`;
 }
 

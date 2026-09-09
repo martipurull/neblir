@@ -275,7 +275,7 @@ describe("/api/upload-image POST", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("returns 201 with fileKey prefixed files- when type is files and file is an image", async () => {
+  it("returns 400 when type is files and the file is an image", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
@@ -285,10 +285,10 @@ describe("/api/upload-image POST", () => {
     const { POST } = await import("@/app/api/upload-image/route");
     const request = makeUploadRequest({ file, type: "files" });
     const response = await invokeRoute(POST, request);
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.fileKey).toMatch(/^files-/);
-    expect(data.fileKey).toMatch(/\.png$/);
+    expect(data.message).toMatch(/game-file-upload-url/i);
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 
   it("returns 403 when type is items and user is not super admin", async () => {

@@ -1,11 +1,12 @@
 import {
-  IMAGE_MAX_SIZE_BYTES,
-  IMAGE_MAX_SIZE_LABEL,
+  DOCUMENT_IMAGE_MAX_SIZE_BYTES,
+  DOCUMENT_IMAGE_MAX_SIZE_LABEL,
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
 import { getGame } from "@/app/lib/prisma/game";
 import { getReferenceEntry } from "@/app/lib/prisma/referenceEntry";
+import { presignPdfThumbnailUpload } from "@/app/lib/pdfThumbnail";
 import { getR2Config } from "@/app/lib/r2";
 import {
   buildUploadKey,
@@ -91,9 +92,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
     if (kind === "PDF" && fileSizeBytes > PDF_MAX_SIZE_BYTES) {
       return errorResponse(`PDF must be ${PDF_MAX_SIZE_LABEL} or smaller`, 400);
     }
-    if (kind === "IMAGE" && fileSizeBytes > IMAGE_MAX_SIZE_BYTES) {
+    if (kind === "IMAGE" && fileSizeBytes > DOCUMENT_IMAGE_MAX_SIZE_BYTES) {
       return errorResponse(
-        `Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller`,
+        `Image must be ${DOCUMENT_IMAGE_MAX_SIZE_LABEL} or smaller`,
         400
       );
     }
@@ -119,7 +120,19 @@ export const POST = auth(async (request: AuthNextRequest) => {
       { expiresIn: PRESIGNED_UPLOAD_EXPIRES_SECONDS }
     );
 
-    return NextResponse.json({ fileKey, uploadUrl }, { status: 201 });
+    if (kind !== "PDF") {
+      return NextResponse.json({ fileKey, uploadUrl }, { status: 201 });
+    }
+
+    const thumbnail = await presignPdfThumbnailUpload(
+      config,
+      "lore",
+      PRESIGNED_UPLOAD_EXPIRES_SECONDS
+    );
+    return NextResponse.json(
+      { fileKey, uploadUrl, ...thumbnail },
+      { status: 201 }
+    );
   } catch (error) {
     logger.error({
       method: "POST",

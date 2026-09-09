@@ -7,6 +7,7 @@ import {
   emitIsPrivateFromRollPrivacy,
   getGmRollPrivacyForEnemyInstance,
 } from "@/app/lib/roll-privacy";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import {
@@ -168,7 +169,10 @@ export function useEnemyInstancePage() {
   );
 
   const enemyRollCtx = useMemo(
-    () => (enemy ? { instanceId: enemy.id, name: enemy.name } : undefined),
+    () =>
+      enemy
+        ? { instanceId: enemy.id, name: instanceLabelOf(enemy) }
+        : undefined,
     [enemy]
   );
 
@@ -251,10 +255,11 @@ export function useEnemyInstancePage() {
     setBanner(null);
     try {
       const rolledValue = 1 + Math.floor(Math.random() * 10);
+      const instanceLabel = instanceLabelOf(enemy);
       await submitGameInitiative(gameId, {
         combatantType: "ENEMY",
         combatantId: enemy.id,
-        combatantName: enemy.name,
+        combatantName: instanceLabel,
         rolledValue,
         initiativeModifier: enemy.initiativeModifier,
       });
@@ -268,16 +273,16 @@ export function useEnemyInstancePage() {
           initiativeModifier: enemy.initiativeModifier,
           source: "enemyInstancePage",
           enemyInstanceId: enemy.id,
-          enemyName: enemy.name,
+          enemyName: instanceLabel,
           combatantType: "ENEMY",
           combatantId: enemy.id,
-          combatantName: enemy.name,
+          combatantName: instanceLabel,
         },
       });
       await load({ silent: true });
       setQuickResult({
         title: "Initiative",
-        subtitle: `${enemy.name} · mod ${enemy.initiativeModifier >= 0 ? "+" : ""}${enemy.initiativeModifier}`,
+        subtitle: `${instanceLabel} · mod ${enemy.initiativeModifier >= 0 ? "+" : ""}${enemy.initiativeModifier}`,
         results: [rolledValue],
         highlightMode: "d10",
         total: rolledValue + enemy.initiativeModifier,
@@ -325,7 +330,7 @@ export function useEnemyInstancePage() {
         metadata: {
           source: "enemyInstance",
           enemyInstanceId: enemy.id,
-          enemyName: enemy.name,
+          enemyName: instanceLabelOf(enemy),
           actionName,
         },
       });
@@ -359,7 +364,7 @@ export function useEnemyInstancePage() {
         metadata: {
           source: "enemyInstance",
           enemyInstanceId: enemy.id,
-          enemyName: enemy.name,
+          enemyName: instanceLabelOf(enemy),
           actionName,
           damageType: damageType ?? null,
         },

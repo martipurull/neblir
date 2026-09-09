@@ -21,6 +21,7 @@ export function createGameFile(data: {
   fileKey: string;
   fileName: string;
   fileSizeBytes: number;
+  thumbnailKey?: string | null;
   uploadedByUserId: string;
 }) {
   return prisma.gameFile.create({ data });
@@ -36,6 +37,7 @@ export function updateGameFile(
     fileKey?: string;
     fileName?: string;
     fileSizeBytes?: number;
+    thumbnailKey?: string | null;
   }
 ) {
   return prisma.gameFile.update({ where: { id }, data });

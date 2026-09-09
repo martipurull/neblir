@@ -134,6 +134,12 @@ GitHub Actions and Vercel run on **Linux**; local dev is usually **macOS**. Tool
 2. Check for `Cannot find native binding` / missing `@oxc-parser/binding-linux-x64-gnu`—confirm optional deps and npm version; see **`docs/ci-native-deps.md`**.
 3. Check for `husky: not found`—confirm `HUSKY=0` and the `prepare` skip in `package.json`.
 
+## 13) Destructive confirms use shared danger modals
+
+- For delete, remove, and other destructive confirmations in app UI, use **`DangerConfirmModal`** or **`TypeToConfirmDangerModal`** (when the flow already requires typing to confirm, e.g. high-stakes danger zone).
+- Match nearby usages for title, description, confirm/cancel labels, submitting state, and error display. Dark game modals (`modalBackground` shells) pass **`variant="modalBackground"`**.
+- Do not use `window.confirm` for those flows.
+
 ## Agent skills
 
 ### Issue tracker

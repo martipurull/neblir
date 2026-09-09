@@ -17,6 +17,10 @@ export type UploadKeyType =
   | "lore";
 
 export type GameFileKind = "IMAGE" | "PDF";
+export type PdfThumbnailUploadType = "files" | "recaps" | "lore";
+
+export const PDF_THUMBNAIL_CONTENT_TYPE = "image/jpeg";
+export const PDF_THUMBNAIL_FILE_NAME = "page-1.jpg";
 
 function getImageExtension(filename: string): string {
   const last = filename.split(".").pop()?.toLowerCase();
@@ -98,6 +102,31 @@ export function isValidRecapFileKey(fileKey: string): boolean {
   return (
     fileKey.startsWith("recaps-") && fileKey.toLowerCase().endsWith(".pdf")
   );
+}
+
+export function buildPdfThumbnailKey(type: PdfThumbnailUploadType): string {
+  return `${type}-thumb-${shortId()}.jpg`;
+}
+
+export function isValidPdfThumbnailKey(
+  fileKey: string,
+  type: PdfThumbnailUploadType
+): boolean {
+  return fileKey.startsWith(`${type}-thumb-`) && hasImageExtension(fileKey);
+}
+
+export function parseOptionalPdfThumbnailKey(
+  thumbnailKey: string | null | undefined,
+  type: PdfThumbnailUploadType,
+  isPdf: boolean
+): { ok: true; thumbnailKey?: string } | { ok: false } {
+  if (thumbnailKey == null || thumbnailKey === "") {
+    return { ok: true };
+  }
+  if (!isPdf || !isValidPdfThumbnailKey(thumbnailKey, type)) {
+    return { ok: false };
+  }
+  return { ok: true, thumbnailKey };
 }
 
 export function isValidGameFileKey(

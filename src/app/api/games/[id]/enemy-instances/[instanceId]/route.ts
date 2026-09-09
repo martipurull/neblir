@@ -1,5 +1,6 @@
+import { withInstanceLabel } from "@/app/lib/enemyInstanceLabel";
 import {
-  deleteEnemyInstance,
+  deleteEnemyInstancesForGame,
   getEnemyInstance,
   updateEnemyInstance,
 } from "@/app/lib/prisma/enemyInstance";
@@ -34,7 +35,11 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
     if (row.isPublic === false && game.gameMaster !== request.auth.user.id) {
       return errorResponse("Enemy instance not found", 404);
     }
-    return NextResponse.json(row);
+    return NextResponse.json(
+      withInstanceLabel(row, {
+        viewerIsGameMaster: game.gameMaster === request.auth.user.id,
+      })
+    );
   } catch (error) {
     logger.error({
       method: "GET",
@@ -111,7 +116,12 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const data: Prisma.EnemyInstanceUpdateInput = {};
-    if (parsed.data.name !== undefined) data.name = parsed.data.name;
+    if (parsed.data.name !== undefined) {
+      data.name = parsed.data.name;
+      if (parsed.data.name !== existing.name) {
+        data.renamed = true;
+      }
+    }
     if (parsed.data.description !== undefined)
       data.description = parsed.data.description;
     if (parsed.data.notes !== undefined) data.notes = parsed.data.notes;
@@ -143,7 +153,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const updated = await updateEnemyInstance(instanceId, data);
-    return NextResponse.json(updated);
+    return NextResponse.json(
+      withInstanceLabel(updated, { viewerIsGameMaster: true })
+    );
   } catch (error) {
     logger.error({
       method: "PATCH",
@@ -175,11 +187,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
         403
       );
     }
-    const existing = await getEnemyInstance(instanceId);
-    if (existing?.gameId !== gameId) {
+    const result = await deleteEnemyInstancesForGame(gameId, [instanceId]);
+    if (!result.deleted) {
       return errorResponse("Enemy instance not found", 404);
     }
-    await deleteEnemyInstance(instanceId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     logger.error({

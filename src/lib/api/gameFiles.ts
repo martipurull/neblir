@@ -8,6 +8,7 @@ import {
   type GameFileUpdate,
   type GameFileUploadUrlRequest,
 } from "@/app/lib/types/gameFile";
+import { contentTypeFromFileName } from "@/app/lib/r2UploadKeys";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -93,7 +94,12 @@ export async function updateGameFile(
 
 export async function requestGameFileUploadUrl(
   body: GameFileUploadUrlRequest
-): Promise<{ fileKey: string; uploadUrl: string }> {
+): Promise<{
+  fileKey: string;
+  uploadUrl: string;
+  thumbnailFileKey?: string;
+  thumbnailUploadUrl?: string;
+}> {
   const response = await fetch("/api/game-file-upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,7 +117,7 @@ export async function requestGameFileUploadUrl(
   return gameFileUploadUrlResponseSchema.parse(await response.json());
 }
 
-export async function uploadGameFilePdfToStorage(
+export async function uploadGameFileToStorage(
   uploadUrl: string,
   file: File
 ): Promise<void> {
@@ -119,11 +125,11 @@ export async function uploadGameFilePdfToStorage(
     method: "PUT",
     body: file,
     headers: {
-      "Content-Type": "application/pdf",
+      "Content-Type": file.type || contentTypeFromFileName(file.name),
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to upload PDF to storage.");
+    throw new Error("Failed to upload file to storage.");
   }
 }
 
@@ -152,10 +158,10 @@ export async function deleteGameFile(
   }
 }
 
-export async function getGameFileUrl(
+export async function getGameFileDownload(
   fileId: string,
   disposition: "inline" | "attachment" = "inline"
-): Promise<string> {
+): Promise<{ url: string; thumbnailUrl?: string }> {
   const params = new URLSearchParams({
     fileId,
     disposition,
@@ -173,6 +179,12 @@ export async function getGameFileUrl(
       )
     );
   }
-  const parsed = gameFileDownloadSchema.parse(await response.json());
-  return parsed.url;
+  return gameFileDownloadSchema.parse(await response.json());
+}
+
+export async function getGameFileUrl(
+  fileId: string,
+  disposition: "inline" | "attachment" = "inline"
+): Promise<string> {
+  return (await getGameFileDownload(fileId, disposition)).url;
 }

@@ -10,6 +10,10 @@ export function uncheckedSnapshotFromEnemyTemplate(
     | "isPublic"
     | "sourceCustomEnemyId"
     | "sourceOfficialEnemyId"
+    | "instanceNumber"
+    | "sourceName"
+    | "renamed"
+    | "numberVisible"
   >
 ): Prisma.EnemyInstanceUncheckedCreateInput {
   return {

@@ -1,5 +1,9 @@
-export const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+export const IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB — proxied art
+export const IMAGE_MAX_SIZE_LABEL = "5MB";
+
 export const PDF_MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 export const PDF_MAX_SIZE_LABEL = "50MB";
 
-export const IMAGE_MAX_SIZE_LABEL = "5MB";
+/** File and lore document images share the PDF cap. */
+export const DOCUMENT_IMAGE_MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+export const DOCUMENT_IMAGE_MAX_SIZE_LABEL = "50MB";

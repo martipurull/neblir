@@ -287,4 +287,128 @@ describe("shapeGameForResponse visibility filtering", () => {
     expect(playerView?.initiativeOrder?.[0]?.displayName).toBe("Enemy");
     expect(playerView?.initiativeOrder?.[0]?.combatantName).toBe("Enemy");
   });
+
+  it("shapes a live instance label onto enemy instances and initiative", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      enemyInstances: [
+        {
+          id: "ei-1",
+          name: "Scarface",
+          sourceName: "NS Gang Member",
+          instanceNumber: 1,
+          renamed: true,
+          isPublic: true,
+          sourceOfficialEnemyId: "oe-1",
+          maxHealth: 10,
+          currentHealth: 10,
+          speed: 1,
+          initiativeModifier: 0,
+          reactionsPerRound: 1,
+          reactionsRemaining: 1,
+          status: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      initiativeOrder: [
+        {
+          combatantType: "ENEMY",
+          combatantId: "ei-1",
+          combatantName: "NS Gang Member",
+          rolledValue: 7,
+          initiativeModifier: 0,
+          submittedAt: new Date(),
+        },
+      ],
+    };
+
+    const gmView = shapeGameForResponse(game as any, "gm-1");
+    expect(gmView?.enemyInstances?.[0]?.instanceLabel).toBe(
+      "Scarface (NS Gang Member #1)"
+    );
+    expect(gmView?.initiativeOrder?.[0]?.displayName).toBe(
+      "Scarface (NS Gang Member #1)"
+    );
+    expect(gmView?.initiativeOrder?.[0]?.combatantName).toBe(
+      "Scarface (NS Gang Member #1)"
+    );
+  });
+
+  it("keeps numbered public instance labels for players and Enemy for private ones", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      enemyInstances: [
+        {
+          id: "ei-public",
+          name: "Thugs",
+          sourceName: "NS Gang Member",
+          instanceNumber: 4,
+          renamed: false,
+          isPublic: true,
+          sourceOfficialEnemyId: "oe-1",
+          maxHealth: 10,
+          currentHealth: 10,
+          speed: 1,
+          initiativeModifier: 0,
+          reactionsPerRound: 1,
+          reactionsRemaining: 1,
+          status: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "ei-private",
+          name: "Scarface",
+          sourceName: "NS Gang Member",
+          instanceNumber: 1,
+          renamed: true,
+          isPublic: false,
+          sourceOfficialEnemyId: "oe-1",
+          maxHealth: 20,
+          currentHealth: 20,
+          speed: 2,
+          initiativeModifier: 1,
+          reactionsPerRound: 1,
+          reactionsRemaining: 1,
+          status: "ACTIVE",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+      initiativeOrder: [
+        {
+          combatantType: "ENEMY",
+          combatantId: "ei-public",
+          combatantName: "NS Gang Member",
+          rolledValue: 5,
+          initiativeModifier: 0,
+          submittedAt: new Date(),
+        },
+        {
+          combatantType: "ENEMY",
+          combatantId: "ei-private",
+          combatantName: "Scarface",
+          rolledValue: 7,
+          initiativeModifier: 1,
+          submittedAt: new Date(),
+        },
+      ],
+    };
+
+    const playerView = shapeGameForResponse(game as any, "player-1");
+    expect(playerView?.enemyInstances?.map((e) => e.instanceLabel)).toEqual([
+      "Thugs #4",
+    ]);
+    const publicInit = playerView?.initiativeOrder?.find(
+      (entry) => entry.combatantId === "ei-public"
+    );
+    const privateInit = playerView?.initiativeOrder?.find(
+      (entry) => entry.combatantId === "ei-private"
+    );
+    expect(publicInit?.displayName).toBe("Thugs #4");
+    expect(publicInit?.combatantName).toBe("Thugs #4");
+    expect(privateInit?.displayName).toBe("Enemy");
+    expect(privateInit?.combatantName).toBe("Enemy");
+  });
 });

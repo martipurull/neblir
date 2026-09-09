@@ -146,6 +146,11 @@ export const enemyInstanceSpawnBodySchema = z
     }
   });
 
+/** DELETE /api/games/[id]/enemy-instances */
+export const enemyInstanceDeleteSetBodySchema = z.object({
+  instanceIds: z.array(z.string().min(1)).min(1),
+});
+
 /** PATCH /api/games/[id]/enemy-instances/[instanceId] */
 export const enemyInstancePatchBodySchema = z.object({
   name: z.string().trim().min(1).optional(),

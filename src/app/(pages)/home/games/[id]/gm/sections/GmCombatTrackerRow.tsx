@@ -4,6 +4,7 @@ import {
   type EnemyInstanceStatus,
 } from "@/app/(pages)/home/games/[id]/gm/enemies/[enemyInstanceId]/enemyInstanceUtils";
 import { Button } from "@/app/components/shared/Button";
+import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import {
   characterHealthStatusBadgeClass,
   characterHealthStatusLabel,
@@ -31,7 +32,9 @@ export function GmCombatTrackerRow({
   const displayName =
     entry.combatantType === "CHARACTER"
       ? `${entry.displayName ?? "Combatant"}${entry.displaySurname ? ` ${entry.displaySurname}` : ""}`
-      : (entry.displayName ?? enemy?.name ?? "Enemy");
+      : enemy
+        ? instanceLabelOf(enemy)
+        : (entry.displayName ?? "Enemy");
 
   const href =
     entry.combatantType === "ENEMY"

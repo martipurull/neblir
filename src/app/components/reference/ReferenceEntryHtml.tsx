@@ -1,9 +1,10 @@
 "use client";
 
+import { storedRichTextToDisplayHtml } from "@/app/lib/tiptap/richText";
+import { richTextJsonDocToHtml } from "@/app/lib/tiptap/richTextJsonDoc";
 import type { JSONContent } from "@tiptap/core";
-import { generateHTML } from "@tiptap/html";
-import StarterKit from "@tiptap/starter-kit";
 import { useMemo } from "react";
+
 function isTiptapDoc(value: unknown): value is JSONContent {
   return (
     Boolean(value) &&
@@ -21,9 +22,9 @@ export function ReferenceEntryHtml({
 }) {
   const html = useMemo(() => {
     if (isTiptapDoc(contentJson)) {
-      return generateHTML(contentJson, [StarterKit]);
+      return richTextJsonDocToHtml(contentJson);
     }
-    return contentHtml?.trim() ?? "";
+    return storedRichTextToDisplayHtml(contentHtml);
   }, [contentJson, contentHtml]);
 
   if (!html) {

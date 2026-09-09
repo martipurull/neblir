@@ -7,11 +7,14 @@ import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { Button } from "@/app/components/shared/Button";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
-import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
+import {
+  EMPTY_RICH_TEXT_DOC,
+  sanitizeRichTextJsonDoc,
+} from "@/app/lib/tiptap/richTextJsonDoc";
 import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import {
-  IMAGE_MAX_SIZE_BYTES,
-  IMAGE_MAX_SIZE_LABEL,
+  DOCUMENT_IMAGE_MAX_SIZE_BYTES,
+  DOCUMENT_IMAGE_MAX_SIZE_LABEL,
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
@@ -32,6 +35,7 @@ import type {
   ReferenceEntry,
 } from "@/app/lib/types/reference";
 import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
+import { tryUploadPdfPage1Thumbnail } from "@/app/lib/pdfPage1Thumbnail";
 import { isImageFileName, isPdfFileName } from "@/app/lib/r2UploadKeys";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -52,6 +56,7 @@ type PendingLoreAttachment = {
   fileKey: string;
   fileName: string;
   fileSizeBytes: number;
+  thumbnailKey?: string;
 };
 
 function slugifyTitle(title: string): string {
@@ -137,6 +142,9 @@ export function CreateGameLoreEntryModal({
   const cleanupPending = () => {
     for (const attachment of pendingAttachments) {
       void deleteUploadedLoreFile(attachment.fileKey);
+      if (attachment.thumbnailKey) {
+        void deleteUploadedLoreFile(attachment.thumbnailKey);
+      }
     }
     setPendingAttachments([]);
   };
@@ -168,8 +176,8 @@ export function CreateGameLoreEntryModal({
         return;
       }
     } else if (isImageFileName(file.name)) {
-      if (file.size > IMAGE_MAX_SIZE_BYTES) {
-        setError(`Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller.`);
+      if (file.size > DOCUMENT_IMAGE_MAX_SIZE_BYTES) {
+        setError(`Image must be ${DOCUMENT_IMAGE_MAX_SIZE_LABEL} or smaller.`);
         return;
       }
     } else {
@@ -180,29 +188,32 @@ export function CreateGameLoreEntryModal({
     setUploadingAttachment(true);
     setError(null);
     try {
-      const { fileKey, uploadUrl } = await requestLoreAttachmentUploadUrl({
-        gameId,
-        referenceEntryId: isEditMode && entry ? entry.id : undefined,
-        fileName: file.name,
-        fileSizeBytes: file.size,
-      });
-      await uploadLoreFileToStorage(uploadUrl, file);
-      if (isEditMode && entry) {
-        await createReferenceEntryAttachment(entry.id, {
-          fileKey,
+      const { fileKey, uploadUrl, thumbnailFileKey, thumbnailUploadUrl } =
+        await requestLoreAttachmentUploadUrl({
+          gameId,
+          referenceEntryId: isEditMode && entry ? entry.id : undefined,
           fileName: file.name,
           fileSizeBytes: file.size,
         });
+      await uploadLoreFileToStorage(uploadUrl, file);
+      const thumbnailKey = isPdf
+        ? await tryUploadPdfPage1Thumbnail({
+            pdf: file,
+            thumbnailFileKey,
+            thumbnailUploadUrl,
+          })
+        : undefined;
+      const payload = {
+        fileKey,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        ...(thumbnailKey ? { thumbnailKey } : {}),
+      };
+      if (isEditMode && entry) {
+        await createReferenceEntryAttachment(entry.id, payload);
         await mutateAttachments();
       } else {
-        setPendingAttachments((current) => [
-          ...current,
-          {
-            fileKey,
-            fileName: file.name,
-            fileSizeBytes: file.size,
-          },
-        ]);
+        setPendingAttachments((current) => [...current, payload]);
       }
     } catch (err) {
       setError(
@@ -225,7 +236,9 @@ export function CreateGameLoreEntryModal({
     setSubmitting(true);
     setError(null);
     try {
-      const contentJson: JSONContent = editor?.getJSON() ?? EMPTY_RICH_TEXT_DOC;
+      const contentJson: JSONContent = sanitizeRichTextJsonDoc(
+        editor?.getJSON() ?? EMPTY_RICH_TEXT_DOC
+      );
       const tags = tagsInput
         .split(",")
         .map((tag) => tag.trim())
@@ -355,7 +368,7 @@ export function CreateGameLoreEntryModal({
         >
           {editor ? (
             <>
-              <RichTextToolbar editor={editor} />
+              <RichTextToolbar editor={editor} variant="dark" />
               <EditorContent editor={editor} />
             </>
           ) : (
@@ -367,7 +380,7 @@ export function CreateGameLoreEntryModal({
       <div>
         <FieldLabel id="game-lore-attachments" label="Attachments" />
         <p className="mb-2 text-xs text-white/70">
-          Optional images (max {IMAGE_MAX_SIZE_LABEL}) or PDFs (max{" "}
+          Optional images (max {DOCUMENT_IMAGE_MAX_SIZE_LABEL}) or PDFs (max{" "}
           {PDF_MAX_SIZE_LABEL}) players can open or download with this lore
           entry.
         </p>

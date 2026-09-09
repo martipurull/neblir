@@ -4,6 +4,7 @@ import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
   EMPTY_RICH_TEXT_DOC,
   isRichTextDocEmpty,
+  sanitizeRichTextJsonDoc,
 } from "@/app/lib/tiptap/richTextJsonDoc";
 import { RICH_TEXT_EXTENSIONS } from "@/app/lib/tiptap/richText";
 import type { Editor, JSONContent } from "@tiptap/core";
@@ -66,7 +67,7 @@ export function RichTextJsonField({
 
   const flushToForm = useCallback((editor: Editor) => {
     if (editor.isDestroyed) return;
-    onChangeRef.current(editor.getJSON());
+    onChangeRef.current(sanitizeRichTextJsonDoc(editor.getJSON()));
   }, []);
 
   const editor = useEditor({
@@ -160,5 +161,6 @@ export function contentJsonForApi(
   doc: JSONContent | null | undefined
 ): JSONContent | null {
   const parsed = parseEditorDoc(doc);
-  return isRichTextDocEmpty(parsed) ? null : parsed;
+  if (isRichTextDocEmpty(parsed)) return null;
+  return sanitizeRichTextJsonDoc(parsed);
 }

@@ -38,6 +38,54 @@ export function updateEnemyInstance(
   return prisma.enemyInstance.update({ where: { id }, data });
 }
 
-export function deleteEnemyInstance(id: string) {
-  return prisma.enemyInstance.delete({ where: { id } });
+export type DeleteEnemyInstancesForGameResult =
+  | { deleted: true }
+  | { deleted: false; reason: "not_found" };
+
+/**
+ * Deletes a set of enemy instances in a game all-or-nothing and removes matching
+ * ENEMY initiative entries. Does not modify roll events.
+ */
+export async function deleteEnemyInstancesForGame(
+  gameId: string,
+  instanceIds: string[]
+): Promise<DeleteEnemyInstancesForGameResult> {
+  const uniqueIds = [...new Set(instanceIds)];
+  if (uniqueIds.length === 0) {
+    return { deleted: false, reason: "not_found" };
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const found = await tx.enemyInstance.findMany({
+      where: { gameId, id: { in: uniqueIds } },
+      select: { id: true },
+    });
+    if (found.length !== uniqueIds.length) {
+      return { deleted: false, reason: "not_found" };
+    }
+
+    const removedIds = new Set(uniqueIds);
+    const game = await tx.game.findUnique({
+      where: { id: gameId },
+      select: { initiativeOrder: true },
+    });
+    const currentInitiativeOrder = game?.initiativeOrder ?? [];
+    const nextInitiativeOrder = currentInitiativeOrder.filter(
+      (entry) =>
+        !(entry.combatantType === "ENEMY" && removedIds.has(entry.combatantId))
+    );
+
+    if (nextInitiativeOrder.length !== currentInitiativeOrder.length) {
+      await tx.game.update({
+        where: { id: gameId },
+        data: { initiativeOrder: nextInitiativeOrder },
+      });
+    }
+
+    await tx.enemyInstance.deleteMany({
+      where: { gameId, id: { in: uniqueIds } },
+    });
+
+    return { deleted: true };
+  });
 }

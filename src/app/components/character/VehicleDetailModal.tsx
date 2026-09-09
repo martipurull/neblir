@@ -118,6 +118,7 @@ export function VehicleDetailModal({
   const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
   const [alreadyRidingWarningOpen, setAlreadyRidingWarningOpen] =
     useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [mountItemId, setMountItemId] = useState("");
   const [mountStatHint, setMountStatHint] = useState<string | null>(null);
   const [mountedDetailItemId, setMountedDetailItemId] = useState<string | null>(
@@ -341,10 +342,10 @@ export function VehicleDetailModal({
   };
 
   const handleRemove = async () => {
-    if (!window.confirm("Remove this vehicle from the character?")) return;
     flushVehicleHp(entry.id);
     await runAction("remove", async () => {
       await deleteCharacterVehicleEntry(characterId, entry.id);
+      setRemoveConfirmOpen(false);
       onCloseAction();
     });
   };
@@ -1005,7 +1006,8 @@ export function VehicleDetailModal({
             fullWidth={false}
             disabled={busyAction != null}
             onClick={() => {
-              void handleRemove();
+              setActionError(null);
+              setRemoveConfirmOpen(true);
             }}
           >
             Remove vehicle
@@ -1054,6 +1056,24 @@ export function VehicleDetailModal({
         }}
         onConfirm={() => {
           void handleTransferConfirm();
+        }}
+      />
+
+      <DangerConfirmModal
+        isOpen={removeConfirmOpen}
+        variant="modalBackground"
+        title="Remove this vehicle from the character?"
+        description="This cannot be undone."
+        confirmLabel="Remove vehicle"
+        confirmSubmittingLabel="Removing…"
+        isSubmitting={busyAction === "remove"}
+        errorMessage={removeConfirmOpen ? actionError : null}
+        onCancel={() => {
+          if (busyAction === "remove") return;
+          setRemoveConfirmOpen(false);
+        }}
+        onConfirm={() => {
+          void handleRemove();
         }}
       />
 

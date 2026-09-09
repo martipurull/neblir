@@ -4,6 +4,7 @@ import { CreateGameFileModal } from "@/app/components/games/CreateGameFileModal"
 import { CreateGameLoreEntryModal } from "@/app/components/games/CreateGameLoreEntryModal";
 import { CreateGameRecapModal } from "@/app/components/games/CreateGameRecapModal";
 import { InviteUsersModal } from "@/app/components/games/InviteUsersModal";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
@@ -18,6 +19,7 @@ import { useReferenceEntries } from "@/hooks/use-reference-entries";
 import { deleteGameFile, getGameFileUrl } from "@/lib/api/gameFiles";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
@@ -39,6 +41,34 @@ type PendingInvite = {
   invitedUserEmail: string;
   createdAt: string;
 };
+
+type PendingTableDelete = {
+  kind: "lore" | "recap" | "file";
+  id: string;
+  title: string;
+};
+
+function tableDeleteCopy(target: PendingTableDelete): {
+  title: string;
+  confirmLabel: string;
+} {
+  if (target.kind === "lore") {
+    return {
+      title: `Delete lore entry "${target.title}"?`,
+      confirmLabel: "Delete lore entry",
+    };
+  }
+  if (target.kind === "recap") {
+    return {
+      title: `Delete recap "${target.title}"?`,
+      confirmLabel: "Delete recap",
+    };
+  }
+  return {
+    title: `Delete file "${target.title}"?`,
+    confirmLabel: "Delete file",
+  };
+}
 
 export function GameMasterTableSettingsPageClient() {
   const params = useParams();
@@ -63,6 +93,10 @@ export function GameMasterTableSettingsPageClient() {
   );
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingTableDelete | null>(
+    null
+  );
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
     PendingInvite[]
@@ -125,6 +159,47 @@ export function GameMasterTableSettingsPageClient() {
     );
   }
 
+  const deleteSubmitting =
+    deletingLoreEntryId != null ||
+    deletingRecapId != null ||
+    deletingFileId != null;
+  const pendingDeleteLabels = pendingDelete
+    ? tableDeleteCopy(pendingDelete)
+    : { title: "", confirmLabel: "Delete" };
+
+  const confirmPendingDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleteError(null);
+    try {
+      if (pendingDelete.kind === "lore") {
+        setDeletingLoreEntryId(pendingDelete.id);
+        await deleteReferenceEntry(pendingDelete.id);
+        await refetchLoreEntries();
+      } else if (pendingDelete.kind === "recap") {
+        setDeletingRecapId(pendingDelete.id);
+        await deleteGameRecap(game.id, pendingDelete.id);
+        await refetchRecaps();
+      } else {
+        setDeletingFileId(pendingDelete.id);
+        await deleteGameFile(game.id, pendingDelete.id);
+        await refetchFiles();
+      }
+      setPendingDelete(null);
+    } catch (err) {
+      const fallback =
+        pendingDelete.kind === "lore"
+          ? "Failed to delete lore entry"
+          : pendingDelete.kind === "recap"
+            ? "Failed to delete recap"
+            : "Failed to delete file";
+      setDeleteError(getUserSafeErrorMessage(err, fallback));
+    } finally {
+      setDeletingLoreEntryId(null);
+      setDeletingRecapId(null);
+      setDeletingFileId(null);
+    }
+  };
+
   return (
     <PageSection>
       <div className="flex flex-col gap-6">
@@ -145,21 +220,12 @@ export function GameMasterTableSettingsPageClient() {
             setLoreEntryModalOpen(true);
           }}
           onDeleteLoreEntry={(entry) => {
-            if (
-              !window.confirm(
-                `Delete lore entry "${entry.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingLoreEntryId(entry.id);
-            void deleteReferenceEntry(entry.id)
-              .then(async () => {
-                await refetchLoreEntries();
-              })
-              .finally(() => {
-                setDeletingLoreEntryId(null);
-              });
+            setDeleteError(null);
+            setPendingDelete({
+              kind: "lore",
+              id: entry.id,
+              title: entry.title,
+            });
           }}
           deletingEntryId={deletingLoreEntryId}
           entries={loreEntries}
@@ -192,21 +258,12 @@ export function GameMasterTableSettingsPageClient() {
             });
           }}
           onDeleteRecap={(recap) => {
-            if (
-              !window.confirm(
-                `Delete recap "${recap.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingRecapId(recap.id);
-            void deleteGameRecap(game.id, recap.id)
-              .then(async () => {
-                await refetchRecaps();
-              })
-              .finally(() => {
-                setDeletingRecapId(null);
-              });
+            setDeleteError(null);
+            setPendingDelete({
+              kind: "recap",
+              id: recap.id,
+              title: recap.title,
+            });
           }}
         />
         <GmFilesSection
@@ -234,21 +291,12 @@ export function GameMasterTableSettingsPageClient() {
             });
           }}
           onDeleteFile={(file) => {
-            if (
-              !window.confirm(
-                `Delete file "${file.title}"? This cannot be undone.`
-              )
-            ) {
-              return;
-            }
-            setDeletingFileId(file.id);
-            void deleteGameFile(game.id, file.id)
-              .then(async () => {
-                await refetchFiles();
-              })
-              .finally(() => {
-                setDeletingFileId(null);
-              });
+            setDeleteError(null);
+            setPendingDelete({
+              kind: "file",
+              id: file.id,
+              title: file.title,
+            });
           }}
         />
 
@@ -344,6 +392,23 @@ export function GameMasterTableSettingsPageClient() {
         onSuccess={() => {
           setFileEditTarget(null);
           void refetchFiles();
+        }}
+      />
+      <DangerConfirmModal
+        isOpen={pendingDelete != null}
+        title={pendingDeleteLabels.title}
+        description="This cannot be undone."
+        confirmLabel={pendingDeleteLabels.confirmLabel}
+        cancelLabel="Cancel"
+        isSubmitting={deleteSubmitting}
+        errorMessage={deleteError}
+        onCancel={() => {
+          if (deleteSubmitting) return;
+          setPendingDelete(null);
+          setDeleteError(null);
+        }}
+        onConfirm={() => {
+          void confirmPendingDelete();
         }}
       />
     </PageSection>

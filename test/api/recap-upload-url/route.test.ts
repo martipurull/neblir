@@ -120,6 +120,8 @@ describe("POST /api/recap-upload-url", () => {
     expect(body.uploadUrl).toBe("https://r2.example/upload");
     expect(body.fileKey).toMatch(/^recaps-/);
     expect(body.fileKey).toMatch(/\.pdf$/);
-    expect(getSignedUrlMock).toHaveBeenCalledTimes(1);
+    expect(body.thumbnailFileKey).toMatch(/^recaps-thumb-/);
+    expect(body.thumbnailUploadUrl).toBe("https://r2.example/upload");
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(2);
   });
 });

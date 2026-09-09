@@ -1,3 +1,7 @@
+import {
+  IMAGE_MAX_SIZE_BYTES,
+  IMAGE_MAX_SIZE_LABEL,
+} from "@/app/lib/constants/uploadLimits";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useState, type DragEvent } from "react";
 
@@ -11,8 +15,7 @@ export type ImageUploadKind =
   | "characters"
   | "items"
   | "vehicles"
-  | "maps"
-  | "files";
+  | "maps";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);
@@ -50,8 +53,8 @@ export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
         setUploadError("Please choose an image file (e.g. PNG, JPEG).");
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError("Image must be 5MB or smaller.");
+      if (file.size > IMAGE_MAX_SIZE_BYTES) {
+        setUploadError(`Image must be ${IMAGE_MAX_SIZE_LABEL} or smaller.`);
         return;
       }
       setUploadError(null);

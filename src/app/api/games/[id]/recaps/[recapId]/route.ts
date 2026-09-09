@@ -5,7 +5,11 @@ import {
 } from "@/app/lib/prisma/gameRecap";
 import { getGame } from "@/app/lib/prisma/game";
 import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
-import { isPdfFileName, isValidRecapFileKey } from "@/app/lib/r2UploadKeys";
+import {
+  isPdfFileName,
+  isValidRecapFileKey,
+  parseOptionalPdfThumbnailKey,
+} from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { gameRecapUpdateSchema } from "@/app/lib/types/recap";
 import { auth } from "@/auth";
@@ -95,10 +99,27 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const previousFileKey = recap.fileKey;
+    const previousThumbnailKey = recap.thumbnailKey ?? null;
+    let nextThumbnailKey: string | null | undefined;
+    if (replacementFile) {
+      const parsedThumbnail = parseOptionalPdfThumbnailKey(
+        parsed.data.thumbnailKey,
+        "recaps",
+        true
+      );
+      if (!parsedThumbnail.ok) {
+        return errorResponse("Invalid thumbnail key", 400);
+      }
+      nextThumbnailKey = parsedThumbnail.thumbnailKey ?? null;
+    }
+
     const updated = await updateGameRecap(recapId, {
       title: parsed.data.title,
       summary: parsed.data.summary ?? null,
       ...(replacementFile ?? {}),
+      ...(nextThumbnailKey !== undefined
+        ? { thumbnailKey: nextThumbnailKey }
+        : {}),
     });
 
     if (replacementFile && replacementFile.fileKey !== previousFileKey) {
@@ -119,6 +140,34 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
             error,
             details: serializeError(error),
             previousFileKey,
+            recapId,
+          });
+        }
+      }
+    }
+
+    if (
+      nextThumbnailKey !== undefined &&
+      previousThumbnailKey &&
+      previousThumbnailKey !== nextThumbnailKey
+    ) {
+      const config = getR2Config();
+      if (config && isDeletableUploadKey(previousThumbnailKey)) {
+        try {
+          await config.s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: config.bucketName,
+              Key: previousThumbnailKey,
+            })
+          );
+        } catch (error) {
+          logger.error({
+            method: "PATCH",
+            route,
+            message: "Failed to delete previous recap thumbnail after replace",
+            error,
+            details: serializeError(error),
+            previousThumbnailKey,
             recapId,
           });
         }
@@ -162,6 +211,30 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const config = getR2Config();
+    if (
+      config &&
+      recap.thumbnailKey &&
+      isDeletableUploadKey(recap.thumbnailKey)
+    ) {
+      try {
+        await config.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: config.bucketName,
+            Key: recap.thumbnailKey,
+          })
+        );
+      } catch (error) {
+        logger.error({
+          method: "DELETE",
+          route,
+          message: "Failed to delete recap thumbnail",
+          error,
+          details: serializeError(error),
+          thumbnailKey: recap.thumbnailKey,
+          recapId,
+        });
+      }
+    }
     if (config && isDeletableUploadKey(recap.fileKey)) {
       await config.s3Client.send(
         new DeleteObjectCommand({

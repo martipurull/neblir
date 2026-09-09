@@ -16,6 +16,7 @@ export function createReferenceEntryAttachment(data: {
   fileKey: string;
   fileName: string;
   fileSizeBytes: number;
+  thumbnailKey?: string | null;
   uploadedByUserId: string;
 }) {
   return prisma.referenceEntryAttachment.create({ data });

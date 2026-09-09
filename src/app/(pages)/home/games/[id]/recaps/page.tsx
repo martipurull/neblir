@@ -3,6 +3,7 @@
 import { CreateGameRecapModal } from "@/app/components/games/CreateGameRecapModal";
 import { RecapCard } from "@/app/components/games/RecapCard";
 import { Button } from "@/app/components/shared/Button";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
@@ -10,7 +11,9 @@ import { PageTitle } from "@/app/components/shared/PageTitle";
 import type { GameRecap } from "@/app/lib/types/recap";
 import { useGame } from "@/hooks/use-game";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
+import { useRecapPreviewUrls } from "@/hooks/use-game-file-urls";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -19,7 +22,10 @@ export default function GameRecapsPage() {
   const id = typeof params.id === "string" ? params.id : null;
   const { game } = useGame(id);
   const { recaps, loading, error, refetch } = useGameRecaps(id);
+  const recapThumbnailUrls = useRecapPreviewUrls(recaps);
   const [deletingRecapId, setDeletingRecapId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<GameRecap | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [recapModalOpen, setRecapModalOpen] = useState(false);
   const [recapEditTarget, setRecapEditTarget] = useState<GameRecap | null>(
     null
@@ -34,6 +40,21 @@ export default function GameRecapsPage() {
   const handleDownload = async (recapId: string) => {
     const url = await getRecapDownloadUrl(recapId, "attachment");
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmDelete = async () => {
+    if (!id || !deleteTarget) return;
+    setDeletingRecapId(deleteTarget.id);
+    setDeleteError(null);
+    try {
+      await deleteGameRecap(id, deleteTarget.id);
+      await refetch();
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(getUserSafeErrorMessage(err, "Failed to delete recap"));
+    } finally {
+      setDeletingRecapId(null);
+    }
   };
 
   if (!id) {
@@ -83,6 +104,7 @@ export default function GameRecapsPage() {
               <RecapCard
                 key={recap.id}
                 recap={recap}
+                thumbnailUrl={recapThumbnailUrls[recap.id]}
                 onOpen={(recapId) => void handleOpen(recapId)}
                 onDownload={(recapId) => void handleDownload(recapId)}
                 canEdit={isGameMaster}
@@ -93,28 +115,31 @@ export default function GameRecapsPage() {
                   setRecapModalOpen(true);
                 }}
                 onDelete={(entry) => {
-                  if (!id) return;
-                  if (
-                    !window.confirm(
-                      `Delete recap "${entry.title}"? This cannot be undone.`
-                    )
-                  ) {
-                    return;
-                  }
-                  setDeletingRecapId(entry.id);
-                  void deleteGameRecap(id, entry.id)
-                    .then(async () => {
-                      await refetch();
-                    })
-                    .finally(() => {
-                      setDeletingRecapId(null);
-                    });
+                  setDeleteError(null);
+                  setDeleteTarget(entry);
                 }}
               />
             ))}
           </ul>
         )}
       </div>
+      <DangerConfirmModal
+        isOpen={deleteTarget != null}
+        title={`Delete recap "${deleteTarget?.title ?? ""}"?`}
+        description="This cannot be undone."
+        confirmLabel="Delete recap"
+        cancelLabel="Cancel"
+        isSubmitting={deletingRecapId != null}
+        errorMessage={deleteError}
+        onCancel={() => {
+          if (deletingRecapId != null) return;
+          setDeleteTarget(null);
+          setDeleteError(null);
+        }}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+      />
       {game ? (
         <CreateGameRecapModal
           key={recapEditTarget?.id ?? "create"}

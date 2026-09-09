@@ -4,6 +4,7 @@ import type { GameRecap } from "@/app/lib/types/recap";
 
 type RecapCardProps = {
   recap: GameRecap;
+  thumbnailUrl?: string | null;
   onOpen: (recapId: string) => void;
   onDownload: (recapId: string) => void;
   canEdit?: boolean;
@@ -15,6 +16,7 @@ type RecapCardProps = {
 
 export function RecapCard({
   recap,
+  thumbnailUrl,
   onOpen,
   onDownload,
   canEdit = false,
@@ -25,7 +27,11 @@ export function RecapCard({
 }: RecapCardProps) {
   return (
     <li className="flex gap-3 rounded-md border border-black/10 bg-paleBlue/40 p-3">
-      <FileKindThumbnail kind="PDF" title={recap.title} />
+      <FileKindThumbnail
+        kind="PDF"
+        title={recap.title}
+        imageUrl={thumbnailUrl}
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-black">
           {recap.title}

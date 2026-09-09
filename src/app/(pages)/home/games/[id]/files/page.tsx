@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
@@ -12,6 +13,7 @@ import { useGame } from "@/hooks/use-game";
 import { useGameFileUrls } from "@/hooks/use-game-file-urls";
 import { useGameFiles } from "@/hooks/use-game-files";
 import { deleteGameFile, getGameFileUrl } from "@/lib/api/gameFiles";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -21,11 +23,11 @@ export default function GameFilesPage() {
   const { game } = useGame(id);
   const { files, loading, error, refetch } = useGameFiles(id);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<GameFile | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [fileEditTarget, setFileEditTarget] = useState<GameFile | null>(null);
-  const fileUrls = useGameFileUrls(
-    files.filter((file) => file.kind === "IMAGE")
-  );
+  const fileUrls = useGameFileUrls(files);
   const isGameMaster = game?.isGameMaster === true;
 
   const handleOpen = async (file: GameFile) => {
@@ -36,6 +38,21 @@ export default function GameFilesPage() {
   const handleDownload = async (file: GameFile) => {
     const url = await getGameFileUrl(file.id, "attachment");
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmDelete = async () => {
+    if (!id || !deleteTarget) return;
+    setDeletingFileId(deleteTarget.id);
+    setDeleteError(null);
+    try {
+      await deleteGameFile(id, deleteTarget.id);
+      await refetch();
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(getUserSafeErrorMessage(err, "Failed to delete file"));
+    } finally {
+      setDeletingFileId(null);
+    }
   };
 
   if (!id) {
@@ -97,27 +114,31 @@ export default function GameFilesPage() {
                   setFileModalOpen(true);
                 }}
                 onDelete={(entry) => {
-                  if (
-                    !window.confirm(
-                      `Delete file "${entry.title}"? This cannot be undone.`
-                    )
-                  ) {
-                    return;
-                  }
-                  setDeletingFileId(entry.id);
-                  void deleteGameFile(id, entry.id)
-                    .then(async () => {
-                      await refetch();
-                    })
-                    .finally(() => {
-                      setDeletingFileId(null);
-                    });
+                  setDeleteError(null);
+                  setDeleteTarget(entry);
                 }}
               />
             ))}
           </ul>
         )}
       </div>
+      <DangerConfirmModal
+        isOpen={deleteTarget != null}
+        title={`Delete file "${deleteTarget?.title ?? ""}"?`}
+        description="This cannot be undone."
+        confirmLabel="Delete file"
+        cancelLabel="Cancel"
+        isSubmitting={deletingFileId != null}
+        errorMessage={deleteError}
+        onCancel={() => {
+          if (deletingFileId != null) return;
+          setDeleteTarget(null);
+          setDeleteError(null);
+        }}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+      />
       {game ? (
         <CreateGameFileModal
           key={fileEditTarget?.id ?? "create"}

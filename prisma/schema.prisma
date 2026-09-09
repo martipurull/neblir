@@ -667,6 +667,7 @@ model GameFile {
   fileKey          String           @unique
   fileName         String
   fileSizeBytes    Int
+  thumbnailKey     String?
   uploadedByUserId String           @db.ObjectId
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -686,6 +687,7 @@ model GameRecap {
   fileKey          String   @unique
   fileName         String
   fileSizeBytes    Int
+  thumbnailKey     String?
   uploadedByUserId String   @db.ObjectId
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -729,6 +731,7 @@ model ReferenceEntryAttachment {
   fileKey           String   @unique
   fileName          String
   fileSizeBytes     Int
+  thumbnailKey      String?
   uploadedByUserId  String   @db.ObjectId
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -1172,6 +1175,24 @@ model EnemyInstance {
   sourceOfficialEnemy Enemy?       @relation(fields: [sourceOfficialEnemyId], references: [id], onDelete: Cascade)
 
   name        String
+  /**
+   * Instance number assigned at spawn for this source template in the game.
+   * Optional so legacy rows can occupy a trailing ` #N` in name instead.
+   */
+  instanceNumber Int?
+  /**
+   * Official enemy or custom enemy name captured at spawn. Does not follow later template renames.
+   */
+  sourceName     String?
+  /**
+   * True after the first GM edit of instance name. Spawn name override is not a rename.
+   */
+  renamed        Boolean @default(false)
+  /**
+   * Whether #{N} is shown on the instance label when not renamed.
+   * False for an unsuffixed singleton spawn; true for a numbered batch (including #1).
+   */
+  numberVisible  Boolean @default(false)
   imageKey    String?
   description String?
   notes       String?

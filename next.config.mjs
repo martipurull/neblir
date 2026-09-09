@@ -10,6 +10,7 @@ const nextConfig = {
     ],
   },
   serverExternalPackages: ["@swc/helpers"],
+  transpilePackages: ["pdfjs-dist"],
   images: {
     remotePatterns: [
       {

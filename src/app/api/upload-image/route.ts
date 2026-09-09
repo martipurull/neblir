@@ -23,7 +23,6 @@ const ALLOWED_TYPES = [
   "items",
   "vehicles",
   "maps",
-  "files",
 ] as const satisfies readonly UploadKeyType[];
 
 function getExtension(filename: string): string {
@@ -51,12 +50,18 @@ export const POST = auth(async (request: AuthNextRequest) => {
         400
       );
     }
+    if (type === "files") {
+      return errorResponse(
+        "Game files must be uploaded via /api/game-file-upload-url",
+        400
+      );
+    }
     if (
       !type ||
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, files, custom_vehicles, unique_vehicles, vehicles",
+        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, custom_vehicles, unique_vehicles, vehicles",
         400
       );
     }
@@ -84,17 +89,6 @@ export const POST = auth(async (request: AuthNextRequest) => {
     }
 
     const blob = file as Blob & { name: string };
-    if (type === "files") {
-      const isPdf =
-        blob.type === "application/pdf" ||
-        blob.name.toLowerCase().endsWith(".pdf");
-      if (isPdf) {
-        return errorResponse(
-          "Game file PDFs must be uploaded via /api/game-file-upload-url",
-          400
-        );
-      }
-    }
     if (blob.size > IMAGE_MAX_SIZE_BYTES) {
       return errorResponse(
         `File must be ${IMAGE_MAX_SIZE_LABEL} or smaller`,

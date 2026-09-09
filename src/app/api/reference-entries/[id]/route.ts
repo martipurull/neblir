@@ -166,24 +166,27 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     const attachments = existing.attachments ?? [];
     if (config) {
       for (const attachment of attachments) {
-        if (!isDeletableUploadKey(attachment.fileKey)) continue;
-        try {
-          await config.s3Client.send(
-            new DeleteObjectCommand({
-              Bucket: config.bucketName,
-              Key: attachment.fileKey,
-            })
-          );
-        } catch (error) {
-          logger.error({
-            method: "DELETE",
-            route,
-            message: "Failed to delete lore attachment from storage",
-            error,
-            details: serializeError(error),
-            fileKey: attachment.fileKey,
-            attachmentId: attachment.id,
-          });
+        const keys = [attachment.fileKey, attachment.thumbnailKey];
+        for (const fileKey of keys) {
+          if (!fileKey || !isDeletableUploadKey(fileKey)) continue;
+          try {
+            await config.s3Client.send(
+              new DeleteObjectCommand({
+                Bucket: config.bucketName,
+                Key: fileKey,
+              })
+            );
+          } catch (error) {
+            logger.error({
+              method: "DELETE",
+              route,
+              message: "Failed to delete lore attachment from storage",
+              error,
+              details: serializeError(error),
+              fileKey,
+              attachmentId: attachment.id,
+            });
+          }
         }
       }
     }

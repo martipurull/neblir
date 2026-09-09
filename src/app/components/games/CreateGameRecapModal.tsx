@@ -9,6 +9,7 @@ import {
   PDF_MAX_SIZE_BYTES,
   PDF_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
+import { tryUploadPdfPage1Thumbnail } from "@/app/lib/pdfPage1Thumbnail";
 import type { GameRecap } from "@/app/lib/types/recap";
 import {
   createGameRecap,
@@ -90,6 +91,7 @@ export function CreateGameRecapModal({
     }
 
     let uploadedKey: string | null = null;
+    let uploadedThumbnailKey: string | null = null;
     try {
       setSubmitting(true);
       setError(null);
@@ -99,19 +101,27 @@ export function CreateGameRecapModal({
 
       if (isEditMode && recap) {
         if (file) {
-          const { fileKey, uploadUrl } = await requestRecapUploadUrl({
-            gameId,
-            fileName: file.name,
-            fileSizeBytes: file.size,
-          });
+          const { fileKey, uploadUrl, thumbnailFileKey, thumbnailUploadUrl } =
+            await requestRecapUploadUrl({
+              gameId,
+              fileName: file.name,
+              fileSizeBytes: file.size,
+            });
           uploadedKey = fileKey;
           await uploadRecapPdfToStorage(uploadUrl, file);
+          const thumbnailKey = await tryUploadPdfPage1Thumbnail({
+            pdf: file,
+            thumbnailFileKey,
+            thumbnailUploadUrl,
+          });
+          uploadedThumbnailKey = thumbnailKey ?? null;
           await updateGameRecap(gameId, recap.id, {
             title: trimmedTitle,
             summary: trimmedSummary,
             fileKey,
             fileName: file.name,
             fileSizeBytes: file.size,
+            thumbnailKey: thumbnailKey ?? null,
           });
         } else {
           await updateGameRecap(gameId, recap.id, {
@@ -124,19 +134,27 @@ export function CreateGameRecapModal({
           setError("PDF file is required.");
           return;
         }
-        const { fileKey, uploadUrl } = await requestRecapUploadUrl({
-          gameId,
-          fileName: file.name,
-          fileSizeBytes: file.size,
-        });
+        const { fileKey, uploadUrl, thumbnailFileKey, thumbnailUploadUrl } =
+          await requestRecapUploadUrl({
+            gameId,
+            fileName: file.name,
+            fileSizeBytes: file.size,
+          });
         uploadedKey = fileKey;
         await uploadRecapPdfToStorage(uploadUrl, file);
+        const thumbnailKey = await tryUploadPdfPage1Thumbnail({
+          pdf: file,
+          thumbnailFileKey,
+          thumbnailUploadUrl,
+        });
+        uploadedThumbnailKey = thumbnailKey ?? null;
         await createGameRecap(gameId, {
           title: trimmedTitle,
           summary: trimmedSummary,
           fileKey,
           fileName: file.name,
           fileSizeBytes: file.size,
+          ...(thumbnailKey ? { thumbnailKey } : {}),
         });
       }
 
@@ -146,6 +164,9 @@ export function CreateGameRecapModal({
     } catch (err) {
       if (uploadedKey) {
         void deleteUploadedRecapFile(uploadedKey);
+      }
+      if (uploadedThumbnailKey) {
+        void deleteUploadedRecapFile(uploadedThumbnailKey);
       }
       setError(
         err instanceof Error

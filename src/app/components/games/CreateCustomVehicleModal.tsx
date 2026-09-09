@@ -6,6 +6,7 @@ import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
@@ -143,6 +144,7 @@ function CreateCustomVehicleModalBody({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [richTextSyncKey, setRichTextSyncKey] = useState(0);
   const imageUpload = useImageUpload("custom_vehicles");
   const {
@@ -296,7 +298,6 @@ function CreateCustomVehicleModalBody({
 
   const handleDelete = async () => {
     if (!editCustomVehicleId) return;
-    if (!window.confirm("Delete this custom vehicle?")) return;
     setDeleteError(null);
     setSubmitting(true);
     try {
@@ -334,300 +335,319 @@ function CreateCustomVehicleModalBody({
   };
 
   return (
-    <GameFormModal
-      isOpen={isOpen}
-      title={
-        isEdit
-          ? `Edit custom vehicle — ${gameName}`
-          : `Create custom vehicle — ${gameName}`
-      }
-      subtitle="Fields marked by validation are required. Max passengers includes the driver."
-      titleId="create-custom-vehicle-title"
-      error={error}
-      onClose={onClose}
-      onSubmit={(e) => void handleSubmit(e)}
-      submitting={submitting || loadingEdit}
-      submitLabel={isEdit ? "Save changes" : "Create custom vehicle"}
-      submittingLabel={isEdit ? "Saving…" : "Creating…"}
-    >
-      <section>
-        <h3 className="mb-3 text-sm font-semibold text-white/90">Basics</h3>
-        <div className="space-y-3">
-          <div>
-            <FieldLabel
-              id="custom-vehicle-name"
-              label="Name"
-              required
-              variant="dark"
-            />
-            <TextField
-              id="custom-vehicle-name"
-              type="text"
-              variant="dark"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Dust Runner"
+    <>
+      <GameFormModal
+        isOpen={isOpen}
+        title={
+          isEdit
+            ? `Edit custom vehicle — ${gameName}`
+            : `Create custom vehicle — ${gameName}`
+        }
+        subtitle="Fields marked by validation are required. Max passengers includes the driver."
+        titleId="create-custom-vehicle-title"
+        error={error}
+        onClose={onClose}
+        onSubmit={(e) => void handleSubmit(e)}
+        submitting={submitting || loadingEdit}
+        submitLabel={isEdit ? "Save changes" : "Create custom vehicle"}
+        submittingLabel={isEdit ? "Saving…" : "Creating…"}
+      >
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-white/90">Basics</h3>
+          <div className="space-y-3">
+            <div>
+              <FieldLabel
+                id="custom-vehicle-name"
+                label="Name"
+                required
+                variant="dark"
+              />
+              <TextField
+                id="custom-vehicle-name"
+                type="text"
+                variant="dark"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Dust Runner"
+                disabled={submitting || loadingEdit}
+              />
+            </div>
+            <div>
+              <FieldLabel
+                id="custom-vehicle-brand"
+                label="Brand"
+                variant="dark"
+              />
+              <TextField
+                id="custom-vehicle-brand"
+                type="text"
+                variant="dark"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="e.g. Vornex"
+                disabled={submitting || loadingEdit}
+              />
+            </div>
+            <ModalNumberField
+              id="custom-vehicle-year"
+              label="Year"
+              value={year}
+              onChange={setYear}
               disabled={submitting || loadingEdit}
+              required={false}
+              placeholder="2099"
             />
           </div>
-          <div>
-            <FieldLabel
-              id="custom-vehicle-brand"
-              label="Brand"
-              variant="dark"
-            />
-            <TextField
-              id="custom-vehicle-brand"
-              type="text"
-              variant="dark"
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="e.g. Vornex"
+        </section>
+
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-white/90">
+            Description
+          </h3>
+          <div className="space-y-3">
+            <GameModalRichTextField
+              id="custom-vehicle-description"
+              label="Description"
+              value={description}
+              onChange={setDescription}
               disabled={submitting || loadingEdit}
+              syncKey={richTextSyncKey}
             />
-          </div>
-          <ModalNumberField
-            id="custom-vehicle-year"
-            label="Year"
-            value={year}
-            onChange={setYear}
-            disabled={submitting || loadingEdit}
-            required={false}
-            placeholder="2099"
-          />
-        </div>
-      </section>
-
-      <section>
-        <h3 className="mb-3 text-sm font-semibold text-white/90">
-          Description
-        </h3>
-        <div className="space-y-3">
-          <GameModalRichTextField
-            id="custom-vehicle-description"
-            label="Description"
-            value={description}
-            onChange={setDescription}
-            disabled={submitting || loadingEdit}
-            syncKey={richTextSyncKey}
-          />
-          <GameModalRichTextField
-            id="custom-vehicle-notes"
-            label="Notes"
-            value={notes}
-            onChange={setNotes}
-            disabled={submitting || loadingEdit}
-            syncKey={richTextSyncKey}
-          />
-          <ModalNumberField
-            id="custom-vehicle-conf-cost"
-            label="Conf cost"
-            value={confCost}
-            onChange={setConfCost}
-            disabled={submitting || loadingEdit}
-            required={false}
-            min={0}
-            placeholder="0"
-          />
-          <div>
-            <FieldLabel
-              id="custom-vehicle-cost-info"
-              label="Cost info"
-              variant="dark"
-            />
-            <TextField
-              id="custom-vehicle-cost-info"
-              type="text"
-              variant="dark"
-              value={costInfo}
-              onChange={(e) => setCostInfo(e.target.value)}
-              placeholder="e.g. Not for sale"
+            <GameModalRichTextField
+              id="custom-vehicle-notes"
+              label="Notes"
+              value={notes}
+              onChange={setNotes}
               disabled={submitting || loadingEdit}
+              syncKey={richTextSyncKey}
             />
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h3 className="mb-3 text-sm font-semibold text-white/90">Stats</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ModalNumberField
-            id="custom-vehicle-max-hp"
-            label="Max HP"
-            value={maxHp}
-            onChange={setMaxHp}
-            disabled={submitting || loadingEdit}
-            min={1}
-            placeholder="1"
-          />
-          <ModalNumberField
-            id="custom-vehicle-manoeuvrability"
-            label={VEHICLE_MANOEUVRABILITY_LABEL}
-            value={manoeuvrability}
-            onChange={setManoeuvrability}
-            disabled={submitting || loadingEdit}
-            placeholder="0"
-          />
-          <ModalNumberField
-            id="custom-vehicle-acceleration"
-            label={VEHICLE_ACCELERATION_LABEL}
-            value={acceleration}
-            onChange={setAcceleration}
-            disabled={submitting || loadingEdit}
-            min={1}
-            placeholder="1"
-          />
-          <ModalNumberField
-            id="custom-vehicle-travel-speed"
-            label={VEHICLE_TRAVEL_SPEED_LABEL}
-            hint={VEHICLE_TRAVEL_SPEED_HELP}
-            value={travelSpeedKmh}
-            onChange={setTravelSpeedKmh}
-            disabled={submitting || loadingEdit}
-            min={1}
-            placeholder="1"
-          />
-          <ModalNumberField
-            id="custom-vehicle-combat-speed"
-            label={VEHICLE_COMBAT_SPEED_LABEL}
-            hint={VEHICLE_COMBAT_SPEED_HELP}
-            value={combatSpeedMetres}
-            onChange={setCombatSpeedMetres}
-            disabled={submitting || loadingEdit}
-            min={1}
-            placeholder="1"
-          />
-          <ModalNumberField
-            id="custom-vehicle-max-passengers"
-            label="Max passengers (incl. driver)"
-            value={maxPassengers}
-            onChange={setMaxPassengers}
-            disabled={submitting || loadingEdit}
-            min={1}
-            placeholder="1"
-          />
-          <ModalNumberField
-            id="custom-vehicle-max-mounted-items"
-            label="Max mounted items"
-            value={maxMountedItems}
-            onChange={setMaxMountedItems}
-            disabled={submitting || loadingEdit}
-            required={false}
-            min={0}
-            placeholder="0"
-          />
-          <ModalNumberField
-            id="custom-vehicle-weight"
-            label="Weight kg"
-            value={weight}
-            onChange={setWeight}
-            disabled={submitting || loadingEdit}
-            required={false}
-            min={0}
-            step={0.1}
-            placeholder="0"
-          />
-          <ModalNumberField
-            id="custom-vehicle-height"
-            label="Height metres"
-            value={heightMetres}
-            onChange={setHeightMetres}
-            disabled={submitting || loadingEdit}
-            required={false}
-            min={0}
-            step={0.1}
-            placeholder="0"
-          />
-          <ModalNumberField
-            id="custom-vehicle-cargo"
-            label="Max cargo weight kg"
-            value={maxCargoWeightKg}
-            onChange={setMaxCargoWeightKg}
-            disabled={submitting || loadingEdit}
-            required={false}
-            min={0}
-            step={0.1}
-            placeholder="0"
-          />
-        </div>
-      </section>
-
-      <section>
-        <h3 className="mb-3 text-sm font-semibold text-white/90">Type</h3>
-        <div className="space-y-3">
-          <SelectDropdown
-            id="custom-vehicle-size"
-            label="Vehicle size"
-            placeholder="Select vehicle size"
-            value={vehicleSizeCategory}
-            options={[...sizeOptions]}
-            disabled={submitting || loadingEdit}
-            onChange={(value) =>
-              setVehicleSizeCategory(value as VehicleSizeCategory)
-            }
-          />
-          <div>
-            <FieldLabel
-              id="custom-vehicle-locomotion"
-              label="Locomotion modes"
-              variant="dark"
-              required
+            <ModalNumberField
+              id="custom-vehicle-conf-cost"
+              label="Conf cost"
+              value={confCost}
+              onChange={setConfCost}
+              disabled={submitting || loadingEdit}
+              required={false}
+              min={0}
+              placeholder="0"
             />
-            <div className="grid gap-2 sm:grid-cols-2">
-              {locomotionOptions.map((option) => (
-                <Checkbox
-                  key={option.value}
-                  checked={locomotionModes.includes(option.value)}
-                  onChange={(checked) =>
-                    toggleLocomotion(option.value, checked)
-                  }
-                  label={option.label}
-                />
-              ))}
+            <div>
+              <FieldLabel
+                id="custom-vehicle-cost-info"
+                label="Cost info"
+                variant="dark"
+              />
+              <TextField
+                id="custom-vehicle-cost-info"
+                type="text"
+                variant="dark"
+                value={costInfo}
+                onChange={(e) => setCostInfo(e.target.value)}
+                placeholder="e.g. Not for sale"
+                disabled={submitting || loadingEdit}
+              />
             </div>
           </div>
-          <Checkbox
-            checked={membersCanModify}
-            onChange={setMembersCanModify}
-            disabled={submitting || loadingEdit}
-            tone="inverse"
-            label="Allow game members to create unique vehicles from this template"
-          />
-        </div>
-      </section>
+        </section>
 
-      <ImageUploadDropzone
-        id="custom-vehicle-image"
-        label="Image"
-        imageKey={imageKey}
-        onFileChange={(file) => void handleFile(file)}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        uploading={uploading}
-        error={uploadError}
-        disabled={submitting || loadingEdit}
-        previewLayout="itemThumbnail"
-        previewImageAlt={name.trim() ? `${name.trim()} image` : "Vehicle image"}
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-white/90">Stats</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ModalNumberField
+              id="custom-vehicle-max-hp"
+              label="Max HP"
+              value={maxHp}
+              onChange={setMaxHp}
+              disabled={submitting || loadingEdit}
+              min={1}
+              placeholder="1"
+            />
+            <ModalNumberField
+              id="custom-vehicle-manoeuvrability"
+              label={VEHICLE_MANOEUVRABILITY_LABEL}
+              value={manoeuvrability}
+              onChange={setManoeuvrability}
+              disabled={submitting || loadingEdit}
+              placeholder="0"
+            />
+            <ModalNumberField
+              id="custom-vehicle-acceleration"
+              label={VEHICLE_ACCELERATION_LABEL}
+              value={acceleration}
+              onChange={setAcceleration}
+              disabled={submitting || loadingEdit}
+              min={1}
+              placeholder="1"
+            />
+            <ModalNumberField
+              id="custom-vehicle-travel-speed"
+              label={VEHICLE_TRAVEL_SPEED_LABEL}
+              hint={VEHICLE_TRAVEL_SPEED_HELP}
+              value={travelSpeedKmh}
+              onChange={setTravelSpeedKmh}
+              disabled={submitting || loadingEdit}
+              min={1}
+              placeholder="1"
+            />
+            <ModalNumberField
+              id="custom-vehicle-combat-speed"
+              label={VEHICLE_COMBAT_SPEED_LABEL}
+              hint={VEHICLE_COMBAT_SPEED_HELP}
+              value={combatSpeedMetres}
+              onChange={setCombatSpeedMetres}
+              disabled={submitting || loadingEdit}
+              min={1}
+              placeholder="1"
+            />
+            <ModalNumberField
+              id="custom-vehicle-max-passengers"
+              label="Max passengers (incl. driver)"
+              value={maxPassengers}
+              onChange={setMaxPassengers}
+              disabled={submitting || loadingEdit}
+              min={1}
+              placeholder="1"
+            />
+            <ModalNumberField
+              id="custom-vehicle-max-mounted-items"
+              label="Max mounted items"
+              value={maxMountedItems}
+              onChange={setMaxMountedItems}
+              disabled={submitting || loadingEdit}
+              required={false}
+              min={0}
+              placeholder="0"
+            />
+            <ModalNumberField
+              id="custom-vehicle-weight"
+              label="Weight kg"
+              value={weight}
+              onChange={setWeight}
+              disabled={submitting || loadingEdit}
+              required={false}
+              min={0}
+              step={0.1}
+              placeholder="0"
+            />
+            <ModalNumberField
+              id="custom-vehicle-height"
+              label="Height metres"
+              value={heightMetres}
+              onChange={setHeightMetres}
+              disabled={submitting || loadingEdit}
+              required={false}
+              min={0}
+              step={0.1}
+              placeholder="0"
+            />
+            <ModalNumberField
+              id="custom-vehicle-cargo"
+              label="Max cargo weight kg"
+              value={maxCargoWeightKg}
+              onChange={setMaxCargoWeightKg}
+              disabled={submitting || loadingEdit}
+              required={false}
+              min={0}
+              step={0.1}
+              placeholder="0"
+            />
+          </div>
+        </section>
+
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-white/90">Type</h3>
+          <div className="space-y-3">
+            <SelectDropdown
+              id="custom-vehicle-size"
+              label="Vehicle size"
+              placeholder="Select vehicle size"
+              value={vehicleSizeCategory}
+              options={[...sizeOptions]}
+              disabled={submitting || loadingEdit}
+              onChange={(value) =>
+                setVehicleSizeCategory(value as VehicleSizeCategory)
+              }
+            />
+            <div>
+              <FieldLabel
+                id="custom-vehicle-locomotion"
+                label="Locomotion modes"
+                variant="dark"
+                required
+              />
+              <div className="grid gap-2 sm:grid-cols-2">
+                {locomotionOptions.map((option) => (
+                  <Checkbox
+                    key={option.value}
+                    checked={locomotionModes.includes(option.value)}
+                    onChange={(checked) =>
+                      toggleLocomotion(option.value, checked)
+                    }
+                    label={option.label}
+                  />
+                ))}
+              </div>
+            </div>
+            <Checkbox
+              checked={membersCanModify}
+              onChange={setMembersCanModify}
+              disabled={submitting || loadingEdit}
+              tone="inverse"
+              label="Allow game members to create unique vehicles from this template"
+            />
+          </div>
+        </section>
+
+        <ImageUploadDropzone
+          id="custom-vehicle-image"
+          label="Image"
+          imageKey={imageKey}
+          onFileChange={(file) => void handleFile(file)}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          uploading={uploading}
+          error={uploadError}
+          disabled={submitting || loadingEdit}
+          previewLayout="itemThumbnail"
+          previewImageAlt={
+            name.trim() ? `${name.trim()} image` : "Vehicle image"
+          }
+        />
+
+        {isEdit ? (
+          <div className="border-t border-white/10 pt-4">
+            <Button
+              type="button"
+              variant="danger"
+              fullWidth={false}
+              disabled={submitting || loadingEdit}
+              onClick={() => {
+                setDeleteError(null);
+                setDeleteConfirmOpen(true);
+              }}
+            >
+              Delete custom vehicle
+            </Button>
+          </div>
+        ) : null}
+      </GameFormModal>
+      <DangerConfirmModal
+        isOpen={isOpen && deleteConfirmOpen}
+        variant="modalBackground"
+        title="Delete this custom vehicle?"
+        description="This cannot be undone."
+        confirmLabel="Delete custom vehicle"
+        cancelLabel="Cancel"
+        isSubmitting={submitting}
+        errorMessage={deleteError}
+        onCancel={() => {
+          if (submitting) return;
+          setDeleteConfirmOpen(false);
+        }}
+        onConfirm={() => {
+          void handleDelete();
+        }}
       />
-
-      {isEdit ? (
-        <div className="border-t border-white/10 pt-4">
-          <Button
-            type="button"
-            variant="danger"
-            fullWidth={false}
-            disabled={submitting || loadingEdit}
-            onClick={() => {
-              void handleDelete();
-            }}
-          >
-            Delete custom vehicle
-          </Button>
-          {deleteError ? (
-            <p className="mt-2 text-sm text-neblirDanger-400">{deleteError}</p>
-          ) : null}
-        </div>
-      ) : null}
-    </GameFormModal>
+    </>
   );
 }

@@ -46,6 +46,30 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const config = getR2Config();
+    if (
+      config &&
+      attachment.thumbnailKey &&
+      isDeletableUploadKey(attachment.thumbnailKey)
+    ) {
+      try {
+        await config.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: config.bucketName,
+            Key: attachment.thumbnailKey,
+          })
+        );
+      } catch (error) {
+        logger.error({
+          method: "DELETE",
+          route,
+          message: "Failed to delete lore attachment thumbnail",
+          error,
+          details: serializeError(error),
+          thumbnailKey: attachment.thumbnailKey,
+          attachmentId,
+        });
+      }
+    }
     if (config && isDeletableUploadKey(attachment.fileKey)) {
       await config.s3Client.send(
         new DeleteObjectCommand({
