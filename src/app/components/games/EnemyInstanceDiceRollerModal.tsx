@@ -4,6 +4,7 @@ import {
   DAMAGE_DICE_OPTIONS,
   DAMAGE_TYPE_OPTIONS,
 } from "@/app/lib/damage-roll-dropdown-options";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import type { WeaponDamageType } from "@/app/lib/types/item";
@@ -81,9 +82,9 @@ export function EnemyInstanceDiceRollerModal({
 
   const handleDamageRoll = useCallback(() => {
     if (damageDiceCount <= 0 || damageDiceType <= 1) return;
-    const results = Array.from({ length: damageDiceCount }, () =>
-      rollDie(damageDiceType)
-    ).sort((a, b) => b - a);
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: damageDiceCount }, () => rollDie(damageDiceType))
+    );
     setDamageResult(results);
     void emitRollEvent(gameId, {
       isPrivate: emitIsPrivate,

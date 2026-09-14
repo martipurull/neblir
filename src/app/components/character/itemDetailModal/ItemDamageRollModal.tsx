@@ -3,6 +3,7 @@
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Button } from "@/app/components/shared/Button";
 import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
@@ -46,8 +47,8 @@ export function ItemDamageRollModal({
 
   const handleRoll = () => {
     if (totalDamageDice <= 0 || baseDamageType <= 0) return;
-    const results = Array.from({ length: totalDamageDice }, () =>
-      rollDice(baseDamageType)
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: totalDamageDice }, () => rollDice(baseDamageType))
     );
     setRollResult(results);
     void emitRollEvent(gameId, {

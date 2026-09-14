@@ -78,6 +78,12 @@ _Avoid_: File, recap, the unused `Game.lore` string
 A per-game session-summary PDF, separate from Files and Lore.
 _Avoid_: File, lore
 
+### Combat
+
+**Reaction**:
+A per-round combat resource on a character or enemy instance: how many remain this round, up to that combatant’s cap. Spending one (for example to defend) reduces remaining; a reset restores remaining to the cap.
+_Avoid_: defence reaction cost (an area-effect item rule), clear (when meaning this restore)
+
 ### Enemies
 
 **Custom enemy**:

@@ -2,6 +2,7 @@
 
 import type { AttackType } from "@/app/components/combat/AttackRollModal";
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import {
   emitIsPrivateFromRollPrivacy,
@@ -320,7 +321,7 @@ export function useEnemyInstancePage() {
   const runActionToHit = useCallback(
     (actionName: string, dice: number) => {
       if (!enemy || dice <= 0) return;
-      const rolls = rollD10(dice);
+      const rolls = sortDiceResultsHighToLow(rollD10(dice));
       const sum = rolls.reduce((a, b) => a + b, 0);
       void emitRollEvent(gameId, {
         isPrivate: emitIsPrivate,
@@ -353,7 +354,7 @@ export function useEnemyInstancePage() {
       damageType?: string | null
     ) => {
       if (!enemy || n <= 0 || sides <= 0) return;
-      const rolls = rollDice(n, sides);
+      const rolls = sortDiceResultsHighToLow(rollDice(n, sides));
       const sum = rolls.reduce((a, b) => a + b, 0);
       void emitRollEvent(gameId, {
         isPrivate: emitIsPrivate,

@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { useMemo } from "react";
 
 export type RollHighlightMode = "d10" | "plain";
@@ -46,7 +47,7 @@ export function RollResultQuickModal({
   total,
 }: RollResultQuickModalProps) {
   const orderedResults = useMemo(
-    () => [...results].sort((a, b) => b - a),
+    () => sortDiceResultsHighToLow(results),
     [results]
   );
 

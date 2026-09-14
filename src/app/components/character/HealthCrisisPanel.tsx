@@ -11,6 +11,7 @@ import {
   deathRollDicePoolSize,
   madnessRollDicePoolSize,
 } from "@/app/lib/crisisRoll";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { rollDie } from "@/app/lib/general-dice";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -155,7 +156,9 @@ export function HealthCrisisPanel({
 
   const makeRoll = async (kind: TrackKind) => {
     const pool = kind === "death" ? deathPool : madnessPool;
-    const dice = Array.from({ length: pool }, () => rollDie(10));
+    const dice = sortDiceResultsHighToLow(
+      Array.from({ length: pool }, () => rollDie(10))
+    );
     const success = crisisPoolIsSuccess(dice);
     const track = kind === "death" ? death : madness;
     const next = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
@@ -58,8 +59,9 @@ export function DiceRollModal({
 
   const handleRoll = useCallback(() => {
     const count = Math.max(0, baseDice + extraDice);
-    const results = Array.from({ length: count }, () => rollD10());
-    results.sort((a, b) => b - a);
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: count }, () => rollD10())
+    );
     setRollResult(results);
     const metadata = secondSelection
       ? { label1, label2, baseDice, extraDice }
