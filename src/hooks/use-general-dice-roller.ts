@@ -1,5 +1,6 @@
 "use client";
 
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import {
   COMMON_DICE_OPTIONS,
   QUICK_DICE_SIDES,
@@ -128,9 +129,9 @@ export function useGeneralDiceRollerState() {
 
   const tryExecuteRoll = useCallback((): GeneralDiceRollerRoll | null => {
     if (!canRollGeneralDice(diceCount, diceType)) return null;
-    const results = Array.from({ length: diceCount }, () =>
-      rollDie(diceType)
-    ).sort((a, b) => b - a);
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: diceCount }, () => rollDie(diceType))
+    );
     const total = results.reduce((sum, value) => sum + value, 0);
     setRollResult(results);
     return {

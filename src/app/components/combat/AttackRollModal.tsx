@@ -4,6 +4,7 @@ import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
@@ -107,13 +108,14 @@ export function AttackRollModal({
     });
   }, [isOpen, options]);
 
-  const handleRoll = useCallback(async () => {
+  const handleRoll = useCallback(() => {
     if (selected?.itemCharacterId && onWeaponUsed) {
-      await onWeaponUsed(selected.itemCharacterId);
+      void onWeaponUsed(selected.itemCharacterId);
     }
     const count = Math.max(0, selectedMod + extraDice);
-    const results = Array.from({ length: count }, () => rollD10());
-    results.sort((a, b) => b - a);
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: count }, () => rollD10())
+    );
     setRollResult(results);
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
@@ -177,14 +179,15 @@ export function AttackRollModal({
       results.push(rollDice(baseDamageType));
     }
 
-    setDamageRollResult(results);
+    const ordered = sortDiceResultsHighToLow(results);
+    setDamageRollResult(ordered);
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
       isPrivate: emitIsPrivate,
       rollType: "ATTACK_DAMAGE",
       diceExpression: `${totalDamageDice}d${baseDamageType}`,
-      results,
-      total: results.reduce((a, b) => a + b, 0),
+      results: ordered,
+      total: ordered.reduce((a, b) => a + b, 0),
       metadata: {
         attackType,
         weaponName: selected?.weaponName ?? null,

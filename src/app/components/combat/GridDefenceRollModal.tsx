@@ -3,6 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
@@ -60,11 +61,12 @@ export function GridDefenceRollModal({
     setRolling(true);
     try {
       if (onRollReaction) {
-        await onRollReaction();
+        void onRollReaction();
       }
       const count = totalDice;
-      const results = Array.from({ length: count }, () => rollD10());
-      results.sort((a, b) => b - a);
+      const results = sortDiceResultsHighToLow(
+        Array.from({ length: count }, () => rollD10())
+      );
       setRollResult(results);
       void emitRollEvent(gameId, {
         characterId,

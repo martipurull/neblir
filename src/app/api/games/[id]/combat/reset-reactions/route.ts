@@ -1,6 +1,6 @@
 import { shapeGameForResponse } from "@/app/lib/gameDetailResponse";
 import { getGameWithDetails } from "@/app/lib/prisma/game";
-import { resetReactionsForInitiativeOrder } from "@/app/lib/prisma/resetInitiativeReactions";
+import { resetReactionsForGame } from "@/app/lib/prisma/resetGameReactions";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
@@ -10,8 +10,8 @@ import { errorResponse } from "../../../../shared/responses";
 
 /**
  * POST /api/games/[id]/combat/reset-reactions
- * GM-only: reset reactionsRemaining to max for every combatant currently in
- * this game's initiative order (characters and enemy instances).
+ * GM-only: restore remaining reactions to the cap for every character in this
+ * game and every enemy instance spawned into it.
  */
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -44,7 +44,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    await resetReactionsForInitiativeOrder(gameId, game.initiativeOrder ?? []);
+    await resetReactionsForGame(gameId);
 
     const updated = await getGameWithDetails(gameId);
     if (!updated) {

@@ -13,6 +13,7 @@ import {
   DAMAGE_DICE_OPTIONS,
   DAMAGE_TYPE_OPTIONS,
 } from "@/app/lib/damage-roll-dropdown-options";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -208,8 +209,8 @@ export function DedicatedDiceRollModal({
 
   const handleStatsRoll = useCallback(() => {
     if (!statsReady || !firstOption || totalDice <= 0) return;
-    const results = Array.from({ length: totalDice }, () => rollD10()).sort(
-      (a, b) => b - a
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: totalDice }, () => rollD10())
     );
     setStatsResult(results);
     const metadata = pairReady
@@ -239,9 +240,9 @@ export function DedicatedDiceRollModal({
 
   const handleDamageRoll = useCallback(() => {
     if (damageDiceCount <= 0 || damageDiceType <= 1) return;
-    const results = Array.from({ length: damageDiceCount }, () =>
-      rollDie(damageDiceType)
-    ).sort((a, b) => b - a);
+    const results = sortDiceResultsHighToLow(
+      Array.from({ length: damageDiceCount }, () => rollDie(damageDiceType))
+    );
     setDamageResult(results);
     void emitRollEvent(gameId, {
       characterId: character.id,
