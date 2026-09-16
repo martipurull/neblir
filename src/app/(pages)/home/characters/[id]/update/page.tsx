@@ -12,6 +12,7 @@ import { useCharacter } from "@/hooks/use-character";
 import { CharacterUpdateFormContent } from "./CharacterUpdateFormContent";
 import {
   toCharacterUpdateFormValues,
+  toPathRankById,
   type CharacterUpdateFormValues,
 } from "./schemas";
 
@@ -78,11 +79,7 @@ export default function CharacterUpdatePage() {
         </p>
       </div>
       <FormProvider {...form}>
-        <CharacterUpdateFormContent
-          pathRankById={Object.fromEntries(
-            (character.paths ?? []).map((path) => [path.id, path.rank ?? 1])
-          )}
-        />
+        <CharacterUpdateFormContent pathRankById={toPathRankById(character)} />
       </FormProvider>
     </PageSection>
   );

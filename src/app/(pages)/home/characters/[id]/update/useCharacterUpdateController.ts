@@ -10,7 +10,7 @@ import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { updateCharacterEditableFields } from "@/lib/api/character";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { CharacterUpdateFormValues } from "./schemas";
-import type { InitialFeatureEntry } from "../../create/steps/PathAndFeaturesStep";
+import type { CharacterUpdateFeatureEntry } from "./schemas";
 
 const STEPS = [
   { id: "backstory", label: "Backstory" },
@@ -54,9 +54,9 @@ export function useCharacterUpdateController() {
   const [showLevelDecreaseConfirm, setShowLevelDecreaseConfirm] =
     useState(false);
   const [pendingStepIndex, setPendingStepIndex] = useState<number | null>(null);
-  const [initialFeatures, setInitialFeatures] = useState<InitialFeatureEntry[]>(
-    []
-  );
+  const [initialFeatures, setInitialFeatures] = useState<
+    CharacterUpdateFeatureEntry[]
+  >([]);
   const [confirmedLevel, setConfirmedLevel] = useState<number | null>(null);
   const [initialLevel, setInitialLevel] = useState<number | null>(null);
   const [nextValidationMessage, setNextValidationMessage] = useState<

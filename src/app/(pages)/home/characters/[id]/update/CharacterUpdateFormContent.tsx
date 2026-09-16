@@ -7,7 +7,7 @@ import { GeneralInfoStep } from "../../create/steps/GeneralInfoStep";
 import { AttributesStep } from "../../create/steps/AttributesStep";
 import { HealthStep } from "../../create/steps/HealthStep";
 import { LearnedSkillsStep } from "../../create/steps/LearnedSkillsStep";
-import { PathAndFeaturesStep } from "../../create/steps/PathAndFeaturesStep";
+import { PathAndFeaturesStep } from "./steps/PathAndFeaturesStep";
 import { useCharacterUpdateController } from "./useCharacterUpdateController";
 import type { CharacterUpdateFormValues } from "./schemas";
 import { Button } from "@/app/components/shared/Button";

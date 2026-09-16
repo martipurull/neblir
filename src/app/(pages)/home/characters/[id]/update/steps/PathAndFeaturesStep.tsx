@@ -1,7 +1,5 @@
 "use client";
 
-import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
-import { getCharacterFeatureSlots } from "../characterCreationStepValidation";
 import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { Button } from "@/app/components/shared/Button";
@@ -9,6 +7,10 @@ import { NumberField } from "@/app/components/shared/NumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import type {
+  CharacterUpdateFeatureEntry,
+  CharacterUpdateFormValues,
+} from "../schemas";
 
 type PathOption = {
   id: string;
@@ -24,26 +26,30 @@ type FeatureOption = {
   description?: string | null;
 };
 
-export type InitialFeatureEntry = { featureId: string; grade: number };
+type PathAndFeaturesStepProps = {
+  onInitialFeaturesChange?: (features: CharacterUpdateFeatureEntry[]) => void;
+  initialFeatures?: CharacterUpdateFeatureEntry[];
+  pathRankById: Record<string, number>;
+};
 
-interface PathAndFeaturesStepProps {
-  onInitialFeaturesChange?: (features: InitialFeatureEntry[]) => void;
-  initialFeatures?: InitialFeatureEntry[];
+function getFeatureGradeSlots(level: number): number {
+  return Math.max(0, 2 * (level - 1));
 }
 
 export function PathAndFeaturesStep({
   onInitialFeaturesChange,
   initialFeatures,
+  pathRankById,
 }: PathAndFeaturesStepProps) {
   const { control, watch, setValue, clearErrors, formState } =
-    useFormContext<CharacterCreationRequest>();
+    useFormContext<CharacterUpdateFormValues>();
   const level = watch("generalInformation.level") ?? 1;
   const pathId = watch("path.pathId");
   const pathError = formState.errors.path?.pathId?.message ?? null;
   const [paths, setPaths] = useState<PathOption[]>([]);
   const [features, setFeatures] = useState<FeatureOption[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<
-    InitialFeatureEntry[]
+    CharacterUpdateFeatureEntry[]
   >(initialFeatures ?? []);
   const [loadingPaths, setLoadingPaths] = useState(true);
   const [loadingFeatures, setLoadingFeatures] = useState(false);
@@ -52,12 +58,10 @@ export function PathAndFeaturesStep({
     onInitialFeaturesChange?.(selectedFeatures);
   }, [selectedFeatures, onInitialFeaturesChange]);
 
-  // When we hydrate initial features (refresh), we want to show them once
-  // the step mounts. This also keeps the UI synced with controller state.
   const hydratedRef = useRef(false);
   const prevPathIdRef = useRef<string | null | undefined>(undefined);
   const formRank = watch("path.rank");
-  const derivedRank = !pathId ? formRank : level;
+  const derivedRank = !pathId ? formRank : (pathRankById[pathId] ?? 1);
   if (
     pathId &&
     typeof derivedRank === "number" &&
@@ -67,13 +71,10 @@ export function PathAndFeaturesStep({
   }
 
   useEffect(() => {
-    // When rehydrating from localStorage, seed the UI with the saved selection.
     setSelectedFeatures(initialFeatures ?? []);
     hydratedRef.current = true;
   }, [initialFeatures]);
 
-  // Requirement: when the user changes path, previously selected features
-  // should be unselected.
   useEffect(() => {
     if (!hydratedRef.current) return;
     if (
@@ -139,7 +140,7 @@ export function PathAndFeaturesStep({
     };
   }, [pathId, level]);
 
-  const featureSlots = getCharacterFeatureSlots(level);
+  const featureSlots = getFeatureGradeSlots(level);
   const selectedGradeSum = selectedFeatures.reduce((s, e) => s + e.grade, 0);
   const slotsLeft = featureSlots - selectedGradeSum;
   const isOverAllocated = selectedGradeSum > featureSlots;
@@ -150,7 +151,6 @@ export function PathAndFeaturesStep({
     }
   }, [pathId, isOverAllocated, clearErrors]);
 
-  // Ensure hydrated selections remain valid for the current path/rank.
   useEffect(() => {
     if (!features || features.length === 0) return;
 
@@ -163,7 +163,7 @@ export function PathAndFeaturesStep({
           const clamped = Math.min(f.maxGrade, Math.max(1, e.grade));
           return { featureId: e.featureId, grade: clamped };
         })
-        .filter((e): e is InitialFeatureEntry => e !== null);
+        .filter((e): e is CharacterUpdateFeatureEntry => e !== null);
 
       return next;
     });
@@ -220,9 +220,9 @@ export function PathAndFeaturesStep({
   return (
     <div className="space-y-4">
       <p className="text-sm text-black/70">
-        Select a path. Rank is set to your character level. You may choose
-        features using a total of up to <strong>{featureSlots}</strong> grade
-        slots (2 slots per level above 1).
+        Select a path. Rank follows the selected path, or 1 if you pick a path
+        you do not already have. You may choose features using a total of up to{" "}
+        <strong>{featureSlots}</strong> grade slots (2 slots per level above 1).
       </p>
 
       <div className="mb-6 space-y-3">
@@ -245,7 +245,7 @@ export function PathAndFeaturesStep({
                 disabled={loadingPaths}
                 onChange={(value) => {
                   field.onChange(value);
-                  setValue("path.rank", level);
+                  setValue("path.rank", pathRankById[value] ?? 1);
                   clearErrors("path.pathId");
                 }}
               />

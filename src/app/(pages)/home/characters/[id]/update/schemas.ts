@@ -3,6 +3,19 @@ import type { CharacterEditableUpdateRequest } from "@/app/api/characters/schema
 
 export type CharacterUpdateFormValues = CharacterEditableUpdateRequest;
 
+export type CharacterUpdateFeatureEntry = {
+  featureId: string;
+  grade: number;
+};
+
+export function toPathRankById(
+  character: CharacterDetail
+): Record<string, number> {
+  return Object.fromEntries(
+    (character.paths ?? []).map((path) => [path.id, path.rank ?? 1])
+  );
+}
+
 export function toCharacterUpdateFormValues(
   character: CharacterDetail
 ): CharacterUpdateFormValues {
