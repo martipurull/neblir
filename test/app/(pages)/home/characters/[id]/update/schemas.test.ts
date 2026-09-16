@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import {
-  toCharacterUpdateFormValues,
-  toPathRankById,
-} from "@/app/(pages)/home/characters/[id]/update/schemas";
+import { toCharacterUpdateFormValues } from "@/app/(pages)/home/characters/[id]/update/schemas";
 
 const baseAttributes = {
   intelligence: { investigation: 1, memory: 1, deduction: 1 },
@@ -101,7 +98,7 @@ function makeCharacterDetail(
 }
 
 describe("toCharacterUpdateFormValues", () => {
-  it("selects the highest-rank path as the single editable path", () => {
+  it("maps every path with its rank instead of a single primary path", () => {
     const character = makeCharacterDetail({
       paths: [
         {
@@ -123,8 +120,12 @@ describe("toCharacterUpdateFormValues", () => {
 
     const values = toCharacterUpdateFormValues(character);
 
-    expect(values.path).toEqual({ pathId: "path-soldier", rank: 3 });
-    expect(values.primaryPathCharacterId).toBe("pc-soldier");
+    expect(values.paths).toEqual([
+      { pathId: "path-medic", rank: 1, name: "SCIENTIST_DOCTOR" },
+      { pathId: "path-soldier", rank: 3, name: "SOLDIER" },
+    ]);
+    expect(values).not.toHaveProperty("path");
+    expect(values).not.toHaveProperty("primaryPathCharacterId");
   });
 
   it("maps owned features and omits persisted special ability objects", () => {
@@ -157,45 +158,27 @@ describe("toCharacterUpdateFormValues", () => {
 
     const values = toCharacterUpdateFormValues(character);
 
-    expect(values.initialFeatures).toEqual([{ featureId: "feat-1", grade: 2 }]);
+    expect(values.initialFeatures).toEqual([
+      {
+        featureId: "feat-1",
+        grade: 2,
+        name: "Cover fire",
+        maxGrade: 3,
+        minPathRank: 1,
+        applicablePaths: ["SOLDIER"],
+      },
+    ]);
     expect(values.generalInformation.specialAbilityName).toBe(
       "INNATE_MANIPULATION"
     );
     expect(values.generalInformation).not.toHaveProperty("specialAbility");
   });
 
-  it("leaves path empty when the character has no paths", () => {
+  it("leaves paths empty when the character has no paths", () => {
     const values = toCharacterUpdateFormValues(makeCharacterDetail());
 
-    expect(values.path).toEqual({ pathId: "", rank: 4 });
-    expect(values.primaryPathCharacterId).toBeUndefined();
+    expect(values.paths).toEqual([]);
+    expect(values).not.toHaveProperty("primaryPathCharacterId");
     expect(values.initialFeatures).toEqual([]);
-  });
-});
-
-describe("toPathRankById", () => {
-  it("maps each catalogue path id to its stored rank for the Update Path step", () => {
-    const character = makeCharacterDetail({
-      paths: [
-        {
-          id: "path-soldier",
-          name: "SOLDIER",
-          baseFeature: "soldier-base",
-          rank: 3,
-          pathCharacterId: "pc-soldier",
-        },
-        {
-          id: "path-medic",
-          name: "SCIENTIST_DOCTOR",
-          baseFeature: "medic-base",
-          pathCharacterId: "pc-medic",
-        },
-      ],
-    });
-
-    expect(toPathRankById(character)).toEqual({
-      "path-soldier": 3,
-      "path-medic": 1,
-    });
   });
 });

@@ -11,7 +11,7 @@ const getCharacterMock = vi.fn();
 const deleteCharacterMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
 const getPathMock = vi.fn();
-const getAllFeaturesAvailableForPathAndRankMock = vi.fn();
+const getFeaturesMock = vi.fn();
 const pathCharacterUpdateMock = vi.fn();
 const pathCharacterDeleteMock = vi.fn();
 const pathCharacterCreateMock = vi.fn();
@@ -36,8 +36,7 @@ vi.mock("@/app/lib/prisma/path", () => ({
 }));
 
 vi.mock("@/app/lib/prisma/feature", () => ({
-  getAllFeaturesAvailableForPathAndRank:
-    getAllFeaturesAvailableForPathAndRankMock,
+  getFeatures: getFeaturesMock,
 }));
 
 vi.mock("@/app/lib/prisma/client", () => ({
@@ -193,9 +192,18 @@ const baseGeneralSkills = {
   manipulationNegotiation: 0,
 };
 
+const CATALOGUE_PATHS: Record<string, { id: string; name: string }> = {
+  "path-soldier": { id: "path-soldier", name: "SOLDIER" },
+  "path-medic": { id: "path-medic", name: "SCIENTIST_DOCTOR" },
+  "path-techno": { id: "path-techno", name: "TECHNO_CRAFTER" },
+};
+
 function makeUpdateBody(
-  pathId = "path-soldier",
-  extras: { primaryPathCharacterId?: string; rank?: number } = {}
+  extras: {
+    level?: number;
+    paths?: Array<{ pathId: string; rank: number }>;
+    initialFeatures?: Array<{ featureId: string; grade: number }>;
+  } = {}
 ) {
   return {
     generalInformation: {
@@ -206,7 +214,7 @@ function makeUpdateBody(
       profession: "Engineer",
       race: "HUMAN",
       birthplace: "London",
-      level: 1,
+      level: extras.level ?? 3,
       height: 170,
       weight: 70,
     },
@@ -229,11 +237,11 @@ function makeUpdateBody(
       specialSkills: [],
     },
     wallet: [],
-    path: { pathId, rank: extras.rank ?? 2 },
-    ...(extras.primaryPathCharacterId != null
-      ? { primaryPathCharacterId: extras.primaryPathCharacterId }
-      : {}),
-    initialFeatures: [],
+    paths: extras.paths ?? [
+      { pathId: "path-soldier", rank: 2 },
+      { pathId: "path-medic", rank: 1 },
+    ],
+    initialFeatures: extras.initialFeatures ?? [],
   };
 }
 
@@ -267,8 +275,10 @@ describe("/api/characters/[id] PATCH", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     characterBelongsToUserMock.mockResolvedValue(true);
-    getPathMock.mockResolvedValue({ id: "path-soldier", name: "SOLDIER" });
-    getAllFeaturesAvailableForPathAndRankMock.mockResolvedValue([]);
+    getPathMock.mockImplementation(
+      async (id: string) => CATALOGUE_PATHS[id] ?? null
+    );
+    getFeaturesMock.mockResolvedValue([]);
     getCharacterMock.mockResolvedValue(
       makeExistingCharacter([
         {
@@ -280,7 +290,7 @@ describe("/api/characters/[id] PATCH", () => {
         },
         {
           id: "path-medic",
-          name: "MEDIC",
+          name: "SCIENTIST_DOCTOR",
           rank: 1,
           pathCharacterId: "pc-medic",
         },
@@ -307,16 +317,27 @@ describe("/api/characters/[id] PATCH", () => {
     expect(updateData.combatInformation.reactionsRemaining).toBe(1);
   });
 
-  it("updates an existing path in place and does not delete other paths", async () => {
+  it("updates existing path ranks in place without deleting remaining paths", async () => {
     const { PATCH } = await import("@/app/api/characters/[id]/route");
     const response = await invokeRoute(
       PATCH,
-      makeAuthedRequest(makeUpdateBody("path-soldier")),
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [
+            { pathId: "path-soldier", rank: 1 },
+            { pathId: "path-medic", rank: 2 },
+          ],
+        })
+      ),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
     expect(pathCharacterUpdateMock).toHaveBeenCalledWith({
       where: { id: "pc-soldier" },
+      data: { rank: 1 },
+    });
+    expect(pathCharacterUpdateMock).toHaveBeenCalledWith({
+      where: { id: "pc-medic" },
       data: { rank: 2 },
     });
     expect(pathCharacterUpdateMock.mock.calls[0][0].data).not.toHaveProperty(
@@ -327,65 +348,74 @@ describe("/api/characters/[id] PATCH", () => {
     expect(pathCharacterDeleteManyMock).not.toHaveBeenCalled();
   });
 
-  it("replaces only the previous primary path when the form path is new", async () => {
-    getPathMock.mockResolvedValue({
-      id: "path-techno",
-      name: "TECHNO_CRAFTER",
-    });
+  it("full-replaces the path set by adding, removing, and keeping rows", async () => {
     const { PATCH } = await import("@/app/api/characters/[id]/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest(
-        makeUpdateBody("path-techno", {
-          primaryPathCharacterId: "pc-soldier",
+        makeUpdateBody({
+          paths: [
+            { pathId: "path-soldier", rank: 2 },
+            { pathId: "path-techno", rank: 1 },
+          ],
         })
       ),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
-    expect(pathCharacterDeleteMock).toHaveBeenCalledWith({
+    expect(pathCharacterUpdateMock).toHaveBeenCalledWith({
       where: { id: "pc-soldier" },
+      data: { rank: 2 },
     });
     expect(pathCharacterCreateMock).toHaveBeenCalledWith({
       data: {
         characterId: "char-1",
         pathId: "path-techno",
-        rank: 2,
+        rank: 1,
       },
     });
-    expect(pathCharacterDeleteManyMock).not.toHaveBeenCalled();
-    expect(pathCharacterUpdateMock).not.toHaveBeenCalled();
+    expect(pathCharacterDeleteMock).toHaveBeenCalledWith({
+      where: { id: "pc-medic" },
+    });
+    expect(pathCharacterDeleteMock).not.toHaveBeenCalledWith({
+      where: { id: "pc-soldier" },
+    });
   });
 
-  it("uses primaryPathCharacterId from form open even when ranks have changed", async () => {
-    getPathMock.mockResolvedValue({
-      id: "path-techno",
-      name: "TECHNO_CRAFTER",
-    });
-    getCharacterMock.mockResolvedValue(
-      makeExistingCharacter([
-        {
-          id: "path-medic",
-          name: "MEDIC",
-          rank: 3,
-          pathCharacterId: "pc-medic",
-        },
-        {
-          id: "path-soldier",
-          name: "SOLDIER",
-          rank: 1,
-          pathCharacterId: "pc-soldier",
-          favouriteWeaponItemId: "weapon-1",
-        },
-      ])
-    );
+  it("keeps the Soldier favourite weapon when Soldier remains after save", async () => {
     const { PATCH } = await import("@/app/api/characters/[id]/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest(
-        makeUpdateBody("path-techno", {
-          primaryPathCharacterId: "pc-soldier",
-          rank: 1,
+        makeUpdateBody({
+          paths: [
+            { pathId: "path-soldier", rank: 2 },
+            { pathId: "path-techno", rank: 1 },
+          ],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(pathCharacterDeleteMock).not.toHaveBeenCalledWith({
+      where: { id: "pc-soldier" },
+    });
+    expect(pathCharacterUpdateMock).toHaveBeenCalledWith({
+      where: { id: "pc-soldier" },
+      data: { rank: 2 },
+    });
+    expect(pathCharacterUpdateMock.mock.calls[0][0].data).not.toHaveProperty(
+      "favouriteWeapon"
+    );
+  });
+
+  it("clears the favourite weapon by removing the Soldier path row", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [{ pathId: "path-medic", rank: 3 }],
         })
       ),
       makeParams({ id: "char-1" })
@@ -394,51 +424,248 @@ describe("/api/characters/[id] PATCH", () => {
     expect(pathCharacterDeleteMock).toHaveBeenCalledWith({
       where: { id: "pc-soldier" },
     });
-    expect(pathCharacterDeleteMock).not.toHaveBeenCalledWith({
+    expect(pathCharacterUpdateMock).toHaveBeenCalledWith({
       where: { id: "pc-medic" },
+      data: { rank: 3 },
     });
   });
 
-  it("keeps the Soldier favourite weapon when a secondary Soldier path remains", async () => {
-    getPathMock.mockResolvedValue({
-      id: "path-techno",
-      name: "TECHNO_CRAFTER",
-    });
-    getCharacterMock.mockResolvedValue(
-      makeExistingCharacter([
-        {
-          id: "path-medic",
-          name: "MEDIC",
-          rank: 2,
-          pathCharacterId: "pc-medic",
-        },
-        {
-          id: "path-soldier",
-          name: "SOLDIER",
-          rank: 1,
-          pathCharacterId: "pc-soldier",
-          favouriteWeaponItemId: "weapon-1",
-        },
-      ])
-    );
+  it("rejects unallocated level greater than 0", async () => {
     const { PATCH } = await import("@/app/api/characters/[id]/route");
     const response = await invokeRoute(
       PATCH,
       makeAuthedRequest(
-        makeUpdateBody("path-techno", {
-          primaryPathCharacterId: "pc-medic",
-          rank: 1,
+        makeUpdateBody({
+          level: 4,
+          paths: [
+            { pathId: "path-soldier", rank: 2 },
+            { pathId: "path-medic", rank: 1 },
+          ],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe(
+      "Unallocated level is 1. Assign all level to path ranks before saving."
+    );
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects path ranks that exceed level", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          level: 2,
+          paths: [
+            { pathId: "path-soldier", rank: 2 },
+            { pathId: "path-medic", rank: 1 },
+          ],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe(
+      "Path ranks exceed level by 1. Reduce ranks or raise level before saving."
+    );
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects duplicate path ids", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [
+            { pathId: "path-soldier", rank: 2 },
+            { pathId: "path-soldier", rank: 1 },
+          ],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe("Duplicate paths are not allowed");
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("replaces owned features when they fit the level grade budget and are legal", async () => {
+    getFeaturesMock.mockResolvedValue([
+      {
+        id: "feat-cover",
+        name: "Cover fire",
+        maxGrade: 3,
+        minPathRank: 1,
+        applicablePaths: ["SOLDIER"],
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          initialFeatures: [{ featureId: "feat-cover", grade: 2 }],
         })
       ),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
-    expect(pathCharacterDeleteMock).toHaveBeenCalledWith({
-      where: { id: "pc-medic" },
+    expect(featureCharacterDeleteManyMock).toHaveBeenCalledWith({
+      where: { characterId: "char-1" },
     });
-    expect(pathCharacterDeleteMock).not.toHaveBeenCalledWith({
-      where: { id: "pc-soldier" },
+    expect(featureCharacterCreateManyMock).toHaveBeenCalledWith({
+      data: [
+        {
+          characterId: "char-1",
+          featureId: "feat-cover",
+          grade: 2,
+        },
+      ],
     });
-    expect(pathCharacterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects feature grades that exceed 2 × (level − 1)", async () => {
+    getFeaturesMock.mockResolvedValue([
+      {
+        id: "feat-cover",
+        name: "Cover fire",
+        maxGrade: 6,
+        minPathRank: 1,
+        applicablePaths: ["SOLDIER"],
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          initialFeatures: [{ featureId: "feat-cover", grade: 5 }],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe(
+      "Total feature grades cannot exceed character feature grade slots"
+    );
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("accepts a feature that is legal for a secondary submitted path", async () => {
+    getFeaturesMock.mockResolvedValue([
+      {
+        id: "feat-heal",
+        name: "Field medicine",
+        maxGrade: 2,
+        minPathRank: 1,
+        applicablePaths: ["SCIENTIST_DOCTOR"],
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          initialFeatures: [{ featureId: "feat-heal", grade: 1 }],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects a feature that is not legal for any submitted path and rank", async () => {
+    getFeaturesMock.mockResolvedValue([
+      {
+        id: "feat-heal",
+        name: "Field medicine",
+        maxGrade: 2,
+        minPathRank: 2,
+        applicablePaths: ["SCIENTIST_DOCTOR"],
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [{ pathId: "path-soldier", rank: 3 }],
+          initialFeatures: [{ featureId: "feat-heal", grade: 1 }],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe(
+      "Feature Field medicine is not legal for the submitted paths and ranks"
+    );
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty paths array", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(makeUpdateBody({ paths: [] })),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a path rank below 1", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [{ pathId: "path-soldier", rank: 0 }],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a path that is not in the catalogue", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        makeUpdateBody({
+          paths: [{ pathId: "path-missing", rank: 3 }],
+        })
+      ),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.message).toBe("Path not found");
+    expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects retired primary-path body fields", async () => {
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({
+        ...makeUpdateBody(),
+        path: { pathId: "path-soldier", rank: 3 },
+        primaryPathCharacterId: "pc-soldier",
+      }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(characterUpdateMock).not.toHaveBeenCalled();
   });
 });

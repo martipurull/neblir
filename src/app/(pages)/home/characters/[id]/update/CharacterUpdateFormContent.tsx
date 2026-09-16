@@ -13,13 +13,7 @@ import type { CharacterUpdateFormValues } from "./schemas";
 import { Button } from "@/app/components/shared/Button";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 
-type CharacterUpdateFormContentProps = {
-  pathRankById: Record<string, number>;
-};
-
-export function CharacterUpdateFormContent({
-  pathRankById,
-}: CharacterUpdateFormContentProps) {
+export function CharacterUpdateFormContent() {
   const {
     steps,
     currentStepIndex,
@@ -27,11 +21,11 @@ export function CharacterUpdateFormContent({
     isSubmitting,
     submitError,
     submitSuccess,
-    initialFeatures,
-    setInitialFeatures,
+    pathConstraintErrors,
     showLevelDecreaseConfirm,
     nextValidationMessage,
     hasBlockingLevelIssues,
+    hasBlockingPathIssues,
     onConfirmLevelDecrease,
     onCancelLevelDecrease,
     goToStep,
@@ -62,13 +56,7 @@ export function CharacterUpdateFormContent({
         {currentStepIndex === 2 && <AttributesStep />}
         {currentStepIndex === 3 && <HealthStep clampOnBlur={false} />}
         {currentStepIndex === 4 && <LearnedSkillsStep />}
-        {currentStepIndex === 5 && (
-          <PathAndFeaturesStep
-            onInitialFeaturesChange={setInitialFeatures}
-            initialFeatures={initialFeatures}
-            pathRankById={pathRankById}
-          />
-        )}
+        {currentStepIndex === 5 && <PathAndFeaturesStep />}
 
         {submitError && (
           <p className="text-sm text-neblirDanger-600" role="alert">
@@ -98,6 +86,16 @@ export function CharacterUpdateFormContent({
             skills, features).
           </p>
         )}
+        {hasBlockingPathIssues &&
+          pathConstraintErrors.map((message) => (
+            <p
+              key={message}
+              className="text-sm text-neblirDanger-600"
+              role="alert"
+            >
+              {message}
+            </p>
+          ))}
 
         <div className="flex flex-col gap-3">
           <div className="flex gap-3">
@@ -135,7 +133,9 @@ export function CharacterUpdateFormContent({
             variant="lightSafePrimary"
             fullWidth
             text={isSubmitting ? "Saving..." : "Save changes"}
-            disabled={isSubmitting || hasBlockingLevelIssues}
+            disabled={
+              isSubmitting || hasBlockingLevelIssues || hasBlockingPathIssues
+            }
           />
         </div>
       </form>

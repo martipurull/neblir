@@ -7,8 +7,9 @@ import { logger } from "@/logger";
 import { characterEditableUpdateSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
 import { getPath } from "@/app/lib/prisma/path";
-import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
+import { getFeatures } from "@/app/lib/prisma/feature";
 import { prisma } from "@/app/lib/prisma/client";
+import type { PathName } from "@prisma/client";
 import {
   CharacterDeletionTransactionError,
   ValidationError,
@@ -134,25 +135,54 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const {
-      primaryPathCharacterId: primaryPathCharacterIdAtFormOpen,
-      ...updatePayload
-    } = parseResult.data;
-    const pathId = updatePayload.path.pathId;
-    const pathRank = updatePayload.path.rank;
+    const updatePayload = parseResult.data;
+    const submittedPaths = updatePayload.paths;
     const rawInitialFeatures = updatePayload.initialFeatures ?? [];
+    const level = updatePayload.generalInformation.level;
 
-    const path = await getPath(pathId);
-    if (!path) {
-      return errorResponse("Path not found", 400);
+    const submittedPathIds = submittedPaths.map((path) => path.pathId);
+    if (new Set(submittedPathIds).size !== submittedPathIds.length) {
+      return errorResponse("Duplicate paths are not allowed", 400);
     }
 
-    const availableFeatures = await getAllFeaturesAvailableForPathAndRank(
-      path.name,
-      pathRank
+    const resolvedPaths: Array<{
+      pathId: string;
+      rank: number;
+      name: PathName;
+    }> = [];
+    for (const submitted of submittedPaths) {
+      const path = await getPath(submitted.pathId);
+      if (!path) {
+        return errorResponse("Path not found", 400);
+      }
+      resolvedPaths.push({
+        pathId: submitted.pathId,
+        rank: submitted.rank,
+        name: path.name,
+      });
+    }
+
+    const rankSum = resolvedPaths.reduce((sum, path) => sum + path.rank, 0);
+    const unallocatedLevel = level - rankSum;
+    if (unallocatedLevel > 0) {
+      return errorResponse(
+        `Unallocated level is ${unallocatedLevel}. Assign all level to path ranks before saving.`,
+        400
+      );
+    }
+    if (unallocatedLevel < 0) {
+      return errorResponse(
+        `Path ranks exceed level by ${-unallocatedLevel}. Reduce ranks or raise level before saving.`,
+        400
+      );
+    }
+
+    const featureIds = rawInitialFeatures.map((entry) => entry.featureId);
+    const catalogueFeatures =
+      featureIds.length > 0 ? await getFeatures(featureIds) : [];
+    const featureMap = new Map(
+      catalogueFeatures.map((feature) => [feature.id, feature])
     );
-    const availableIds = new Set(availableFeatures.map((f) => f.id));
-    const featureMap = new Map(availableFeatures.map((f) => [f.id, f]));
 
     let gradeSum = 0;
     for (const entry of rawInitialFeatures) {
@@ -163,14 +193,25 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ) {
         return errorResponse("Invalid initialFeatures entry", 400);
       }
-      if (!availableIds.has(entry.featureId)) {
+      const feature = featureMap.get(entry.featureId);
+      if (!feature) {
         return errorResponse(
-          "One or more features are not available for the selected path and rank",
+          "One or more features were not found in the catalogue",
           400
         );
       }
-      const feature = featureMap.get(entry.featureId);
-      if (feature && entry.grade > feature.maxGrade) {
+      const isLegal = resolvedPaths.some(
+        (path) =>
+          feature.applicablePaths.includes(path.name) &&
+          path.rank >= feature.minPathRank
+      );
+      if (!isLegal) {
+        return errorResponse(
+          `Feature ${feature.name} is not legal for the submitted paths and ranks`,
+          400
+        );
+      }
+      if (entry.grade > feature.maxGrade) {
         return errorResponse(
           `Feature ${feature.name} grade exceeds max (${feature.maxGrade})`,
           400
@@ -178,10 +219,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       }
       gradeSum += entry.grade;
     }
-    const featureSlots = Math.max(0, 2 * (pathRank - 1));
+    const featureSlots = Math.max(0, 2 * (level - 1));
     if (gradeSum > featureSlots) {
       return errorResponse(
-        "Total feature grades cannot exceed character feature slots",
+        "Total feature grades cannot exceed character feature grade slots",
         400
       );
     }
@@ -235,37 +276,36 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       }
 
       const existingPaths = existingCharacter.paths ?? [];
-      const matchingPath = existingPaths.find((path) => path.id === pathId);
-      if (matchingPath?.pathCharacterId) {
-        await tx.pathCharacter.update({
-          where: { id: matchingPath.pathCharacterId },
-          data: { rank: pathRank },
-        });
-      } else {
-        const primaryFromFormOpen =
-          primaryPathCharacterIdAtFormOpen != null
-            ? existingPaths.find(
-                (path) =>
-                  path.pathCharacterId === primaryPathCharacterIdAtFormOpen
-              )
-            : undefined;
-        const primaryPath =
-          primaryFromFormOpen ??
-          existingPaths
-            .slice()
-            .sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0];
-        if (primaryPath?.pathCharacterId) {
-          await tx.pathCharacter.delete({
-            where: { id: primaryPath.pathCharacterId },
+      const submittedPathIdSet = new Set(
+        resolvedPaths.map((path) => path.pathId)
+      );
+
+      for (const submitted of resolvedPaths) {
+        const matchingPath = existingPaths.find(
+          (path) => path.id === submitted.pathId
+        );
+        if (matchingPath?.pathCharacterId) {
+          await tx.pathCharacter.update({
+            where: { id: matchingPath.pathCharacterId },
+            data: { rank: submitted.rank },
+          });
+        } else {
+          await tx.pathCharacter.create({
+            data: {
+              characterId: id,
+              pathId: submitted.pathId,
+              rank: submitted.rank,
+            },
           });
         }
-        await tx.pathCharacter.create({
-          data: {
-            characterId: id,
-            pathId,
-            rank: pathRank,
-          },
-        });
+      }
+
+      for (const existing of existingPaths) {
+        if (existing.pathCharacterId && !submittedPathIdSet.has(existing.id)) {
+          await tx.pathCharacter.delete({
+            where: { id: existing.pathCharacterId },
+          });
+        }
       }
 
       await tx.featureCharacter.deleteMany({ where: { characterId: id } });

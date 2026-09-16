@@ -119,16 +119,61 @@ describe("characterCreationRequestSchema", () => {
 });
 
 describe("characterEditableUpdateSchema", () => {
-  it("accepts primaryPathCharacterId from form open", async () => {
+  it("accepts a full paths array and owned features", async () => {
+    const { characterEditableUpdateSchema } =
+      await import("@/app/api/characters/schemas");
+    const { path: _path, ...withoutPath } = makeCharacterCreationRequest();
+    const result = characterEditableUpdateSchema.safeParse({
+      ...withoutPath,
+      generalInformation: {
+        ...withoutPath.generalInformation,
+        level: 3,
+      },
+      paths: [
+        { pathId: "path-soldier", rank: 2 },
+        { pathId: "path-medic", rank: 1 },
+      ],
+      initialFeatures: [{ featureId: "feat-1", grade: 2 }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.paths).toEqual([
+        { pathId: "path-soldier", rank: 2 },
+        { pathId: "path-medic", rank: 1 },
+      ]);
+      expect(result.data.initialFeatures).toEqual([
+        { featureId: "feat-1", grade: 2 },
+      ]);
+    }
+  });
+
+  it("rejects the retired primary-path body fields", async () => {
     const { characterEditableUpdateSchema } =
       await import("@/app/api/characters/schemas");
     const result = characterEditableUpdateSchema.safeParse({
       ...makeCharacterCreationRequest(),
       primaryPathCharacterId: "pc-primary-1",
     });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.primaryPathCharacterId).toBe("pc-primary-1");
-    }
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a single path field instead of paths", async () => {
+    const { characterEditableUpdateSchema } =
+      await import("@/app/api/characters/schemas");
+    const result = characterEditableUpdateSchema.safeParse(
+      makeCharacterCreationRequest()
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an empty paths array", async () => {
+    const { characterEditableUpdateSchema } =
+      await import("@/app/api/characters/schemas");
+    const { path: _path, ...withoutPath } = makeCharacterCreationRequest();
+    const result = characterEditableUpdateSchema.safeParse({
+      ...withoutPath,
+      paths: [],
+    });
+    expect(result.success).toBe(false);
   });
 });
