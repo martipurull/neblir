@@ -9,8 +9,13 @@ import { useFormContext } from "react-hook-form";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
 import { updateCharacterEditableFields } from "@/lib/api/character";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import type { CharacterUpdateFormValues } from "./schemas";
-import type { InitialFeatureEntry } from "../../create/steps/PathAndFeaturesStep";
+import {
+  getFeatureGradeSlots,
+  getUnallocatedLevel,
+  isOwnedFeatureLegal,
+  toCharacterUpdateRequest,
+  type CharacterUpdateFormValues,
+} from "./schemas";
 
 const STEPS = [
   { id: "backstory", label: "Backstory" },
@@ -54,9 +59,6 @@ export function useCharacterUpdateController() {
   const [showLevelDecreaseConfirm, setShowLevelDecreaseConfirm] =
     useState(false);
   const [pendingStepIndex, setPendingStepIndex] = useState<number | null>(null);
-  const [initialFeatures, setInitialFeatures] = useState<InitialFeatureEntry[]>(
-    []
-  );
   const [confirmedLevel, setConfirmedLevel] = useState<number | null>(null);
   const [initialLevel, setInitialLevel] = useState<number | null>(null);
   const [nextValidationMessage, setNextValidationMessage] = useState<
@@ -65,26 +67,70 @@ export function useCharacterUpdateController() {
 
   const { getValues, setError, clearErrors, watch } =
     useFormContext<CharacterUpdateFormValues>();
-  const watchedInitialFeatures = watch("initialFeatures");
   const watchedLevel = watch("generalInformation.level");
+  const watchedPaths = watch("paths");
+  const watchedInitialFeatures = watch("initialFeatures");
   const _watchedHealth = watch("health");
   const _watchedLearnedSkills = watch("learnedSkills");
-
-  useEffect(() => {
-    if (!Array.isArray(watchedInitialFeatures)) return;
-    setInitialFeatures(
-      watchedInitialFeatures.map((entry) => ({
-        featureId: entry.featureId,
-        grade: entry.grade,
-      }))
-    );
-  }, [watchedInitialFeatures]);
 
   useEffect(() => {
     if (typeof watchedLevel !== "number") return;
     if (confirmedLevel === null) setConfirmedLevel(watchedLevel);
     if (initialLevel === null) setInitialLevel(watchedLevel);
   }, [confirmedLevel, initialLevel, watchedLevel]);
+
+  const getPathConstraintErrors = useCallback(
+    (values: CharacterUpdateFormValues) => {
+      const errors: string[] = [];
+      const paths = values.paths ?? [];
+      const level = values.generalInformation?.level ?? 1;
+
+      if (paths.length === 0) {
+        errors.push("At least one path is required");
+      }
+      for (const path of paths) {
+        if (path.rank < 1) {
+          errors.push("Each path rank must be at least 1");
+          break;
+        }
+      }
+
+      const unallocatedLevel = getUnallocatedLevel(level, paths);
+      if (unallocatedLevel > 0) {
+        errors.push(
+          `Unallocated level is ${unallocatedLevel}. Assign all level to path ranks before saving.`
+        );
+      } else if (unallocatedLevel < 0) {
+        errors.push(
+          `Path ranks exceed level by ${-unallocatedLevel}. Reduce ranks or raise level before saving.`
+        );
+      }
+
+      const illegalFeatures = (values.initialFeatures ?? []).filter(
+        (feature) => !isOwnedFeatureLegal(feature, paths)
+      );
+      for (const feature of illegalFeatures) {
+        errors.push(
+          feature.name
+            ? `Feature ${feature.name} is not legal for the submitted paths and ranks`
+            : "An owned feature is not legal for the current paths and ranks"
+        );
+      }
+
+      const featureSlots = getFeatureGradeSlots(level);
+      const selectedFeatureGradeSum = (values.initialFeatures ?? []).reduce(
+        (sum, entry) => sum + entry.grade,
+        0
+      );
+      if (selectedFeatureGradeSum > featureSlots) {
+        errors.push(
+          `Selected feature grades exceed available feature grade slots (${featureSlots}).`
+        );
+      }
+      return errors;
+    },
+    []
+  );
 
   const getLevelConstraintErrors = useCallback(
     (values: CharacterUpdateFormValues) => {
@@ -116,19 +162,10 @@ export function useCharacterUpdateController() {
         errors.push(`Learned skills exceed maximum (${learnedSkillsMax}).`);
       }
 
-      const featureSlots = Math.max(0, 2 * (level - 1));
-      const selectedFeatureGradeSum = initialFeatures.reduce(
-        (sum, entry) => sum + entry.grade,
-        0
-      );
-      if (selectedFeatureGradeSum > featureSlots) {
-        errors.push(
-          `Selected feature grades exceed available slots (${featureSlots}).`
-        );
-      }
+      errors.push(...getPathConstraintErrors(values));
       return errors;
     },
-    [initialFeatures]
+    [getPathConstraintErrors]
   );
 
   const validateCurrentStep = useCallback((): string | null => {
@@ -240,16 +277,22 @@ export function useCharacterUpdateController() {
     }
 
     if (currentStepIndex === 5) {
-      if (!values.path?.pathId?.trim()) {
-        const msg = "Please select a path";
-        setError("path.pathId" as never, { message: msg });
-        return msg;
+      const pathErrors = getPathConstraintErrors(values);
+      if (pathErrors.length > 0) {
+        setError("paths" as never, { message: pathErrors[0] });
+        return pathErrors[0];
       }
       return null;
     }
 
     return null;
-  }, [clearErrors, currentStepIndex, getValues, setError]);
+  }, [
+    clearErrors,
+    currentStepIndex,
+    getPathConstraintErrors,
+    getValues,
+    setError,
+  ]);
 
   const validateAllSteps = useCallback((): number | null => {
     clearErrors();
@@ -340,23 +383,13 @@ export function useCharacterUpdateController() {
       return 4;
     }
 
-    if (!values.path?.pathId?.trim()) {
-      setError("path.pathId" as never, { message: "Please select a path" });
-      return 5;
-    }
-    const featureSlots = Math.max(0, 2 * (level - 1));
-    const selectedFeatureGradeSum = initialFeatures.reduce(
-      (sum, entry) => sum + entry.grade,
-      0
-    );
-    if (selectedFeatureGradeSum > featureSlots) {
-      setError("initialFeatures" as never, {
-        message: `Selected feature grades exceed available slots (${featureSlots}).`,
-      });
+    const pathErrors = getPathConstraintErrors(values);
+    if (pathErrors.length > 0) {
+      setError("paths" as never, { message: pathErrors[0] });
       return 5;
     }
     return null;
-  }, [clearErrors, getValues, initialFeatures, setError]);
+  }, [clearErrors, getPathConstraintErrors, getValues, setError]);
 
   const needsLevelDecreaseConfirmation = useCallback(() => {
     const values = getValues();
@@ -421,20 +454,22 @@ export function useCharacterUpdateController() {
       }
       setIsSubmitting(true);
       try {
-        await updateCharacterEditableFields(characterId, {
-          ...values,
-          learnedSkills: {
-            ...values.learnedSkills,
-            specialSkills:
-              values.learnedSkills.specialSkills?.filter((s) => s?.trim()) ??
-              [],
-          },
-          wallet:
-            values.wallet && values.wallet.length > 0
-              ? values.wallet.filter((e) => e.quantity > 0)
-              : [],
-          initialFeatures,
-        });
+        await updateCharacterEditableFields(
+          characterId,
+          toCharacterUpdateRequest({
+            ...values,
+            learnedSkills: {
+              ...values.learnedSkills,
+              specialSkills:
+                values.learnedSkills.specialSkills?.filter((s) => s?.trim()) ??
+                [],
+            },
+            wallet:
+              values.wallet && values.wallet.length > 0
+                ? values.wallet.filter((e) => e.quantity > 0)
+                : [],
+          })
+        );
         setSubmitSuccess(true);
         router.replace(`/home/characters/${characterId}`);
       } catch (e) {
@@ -445,7 +480,7 @@ export function useCharacterUpdateController() {
         setIsSubmitting(false);
       }
     },
-    [characterId, initialFeatures, router, validateAllSteps]
+    [characterId, router, validateAllSteps]
   );
 
   const onConfirmLevelDecrease = useCallback(() => {
@@ -465,6 +500,12 @@ export function useCharacterUpdateController() {
   }, []);
 
   const currentValues = getValues();
+  const pathConstraintErrors = getPathConstraintErrors({
+    ...currentValues,
+    paths: watchedPaths ?? currentValues.paths ?? [],
+    initialFeatures: watchedInitialFeatures ?? currentValues.initialFeatures,
+  });
+  const hasBlockingPathIssues = pathConstraintErrors.length > 0;
   const hasBlockingLevelIssues =
     initialLevel !== null &&
     (watchedLevel ?? 1) < initialLevel &&
@@ -478,11 +519,11 @@ export function useCharacterUpdateController() {
     isSubmitting,
     submitError,
     submitSuccess,
-    initialFeatures,
-    setInitialFeatures,
+    pathConstraintErrors,
     showLevelDecreaseConfirm,
     nextValidationMessage,
     hasBlockingLevelIssues,
+    hasBlockingPathIssues,
     onConfirmLevelDecrease,
     onCancelLevelDecrease,
     goToStep,

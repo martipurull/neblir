@@ -29,14 +29,11 @@ export type InitialFeatureEntry = { featureId: string; grade: number };
 interface PathAndFeaturesStepProps {
   onInitialFeaturesChange?: (features: InitialFeatureEntry[]) => void;
   initialFeatures?: InitialFeatureEntry[];
-  /** When set (character update), rank follows the selected existing path or 1 if new. */
-  pathRankById?: Record<string, number>;
 }
 
 export function PathAndFeaturesStep({
   onInitialFeaturesChange,
   initialFeatures,
-  pathRankById,
 }: PathAndFeaturesStepProps) {
   const { control, watch, setValue, clearErrors, formState } =
     useFormContext<CharacterCreationRequest>();
@@ -60,11 +57,7 @@ export function PathAndFeaturesStep({
   const hydratedRef = useRef(false);
   const prevPathIdRef = useRef<string | null | undefined>(undefined);
   const formRank = watch("path.rank");
-  const derivedRank = !pathId
-    ? formRank
-    : pathRankById
-      ? (pathRankById[pathId] ?? 1)
-      : level;
+  const derivedRank = !pathId ? formRank : level;
   if (
     pathId &&
     typeof derivedRank === "number" &&
@@ -227,11 +220,9 @@ export function PathAndFeaturesStep({
   return (
     <div className="space-y-4">
       <p className="text-sm text-black/70">
-        {pathRankById
-          ? "Select a path. Rank follows the selected path, or 1 if you pick a path you do not already have."
-          : "Select a path. Rank is set to your character level."}{" "}
-        You may choose features using a total of up to{" "}
-        <strong>{featureSlots}</strong> grade slots (2 slots per level above 1).
+        Select a path. Rank is set to your character level. You may choose
+        features using a total of up to <strong>{featureSlots}</strong> grade
+        slots (2 slots per level above 1).
       </p>
 
       <div className="mb-6 space-y-3">
@@ -254,10 +245,7 @@ export function PathAndFeaturesStep({
                 disabled={loadingPaths}
                 onChange={(value) => {
                   field.onChange(value);
-                  setValue(
-                    "path.rank",
-                    pathRankById ? (pathRankById[value] ?? 1) : level
-                  );
+                  setValue("path.rank", level);
                   clearErrors("path.pathId");
                 }}
               />

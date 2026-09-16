@@ -87,14 +87,21 @@ export type CharacterCreationRequest = z.infer<
   typeof characterCreationRequestSchema
 >;
 
+const characterUpdatePathEntrySchema = z.strictObject({
+  pathId: z.string().trim().min(1, "Please select a path"),
+  rank: z.number().int().min(1),
+});
+
 /**
- * Update Character body: creation shape plus the PathCharacter id that was
- * primary (highest rank) when the Update form opened. Used when replacing a
- * path the character does not already have.
+ * Update Character body: full path set plus owned features. Primary-path
+ * replace fields (`path`, `primaryPathCharacterId`) are not accepted.
  */
 export const characterEditableUpdateSchema = characterCreationRequestSchema
+  .omit({ path: true })
   .extend({
-    primaryPathCharacterId: z.string().min(1).optional(),
+    paths: z
+      .array(characterUpdatePathEntrySchema)
+      .min(1, "At least one path is required"),
   })
   .strict();
 

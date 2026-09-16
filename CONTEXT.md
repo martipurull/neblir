@@ -113,9 +113,25 @@ _Avoid_: display name (initiative also uses that for characters)
 ### Paths
 
 **Path**:
-A character may have more than one path (one row per path). Update Character’s single path picker is the **primary path** (highest rank when the form opens). Changing it to a path the character does not have replaces only that primary row; other paths stay. Changing it to a path they already have updates that row in place.
-_Avoid_: class (when meaning this)
+A character may have more than one path (one row per path). Update Character edits that full set: add paths, remove paths, and change each path’s rank. There is no privileged primary path on Update.
+_Avoid_: class (when meaning this), primary path (when meaning Update’s old single-path picker)
+
+**Rank**:
+How far a character has advanced in one path. Each path row’s rank is at least 1. Across that character, path ranks must sum to level.
+_Avoid_: level (when meaning progress in a single path), path level
+
+**Unallocated level**:
+How much of the character’s level is not yet assigned to path ranks (`level − sum(ranks)`). A valid character has unallocated level 0. Update Character blocks save while it is non-zero (including when ranks exceed level).
+_Avoid_: unspent points, free ranks
+
+**Feature grade slots**:
+The character’s budget for owned feature grades: `2 × (level − 1)`. The sum of grades across owned features must not exceed this. Update Character blocks save when over budget.
+_Avoid_: feature count (when meaning this grade budget), feature slots (ambiguous without “grade”)
+
+**Feature legality**:
+An owned feature is legal only if at least one of the character’s current path ranks satisfies that feature’s applicable paths and minimum path rank. Update Character blocks save while any owned feature is illegal, and must show why.
+_Avoid_: path feature (when meaning only the catalogue link)
 
 **Favourite weapon**:
-The Soldier path’s chosen weapon. Kept whenever a Soldier path row still exists after Update or Level-up.
+The Soldier path’s chosen weapon. Kept whenever a Soldier path row still exists after Update or Level-up; cleared when Soldier is removed.
 _Avoid_: favourite item (when meaning this)

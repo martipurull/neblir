@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/app/components/shared/Button";
@@ -9,6 +8,7 @@ import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { useCharacter } from "@/hooks/use-character";
+import type { CharacterDetail } from "@/app/lib/types/character";
 import { CharacterUpdateFormContent } from "./CharacterUpdateFormContent";
 import {
   toCharacterUpdateFormValues,
@@ -20,15 +20,6 @@ export default function CharacterUpdatePage() {
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : null;
   const { character, loading, error, refetch } = useCharacter(id);
-
-  const form = useForm<CharacterUpdateFormValues>({
-    mode: "onTouched",
-  });
-
-  React.useEffect(() => {
-    if (!character) return;
-    form.reset(toCharacterUpdateFormValues(character));
-  }, [character, form]);
 
   if (id == null) {
     return (
@@ -77,13 +68,20 @@ export default function CharacterUpdatePage() {
           Update your editable character information across each section.
         </p>
       </div>
-      <FormProvider {...form}>
-        <CharacterUpdateFormContent
-          pathRankById={Object.fromEntries(
-            (character.paths ?? []).map((path) => [path.id, path.rank ?? 1])
-          )}
-        />
-      </FormProvider>
+      <CharacterUpdateForm character={character} />
     </PageSection>
+  );
+}
+
+function CharacterUpdateForm({ character }: { character: CharacterDetail }) {
+  const form = useForm<CharacterUpdateFormValues>({
+    mode: "onTouched",
+    defaultValues: toCharacterUpdateFormValues(character),
+  });
+
+  return (
+    <FormProvider {...form}>
+      <CharacterUpdateFormContent />
+    </FormProvider>
   );
 }

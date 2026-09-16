@@ -9,7 +9,10 @@ import {
 } from "@/app/lib/specialAbility";
 import { ValidationError } from "../shared/errors";
 import type { LevelUpCharacterBody } from "./[id]/level-up/schema";
-import type { CharacterCreationRequest } from "./schemas";
+import type {
+  CharacterCreationRequest,
+  CharacterEditableUpdateRequest,
+} from "./schemas";
 import type { Race } from "@prisma/client";
 
 function calculateReactionsPerRound(level: number): number {
@@ -23,7 +26,10 @@ function calculateReactionsPerRound(level: number): number {
 }
 
 function calculateMaxCarryWeight(
-  characterCreationRequest: CharacterCreationRequest | LevelUpCharacterBody
+  characterCreationRequest:
+    | CharacterCreationRequest
+    | CharacterEditableUpdateRequest
+    | LevelUpCharacterBody
 ) {
   const baseMaxCarryWeight =
     characterCreationRequest.generalInformation.race === "KINIAN"
@@ -52,6 +58,7 @@ export type PreservePlayState = {
 export function computeCharacterRequestData(
   parsedCharacterCreationRequest:
     | CharacterCreationRequest
+    | CharacterEditableUpdateRequest
     | LevelUpCharacterBody,
   isLevelUp: boolean = false,
   options?: { preservePlayState?: PreservePlayState }
@@ -123,6 +130,7 @@ export function computeCharacterRequestData(
 
   const {
     path: _path,
+    paths: _paths,
     wallet: rawWallet,
     initialFeatures: _initialFeatures,
     gameId: _gameId,
@@ -133,6 +141,7 @@ export function computeCharacterRequestData(
     ...requestWithoutPathAndWallet
   } = parsedCharacterCreationRequest as typeof parsedCharacterCreationRequest & {
     path?: { pathId: string; rank: number };
+    paths?: Array<{ pathId: string; rank: number }>;
     wallet?: Array<{ currencyName: string; quantity: number }>;
     initialFeatures?: Array<{ featureId: string; grade: number }>;
     gameId?: string;
