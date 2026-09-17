@@ -56,12 +56,36 @@ function isVisibleLinkedCharacterInGame(
   return gc.isPublic !== false;
 }
 
-/** Current viewer's play grants on GM-controlled characters in this game. */
+/** Whether this game-character row's play grant is held by `viewerId`. */
 export function isHeldPlayGrantInGame(
   gc: GameCharacterRow,
-  game: GameDetail
+  viewerId: string
 ): boolean {
-  return game.isGameMaster !== true && gc.playGrant != null;
+  return gc.playGrant?.userId === viewerId;
+}
+
+/**
+ * Known NPCs sheet-link: public GM-controlled row whose play grant is held by
+ * the viewer. Other players matching only grant presence do not get a link.
+ */
+export function isKnownNpcSheetLinkForViewer(
+  gc: GameCharacterRow,
+  game: GameDetail,
+  viewerId: string
+): boolean {
+  return (
+    isPublicKnownNpcInGame(gc, game) && isHeldPlayGrantInGame(gc, viewerId)
+  );
+}
+
+/** Playing list: the viewer's held play grants in this game, including private. */
+export function heldPlayGrantCharactersInGame(
+  game: GameDetail,
+  viewerId: string
+): GameCharacterRow[] {
+  return (game.characters ?? []).filter((gc) =>
+    isHeldPlayGrantInGame(gc, viewerId)
+  );
 }
 
 /** Pin granted NPCs first within a public or private list. */

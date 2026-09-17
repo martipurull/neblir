@@ -10,9 +10,10 @@ import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { useUser } from "@/hooks/use-user";
 import { useParams } from "next/navigation";
 import {
-  isHeldPlayGrantInGame,
+  heldPlayGrantCharactersInGame,
   isPlayerCharacterInGame,
   isPublicKnownNpcInGame,
 } from "@/app/lib/gmUtils";
@@ -23,6 +24,7 @@ export default function GameDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
   const { game, loading, error, refetch } = useGame(id);
+  const { user } = useUser();
 
   const imageEntries = useMemo(
     () =>
@@ -55,9 +57,9 @@ export default function GameDetailPage() {
   }, [game]);
 
   const playingCharacters = useMemo(() => {
-    if (!game?.characters) return [];
-    return game.characters.filter((gc) => isHeldPlayGrantInGame(gc, game));
-  }, [game]);
+    if (!game || user?.id == null) return [];
+    return heldPlayGrantCharactersInGame(game, user.id);
+  }, [game, user]);
 
   if (loading || (!game && !error)) {
     return (
