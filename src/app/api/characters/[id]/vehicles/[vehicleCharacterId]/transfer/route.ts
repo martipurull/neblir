@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma/client";
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   performVehicleTransfer,
   validateVehicleTransferParties,
@@ -33,9 +33,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character or vehicleCharacter ID", 400);
     }
 
-    if (
-      !(await characterBelongsToUser(fromCharacterId, request.auth.user.id))
-    ) {
+    if (!(await userHasPlayControl(fromCharacterId, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 

@@ -52,7 +52,8 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       {
         ...rest,
         notes: [],
-        access: { canEdit: false, canRoll: false },
+        // In-play flags, not authorship: canEdit = mutate in-play.
+        access: { canEdit: true, canRoll: true },
       },
       { status: 200 }
     );

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { replaceCharacterWallet } from "@/app/lib/prisma/characterCurrency";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
@@ -31,7 +31,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID", 400);
     }
 
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/wallet",

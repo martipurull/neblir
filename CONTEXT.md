@@ -4,6 +4,44 @@ Tabletop RPG companion for characters, inventory, and in-play health and combat 
 
 ## Language
 
+### Characters
+
+**Character**:
+A sheet entity. It has Owners. Whether it is a player character or a GM-controlled character is derived per game from those Owners among that game's users, not stored on the character.
+_Avoid_: PC, NPC (as fields on the character)
+
+**Owner**:
+A user the character belongs to. Ownership is not play control and is not a play grant.
+_Avoid_: shared owner, temporary owner (when meaning a play grant)
+
+**Play control**:
+Who may operate a character sheet in a game right now. That means in-play actions only: rolls, HP and Status, inventory, equip, wallet, vehicles, and combat resources. It does not include authorship or notes.
+_Avoid_: ownership, shared ownership
+
+**Play grant**:
+A GM-issued, GM-revocable permission for one player to have play control of a GM-controlled character in that game. It lasts until the GM revokes it. The character stays GM-controlled. The GM keeps play control. Leaving the game drops the grant. A character has at most one play grant at a time. In the app, only the GM and the grantee see the grant. A private game link is still visible to the grantee.
+_Avoid_: shared ownership, temporary ownership, transfer, played by (as an in-app badge), co-controlled
+
+**Roller**:
+The user who emitted a roll. Discord posts `{roller} as {character}` unless the roll is private (`SECRET ROLL`). Naming the roller on Discord is not an in-app play-grant badge.
+_Avoid_: owner (when meaning who rolled)
+
+**Authorship**:
+Owner-only changes to the character's definition: Update Character, Level-up, unlink, and delete.
+_Avoid_: edit (when meaning in-play)
+
+**GM**:
+The user recorded as the game master for that game. The GM has standing play control of every character linked to the game.
+_Avoid_: owner (when meaning the GM's table role)
+
+**GM-controlled character**:
+A character linked to a game whose Owners among that game's users are none or only the GM. Table fiction: NPC.
+_Avoid_: NPC (as a stored type), co-controlled (when meaning a play grant)
+
+**Player character**:
+A character linked to a game with at least one Owner among that game's users who is not the GM.
+_Avoid_: PC (as a stored type)
+
 ### Character health
 
 **Status**:

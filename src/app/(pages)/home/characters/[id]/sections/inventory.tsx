@@ -224,6 +224,7 @@ interface InventorySectionContentProps {
   mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
   readOnly?: boolean;
+  allowUniqueCreate?: boolean;
   rollPrivacy?: RollPrivacyOptions;
 }
 
@@ -232,6 +233,7 @@ function InventorySectionContent({
   mutate,
   activeGameId,
   readOnly = false,
+  allowUniqueCreate = !readOnly,
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: InventorySectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
@@ -397,15 +399,17 @@ function InventorySectionContent({
             >
               Browse items
             </Button>
-            <Button
-              type="button"
-              variant="lightToolbarCompact"
-              fullWidth={false}
-              onClick={openCreateUnique}
-              disabled={!canAddItems}
-            >
-              Create unique item
-            </Button>
+            {allowUniqueCreate ? (
+              <Button
+                type="button"
+                variant="lightToolbarCompact"
+                fullWidth={false}
+                onClick={openCreateUnique}
+                disabled={!canAddItems}
+              >
+                Create unique item
+              </Button>
+            ) : null}
           </div>
           {!canAddItems && (
             <p className="text-xs text-neblirDanger-600">
@@ -464,7 +468,7 @@ function InventorySectionContent({
         />
       )}
 
-      {createUniqueOpen && !readOnly && mutate && (
+      {createUniqueOpen && allowUniqueCreate && !readOnly && mutate && (
         <CreateUniqueItemModal
           isOpen={createUniqueOpen}
           draftScope={{ kind: "character", id: character.id }}
@@ -484,7 +488,7 @@ function InventorySectionContent({
         />
       )}
 
-      {editUniqueItemId && !readOnly && mutate && (
+      {editUniqueItemId && allowUniqueCreate && !readOnly && mutate && (
         <CreateUniqueItemModal
           isOpen={Boolean(editUniqueItemId)}
           customTemplateGameIds={characterGames}
@@ -518,7 +522,7 @@ function InventorySectionContent({
           }}
           rollPrivacy={rollPrivacy}
           onEditUniqueItem={
-            detailEntry.sourceType === "UNIQUE_ITEM"
+            allowUniqueCreate && detailEntry.sourceType === "UNIQUE_ITEM"
               ? () => {
                   setEditUniqueItemId(detailEntry.itemId);
                   setDetailEntry(null);
@@ -628,11 +632,13 @@ export function getInventorySection(
   options?: {
     mutate?: KeyedMutator<CharacterDetail | null>;
     readOnly?: boolean;
+    allowUniqueCreate?: boolean;
     rollPrivacy?: RollPrivacyOptions;
   }
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
   const mutate = options?.mutate;
+  const allowUniqueCreate = options?.allowUniqueCreate ?? !readOnly;
   const rollPrivacy = options?.rollPrivacy ?? {
     allowPrivateRoll: false,
     defaultPrivateRoll: false,
@@ -650,6 +656,7 @@ export function getInventorySection(
         mutate={mutate}
         activeGameId={activeGameId}
         readOnly={readOnly}
+        allowUniqueCreate={allowUniqueCreate}
         rollPrivacy={rollPrivacy}
       />
     ),

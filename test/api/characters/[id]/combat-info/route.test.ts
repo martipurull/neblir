@@ -2,12 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { invokeRoute, makeAuthedRequest, makeParams } from "../../../helpers";
 
 const characterBelongsToUserMock = vi.fn();
+const userHasPlayControlMock = vi.fn();
 const getCharacterMock = vi.fn();
 const updateCharacterMock = vi.fn();
 const safeParseMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: characterBelongsToUserMock,
+}));
+vi.mock("@/app/lib/prisma/gameCharacter", () => ({
+  userHasPlayControl: userHasPlayControlMock,
 }));
 vi.mock("@/app/lib/prisma/character", () => ({
   getCharacter: getCharacterMock,
@@ -20,6 +24,56 @@ vi.mock("@/app/api/characters/[id]/combat-info/schema", () => ({
 describe("/api/characters/[id]/combat-info PATCH", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    characterBelongsToUserMock.mockResolvedValue(true);
+    userHasPlayControlMock.mockResolvedValue(true);
+  });
+
+  it("returns 200 when the GM has play control and strips notes", async () => {
+    characterBelongsToUserMock.mockResolvedValue(false);
+    userHasPlayControlMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { armourCurrentHP: 1 },
+      error: undefined,
+    });
+    getCharacterMock.mockResolvedValue({
+      combatInformation: {
+        armourCurrentHP: 2,
+        armourMod: 1,
+        reactionsPerRound: 2,
+        reactionsRemaining: 2,
+      },
+      innateAttributes: {
+        dexterity: { agility: 1 },
+        strength: { resilience: 1 },
+        personality: { mentality: 1 },
+      },
+      learnedSkills: { generalSkills: { acrobatics: 1, melee: 1, GRID: 1 } },
+      notes: [{ content: "secret", createdAt: "t", updatedAt: "t" }],
+    });
+    updateCharacterMock.mockResolvedValue({ id: "char-1" });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "gm-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.notes).toEqual([]);
+  });
+
+  it("returns 403 when the caller does not have play control", async () => {
+    userHasPlayControlMock.mockResolvedValue(false);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/combat-info/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "other-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(updateCharacterMock).not.toHaveBeenCalled();
   });
 
   it("returns 400 when request body is invalid", async () => {

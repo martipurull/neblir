@@ -14,7 +14,7 @@ export function getHealthSection(
   character: CharacterDetail,
   options?: {
     readOnly?: boolean;
-    /** Owner can still change Status when the sheet is otherwise locked (e.g. deceased). */
+    /** Play control can still change Status when the sheet is otherwise locked (e.g. deceased). */
     statusEditable?: boolean;
     gameId?: string | null;
     rollIsPrivate?: boolean;

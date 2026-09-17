@@ -64,12 +64,12 @@ describe("/api/characters/[id]/level-up POST", () => {
     expect(response.status).toBe(401);
   });
 
-  it("returns 403 when character does not belong to user", async () => {
+  it("returns 403 when a GM who is not an Owner tries to level-up", async () => {
     characterBelongsToUserMock.mockResolvedValue(false);
     const { POST } = await import("@/app/api/characters/[id]/level-up/route");
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({}, "user-1"),
+      makeAuthedRequest({}, "gm-1"),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(403);

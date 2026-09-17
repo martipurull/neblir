@@ -57,6 +57,25 @@ export async function userOwnsCharacter(
   return !!row;
 }
 
+/**
+ * In-play access: Owner, or GM of a game the character is linked to.
+ * Authorship and notes stay Owner-only.
+ */
+export async function userHasPlayControl(
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  if (await userOwnsCharacter(characterId, userId)) return true;
+  const gmLink = await prisma.gameCharacter.findFirst({
+    where: {
+      characterId,
+      game: { gameMaster: userId },
+    },
+    select: { id: true },
+  });
+  return gmLink != null;
+}
+
 /** Game ids where both characters are linked. */
 async function getSharedGameIdsBetweenCharacters(
   characterIdA: string,

@@ -59,7 +59,7 @@ describe("GET /api/games/[id]/characters/[characterId]", () => {
     expect(response.status).toBe(404);
   });
 
-  it("returns 200 with character without notes and read-only access flags", async () => {
+  it("returns 200 with character without notes and in-play access flags", async () => {
     gameMasterCanViewGameCharacterMock.mockResolvedValue(true);
     getCharacterMock.mockResolvedValue({
       id: "c-1",
@@ -85,7 +85,7 @@ describe("GET /api/games/[id]/characters/[characterId]", () => {
     const body = await response.json();
     expect(body.id).toBe("c-1");
     expect(body.notes).toEqual([]);
-    expect(body.access).toEqual({ canEdit: false, canRoll: false });
+    expect(body.access).toEqual({ canEdit: true, canRoll: true });
     expect(gameMasterCanViewGameCharacterMock).toHaveBeenCalledWith(
       "g-1",
       "c-1",

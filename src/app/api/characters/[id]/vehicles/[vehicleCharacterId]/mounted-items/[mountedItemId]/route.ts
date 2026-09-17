@@ -1,4 +1,4 @@
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   getCharacterVehicleRecord,
   getHydratedVehicleCharacter,
@@ -44,7 +44,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    if (!(await characterBelongsToUser(characterId, request.auth.user.id))) {
+    if (!(await userHasPlayControl(characterId, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 

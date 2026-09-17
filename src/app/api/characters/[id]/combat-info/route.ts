@@ -8,7 +8,9 @@ import type { AuthNextRequest } from "@/app/lib/types/api";
 import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { characterJsonForCaller } from "@/app/api/shared/characterJsonForCaller";
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -31,11 +33,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       logger.error({
         method: "PATCH",
         route: "/api/characters/[id]/combat-info",
-        message: "Character does not belong to user",
+        message: "Caller does not have play control of character",
         characterId: id,
       });
       return errorResponse("This is not one of your characters.", 403);
@@ -163,7 +165,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (!fullCharacter) {
       return errorResponse("Character not found after update", 500);
     }
-    return NextResponse.json(fullCharacter, { status: 200 });
+    const isOwner = await characterBelongsToUser(id, request.auth.user.id);
+    return NextResponse.json(characterJsonForCaller(fullCharacter, isOwner), {
+      status: 200,
+    });
   } catch (error) {
     logger.error({
       method: "PATCH",

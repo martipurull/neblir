@@ -42,7 +42,12 @@ import {
 export type CharacterDetailViewProps = {
   character: CharacterDetail;
   readOnly?: boolean;
-  /** Locks the active game context (used for GM read-only view). */
+  /**
+   * Owner-only chrome: Character actions, notes, favourite weapon, unique
+   * create. Defaults to `!readOnly`.
+   */
+  authorship?: boolean;
+  /** Locks the active game context for the game-scoped sheet. */
   fixedGameId?: string | null;
   mutateAction?: KeyedMutator<CharacterDetail | null>;
 };
@@ -56,15 +61,16 @@ export function resolveCharacterLayoutMode(
 export function CharacterDetailView({
   character,
   readOnly = false,
+  authorship,
   fixedGameId = null,
   mutateAction,
 }: CharacterDetailViewProps) {
   const { user } = useUser();
   const isDeceased = character.health.status === "DECEASED";
-  /** Owner (or GM) page access — Status + name actions stay available when deceased. */
-  const canManageCharacter = !readOnly;
-  /** Sheet interactions locked for GM view or deceased characters. */
-  const sheetReadOnly = readOnly || isDeceased;
+  const hasAuthorship = authorship ?? !readOnly;
+  const hasPlayControl = !readOnly;
+  /** Status stays available under play control when deceased. */
+  const sheetReadOnly = !hasPlayControl || isDeceased;
   const noopMutate = useCallback(
     async () => character,
     [character]
@@ -212,17 +218,17 @@ export function CharacterDetailView({
       getGeneralSection(character),
       getHealthSection(character, {
         readOnly: sheetReadOnly,
-        statusEditable: canManageCharacter,
+        statusEditable: hasPlayControl,
         gameId: activeGameId,
         rollIsPrivate: rollPrivacy.defaultPrivateRoll,
-        mutate: canManageCharacter ? mutateAction : undefined,
+        mutate: hasPlayControl ? mutateAction : undefined,
         healthWritePending: sheetReadOnly ? false : healthWritePending,
         settledCrisisHealth: sheetReadOnly ? null : settledCrisisHealth,
       }),
     ];
     const pathsSection = getPathsSection(character, {
-      readOnly: sheetReadOnly,
-      mutate: sheetReadOnly ? undefined : mutateAction,
+      readOnly: !hasAuthorship || sheetReadOnly,
+      mutate: hasAuthorship && !sheetReadOnly ? mutateAction : undefined,
     });
     if (pathsSection) list.push(pathsSection);
     const featuresSection = getFeaturesSection(character);
@@ -231,6 +237,7 @@ export function CharacterDetailView({
       getInventorySection(character, activeGameId, {
         mutate: sheetReadOnly ? undefined : mutateAction,
         readOnly: sheetReadOnly,
+        allowUniqueCreate: hasAuthorship && !sheetReadOnly,
         rollPrivacy,
       })
     );
@@ -238,6 +245,7 @@ export function CharacterDetailView({
       getVehiclesSection(character, activeGameId, {
         mutate: sheetReadOnly ? undefined : mutateAction,
         readOnly: sheetReadOnly,
+        allowUniqueCreate: hasAuthorship && !sheetReadOnly,
       })
     );
     list.push(
@@ -249,14 +257,15 @@ export function CharacterDetailView({
         sheetReadOnly
       )
     );
-    if (!sheetReadOnly && mutateAction) {
+    if (hasAuthorship && mutateAction) {
       list.push(getNotesSection(character, mutateAction));
     }
     return applyCharacterSectionOrder(list, user?.characterSectionOrder);
   }, [
     character,
     sheetReadOnly,
-    canManageCharacter,
+    hasAuthorship,
+    hasPlayControl,
     diceSelection,
     handleDiceSelect,
     handleSingleAttributeRoll,
@@ -300,7 +309,7 @@ export function CharacterDetailView({
           sheetReadOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
         }
         readOnly={sheetReadOnly}
-        showCharacterActions={canManageCharacter}
+        showCharacterActions={hasAuthorship}
         rollPrivacy={rollPrivacy}
         className="shrink-0"
       />
