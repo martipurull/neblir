@@ -63,6 +63,13 @@ const gameCharacterSchema = z.object({
   gameId: z.string(),
   characterId: z.string(),
   isPublic: z.boolean().optional(),
+  playGrant: z
+    .object({
+      userId: z.string(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 /** POST /api/games/[id]/characters — link existing characters to the game. */
@@ -100,6 +107,13 @@ export const gameCharacterVisibilityUpdateSchema = z.object({
   characterId: z.string().min(1),
   isPublic: z.boolean(),
 });
+
+/** PUT /api/games/[id]/characters/[characterId]/play-grant */
+export const playGrantUpsertSchema = z
+  .object({
+    userId: z.string().min(1),
+  })
+  .strict();
 
 /** GameCharacter as returned from GET /api/characters/[id] (includes game name). */
 export const gameCharacterWithGameSchema = gameCharacterSchema.extend({

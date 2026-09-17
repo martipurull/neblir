@@ -12,6 +12,7 @@ import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useParams } from "next/navigation";
 import {
+  isHeldPlayGrantInGame,
   isPlayerCharacterInGame,
   isPublicKnownNpcInGame,
 } from "@/app/lib/gmUtils";
@@ -51,6 +52,11 @@ export default function GameDetailPage() {
     if (!game?.characters) return 0;
     return game.characters.filter((gc) => isPublicKnownNpcInGame(gc, game))
       .length;
+  }, [game]);
+
+  const playingCharacters = useMemo(() => {
+    if (!game?.characters) return [];
+    return game.characters.filter((gc) => isHeldPlayGrantInGame(gc, game));
   }, [game]);
 
   if (loading || (!game && !error)) {
@@ -118,6 +124,31 @@ export default function GameDetailPage() {
             <p className="mt-2 text-sm italic text-black/50">No premise set.</p>
           )}
         </div>
+
+        {playingCharacters.length > 0 ? (
+          <div>
+            <h2 className="text-sm font-semibold text-black">Playing</h2>
+            <p className="mt-1 text-sm text-black/70">
+              GM-controlled characters you currently hold in this game.
+            </p>
+            <ul className="mt-2 space-y-2">
+              {playingCharacters.map((gc) => {
+                const name =
+                  `${gc.character.name}${gc.character.surname ? ` ${gc.character.surname}` : ""}`.trim();
+                return (
+                  <li key={gc.id}>
+                    <Link
+                      href={`/home/games/${game.id}/characters/${gc.character.id}`}
+                      className="block rounded-md border border-black p-3 text-sm font-semibold text-black transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
+                    >
+                      {name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
 
         {/* Menu tiles */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

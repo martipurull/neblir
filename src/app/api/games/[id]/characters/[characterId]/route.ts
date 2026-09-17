@@ -1,5 +1,5 @@
 import { getCharacter } from "@/app/lib/prisma/character";
-import { gameMasterCanViewGameCharacter } from "@/app/lib/prisma/gameCharacter";
+import { userCanViewGameScopedCharacter } from "@/app/lib/prisma/gameCharacter";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
@@ -26,19 +26,16 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID", 400);
     }
 
-    if (!(await gameMasterCanViewGameCharacter(gameId, characterId, userId))) {
+    if (!(await userCanViewGameScopedCharacter(gameId, characterId, userId))) {
       logger.warn({
         method: "GET",
         route: "/api/games/[id]/characters/[characterId]",
-        message: "Forbidden game master character view",
+        message: "Forbidden game-scoped character view",
         gameId,
         characterId,
         userId,
       });
-      return errorResponse(
-        "Only the game master can view characters linked to this game",
-        403
-      );
+      return errorResponse("You cannot view this character in this game", 403);
     }
 
     const character = await getCharacter(characterId);
@@ -52,8 +49,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       {
         ...rest,
         notes: [],
-        // In-play flags, not authorship: canEdit = mutate in-play.
-        access: { canEdit: true, canRoll: true },
+        access: { canMutateInPlay: true, canRoll: true },
       },
       { status: 200 }
     );

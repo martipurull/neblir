@@ -9,7 +9,7 @@ import {
 const userIsInGameMock = vi.fn();
 const getGameMock = vi.fn();
 const characterIsInGameMock = vi.fn();
-const userOwnsCharacterMock = vi.fn();
+const userHasPlayControlInGameMock = vi.fn();
 const getGameCharacterLinkIsPublicMock = vi.fn();
 const getEnemyInstanceIsPublicMock = vi.fn();
 
@@ -26,7 +26,7 @@ vi.mock("@/app/lib/prisma/game", () => ({
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   characterIsInGame: characterIsInGameMock,
-  userOwnsCharacter: userOwnsCharacterMock,
+  userHasPlayControlInGame: userHasPlayControlInGameMock,
   getGameCharacterLinkIsPublic: getGameCharacterLinkIsPublicMock,
 }));
 
@@ -44,7 +44,7 @@ describe("/api/games/[id]/roll-events", () => {
     userIsInGameMock.mockResolvedValue(true);
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     characterIsInGameMock.mockResolvedValue(true);
-    userOwnsCharacterMock.mockResolvedValue(true);
+    userHasPlayControlInGameMock.mockResolvedValue(true);
     getGameCharacterLinkIsPublicMock.mockResolvedValue(true);
     getEnemyInstanceIsPublicMock.mockResolvedValue(null);
     prismaMocks.discordIntegration.findUnique.mockResolvedValue(null);
@@ -194,6 +194,79 @@ describe("/api/games/[id]/roll-events", () => {
           metadata: expect.objectContaining({
             label1: "Agility",
             label2: "Stealth",
+            isPrivate: true,
+          }),
+        }),
+      });
+    });
+
+    it("allows a play-grant holder to emit a roll in that game", async () => {
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+          },
+          "grantee-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+      expect(userHasPlayControlInGameMock).toHaveBeenCalledWith(
+        "g-1",
+        "c-1",
+        "grantee-1"
+      );
+    });
+
+    it("returns 403 when the caller does not have play control in this game", async () => {
+      userHasPlayControlInGameMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+          },
+          "other-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("persists a private roll for a non-GM on a private character link", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            isPrivate: false,
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+            metadata: { label1: "Agility" },
+          },
+          "grantee-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            label1: "Agility",
             isPrivate: true,
           }),
         }),

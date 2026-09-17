@@ -173,12 +173,23 @@ describe("roll-privacy", () => {
       ).toBe(true);
     });
 
-    it("does not default private for players", () => {
+    it("persists private for a non-GM roller on a private character link", () => {
+      expect(
+        resolvePersistedRollIsPrivate({
+          requestedIsPrivate: false,
+          isGameMaster: false,
+          characterIsPublic: false,
+          enemyInstanceIsPublic: null,
+        })
+      ).toBe(true);
+    });
+
+    it("does not default private for non-GM rollers on a public character", () => {
       expect(
         resolvePersistedRollIsPrivate({
           requestedIsPrivate: undefined,
           isGameMaster: false,
-          characterIsPublic: false,
+          characterIsPublic: true,
           enemyInstanceIsPublic: false,
         })
       ).toBe(false);

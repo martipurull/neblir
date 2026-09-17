@@ -5,17 +5,25 @@ type GameCharacterRow = NonNullable<GameDetail["characters"]>[number];
 /**
  * Characters the GM may roll initiative for: no in-game player owners, or only the GM is linked.
  */
+export function isGmControlledFromOwnerIds(
+  linkedUserIds: string[],
+  gameUserIds: ReadonlySet<string>,
+  gameMaster: string
+): boolean {
+  const ownersAmongGameUsers = linkedUserIds.filter((uid) =>
+    gameUserIds.has(uid)
+  );
+  if (ownersAmongGameUsers.length === 0) return true;
+  return ownersAmongGameUsers.every((uid) => uid === gameMaster);
+}
+
 export function isGmControlledGameCharacter(
   gc: GameCharacterRow,
   game: GameDetail
 ): boolean {
   const gameUserIds = new Set(game.users.map((u) => u.userId));
   const linked = gc.character.linkedUserIds ?? [];
-  const ownersAmongGameUsers = linked.filter((uid: string) =>
-    gameUserIds.has(uid)
-  );
-  if (ownersAmongGameUsers.length === 0) return true;
-  return ownersAmongGameUsers.every((uid: string) => uid === game.gameMaster);
+  return isGmControlledFromOwnerIds(linked, gameUserIds, game.gameMaster);
 }
 
 /** GM-controlled NPC with a public game link (visible on Known NPCs to players). */
@@ -46,6 +54,23 @@ function isVisibleLinkedCharacterInGame(
   if (game.isGameMaster === true) return true;
   if (gc.character.isOwnedByCurrentUser) return true;
   return gc.isPublic !== false;
+}
+
+/** Current viewer's play grants on GM-controlled characters in this game. */
+export function isHeldPlayGrantInGame(
+  gc: GameCharacterRow,
+  game: GameDetail
+): boolean {
+  return game.isGameMaster !== true && gc.playGrant != null;
+}
+
+/** Pin granted NPCs first within a public or private list. */
+export function sortGrantedNpcsFirst<T extends { playGrant?: unknown }>(
+  rows: T[]
+): T[] {
+  return [...rows].sort(
+    (a, b) => Number(b.playGrant != null) - Number(a.playGrant != null)
+  );
 }
 
 /**

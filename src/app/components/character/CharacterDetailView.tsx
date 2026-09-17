@@ -68,9 +68,11 @@ export function CharacterDetailView({
   const { user } = useUser();
   const isDeceased = character.health.status === "DECEASED";
   const hasAuthorship = authorship ?? !readOnly;
-  const hasPlayControl = !readOnly;
+  const hasPlayControl = character.access?.canMutateInPlay ?? !readOnly;
+  const canRoll = character.access?.canRoll ?? hasPlayControl;
   /** Status stays available under play control when deceased. */
   const sheetReadOnly = !hasPlayControl || isDeceased;
+  const diceLocked = !canRoll || isDeceased;
   const noopMutate = useCallback(
     async () => character,
     [character]
@@ -140,7 +142,7 @@ export function CharacterDetailView({
 
   const handleDiceSelect = useCallback(
     (item: DiceSelectionItem) => {
-      if (sheetReadOnly) return;
+      if (diceLocked) return;
       setSingleAttributeRollSelection(null);
       setDiceSelection((prev) => {
         const idx = prev.findIndex((s) => isSameDiceSelection(s, item));
@@ -158,15 +160,15 @@ export function CharacterDetailView({
         return [...prev, item];
       });
     },
-    [sheetReadOnly]
+    [diceLocked]
   );
 
   const handleSingleAttributeRoll = useCallback(
     (item: DiceSelectionItem) => {
-      if (sheetReadOnly || item.type !== "attribute") return;
+      if (diceLocked || item.type !== "attribute") return;
       setSingleAttributeRollSelection([item]);
     },
-    [sheetReadOnly]
+    [diceLocked]
   );
 
   const imageEntries = useMemo(
@@ -190,16 +192,16 @@ export function CharacterDetailView({
     const list: CharacterSectionSlide[] = [
       getAttributesSection(
         character,
-        sheetReadOnly ? undefined : diceSelection,
-        sheetReadOnly ? undefined : handleDiceSelect,
-        sheetReadOnly ? undefined : handleSingleAttributeRoll,
-        sheetReadOnly
+        diceLocked ? undefined : diceSelection,
+        diceLocked ? undefined : handleDiceSelect,
+        diceLocked ? undefined : handleSingleAttributeRoll,
+        diceLocked
       ),
       getSkillsSection(
         character,
-        sheetReadOnly ? undefined : diceSelection,
-        sheetReadOnly ? undefined : handleDiceSelect,
-        sheetReadOnly
+        diceLocked ? undefined : diceSelection,
+        diceLocked ? undefined : handleDiceSelect,
+        diceLocked
       ),
       getCombatSection(character, {
         onClearReactions: reactionTracking.clearReactions,
@@ -264,6 +266,7 @@ export function CharacterDetailView({
   }, [
     character,
     sheetReadOnly,
+    diceLocked,
     hasAuthorship,
     hasPlayControl,
     diceSelection,
@@ -306,7 +309,7 @@ export function CharacterDetailView({
         onArmourUpdate={sheetReadOnly ? undefined : updateArmour}
         mutate={sheetReadOnly ? undefined : mutateAction}
         onOpenDiceRoller={
-          sheetReadOnly ? undefined : () => setDedicatedDiceRollerOpen(true)
+          diceLocked ? undefined : () => setDedicatedDiceRollerOpen(true)
         }
         readOnly={sheetReadOnly}
         showCharacterActions={hasAuthorship}
@@ -323,7 +326,7 @@ export function CharacterDetailView({
         />
       )}
 
-      {!sheetReadOnly &&
+      {!diceLocked &&
         (diceSelection.length === 2 || singleAttributeRollSelection) && (
           <DiceRollModal
             isOpen
@@ -344,7 +347,7 @@ export function CharacterDetailView({
           />
         )}
 
-      {!sheetReadOnly && (
+      {!diceLocked && (
         <DedicatedDiceRollModal
           isOpen={dedicatedDiceRollerOpen}
           onClose={() => setDedicatedDiceRollerOpen(false)}
@@ -354,7 +357,7 @@ export function CharacterDetailView({
         />
       )}
 
-      {!sheetReadOnly && (
+      {!diceLocked && (
         <>
           <InitiativeRollModal
             isOpen={initiativeRollOpen}

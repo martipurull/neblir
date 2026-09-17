@@ -64,12 +64,16 @@ export function GameLinkedCharactersList({
 
         const canRemoveFromGame =
           char.isOwnedByCurrentUser || game.isGameMaster === true;
+        const isPlayGrantee =
+          game.isGameMaster !== true && gc.playGrant != null;
         const canViewSheet =
-          char.isOwnedByCurrentUser || game.isGameMaster === true;
+          char.isOwnedByCurrentUser ||
+          game.isGameMaster === true ||
+          isPlayGrantee;
 
         const sheetHref = char.isOwnedByCurrentUser
           ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
-          : game.isGameMaster
+          : game.isGameMaster === true || isPlayGrantee
             ? `/home/games/${game.id}/characters/${char.id}`
             : null;
 
@@ -106,7 +110,7 @@ export function GameLinkedCharactersList({
             href={
               char.isOwnedByCurrentUser
                 ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
-                : game.isGameMaster
+                : game.isGameMaster === true || isPlayGrantee
                   ? `/home/games/${game.id}/characters/${char.id}`
                   : undefined
             }

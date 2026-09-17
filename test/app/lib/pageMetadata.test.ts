@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const authMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
-const gameMasterCanViewGameCharacterMock = vi.fn();
+const userCanViewGameScopedCharacterMock = vi.fn();
 
 const prismaMock = {
   game: { findUnique: vi.fn() },
@@ -28,7 +28,7 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
 }));
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
-  gameMasterCanViewGameCharacter: gameMasterCanViewGameCharacterMock,
+  userCanViewGameScopedCharacter: userCanViewGameScopedCharacterMock,
 }));
 
 describe("pageMetadata", () => {
@@ -83,7 +83,7 @@ describe("pageMetadata", () => {
 
   describe("resolveGameCharacterPageTitle", () => {
     it("returns the display name for the game master", async () => {
-      gameMasterCanViewGameCharacterMock.mockResolvedValue(true);
+      userCanViewGameScopedCharacterMock.mockResolvedValue(true);
       prismaMock.character.findUnique.mockResolvedValue({
         generalInformation: { name: "Bren", surname: "" },
       });
@@ -95,8 +95,8 @@ describe("pageMetadata", () => {
       );
     });
 
-    it("hides the name when the viewer is not the game master", async () => {
-      gameMasterCanViewGameCharacterMock.mockResolvedValue(false);
+    it("hides the name when the viewer cannot open the game-scoped sheet", async () => {
+      userCanViewGameScopedCharacterMock.mockResolvedValue(false);
 
       const { resolveGameCharacterPageTitle } =
         await import("@/app/lib/pageMetadata");

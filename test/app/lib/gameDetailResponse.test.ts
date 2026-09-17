@@ -411,4 +411,86 @@ describe("shapeGameForResponse visibility filtering", () => {
     expect(privateInit?.displayName).toBe("Enemy");
     expect(privateInit?.combatantName).toBe("Enemy");
   });
+
+  it("includes a private granted NPC for the grantee and exposes grant identity", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      characters: [
+        {
+          id: "gc-granted",
+          gameId: "g-1",
+          characterId: "char-granted",
+          isPublic: false,
+          playGrantUserId: "player-1",
+          playGrantUser: { id: "player-1", name: "Player" },
+          character: {
+            id: "char-granted",
+            generalInformation: {
+              name: "Shopkeep",
+              surname: "Npc",
+              level: 1,
+              avatarKey: null,
+            },
+            combatInformation: { initiativeMod: 0 },
+            users: [{ userId: "gm-1" }],
+          },
+        },
+      ],
+    };
+
+    const granteeView = shapeGameForResponse(game as any, "player-1");
+    expect(granteeView?.characters?.map((c) => c.character.id)).toEqual([
+      "char-granted",
+    ]);
+    expect(granteeView?.characters?.[0]?.playGrant).toEqual({
+      userId: "player-1",
+      name: "Player",
+    });
+
+    const gmView = shapeGameForResponse(game as any, "gm-1");
+    expect(gmView?.characters?.[0]?.playGrant).toEqual({
+      userId: "player-1",
+      name: "Player",
+    });
+
+    const otherView = shapeGameForResponse(game as any, "player-2");
+    expect(otherView?.characters?.map((c) => c.character.id)).toEqual([]);
+  });
+
+  it("omits grantee identity from another player on a public granted NPC", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      characters: [
+        {
+          id: "gc-public-granted",
+          gameId: "g-1",
+          characterId: "char-public-granted",
+          isPublic: true,
+          playGrantUserId: "player-1",
+          playGrantUser: { id: "player-1", name: "Player" },
+          character: {
+            id: "char-public-granted",
+            generalInformation: {
+              name: "Guard",
+              surname: "Npc",
+              level: 2,
+              avatarKey: null,
+            },
+            combatInformation: { initiativeMod: 0 },
+            users: [{ userId: "gm-1" }],
+          },
+        },
+      ],
+    };
+
+    const otherView = shapeGameForResponse(game as any, "player-2");
+    expect(otherView?.characters?.map((c) => c.character.id)).toEqual([
+      "char-public-granted",
+    ]);
+    expect(otherView?.characters?.[0]?.playGrant).toBeUndefined();
+    expect(
+      (otherView?.characters?.[0] as { playGrantUserId?: string } | undefined)
+        ?.playGrantUserId
+    ).toBeUndefined();
+  });
 });

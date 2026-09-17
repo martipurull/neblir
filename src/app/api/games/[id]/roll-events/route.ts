@@ -1,8 +1,8 @@
 import { errorResponse } from "@/app/api/shared/responses";
 import {
-  userOwnsCharacter,
   characterIsInGame,
   getGameCharacterLinkIsPublic,
+  userHasPlayControlInGame,
 } from "@/app/lib/prisma/gameCharacter";
 import { getEnemyInstanceIsPublic } from "@/app/lib/prisma/enemyInstance";
 import {
@@ -72,10 +72,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         payload.characterId
       );
 
-      const owns = await userOwnsCharacter(payload.characterId, userId);
-      if (!isGameMaster && !owns) {
+      if (
+        !(await userHasPlayControlInGame(gameId, payload.characterId, userId))
+      ) {
         return errorResponse(
-          "You can only emit rolls for your own character",
+          "You do not have play control of this character in this game",
           403
         );
       }

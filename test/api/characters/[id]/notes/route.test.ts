@@ -34,6 +34,18 @@ describe("/api/characters/[id]/notes PATCH", () => {
     expect(updateCharacterMock).not.toHaveBeenCalled();
   });
 
+  it("returns 403 when a play-grant holder tries to update notes", async () => {
+    characterBelongsToUserMock.mockResolvedValue(false);
+    const { PATCH } = await import("@/app/api/characters/[id]/notes/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "grantee-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(403);
+    expect(updateCharacterMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 on invalid notes body", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({

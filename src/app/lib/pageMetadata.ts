@@ -1,7 +1,7 @@
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { prisma } from "@/app/lib/prisma/client";
 import { userIsInGame } from "@/app/lib/prisma/game";
-import { gameMasterCanViewGameCharacter } from "@/app/lib/prisma/gameCharacter";
+import { userCanViewGameScopedCharacter } from "@/app/lib/prisma/gameCharacter";
 import {
   formatCharacterDisplayName,
   resolveEntityPageTitle,
@@ -56,7 +56,7 @@ export async function resolveGameCharacterPageTitle(
   const userId = await getSessionUserId();
   if (
     !userId ||
-    !(await gameMasterCanViewGameCharacter(gameId, characterId, userId))
+    !(await userCanViewGameScopedCharacter(gameId, characterId, userId))
   ) {
     return "Character";
   }

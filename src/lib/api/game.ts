@@ -581,6 +581,70 @@ export async function setGameCharacterVisibility(
   }
 }
 
+export async function setGameCharacterPlayGrant(
+  gameId: string,
+  characterId: string,
+  userId: string
+): Promise<{ playGrantUserId: string | null }> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}/play-grant`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to issue play grant"
+      )
+    );
+  }
+
+  return (await response.json()) as { playGrantUserId: string | null };
+}
+
+export async function revokeGameCharacterPlayGrant(
+  gameId: string,
+  characterId: string
+): Promise<{ playGrantUserId: string | null }> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}/play-grant`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to revoke play grant"
+      )
+    );
+  }
+
+  return (await response.json()) as { playGrantUserId: string | null };
+}
+
 export async function getGameCharacterForGmView(
   gameId: string,
   characterId: string,
@@ -612,8 +676,7 @@ export async function getGameCharacterForGmView(
   }
 
   const json = (await response.json()) as Record<string, unknown>;
-  const { access: _access, ...characterJson } = json;
-  const parsed = characterDetailSchema.safeParse(characterJson);
+  const parsed = characterDetailSchema.safeParse(json);
   if (!parsed.success) {
     const details = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)

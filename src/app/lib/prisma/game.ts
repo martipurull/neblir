@@ -22,6 +22,9 @@ export function getGameWithDetails(id: string) {
       },
       characters: {
         include: {
+          playGrantUser: {
+            select: { id: true, name: true },
+          },
           character: {
             select: {
               id: true,

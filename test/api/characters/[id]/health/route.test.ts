@@ -50,6 +50,29 @@ describe("/api/characters/[id]/health PATCH", () => {
     });
   });
 
+  it("returns 200 when a play-grant holder has play control", async () => {
+    characterBelongsToUserMock.mockResolvedValue(false);
+    userHasPlayControlMock.mockResolvedValue(true);
+    safeParseMock.mockReturnValue({
+      data: { status: "ALIVE" },
+      error: undefined,
+    });
+    getCharacterMock.mockResolvedValue({
+      id: "char-1",
+      health: baseHealth(),
+      notes: [{ content: "secret", createdAt: "t", updatedAt: "t" }],
+    });
+    const { PATCH } = await import("@/app/api/characters/[id]/health/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({}, "grantee-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.notes).toEqual([]);
+  });
+
   it("returns 200 when the GM has play control of a linked player character", async () => {
     characterBelongsToUserMock.mockResolvedValue(false);
     userHasPlayControlMock.mockResolvedValue(true);

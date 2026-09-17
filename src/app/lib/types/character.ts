@@ -276,8 +276,15 @@ export const characterSchema = z.object({
 
 export type Character = z.infer<typeof characterSchema>;
 
+/** In-play flags on the game-scoped character GET (not authorship). */
+const characterPlayAccessSchema = z.object({
+  canMutateInPlay: z.boolean(),
+  canRoll: z.boolean(),
+});
+
 export const characterDetailSchema = characterSchema.extend({
   id: z.string(),
+  access: characterPlayAccessSchema.optional(),
 });
 export type CharacterDetail = z.infer<typeof characterDetailSchema>;
 

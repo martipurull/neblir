@@ -74,6 +74,9 @@ export function resolvePersistedRollIsPrivate(options: {
   /** `false` when instance is private; `true` when public; `null` when no enemy roll. */
   enemyInstanceIsPublic: boolean | null;
 }): boolean {
+  if (options.characterIsPublic === false && !options.isGameMaster) {
+    return true;
+  }
   if (options.requestedIsPrivate === false) return false;
   if (options.requestedIsPrivate === true) return true;
   if (!options.isGameMaster) return false;

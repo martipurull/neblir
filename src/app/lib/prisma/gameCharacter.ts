@@ -38,7 +38,7 @@ export async function userIsGameMaster(
 /**
  * GM read access: caller must GM the game and the character must be linked to it.
  */
-export async function gameMasterCanViewGameCharacter(
+async function gameMasterCanViewGameCharacter(
   gameId: string,
   characterId: string,
   userId: string
@@ -58,7 +58,7 @@ export async function userOwnsCharacter(
 }
 
 /**
- * In-play access: Owner, or GM of a game the character is linked to.
+ * In-play access: Owner, GM of a linked game, or play-grant holder on a linked game.
  * Authorship and notes stay Owner-only.
  */
 export async function userHasPlayControl(
@@ -73,7 +73,48 @@ export async function userHasPlayControl(
     },
     select: { id: true },
   });
-  return gmLink != null;
+  if (gmLink != null) return true;
+  const grantLink = await prisma.gameCharacter.findFirst({
+    where: { characterId, playGrantUserId: userId },
+    select: { id: true },
+  });
+  return grantLink != null;
+}
+
+/**
+ * Play control for a specific game (rolls). A grant in another game does not count.
+ */
+export async function userHasPlayControlInGame(
+  gameId: string,
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  if (!(await characterIsInGame(gameId, characterId))) return false;
+  if (await userIsGameMaster(gameId, userId)) return true;
+  if (await userOwnsCharacter(characterId, userId)) return true;
+  const grant = await prisma.gameCharacter.findFirst({
+    where: { gameId, characterId, playGrantUserId: userId },
+    select: { id: true },
+  });
+  return grant != null;
+}
+
+/**
+ * Game-scoped sheet GET: GM of this game, or the play-grant holder on this link.
+ */
+export async function userCanViewGameScopedCharacter(
+  gameId: string,
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  if (await gameMasterCanViewGameCharacter(gameId, characterId, userId)) {
+    return true;
+  }
+  const grant = await prisma.gameCharacter.findFirst({
+    where: { gameId, characterId, playGrantUserId: userId },
+    select: { id: true },
+  });
+  return grant != null;
 }
 
 /** Game ids where both characters are linked. */

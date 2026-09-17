@@ -19,6 +19,8 @@ import { updateUserCharacterLayoutMode } from "@/lib/api/user";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useUser } from "@/hooks/use-user";
+import { useGame } from "@/hooks/use-game";
+import { PlayGrantActions } from "./PlayGrantActions";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -53,6 +55,9 @@ export function CharacterNameActionsModal({
 }: CharacterNameActionsModalProps) {
   const router = useRouter();
   const { user, refetch: refetchUser } = useUser();
+  const { game: activeGame, refetch: refetchActiveGame } = useGame(
+    isOpen ? activeGameId : null
+  );
   const [visibilityBusy, setVisibilityBusy] = useState(false);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -268,6 +273,18 @@ export function CharacterNameActionsModal({
                     </p>
                   ) : null}
                 </div>
+              ) : null}
+
+              {activeGame ? (
+                <PlayGrantActions
+                  key={`${activeGame.id}-${characterId}`}
+                  game={activeGame}
+                  characterId={characterId}
+                  onUpdated={async () => {
+                    await refetchActiveGame();
+                    await onVisibilityUpdated?.();
+                  }}
+                />
               ) : null}
             </div>
 

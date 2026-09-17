@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   isGmControlledGameCharacter,
+  isHeldPlayGrantInGame,
   isPublicKnownNpcInGame,
+  sortGrantedNpcsFirst,
 } from "@/app/lib/gmUtils";
 import type { GameDetail } from "@/app/lib/types/game";
 
@@ -59,5 +61,36 @@ describe("gmUtils known NPC visibility", () => {
   it("treats undefined isPublic as public", () => {
     const game = makeGame({ characters: [makeNpcLink(undefined)] });
     expect(isPublicKnownNpcInGame(game.characters![0], game)).toBe(true);
+  });
+
+  it("keeps a granted NPC as GM-controlled", () => {
+    const gc = {
+      ...makeNpcLink(true),
+      playGrant: { userId: "p-1", name: "Player" },
+    };
+    const game = makeGame({ characters: [gc] });
+    expect(isGmControlledGameCharacter(gc, game)).toBe(true);
+  });
+
+  it("identifies the current viewer's held play grants", () => {
+    const gc = {
+      ...makeNpcLink(true),
+      playGrant: { userId: "p-1", name: "Player" },
+    };
+    const playerGame = makeGame({ characters: [gc], isGameMaster: false });
+    const gmGame = makeGame({ characters: [gc], isGameMaster: true });
+    expect(isHeldPlayGrantInGame(gc, playerGame)).toBe(true);
+    expect(isHeldPlayGrantInGame(gc, gmGame)).toBe(false);
+  });
+
+  it("pins granted NPCs first without dropping others", () => {
+    const unggranted = makeNpcLink(true, "npc-plain");
+    const granted = {
+      ...makeNpcLink(true, "npc-granted"),
+      playGrant: { userId: "p-1", name: "Player" },
+    };
+    expect(
+      sortGrantedNpcsFirst([unggranted, granted]).map((r) => r.characterId)
+    ).toEqual(["npc-granted", "npc-plain"]);
   });
 });

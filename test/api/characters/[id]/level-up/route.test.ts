@@ -75,6 +75,17 @@ describe("/api/characters/[id]/level-up POST", () => {
     expect(response.status).toBe(403);
   });
 
+  it("returns 403 when a play-grant holder tries to level-up", async () => {
+    characterBelongsToUserMock.mockResolvedValue(false);
+    const { POST } = await import("@/app/api/characters/[id]/level-up/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({}, "grantee-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(403);
+  });
+
   it("returns 400 when request body validation fails", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     safeParseMock.mockReturnValue({
