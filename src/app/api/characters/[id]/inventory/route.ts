@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { prisma } from "@/app/lib/prisma/client";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -33,7 +33,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       logger.error({
         method: "GET",
         route: "/api/characters/[id]/inventory",
@@ -81,7 +81,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character ID", 400);
     }
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       logger.error({
         method: "POST",
         route: "/api/characters/[id]/inventory",

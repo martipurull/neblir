@@ -1,5 +1,7 @@
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
-import { characterIsInGame } from "@/app/lib/prisma/gameCharacter";
+import {
+  characterIsInGame,
+  userHasPlayControl,
+} from "@/app/lib/prisma/gameCharacter";
 import { getUniqueVehicle } from "@/app/lib/prisma/uniqueVehicle";
 import {
   createVehicleCharacter,
@@ -28,7 +30,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID", 400);
     }
 
-    if (!(await characterBelongsToUser(characterId, request.auth.user.id))) {
+    if (!(await userHasPlayControl(characterId, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 
@@ -61,7 +63,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID", 400);
     }
 
-    if (!(await characterBelongsToUser(characterId, userId))) {
+    if (!(await userHasPlayControl(characterId, userId))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 

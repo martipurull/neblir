@@ -5,17 +5,25 @@ type GameCharacterRow = NonNullable<GameDetail["characters"]>[number];
 /**
  * Characters the GM may roll initiative for: no in-game player owners, or only the GM is linked.
  */
+export function isGmControlledFromOwnerIds(
+  linkedUserIds: string[],
+  gameUserIds: ReadonlySet<string>,
+  gameMaster: string
+): boolean {
+  const ownersAmongGameUsers = linkedUserIds.filter((uid) =>
+    gameUserIds.has(uid)
+  );
+  if (ownersAmongGameUsers.length === 0) return true;
+  return ownersAmongGameUsers.every((uid) => uid === gameMaster);
+}
+
 export function isGmControlledGameCharacter(
   gc: GameCharacterRow,
   game: GameDetail
 ): boolean {
   const gameUserIds = new Set(game.users.map((u) => u.userId));
   const linked = gc.character.linkedUserIds ?? [];
-  const ownersAmongGameUsers = linked.filter((uid: string) =>
-    gameUserIds.has(uid)
-  );
-  if (ownersAmongGameUsers.length === 0) return true;
-  return ownersAmongGameUsers.every((uid: string) => uid === game.gameMaster);
+  return isGmControlledFromOwnerIds(linked, gameUserIds, game.gameMaster);
 }
 
 /** GM-controlled NPC with a public game link (visible on Known NPCs to players). */
@@ -46,6 +54,47 @@ function isVisibleLinkedCharacterInGame(
   if (game.isGameMaster === true) return true;
   if (gc.character.isOwnedByCurrentUser) return true;
   return gc.isPublic !== false;
+}
+
+/** Whether this game-character row's play grant is held by `viewerId`. */
+export function isHeldPlayGrantInGame(
+  gc: GameCharacterRow,
+  viewerId: string
+): boolean {
+  return gc.playGrant?.userId === viewerId;
+}
+
+/**
+ * Known NPCs sheet-link: public GM-controlled row whose play grant is held by
+ * the viewer. Other players matching only grant presence do not get a link.
+ */
+export function isKnownNpcSheetLinkForViewer(
+  gc: GameCharacterRow,
+  game: GameDetail,
+  viewerId: string
+): boolean {
+  return (
+    isPublicKnownNpcInGame(gc, game) && isHeldPlayGrantInGame(gc, viewerId)
+  );
+}
+
+/** Playing list: the viewer's held play grants in this game, including private. */
+export function heldPlayGrantCharactersInGame(
+  game: GameDetail,
+  viewerId: string
+): GameCharacterRow[] {
+  return (game.characters ?? []).filter((gc) =>
+    isHeldPlayGrantInGame(gc, viewerId)
+  );
+}
+
+/** Pin granted NPCs first within a public or private list. */
+export function sortGrantedNpcsFirst<T extends { playGrant?: unknown }>(
+  rows: T[]
+): T[] {
+  return [...rows].sort(
+    (a, b) => Number(b.playGrant != null) - Number(a.playGrant != null)
+  );
 }
 
 /**

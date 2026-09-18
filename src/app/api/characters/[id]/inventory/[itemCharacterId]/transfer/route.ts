@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../../shared/errors";
 import { errorResponse } from "../../../../../shared/responses";
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { prisma } from "@/app/lib/prisma/client";
 import { z } from "zod";
 
@@ -62,9 +62,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character or inventory entry ID", 400);
     }
 
-    if (
-      !(await characterBelongsToUser(fromCharacterId, request.auth.user.id))
-    ) {
+    if (!(await userHasPlayControl(fromCharacterId, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 

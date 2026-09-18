@@ -152,6 +152,7 @@ interface VehiclesSectionContentProps {
   mutate?: KeyedMutator<CharacterDetail | null>;
   activeGameId: string | null;
   readOnly?: boolean;
+  allowUniqueCreate?: boolean;
 }
 
 function VehiclesSectionContent({
@@ -159,6 +160,7 @@ function VehiclesSectionContent({
   mutate,
   activeGameId,
   readOnly = false,
+  allowUniqueCreate = !readOnly,
 }: VehiclesSectionContentProps) {
   const [browseModalOpen, setBrowseModalOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
@@ -340,15 +342,17 @@ function VehiclesSectionContent({
             >
               Browse vehicles
             </Button>
-            <Button
-              type="button"
-              variant="lightToolbarCompact"
-              fullWidth={false}
-              onClick={() => setCreateUniqueOpen(true)}
-              disabled={!activeGameId}
-            >
-              Create unique vehicle
-            </Button>
+            {allowUniqueCreate ? (
+              <Button
+                type="button"
+                variant="lightToolbarCompact"
+                fullWidth={false}
+                onClick={() => setCreateUniqueOpen(true)}
+                disabled={!activeGameId}
+              >
+                Create unique vehicle
+              </Button>
+            ) : null}
           </div>
           {!activeGameId ? (
             <p className="text-xs text-black/65">
@@ -409,7 +413,11 @@ function VehiclesSectionContent({
         />
       ) : null}
 
-      {createUniqueOpen && !readOnly && mutate && activeGameId ? (
+      {createUniqueOpen &&
+      allowUniqueCreate &&
+      !readOnly &&
+      mutate &&
+      activeGameId ? (
         <CreateUniqueVehicleModal
           key={`create-unique-vehicle-${character.id}-${activeGameId}`}
           isOpen={createUniqueOpen}
@@ -423,7 +431,7 @@ function VehiclesSectionContent({
         />
       ) : null}
 
-      {editUniqueVehicleState && !readOnly && mutate ? (
+      {editUniqueVehicleState && allowUniqueCreate && !readOnly && mutate ? (
         <CreateUniqueVehicleModal
           key={`edit-unique-vehicle-${editUniqueVehicleState.id}`}
           isOpen={Boolean(editUniqueVehicleState)}
@@ -459,6 +467,7 @@ function VehiclesSectionContent({
           resolveGiveRecipientsAction={resolveGiveRecipients}
           resolveItemGiveRecipientsAction={resolveItemGiveRecipients}
           onEditUniqueVehicleAction={
+            allowUniqueCreate &&
             detailEntry.sourceType === "UNIQUE_VEHICLE" &&
             detailEntry.vehicle?.gameId
               ? () => {
@@ -490,9 +499,11 @@ export function getVehiclesSection(
   options?: {
     mutate?: KeyedMutator<CharacterDetail | null>;
     readOnly?: boolean;
+    allowUniqueCreate?: boolean;
   }
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
+  const allowUniqueCreate = options?.allowUniqueCreate ?? !readOnly;
   return {
     id: "vehicles",
     title: "Vehicles",
@@ -505,6 +516,7 @@ export function getVehiclesSection(
         mutate={options?.mutate}
         activeGameId={activeGameId}
         readOnly={readOnly}
+        allowUniqueCreate={allowUniqueCreate}
       />
     ),
   };

@@ -3,7 +3,10 @@ import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveChar
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import type { GameDetail } from "@/app/lib/types/game";
-import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import {
+  isGmControlledGameCharacter,
+  sortGrantedNpcsFirst,
+} from "@/app/lib/gmUtils";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import { Button } from "@/app/components/shared/Button";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
@@ -59,8 +62,12 @@ export function GmNpcsSection({
     [game.characters]
   );
 
-  const publicNpcs = npcRows.filter((gc) => gc.isPublic ?? true);
-  const privateNpcs = npcRows.filter((gc) => !(gc.isPublic ?? true));
+  const publicNpcs = sortGrantedNpcsFirst(
+    npcRows.filter((gc) => gc.isPublic ?? true)
+  );
+  const privateNpcs = sortGrantedNpcsFirst(
+    npcRows.filter((gc) => !(gc.isPublic ?? true))
+  );
   const npcImageUrls = useImageUrls(
     npcRows.map((gc) => ({
       id: gc.character.id,
@@ -125,6 +132,11 @@ export function GmNpcsSection({
                       <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
                         {name}
                       </p>
+                      {gc.playGrant ? (
+                        <span className="mt-1 inline-block rounded-full border border-black/20 bg-paleBlue/80 px-2 py-0.5 text-xs font-medium text-black">
+                          {gc.playGrant.name}
+                        </span>
+                      ) : null}
                       <p className="text-sm text-black/65">
                         Level {char.generalInformation?.level ?? "—"}
                       </p>

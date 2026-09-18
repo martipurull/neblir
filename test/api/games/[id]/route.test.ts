@@ -101,6 +101,64 @@ describe("/api/games/[id] handlers", () => {
       expect(data.id).toBe("g-1");
       expect(data.isGameMaster).toBe(false);
     });
+
+    it("omits grantee identity when another player fetches the game", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        name: "Game",
+        users: [
+          {
+            id: "gu-1",
+            gameId: "g-1",
+            userId: "gm-1",
+            user: { id: "gm-1", name: "GM" },
+          },
+          {
+            id: "gu-2",
+            gameId: "g-1",
+            userId: "player-1",
+            user: { id: "player-1", name: "Player" },
+          },
+          {
+            id: "gu-3",
+            gameId: "g-1",
+            userId: "player-2",
+            user: { id: "player-2", name: "Other" },
+          },
+        ],
+        characters: [
+          {
+            id: "gc-1",
+            gameId: "g-1",
+            characterId: "c-1",
+            isPublic: true,
+            playGrantUserId: "player-1",
+            playGrantUser: { id: "player-1", name: "Player" },
+            character: {
+              id: "c-1",
+              generalInformation: { name: "Shopkeep", surname: "Npc" },
+              combatInformation: { initiativeMod: 0 },
+              users: [{ userId: "gm-1" }],
+            },
+          },
+        ],
+        customItems: [],
+        enemyInstances: [],
+        initiativeOrder: [],
+      });
+      userIsInGameMock.mockResolvedValue(true);
+      const { GET } = await import("@/app/api/games/[id]/route");
+      const response = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "player-2"),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.characters?.[0]?.playGrant).toBeUndefined();
+      expect(data.characters?.[0]?.playGrantUserId).toBeUndefined();
+    });
   });
 
   describe("PATCH", () => {

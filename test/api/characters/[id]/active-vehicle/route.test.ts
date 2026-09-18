@@ -14,6 +14,10 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: (...args: unknown[]) => belongsMock(...args),
 }));
 
+vi.mock("@/app/lib/prisma/gameCharacter", () => ({
+  userHasPlayControl: (...args: unknown[]) => belongsMock(...args),
+}));
+
 vi.mock("@/app/lib/prisma/vehicleCharacter", async (importOriginal) => {
   const mod = (await importOriginal()) as Record<string, unknown>;
   return {

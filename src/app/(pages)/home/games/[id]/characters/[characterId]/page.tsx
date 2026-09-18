@@ -12,7 +12,7 @@ export default function GameCharacterViewPage() {
   const gameId = typeof params.id === "string" ? params.id : null;
   const characterId =
     typeof params.characterId === "string" ? params.characterId : null;
-  const { character, loading, error, refetch } = useGameCharacterView(
+  const { character, loading, error, refetch, mutate } = useGameCharacterView(
     gameId,
     characterId
   );
@@ -46,6 +46,11 @@ export default function GameCharacterViewPage() {
   }
 
   return (
-    <CharacterDetailView character={character} readOnly fixedGameId={gameId} />
+    <CharacterDetailView
+      character={character}
+      authorship={false}
+      fixedGameId={gameId}
+      mutateAction={mutate}
+    />
   );
 }

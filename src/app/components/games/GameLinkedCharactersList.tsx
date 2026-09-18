@@ -4,7 +4,9 @@ import { ExpandableClamp } from "@/app/components/shared/ExpandableClamp";
 import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
+import { isKnownNpcSheetLinkForViewer } from "@/app/lib/gmUtils";
 import type { GameDetail } from "@/app/lib/types/game";
+import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 
 type GameCharacterRow = NonNullable<GameDetail["characters"]>[number];
@@ -41,6 +43,9 @@ export function GameLinkedCharactersList({
   imageUrls,
   onRemoved,
 }: GameLinkedCharactersListProps) {
+  const { user } = useUser();
+  const viewerId = user?.id;
+
   if (characters.length === 0) {
     return <p className="py-2 text-sm text-black/60">{emptyText}</p>;
   }
@@ -64,12 +69,16 @@ export function GameLinkedCharactersList({
 
         const canRemoveFromGame =
           char.isOwnedByCurrentUser || game.isGameMaster === true;
+        const isPlayGrantee =
+          viewerId != null && isKnownNpcSheetLinkForViewer(gc, game, viewerId);
         const canViewSheet =
-          char.isOwnedByCurrentUser || game.isGameMaster === true;
+          char.isOwnedByCurrentUser ||
+          game.isGameMaster === true ||
+          isPlayGrantee;
 
         const sheetHref = char.isOwnedByCurrentUser
           ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
-          : game.isGameMaster
+          : game.isGameMaster === true || isPlayGrantee
             ? `/home/games/${game.id}/characters/${char.id}`
             : null;
 
@@ -106,7 +115,7 @@ export function GameLinkedCharactersList({
             href={
               char.isOwnedByCurrentUser
                 ? `/home/characters/${char.id}?returnTo=${encodeURIComponent(returnTo)}`
-                : game.isGameMaster
+                : game.isGameMaster === true || isPlayGrantee
                   ? `/home/games/${game.id}/characters/${char.id}`
                   : undefined
             }

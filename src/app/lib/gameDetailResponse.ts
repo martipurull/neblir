@@ -70,8 +70,8 @@ export function shapeGameForResponse(
       const isOwnedByCurrentUser = gc.character.users.some(
         (u) => u.userId === userId
       );
-
       if (isOwnedByCurrentUser) return true;
+      if (gc.playGrantUserId === userId) return true;
       return gc.isPublic !== false;
     })
     .map((gc) => {
@@ -81,8 +81,17 @@ export function shapeGameForResponse(
       );
       const health = gc.character.health;
       const combat = gc.character.combatInformation;
+      const canSeeGrant = isGameMaster || gc.playGrantUserId === userId;
+      const playGrantUser = gc.playGrantUser;
       return {
-        ...gc,
+        id: gc.id,
+        gameId: gc.gameId,
+        characterId: gc.characterId,
+        isPublic: gc.isPublic,
+        playGrant:
+          canSeeGrant && playGrantUser
+            ? { userId: playGrantUser.id, name: playGrantUser.name }
+            : undefined,
         character: {
           id: gc.character.id,
           name: gi?.name ?? "",

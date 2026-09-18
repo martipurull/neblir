@@ -108,6 +108,10 @@ export async function removePlayerFromGame(
   const characterIdSet = new Set(removedCharacterIds);
 
   await prisma.$transaction([
+    prisma.gameCharacter.updateMany({
+      where: { gameId, playGrantUserId: targetUserId },
+      data: { playGrantUserId: null },
+    }),
     prisma.gameCharacter.deleteMany({
       where: { gameId, characterId: { in: removedCharacterIds } },
     }),

@@ -27,7 +27,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   isItemInventoryOperational,
   itemStatusSchema,
@@ -108,7 +108,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     ) {
       return errorResponse("Invalid character or itemCharacter ID", 400);
     }
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 
@@ -413,7 +413,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       });
       return errorResponse("Invalid character or itemCharacter ID", 400);
     }
-    if (!(await characterBelongsToUser(id, request.auth.user.id))) {
+    if (!(await userHasPlayControl(id, request.auth.user.id))) {
       logger.error({
         method: "DELETE",
         route: "/api/characters/[id]/equipment/[itemCharacterId]",

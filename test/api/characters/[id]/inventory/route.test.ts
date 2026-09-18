@@ -15,6 +15,10 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
   characterBelongsToUser: characterBelongsToUserMock,
 }));
 
+vi.mock("@/app/lib/prisma/gameCharacter", () => ({
+  userHasPlayControl: characterBelongsToUserMock,
+}));
+
 vi.mock("@/app/lib/prisma/itemCharacter", () => ({
   getCharacterInventory: getCharacterInventoryMock,
   addOrIncrementItemCharacter: addOrIncrementItemCharacterMock,

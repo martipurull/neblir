@@ -1,4 +1,4 @@
-import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
+import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   dismountVehicleForCharacter,
   mountVehicleForCharacter,
@@ -36,7 +36,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid character ID", 400);
     }
 
-    if (!(await characterBelongsToUser(characterId, request.auth.user.id))) {
+    if (!(await userHasPlayControl(characterId, request.auth.user.id))) {
       return errorResponse("This is not one of your characters.", 403);
     }
 

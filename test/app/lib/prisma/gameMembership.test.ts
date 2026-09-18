@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const prismaMock = {
   game: { findUnique: vi.fn() },
-  gameCharacter: { deleteMany: vi.fn(), findFirst: vi.fn(), findMany: vi.fn() },
+  gameCharacter: {
+    deleteMany: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+  },
   characterUser: { findMany: vi.fn() },
   gameUser: { findFirst: vi.fn(), deleteMany: vi.fn() },
   gameInvite: { deleteMany: vi.fn() },
@@ -108,6 +113,10 @@ describe("gameMembership", () => {
 
       expect(result).toEqual({ ok: true, removedCharacterIds: ["c-1"] });
       expect(prismaMock.$transaction).toHaveBeenCalled();
+      expect(prismaMock.gameCharacter.updateMany).toHaveBeenCalledWith({
+        where: { gameId: "g-1", playGrantUserId: "u-2" },
+        data: { playGrantUserId: null },
+      });
       expect(prismaMock.gameCharacter.deleteMany).toHaveBeenCalledWith({
         where: { gameId: "g-1", characterId: { in: ["c-1"] } },
       });

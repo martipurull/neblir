@@ -9,6 +9,7 @@ type UseGameCharacterViewResult = {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  mutate: ReturnType<typeof useSWR<CharacterDetail | null>>["mutate"];
 };
 
 export function useGameCharacterView(
@@ -29,5 +30,6 @@ export function useGameCharacterView(
     loading: isLoading,
     error: error instanceof Error ? error.message : null,
     refetch,
+    mutate,
   };
 }

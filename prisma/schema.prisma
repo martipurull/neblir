@@ -849,17 +849,20 @@ model GameUser {
 }
 
 model GameCharacter {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  gameId      String  @db.ObjectId
-  characterId String  @db.ObjectId
-  isPublic    Boolean @default(true)
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameId          String  @db.ObjectId
+  characterId     String  @db.ObjectId
+  isPublic        Boolean @default(true)
+  playGrantUserId String? @db.ObjectId
 
-  game      Game      @relation(fields: [gameId], references: [id])
-  character Character @relation(fields: [characterId], references: [id])
+  game          Game  @relation(fields: [gameId], references: [id])
+  character     Character @relation(fields: [characterId], references: [id])
+  playGrantUser User? @relation("GameCharacterPlayGrant", fields: [playGrantUserId], references: [id])
 
   @@unique([gameId, characterId])
   @@index([gameId])
   @@index([characterId])
+  @@index([playGrantUserId])
 }
 
 model Item {
@@ -1078,6 +1081,7 @@ model User {
 
   games                        GameUser[]
   characters                   CharacterUser[]
+  playGrantedGameCharacters    GameCharacter[]      @relation("GameCharacterPlayGrant")
   gameInvitesReceived          GameInvite[]         @relation("GameInviteInvited")
   gameInvitesSent              GameInvite[]         @relation("GameInviteInvitedBy")
   discordIntegrationsInstalled DiscordIntegration[] @relation("DiscordIntegrationInstalledBy")

@@ -22,6 +22,7 @@ vi.mock("@/app/lib/prisma/characterUser", () => ({
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   characterIsInGame: (...args: unknown[]) => inGameMock(...args),
+  userHasPlayControl: (...args: unknown[]) => belongsMock(...args),
 }));
 
 vi.mock("@/app/lib/prisma/vehicle", () => ({
