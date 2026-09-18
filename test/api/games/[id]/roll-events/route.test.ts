@@ -243,7 +243,60 @@ describe("/api/games/[id]/roll-events", () => {
       expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
 
-    it("persists a private roll for a non-GM on a private character link", async () => {
+    it("does not force private for a play-grant grantee on a public character link", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(true);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+            metadata: { label1: "Agility" },
+          },
+          "grantee-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: { label1: "Agility" },
+        }),
+      });
+    });
+
+    it("defaults private for a play-grant grantee on a private character link", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            diceExpression: "2d10",
+            results: [10, 7],
+            metadata: { label1: "Agility" },
+          },
+          "grantee-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(response.status).toBe(201);
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            label1: "Agility",
+            isPrivate: true,
+          }),
+        }),
+      });
+    });
+
+    it("does not let a play-grant grantee un-hide a private-link roll", async () => {
       getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
       const { POST } = await import("@/app/api/games/[id]/roll-events/route");

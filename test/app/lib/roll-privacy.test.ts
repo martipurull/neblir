@@ -173,7 +173,18 @@ describe("roll-privacy", () => {
       ).toBe(true);
     });
 
-    it("persists private for a non-GM roller on a private character link", () => {
+    it("defaults private for a play-grant grantee on a private character link", () => {
+      expect(
+        resolvePersistedRollIsPrivate({
+          requestedIsPrivate: undefined,
+          isGameMaster: false,
+          characterIsPublic: false,
+          enemyInstanceIsPublic: null,
+        })
+      ).toBe(true);
+    });
+
+    it("does not let a play-grant grantee un-hide a private-link roll", () => {
       expect(
         resolvePersistedRollIsPrivate({
           requestedIsPrivate: false,
@@ -184,7 +195,7 @@ describe("roll-privacy", () => {
       ).toBe(true);
     });
 
-    it("does not default private for non-GM rollers on a public character", () => {
+    it("does not force private for a play-grant grantee on a public character", () => {
       expect(
         resolvePersistedRollIsPrivate({
           requestedIsPrivate: undefined,

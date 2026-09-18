@@ -52,10 +52,6 @@ export function emitIsPrivateFromRollPrivacy(
   return isPrivateRoll;
 }
 
-/**
- * Server-side: honour explicit GM opt-out, explicit private, or default private
- * for GM rolls on private game-character links.
- */
 export function enemyInstanceIdFromRollMetadata(
   metadata: Record<string, unknown> | undefined
 ): string | null {
@@ -66,6 +62,13 @@ export function enemyInstanceIdFromRollMetadata(
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/**
+ * Server-side persist rule for roll-event privacy.
+ * A non-GM roller (including a play-grant grantee) on a private character link
+ * is always private — they cannot un-hide. Only the GM may opt out with
+ * `requestedIsPrivate: false`. Otherwise honour an explicit flag, then default
+ * private for GM rolls on private character links or enemy instances.
+ */
 export function resolvePersistedRollIsPrivate(options: {
   requestedIsPrivate: boolean | undefined;
   isGameMaster: boolean;
