@@ -10,8 +10,12 @@ type RemoveCharacterFromGameButtonProps = {
   /** Shown in the confirmation dialog when provided. */
   characterName?: string;
   onRemoved?: () => void | Promise<void>;
-  /** Wrapper classes (e.g. spacing); `w-fit` is always applied. */
+  /** Wrapper classes (e.g. spacing). Default hugs content (`w-fit`). */
   className?: string;
+  /** Fill the container instead of hugging content (GM NPC card action row). */
+  fullWidth?: boolean;
+  /** Extra classes on the inner {@link Button}. */
+  buttonClassName?: string;
 };
 
 export function RemoveCharacterFromGameButton({
@@ -20,6 +24,8 @@ export function RemoveCharacterFromGameButton({
   characterName,
   onRemoved,
   className,
+  fullWidth = false,
+  buttonClassName,
 }: RemoveCharacterFromGameButtonProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -66,7 +72,12 @@ export function RemoveCharacterFromGameButton({
     setError(null);
   };
 
-  const wrapperClass = ["w-fit max-w-full", className]
+  const wrapperClass = [
+    fullWidth
+      ? "flex h-full min-h-0 min-w-0 w-full max-w-full flex-col"
+      : "w-fit max-w-full",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
   const subject = characterName?.trim() ?? "This character";
@@ -79,7 +90,10 @@ export function RemoveCharacterFromGameButton({
         ) : null}
         <Button
           variant="danger"
-          fullWidth={false}
+          fullWidth={fullWidth}
+          className={[fullWidth ? "flex-1" : "", buttonClassName]
+            .filter(Boolean)
+            .join(" ")}
           disabled={isRemoving}
           onClick={(e) => {
             e.preventDefault();

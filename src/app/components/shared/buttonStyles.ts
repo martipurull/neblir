@@ -442,6 +442,10 @@ const lightReferenceDisclosure =
 /** Layout helper for Next.js `Link` styled as {@link modalActionBlock}. */
 export const linkAsModalActionBlockClassName = "block w-full text-center";
 
+/** Stretch + wrap labels in the GM NPC card action row so the three actions share a cell. */
+export const gmNpcCardActionClassName =
+  "inline-flex h-full min-h-11 min-w-0 w-full items-center justify-center whitespace-normal text-center";
+
 export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   primary,
   secondary,

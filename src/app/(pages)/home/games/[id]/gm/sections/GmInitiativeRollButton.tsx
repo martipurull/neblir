@@ -8,6 +8,8 @@ type GmInitiativeRollButtonProps = {
   disabled?: boolean;
   onClick: () => void;
   className?: string;
+  /** Fill the container (GM NPC card action row). Enemy list stays compact. */
+  fullWidth?: boolean;
 };
 
 export function GmInitiativeRollButton({
@@ -17,12 +19,13 @@ export function GmInitiativeRollButton({
   disabled = false,
   onClick,
   className,
+  fullWidth = false,
 }: GmInitiativeRollButtonProps) {
   return (
     <Button
       type="button"
       variant="semanticWarningOutline"
-      fullWidth={false}
+      fullWidth={fullWidth}
       disabled={disabled || busy || hasRolled}
       title={
         hasRolled
