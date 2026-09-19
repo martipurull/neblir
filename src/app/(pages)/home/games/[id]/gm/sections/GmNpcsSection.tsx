@@ -1,21 +1,18 @@
 import { AddCharactersToGameModal } from "@/app/components/games/AddCharactersToGameModal";
-import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
+import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
+import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
-import type { GameDetail } from "@/app/lib/types/game";
 import {
   isGmControlledGameCharacter,
   sortGrantedNpcsFirst,
 } from "@/app/lib/gmUtils";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
-import { Button } from "@/app/components/shared/Button";
-import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import type { GameDetail } from "@/app/lib/types/game";
 import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
-import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
+import { GmNpcCard } from "./GmNpcCard";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
@@ -104,103 +101,41 @@ export function GmNpcsSection({
       <ul className="space-y-2">
         {rows.map((gc) => {
           const char = gc.character;
-          const name = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
           const isUpdating = updatingCharacterId === char.id;
           const isRolling = isPending("CHARACTER", char.id);
           const targetVisibility = visibility === "Public" ? false : true;
-          const toggleLabel =
-            visibility === "Public" ? "Make private" : "Make public";
           return (
-            <li
+            <GmNpcCard
               key={gc.id}
-              className="flex flex-col gap-2 rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2"
-            >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <Link
-                  href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${game.id}/gm`)}`}
-                  className="min-w-0 w-full rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30 sm:flex-1"
-                >
-                  <div className="flex items-center gap-3">
-                    <RemoteAvatar
-                      imageUrl={npcImageUrls[char.id]}
-                      imageKey={char.avatarKey}
-                      alt={`${name} avatar`}
-                      size={44}
-                      className="h-11 w-11"
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
-                        {name}
-                      </p>
-                      {gc.playGrant ? (
-                        <span className="mt-1 inline-block rounded-full border border-black/20 bg-paleBlue/80 px-2 py-0.5 text-xs font-medium text-black">
-                          {gc.playGrant.name}
-                        </span>
-                      ) : null}
-                      <p className="text-sm text-black/65">
-                        Level {char.generalInformation?.level ?? "—"}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-                <div className="w-full sm:w-auto sm:shrink-0">
-                  <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
-                    <span
-                      className={[
-                        "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                        visibility === "Public"
-                          ? "border-neblirSafe-400/50 bg-neblirSafe-200/30 text-black"
-                          : "border-neblirDanger-300/50 bg-neblirDanger-100/40 text-black",
-                      ].join(" ")}
-                    >
-                      {visibility}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="solidDark"
-                      className="text-xs max-sm:w-full"
-                      fullWidth={false}
-                      disabled={isUpdating || isRolling}
-                      onClick={() => {
-                        setUpdateError(null);
-                        setUpdatingCharacterId(char.id);
-                        void onSetVisibility(char.id, targetVisibility)
-                          .catch((error) => {
-                            setUpdateError(
-                              error instanceof Error
-                                ? error.message
-                                : "Failed to update visibility."
-                            );
-                          })
-                          .finally(() => {
-                            setUpdatingCharacterId(null);
-                          });
-                      }}
-                    >
-                      {isUpdating ? "Updating..." : toggleLabel}
-                    </Button>
-                    <GmInitiativeRollButton
-                      hasRolled={hasCombatantInitiativeEntry(
-                        game,
-                        "CHARACTER",
-                        char.id
-                      )}
-                      busy={isRolling}
-                      modifier={char.initiativeMod ?? 0}
-                      disabled={isUpdating}
-                      className="text-xs max-sm:w-full"
-                      onClick={() => void handleRollNpc(gc)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <RemoveCharacterFromGameButton
-                gameId={game.id}
-                characterId={char.id}
-                characterName={name}
-                onRemoved={onCharacterRemoved}
-              />
-            </li>
+              gameId={game.id}
+              row={gc}
+              imageUrl={npcImageUrls[char.id]}
+              isPublic={visibility === "Public"}
+              isUpdating={isUpdating}
+              isRolling={isRolling}
+              hasRolled={hasCombatantInitiativeEntry(
+                game,
+                "CHARACTER",
+                char.id
+              )}
+              onToggleVisibility={() => {
+                setUpdateError(null);
+                setUpdatingCharacterId(char.id);
+                void onSetVisibility(char.id, targetVisibility)
+                  .catch((error) => {
+                    setUpdateError(
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to update visibility."
+                    );
+                  })
+                  .finally(() => {
+                    setUpdatingCharacterId(null);
+                  });
+              }}
+              onRoll={() => void handleRollNpc(gc)}
+              onRemoved={onCharacterRemoved}
+            />
           );
         })}
       </ul>
