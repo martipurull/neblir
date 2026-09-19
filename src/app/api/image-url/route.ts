@@ -1,4 +1,4 @@
-import { getR2Config } from "@/app/lib/r2";
+import { getR2ConfigForKey, isCatalogueImageKey } from "@/app/lib/r2";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { SIGNED_IMAGE_URL_EXPIRES_IN_SECONDS } from "@/lib/signedImageUrl";
@@ -29,12 +29,15 @@ export const GET = auth(async (request: AuthNextRequest) => {
       return errorResponse("Image key is required", 400);
     }
 
-    const config = getR2Config();
+    const config = getR2ConfigForKey(imageKey);
     if (!config) {
+      const isCatalogueKey = isCatalogueImageKey(imageKey);
       logger.error({
         method: "GET",
         route: "/api/image-url",
-        message: "R2 credentials are missing in environment variables",
+        message: isCatalogueKey
+          ? "Catalogue R2 credentials are missing in environment variables"
+          : "R2 credentials are missing in environment variables",
       });
       return errorResponse(
         "R2 credentials are missing in environment variables",

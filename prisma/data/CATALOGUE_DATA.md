@@ -4,6 +4,8 @@ This folder contains the canonical catalogue data for official items, enemies, p
 
 The files here are the **source of truth in git**. The live database is updated immediately when a super admin creates or edits catalogue rows in the app; those changes are **not** written back to this folder automatically. A developer must copy exported JSON into the matching `*_Upload.json` files and commit, then the super admin can clear the in-app drift reminder.
 
+Official catalogue **images** live in the shared R2 bucket `neblir-catalogue`. Seed JSON stores `imageKey` only (for example `items-siike_gun.png`, `enemies-…`, `maps-neblir.png`, `vehicles-…`). Developers do **not** copy those objects between the per-environment buckets (`neblir` / `neblir-prod`). Game-scoped and player-scoped images stay on the env bucket.
+
 ---
 
 ## Roles
@@ -113,7 +115,7 @@ Dry-run parses and reports row counts without writing. Run `npm run data:seed:of
 
 ### 5. Developer commits
 
-Commit the updated `*_Upload.json` files (and any related assets, e.g. new `imageKey` files in R2, if applicable).
+Commit the updated `*_Upload.json` files. New official `imageKey` objects belong in the catalogue R2 bucket, not in git and not in the env buckets.
 
 ### 6. Super admin acknowledges sync
 

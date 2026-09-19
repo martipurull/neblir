@@ -9,6 +9,7 @@ import { NumberInput } from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useImageUpload } from "@/hooks/use-image-upload";
+import { currencyImageKey } from "@/app/lib/types/item";
 import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
@@ -82,7 +83,7 @@ export function GeneralInfoStep() {
     () =>
       CURRENCY_NAMES.map((cn) => ({
         id: cn,
-        imageKey: `currency-${cn.toLowerCase()}.png`,
+        imageKey: currencyImageKey(cn),
       })),
     []
   );
@@ -419,7 +420,7 @@ export function GeneralInfoStep() {
                               {currencyImageUrl ? (
                                 <SignedRemoteImage
                                   src={currencyImageUrl}
-                                  imageKey={`currency-${cn.toLowerCase()}.png`}
+                                  imageKey={currencyImageKey(cn)}
                                   alt=""
                                   width={20}
                                   height={20}
@@ -443,7 +444,7 @@ export function GeneralInfoStep() {
                               {currencyImageUrl ? (
                                 <SignedRemoteImage
                                   src={currencyImageUrl}
-                                  imageKey={`currency-${cn.toLowerCase()}.png`}
+                                  imageKey={currencyImageKey(cn)}
                                   alt=""
                                   width={24}
                                   height={24}

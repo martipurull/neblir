@@ -80,6 +80,36 @@ _Avoid_: major injury (as a separate stored field)
 A 0–3 counter of major mental harm. Reduces the madness-roll dice pool (one die per trauma, minimum one die). At 3, game mechanics set `DERANGED`.
 _Avoid_: madness counter (the roll track is separate)
 
+### Official
+
+**Official**:
+Published game content, not tied to one game: items, vehicles, enemies, maps, paths, features, currencies, and published reference entries (world info and game mechanics). Super-admin authors them.
+_Avoid_: seed data (when meaning the live rows), global (as a stored type)
+
+**Official item**:
+A published item template. Not game-scoped.
+_Avoid_: custom item, unique item
+
+**Official vehicle**:
+A published vehicle template. Not game-scoped.
+_Avoid_: custom vehicle, unique vehicle
+
+**Official enemy**:
+A published enemy template. Spawning it produces enemy instances.
+_Avoid_: custom enemy, enemy instance
+
+**Official map**:
+A published map. Not game-scoped.
+_Avoid_: custom map
+
+**Published reference entry**:
+A global world-info or game-mechanics entry. Not game-scoped.
+_Avoid_: Lore (game-scoped campaign notes)
+
+**Currency**:
+An official wallet denomination. The set is CONF, NORD, NAS, HUMF, and MRARK.
+_Avoid_: money, coin, custom currency (there is none)
+
 ### Inventory and vehicles
 
 **Stack quantity**:
@@ -100,7 +130,15 @@ _Avoid_: unique max HP, maxHpOverride
 
 **Custom item / custom vehicle**:
 A game-scoped template the GM creates and edits from the GM page. Changing it changes every holding of that template.
-_Avoid_: unique item, unique vehicle
+_Avoid_: unique item, unique vehicle, official item, official vehicle
+
+**Unique item / unique vehicle**:
+A user-owned instance with its own stats and image, created by a GM or player from a template or standalone. Editing it does not change other holdings.
+_Avoid_: custom item, custom vehicle (those are game-scoped templates)
+
+**Custom map**:
+A game-scoped map the GM creates.
+_Avoid_: official map, File (when meaning a map)
 
 ### Files and lore
 

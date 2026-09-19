@@ -4,6 +4,7 @@ const ALLOWED_PDF_EXTENSIONS = ["pdf"] as const;
 export type UploadKeyType =
   | "custom_items"
   | "custom_enemies"
+  | "custom_maps"
   | "unique_items"
   | "custom_vehicles"
   | "unique_vehicles"
@@ -12,6 +13,7 @@ export type UploadKeyType =
   | "items"
   | "vehicles"
   | "maps"
+  | "enemies"
   | "recaps"
   | "files"
   | "lore";

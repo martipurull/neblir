@@ -38,6 +38,27 @@ export function makeAuthedRequestWithUrl(
   } as any;
 }
 
+/** Env / catalogue R2 vars used by image upload and image-url route tests. */
+export function setEnvR2() {
+  process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+  process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+  process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+  process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+}
+
+export function setCatalogueR2() {
+  process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+  process.env.R2_NEBLIR_CATALOGUE_BUCKET_NAME = "neblir-catalogue";
+  process.env.R2_NEBLIR_CATALOGUE_BUCKET_ACCESS_KEY = "cat-ak";
+  process.env.R2_NEBLIR_CATALOGUE_BUCKET_SECRET_ACCESS_KEY = "cat-sk";
+}
+
+export function clearCatalogueR2() {
+  delete process.env.R2_NEBLIR_CATALOGUE_BUCKET_NAME;
+  delete process.env.R2_NEBLIR_CATALOGUE_BUCKET_ACCESS_KEY;
+  delete process.env.R2_NEBLIR_CATALOGUE_BUCKET_SECRET_ACCESS_KEY;
+}
+
 /** POST handlers that read `request.formData()` (e.g. CSV import). */
 export function makeAuthedFormDataRequest(
   formData: FormData,

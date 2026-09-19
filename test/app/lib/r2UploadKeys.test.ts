@@ -19,6 +19,15 @@ describe("r2UploadKeys", () => {
     );
   });
 
+  it("builds enemies- and custom_maps- image keys", () => {
+    expect(buildUploadKey("enemies", "Plynth Hexops.png")).toMatch(
+      /^enemies-plynth_hexops-[a-z0-9]+\.png$/
+    );
+    expect(buildUploadKey("custom_maps", "Table Map.png")).toMatch(
+      /^custom_maps-table_map-[a-z0-9]+\.png$/
+    );
+  });
+
   it("builds lore- keys with image or pdf extensions", () => {
     expect(buildUploadKey("lore", "City Map.pdf")).toMatch(
       /^lore-city_map-[a-z0-9]+\.pdf$/

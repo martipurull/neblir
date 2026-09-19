@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  clearCatalogueR2,
   invokeRoute,
   makeAuthedRequest,
   makeUnauthedRequest,
+  setCatalogueR2,
+  setEnvR2,
 } from "../helpers";
 
 const s3SendMock = vi.fn();
@@ -87,6 +90,7 @@ describe("/api/upload-image POST", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...envBackup };
+    clearCatalogueR2();
     s3SendMock.mockResolvedValue(undefined);
     userIsSuperAdminMock.mockResolvedValue(true);
   });
@@ -182,6 +186,7 @@ describe("/api/upload-image POST", () => {
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
     process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
     process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+    setCatalogueR2();
 
     const file = new File(["x"], "My Item.png", { type: "image/png" });
     const { POST } = await import("@/app/api/upload-image/route");
@@ -308,10 +313,7 @@ describe("/api/upload-image POST", () => {
   });
 
   it("returns 201 with fileKey prefixed items- when type is items and user is super admin", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+    setCatalogueR2();
 
     const file = new File(["x"], "Official.png", { type: "image/png" });
     const { POST } = await import("@/app/api/upload-image/route");
@@ -323,6 +325,9 @@ describe("/api/upload-image POST", () => {
     expect(data.fileKey).toMatch(/\.png$/);
     expect(userIsSuperAdminMock).toHaveBeenCalled();
     expect(s3SendMock).toHaveBeenCalledTimes(1);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("neblir-catalogue");
+    expect(putArgs.Key).toBe(data.fileKey);
   });
 
   it("returns 403 when type is maps and user is not super admin", async () => {
@@ -342,10 +347,7 @@ describe("/api/upload-image POST", () => {
   });
 
   it("returns 201 with fileKey prefixed maps- when type is maps and user is super admin", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+    setCatalogueR2();
 
     const file = new File(["x"], "Neblir.png", { type: "image/png" });
     const { POST } = await import("@/app/api/upload-image/route");
@@ -357,6 +359,8 @@ describe("/api/upload-image POST", () => {
     expect(data.fileKey).toMatch(/\.png$/);
     expect(userIsSuperAdminMock).toHaveBeenCalled();
     expect(s3SendMock).toHaveBeenCalledTimes(1);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("neblir-catalogue");
   });
 
   it("returns 403 when type is vehicles and user is not super admin", async () => {
@@ -376,10 +380,7 @@ describe("/api/upload-image POST", () => {
   });
 
   it("returns 201 with fileKey prefixed vehicles- when type is vehicles and user is super admin", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+    setCatalogueR2();
 
     const file = new File(["x"], "Speeder.png", { type: "image/png" });
     const { POST } = await import("@/app/api/upload-image/route");
@@ -391,6 +392,62 @@ describe("/api/upload-image POST", () => {
     expect(data.fileKey).toMatch(/\.png$/);
     expect(userIsSuperAdminMock).toHaveBeenCalled();
     expect(s3SendMock).toHaveBeenCalledTimes(1);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("neblir-catalogue");
+  });
+
+  it("returns 403 when type is enemies and user is not super admin", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValueOnce(false);
+
+    const file = new File(["x"], "bandit.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "enemies" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 with fileKey prefixed enemies- in the catalogue bucket", async () => {
+    setCatalogueR2();
+
+    const file = new File(["x"], "Bandit.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "enemies" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^enemies-/);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("neblir-catalogue");
+    expect(putArgs.Key).toBe(data.fileKey);
+  });
+
+  it("returns 500 when type is items and catalogue credentials are missing", async () => {
+    setEnvR2();
+
+    const file = new File(["x"], "icon.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "items" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(500);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 with custom_maps- in the env bucket without super admin", async () => {
+    setEnvR2();
+    userIsSuperAdminMock.mockResolvedValue(false);
+
+    const file = new File(["x"], "Table Map.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "custom_maps" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^custom_maps-/);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("bucket");
+    expect(userIsSuperAdminMock).not.toHaveBeenCalled();
   });
 
   it("returns 201 with fileKey prefixed custom_vehicles- when type is custom_vehicles", async () => {
@@ -430,7 +487,9 @@ describe("/api/upload-image DELETE", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...envBackup };
+    clearCatalogueR2();
     s3SendMock.mockResolvedValue(undefined);
+    userIsSuperAdminMock.mockResolvedValue(false);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -499,11 +558,21 @@ describe("/api/upload-image DELETE", () => {
     expect(deleteArgs.Key).toBe("games-cover.png");
   });
 
-  it("returns 204 when fileKey is items- prefixed", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+  it("returns 403 when fileKey is items- and user is not super admin", async () => {
+    setCatalogueR2();
+
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({
+      fileKey: "items-official_sword-abc12.png",
+    });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 204 when fileKey is items- prefixed and user is super admin", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValue(true);
 
     const key = "items-official_sword-abc12.png";
     const { DELETE } = await import("@/app/api/upload-image/route");
@@ -513,15 +582,13 @@ describe("/api/upload-image DELETE", () => {
     expect(await response.text()).toBe("");
     expect(s3SendMock).toHaveBeenCalledTimes(1);
     const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
-    expect(deleteArgs.Bucket).toBe("bucket");
+    expect(deleteArgs.Bucket).toBe("neblir-catalogue");
     expect(deleteArgs.Key).toBe(key);
   });
 
-  it("returns 204 when fileKey is maps- prefixed", async () => {
-    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
-    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
-    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
-    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+  it("returns 204 when fileKey is maps- prefixed and user is super admin", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValue(true);
 
     const key = "maps-neblir.png";
     const { DELETE } = await import("@/app/api/upload-image/route");
@@ -531,8 +598,61 @@ describe("/api/upload-image DELETE", () => {
     expect(await response.text()).toBe("");
     expect(s3SendMock).toHaveBeenCalledTimes(1);
     const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("neblir-catalogue");
+    expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 204 when fileKey is enemies- prefixed and user is super admin", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValue(true);
+
+    const key = "enemies-bandit-abc12.png";
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({ fileKey: key });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(204);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("neblir-catalogue");
+    expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 500 when deleting a catalogue key and catalogue credentials are missing", async () => {
+    setEnvR2();
+    userIsSuperAdminMock.mockResolvedValue(true);
+
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({
+      fileKey: "items-official_sword-abc12.png",
+    });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(500);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 204 when fileKey is custom_maps- in the env bucket", async () => {
+    setEnvR2();
+
+    const key = "custom_maps-table_map-abc12.png";
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({ fileKey: key });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(204);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
     expect(deleteArgs.Bucket).toBe("bucket");
     expect(deleteArgs.Key).toBe(key);
+  });
+
+  it("returns 403 when fileKey is currencies- (not deletable via API)", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValue(true);
+
+    const { DELETE } = await import("@/app/api/upload-image/route");
+    const request = makeDeleteRequest({
+      fileKey: "currencies-conf.png",
+    });
+    const response = await invokeRoute(DELETE, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 
   it("returns 500 when R2 credentials are missing", async () => {
