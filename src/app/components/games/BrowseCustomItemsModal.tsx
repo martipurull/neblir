@@ -11,6 +11,7 @@ import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { fetchGameCustomItemsForBrowse } from "@/lib/api/customItems";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -21,6 +22,7 @@ type BrowseCustomItemsModalProps = {
   gameName: string;
   onClose: () => void;
   onSuccess?: () => void | Promise<void>;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 export function BrowseCustomItemsModal(props: BrowseCustomItemsModalProps) {
@@ -34,6 +36,7 @@ function BrowseCustomItemsModalContent({
   gameName,
   onClose,
   onSuccess,
+  onPromoted,
 }: BrowseCustomItemsModalProps) {
   const [items, setItems] = useState<ItemBrowseDetailFields[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,6 +231,7 @@ function BrowseCustomItemsModalContent({
           setEditCustomItemId(null);
           void loadItems().then(() => onSuccess?.());
         }}
+        onPromoted={onPromoted}
       />
     </>
   );

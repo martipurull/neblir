@@ -1,5 +1,6 @@
 "use client";
 
+import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
 import { BrowseCustomEnemiesModal } from "@/app/components/games/BrowseCustomEnemiesModal";
 import { BrowseCustomItemsModal } from "@/app/components/games/BrowseCustomItemsModal";
 import { BrowseCustomVehiclesModal } from "@/app/components/games/BrowseCustomVehiclesModal";
@@ -22,6 +23,7 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import {
   withAdjustedInitiativeEntry,
   withClearedInitiative,
@@ -94,6 +96,8 @@ export function GameMasterPageClient() {
   const [resettingReactions, setResettingReactions] = useState(false);
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
+  const [promotionSuccess, setPromotionSuccess] =
+    useState<CataloguePromotionSuccess | null>(null);
 
   const initiativeOrder = game?.initiativeOrder ?? [];
   const hasInitiativeEntries = initiativeOrder.length > 0;
@@ -217,6 +221,9 @@ export function GameMasterPageClient() {
     <PageSection>
       <div className="flex flex-col gap-6">
         <PageTitle>Game master</PageTitle>
+        {promotionSuccess ? (
+          <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
+        ) : null}
 
         <div className="rounded-md border border-black p-4">
           <span className="text-sm font-semibold text-black">Next Session</span>
@@ -356,6 +363,7 @@ export function GameMasterPageClient() {
           setEditCustomEnemyId(null);
         }}
         onSuccess={() => void mutate()}
+        onPromoted={setPromotionSuccess}
       />
       <ImportCustomEnemiesModal
         isOpen={importCustomEnemiesOpen}
@@ -416,6 +424,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
+        onPromoted={setPromotionSuccess}
       />
       <BrowseVehiclesModal
         isOpen={browseVehiclesOpen}
@@ -436,6 +445,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
+        onPromoted={setPromotionSuccess}
       />
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}

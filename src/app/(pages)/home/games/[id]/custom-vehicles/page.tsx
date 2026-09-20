@@ -10,6 +10,8 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextField } from "@/app/components/shared/TextField";
 import type { CustomVehicleResponse } from "@/app/lib/types/vehicle";
@@ -59,6 +61,8 @@ export default function GameCustomVehiclesPage() {
     vehicleId: string;
     vehicleName: string;
   } | null>(null);
+  const [promotionSuccess, setPromotionSuccess] =
+    useState<CataloguePromotionSuccess | null>(null);
 
   const loadVehicles = useCallback(async (gameId: string) => {
     setLoadingVehicles(true);
@@ -216,6 +220,10 @@ export default function GameCustomVehiclesPage() {
           </div>
         ) : null}
       </div>
+
+      {promotionSuccess ? (
+        <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
+      ) : null}
 
       {listError ? (
         <p className="mt-2 text-sm text-red-600" role="alert">
@@ -396,6 +404,7 @@ export default function GameCustomVehiclesPage() {
             setEditCustomVehicleId(null);
             refreshLists();
           }}
+          onPromoted={setPromotionSuccess}
         />
       ) : null}
 
