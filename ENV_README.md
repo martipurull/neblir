@@ -54,9 +54,8 @@ This document describes how to set up all the required environment variables for
 
 #### `R2_NEBLIR_BUCKET_NAME`
 
-- **Description**: R2 bucket name for storing files
-- **Value**: `neblir`
-- **Note**: This is already set for this project
+- **Description**: R2 bucket name for game-scoped and player-scoped files (character portraits, custom items/enemies/vehicles, unique items/vehicles, games, files, lore, recaps). Official catalogue art is **not** stored here.
+- **Value**: `neblir` in development/preview; `neblir-prod` in production.
 
 #### `R2_NEBLIR_ACCOUNT_ACCESS_KEY`
 
@@ -83,6 +82,23 @@ This document describes how to set up all the required environment variables for
   2. After creating the token, the **Secret Access Key** will be displayed **only once**
   3. ⚠️ **Important**: Copy and store this immediately - it cannot be retrieved later
   4. If you lose it, you'll need to create a new API token
+
+#### `R2_NEBLIR_CATALOGUE_BUCKET_NAME`
+
+- **Description**: Shared R2 bucket for **official** catalogue images (items, vehicles, maps, enemies, currencies). Every environment reads the same objects.
+- **Value**: `neblir-catalogue`
+- **Note**: Do not copy official objects into the env buckets. JSON catalogue rows still store `imageKey` only.
+
+#### `R2_NEBLIR_CATALOGUE_BUCKET_ACCESS_KEY`
+
+- **Description**: R2 API token access key ID scoped to the catalogue bucket (preferred over reusing the env-bucket token)
+- **How to get**: Same as `R2_NEBLIR_ACCOUNT_ACCESS_KEY`, but create a token limited to `neblir-catalogue` with Object Read & Write
+- **Note**: Reuses `R2_NEBLIR_ACCOUNT_ID` for the API endpoint. Super-admin uploads and deletes of official art use this token from any environment that has it.
+
+#### `R2_NEBLIR_CATALOGUE_BUCKET_SECRET_ACCESS_KEY`
+
+- **Description**: Secret for the catalogue-bucket API token
+- **How to get**: Shown once when you create the catalogue token; store it immediately
 
 ---
 

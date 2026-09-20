@@ -160,7 +160,7 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
 
             <SuperAdminCatalogueImageBlock
               key={data.imageKey ?? "no-image"}
-              uploadType="custom_enemies"
+              uploadType="enemies"
               id="enemy-image"
               label="Image"
               disabled={submitting}

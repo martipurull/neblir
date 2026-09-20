@@ -125,7 +125,7 @@ export function SuperAdminCreateEnemyForm() {
           />
 
           <SuperAdminCatalogueImageBlock
-            uploadType="custom_enemies"
+            uploadType="enemies"
             id="enemy-image"
             label="Image"
             disabled={submitting}

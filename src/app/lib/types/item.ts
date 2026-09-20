@@ -10,7 +10,7 @@ export type CurrencyName = (typeof CURRENCY_NAMES)[number];
 const currencyNameSchema = z.enum(CURRENCY_NAMES);
 
 export function currencyImageKey(currencyName: string): string {
-  return `currency-${currencyName.toLowerCase()}.png`;
+  return `currencies-${currencyName.toLowerCase()}.png`;
 }
 
 export function getMissingWalletCurrencies(

@@ -2,7 +2,7 @@
   {
     "name": "Plynth's Hexops",
     "description": "<p>A shadow that moves at unreal speed. Lithe as a Fenne but tall as a Kinian. Created by the sociopathic mind of the brilliant Dr Orega Plynth.</p>",
-    "imageKey": "custom_enemies-plynth_s_hexops-9h5q0lwc.png",
+    "imageKey": "enemies-plynth_hexops.png",
     "health": {
       "$numberLong": "60"
     },
@@ -88,7 +88,7 @@
   {
     "name": "Modified Catbot",
     "description": "<p>Rubbish-collecting catbots modified for strength and offensive prowess. Clearly illegal, clearly dangerous, clearly out of control, clearly Underworld.</p>",
-    "imageKey": "custom_enemies-modified_catbot-nbn0sswh.png",
+    "imageKey": "enemies-modified_catbot.png",
     "health": {
       "$numberLong": "16"
     },

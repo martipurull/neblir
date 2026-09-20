@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState, type DragEvent } from "react";
 export type ImageUploadKind =
   | "custom_items"
   | "custom_enemies"
+  | "custom_maps"
   | "unique_items"
   | "custom_vehicles"
   | "unique_vehicles"
@@ -15,7 +16,8 @@ export type ImageUploadKind =
   | "characters"
   | "items"
   | "vehicles"
-  | "maps";
+  | "maps"
+  | "enemies";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);

@@ -3,7 +3,15 @@ import {
   IMAGE_MAX_SIZE_BYTES,
   IMAGE_MAX_SIZE_LABEL,
 } from "@/app/lib/constants/uploadLimits";
-import { getR2Config, isDeletableUploadKey } from "@/app/lib/r2";
+import {
+  CATALOGUE_UPLOAD_TYPES,
+  getCatalogueR2Config,
+  getR2Config,
+  getR2ConfigForKey,
+  isCatalogueImageKey,
+  isCatalogueUploadType,
+  isDeletableUploadKey,
+} from "@/app/lib/r2";
 import { buildUploadKey, type UploadKeyType } from "@/app/lib/r2UploadKeys";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -15,14 +23,13 @@ import { errorResponse } from "../shared/responses";
 const ALLOWED_TYPES = [
   "custom_items",
   "custom_enemies",
+  "custom_maps",
   "unique_items",
   "custom_vehicles",
   "unique_vehicles",
   "games",
   "characters",
-  "items",
-  "vehicles",
-  "maps",
+  ...CATALOGUE_UPLOAD_TYPES,
 ] as const satisfies readonly UploadKeyType[];
 
 function getExtension(filename: string): string {
@@ -61,23 +68,27 @@ export const POST = auth(async (request: AuthNextRequest) => {
       !ALLOWED_TYPES.includes(type as (typeof ALLOWED_TYPES)[number])
     ) {
       return errorResponse(
-        "Query param 'type' must be one of: custom_items, custom_enemies, unique_items, games, characters, items, maps, custom_vehicles, unique_vehicles, vehicles",
+        `Query param 'type' must be one of: ${ALLOWED_TYPES.join(", ")}`,
         400
       );
     }
 
-    if (type === "items" || type === "vehicles" || type === "maps") {
+    if (isCatalogueUploadType(type)) {
       if (!(await userIsSuperAdmin(request.auth.user.id))) {
         return errorResponse("Forbidden", 403);
       }
     }
 
-    const config = getR2Config();
+    const config = isCatalogueUploadType(type)
+      ? getCatalogueR2Config()
+      : getR2Config();
     if (!config) {
       logger.error({
         method: "POST",
         route: "/api/upload-image",
-        message: "R2 credentials missing",
+        message: isCatalogueUploadType(type)
+          ? "Catalogue R2 credentials missing"
+          : "R2 credentials missing",
       });
       return errorResponse("File upload is not configured", 500);
     }
@@ -136,12 +147,19 @@ export const DELETE = auth(async (request: AuthNextRequest) => {
       return errorResponse("Not allowed to delete this file", 403);
     }
 
-    const config = getR2Config();
+    const catalogueKey = isCatalogueImageKey(fileKey);
+    if (catalogueKey && !(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
+    const config = getR2ConfigForKey(fileKey);
     if (!config) {
       logger.error({
         method: "DELETE",
         route: "/api/upload-image",
-        message: "R2 credentials missing",
+        message: catalogueKey
+          ? "Catalogue R2 credentials missing"
+          : "R2 credentials missing",
       });
       return errorResponse("File delete is not configured", 500);
     }
