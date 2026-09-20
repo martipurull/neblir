@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
   invokeRoute,
   makeAuthedRequest,
@@ -372,6 +373,21 @@ describe("/api/reference-entries/[id] route handlers", () => {
       expect(response.status).toBe(403);
     });
 
+    it("returns 403 when a non-super-admin deletes an Official entry", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      getReferenceEntryMock.mockResolvedValue(playerEntry);
+      const { DELETE } = await import("@/app/api/reference-entries/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "r-1" })
+      );
+
+      expect(response.status).toBe(403);
+      expect(deleteReferenceEntryMock).not.toHaveBeenCalled();
+    });
+
     it("returns 204 on success", async () => {
       getReferenceEntryMock.mockResolvedValue(playerEntry);
       deleteReferenceEntryMock.mockResolvedValue(playerEntry);
@@ -385,6 +401,7 @@ describe("/api/reference-entries/[id] route handlers", () => {
 
       expect(response.status).toBe(204);
       expect(deleteReferenceEntryMock).toHaveBeenCalledWith("r-1");
+      expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["reference"]);
     });
 
     it("deletes lore attachment objects from storage before deleting the entry", async () => {

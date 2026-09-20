@@ -43,6 +43,7 @@ import {
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueImagePreview } from "./SuperAdminCatalogueImagePreview";
+import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminWeaponFieldsSection } from "./SuperAdminWeaponFieldsSection";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
@@ -819,15 +820,28 @@ export function SuperAdminCreateItemForm({
             </InfoCard>
           ) : null}
 
-          <Button type="submit" variant="primary" disabled={submitting}>
-            {submitting
-              ? isEdit
-                ? "Saving…"
-                : "Creating…"
-              : isEdit
-                ? "Save changes"
-                : "Create item"}
-          </Button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+            <Button type="submit" variant="primary" disabled={submitting}>
+              {submitting
+                ? isEdit
+                  ? "Saving…"
+                  : "Creating…"
+                : isEdit
+                  ? "Save changes"
+                  : "Create item"}
+            </Button>
+            {isEdit && editItemId && existingItem ? (
+              <SuperAdminOfficialDeleteSection
+                catalogueDomain="items"
+                rowId={editItemId}
+                rowName={existingItem.name}
+                deleteUrl={`/api/items/${editItemId}`}
+                successHref="/home/super-admin/items/browse"
+                entityLabel="item"
+                disabled={submitting}
+              />
+            ) : null}
+          </div>
         </form>
       </FormProvider>
 

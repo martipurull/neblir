@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
+  clearCatalogueR2,
   invokeRoute,
   makeAuthedRequest,
   makeParams,
   makeUnauthedRequest,
+  setCatalogueR2,
 } from "../../helpers";
 
 const getVehicleMock = vi.fn();
@@ -12,6 +15,21 @@ const updateVehicleMock = vi.fn();
 const deleteVehicleMock = vi.fn();
 const safeParseMock = vi.fn();
 const userIsSuperAdminMock = vi.fn();
+const countOfficialRowsWithCatalogueImageKeyMock = vi.fn();
+const s3SendMock = vi.fn();
+const deleteObjectCommandCtorMock = vi.fn();
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: vi.fn().mockImplementation(function () {
+    return {
+      send: s3SendMock,
+    };
+  }),
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    deleteObjectCommandCtorMock(args);
+    return args;
+  }),
+}));
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
@@ -28,6 +46,11 @@ vi.mock("@/app/lib/prisma/vehicle", () => ({
   deleteVehicle: deleteVehicleMock,
 }));
 
+vi.mock("@/app/lib/prisma/officialCatalogueImage", () => ({
+  countOfficialRowsWithCatalogueImageKey:
+    countOfficialRowsWithCatalogueImageKeyMock,
+}));
+
 vi.mock("@/app/lib/types/vehicle", () => ({
   vehicleUpdateSchema: { safeParse: safeParseMock },
 }));
@@ -36,6 +59,11 @@ describe("/api/vehicles/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     userIsSuperAdminMock.mockResolvedValue(true);
+    countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+    s3SendMock.mockResolvedValue({});
+    getVehicleMock.mockResolvedValue({ id: "vehicle-1", imageKey: null });
+    deleteVehicleMock.mockResolvedValue(undefined);
+    clearCatalogueR2();
   });
 
   it("GET returns 401 when unauthenticated", async () => {
@@ -149,6 +177,17 @@ describe("/api/vehicles/[id] route handlers", () => {
     expect(updateVehicleMock).toHaveBeenCalled();
   });
 
+  it("DELETE returns 401 when unauthenticated", async () => {
+    const { DELETE } = await import("@/app/api/vehicles/[id]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeUnauthedRequest(),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(401);
+    expect(deleteVehicleMock).not.toHaveBeenCalled();
+  });
+
   it("DELETE returns 403 when requester is not a super admin", async () => {
     userIsSuperAdminMock.mockResolvedValue(false);
     const { DELETE } = await import("@/app/api/vehicles/[id]/route");
@@ -162,8 +201,19 @@ describe("/api/vehicles/[id] route handlers", () => {
     expect(deleteVehicleMock).not.toHaveBeenCalled();
   });
 
-  it("DELETE returns 204 on success", async () => {
-    deleteVehicleMock.mockResolvedValue(undefined);
+  it("DELETE returns 404 when the Official vehicle is missing", async () => {
+    getVehicleMock.mockResolvedValue(null);
+    const { DELETE } = await import("@/app/api/vehicles/[id]/route");
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(404);
+    expect(deleteVehicleMock).not.toHaveBeenCalled();
+  });
+
+  it("DELETE returns 204 and does not rewire holdings", async () => {
     const { DELETE } = await import("@/app/api/vehicles/[id]/route");
 
     const response = await invokeRoute(
@@ -173,6 +223,47 @@ describe("/api/vehicles/[id] route handlers", () => {
     );
     expect(response.status).toBe(204);
     expect(deleteVehicleMock).toHaveBeenCalledWith("vehicle-1");
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["vehicles"]);
+  });
+
+  it("DELETE removes an unreferenced catalogue imageKey", async () => {
+    setCatalogueR2();
+    getVehicleMock.mockResolvedValue({
+      id: "vehicle-1",
+      imageKey: "vehicles-rover.png",
+    });
+    countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+    const { DELETE } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(204);
+    expect(deleteObjectCommandCtorMock).toHaveBeenCalledWith({
+      Bucket: "neblir-catalogue",
+      Key: "vehicles-rover.png",
+    });
+    expect(s3SendMock).toHaveBeenCalled();
+  });
+
+  it("DELETE keeps a catalogue imageKey still used by another Official row", async () => {
+    setCatalogueR2();
+    getVehicleMock.mockResolvedValue({
+      id: "vehicle-1",
+      imageKey: "vehicles-rover.png",
+    });
+    countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(2);
+    const { DELETE } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      DELETE,
+      makeAuthedRequest(),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(204);
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 
   it("DELETE returns 500 when delete fails", async () => {

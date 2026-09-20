@@ -14,3 +14,10 @@ export async function updatePathCharacter(
 ) {
   return prisma.pathCharacter.update({ where: { id }, data });
 }
+
+export async function clearFavouriteWeaponPointersToItem(itemId: string) {
+  return prisma.pathCharacter.updateMany({
+    where: { favouriteWeaponItemId: itemId },
+    data: { favouriteWeaponItemId: null },
+  });
+}

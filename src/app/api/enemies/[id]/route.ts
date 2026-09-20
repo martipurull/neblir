@@ -1,5 +1,11 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
-import { getEnemies, getEnemy, updateEnemy } from "@/app/lib/prisma/enemy";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
+import {
+  deleteOfficialEnemy,
+  getEnemies,
+  getEnemy,
+  updateEnemy,
+} from "@/app/lib/prisma/enemy";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
@@ -103,5 +109,39 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       error,
     });
     return errorResponse("Error updating enemy", 500, serializeError(error));
+  }
+});
+
+export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user?.id) {
+      return errorResponse("Unauthorised", 401);
+    }
+    if (!(await userIsSuperAdmin(request.auth.user.id))) {
+      return errorResponse("Forbidden", 403);
+    }
+
+    const { id } = (await params) as { id: string };
+    if (!id?.trim()) {
+      return errorResponse("Invalid enemy ID", 400);
+    }
+
+    const existing = await getEnemy(id.trim());
+    if (!existing) {
+      return errorResponse("Enemy not found", 404);
+    }
+
+    await deleteOfficialEnemy(id.trim());
+    await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
+    await touchStaffCatalogueDrift(["enemies"]);
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    logger.error({
+      method: "DELETE",
+      route,
+      message: "Error deleting enemy",
+      error,
+    });
+    return errorResponse("Error deleting enemy", 500, serializeError(error));
   }
 });

@@ -1,4 +1,5 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
 import { deleteMap, getMap, getMaps, updateMap } from "@/app/lib/prisma/map";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
@@ -176,6 +177,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
 
     await deleteMap(id);
     if (!existing.gameId) {
+      await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
       await touchStaffCatalogueDrift(["maps"]);
     }
     return new NextResponse(null, { status: 204 });

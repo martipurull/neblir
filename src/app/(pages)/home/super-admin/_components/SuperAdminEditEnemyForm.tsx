@@ -17,6 +17,7 @@ import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
@@ -247,9 +248,22 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
               </InfoCard>
             ) : null}
 
-            <Button type="submit" variant="primary" disabled={submitting}>
-              {submitting ? "Saving…" : "Save changes"}
-            </Button>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+              <Button type="submit" variant="primary" disabled={submitting}>
+                {submitting ? "Saving…" : "Save changes"}
+              </Button>
+              {data ? (
+                <SuperAdminOfficialDeleteSection
+                  catalogueDomain="enemies"
+                  rowId={enemyId}
+                  rowName={data.name}
+                  deleteUrl={`/api/enemies/${enemyId}`}
+                  successHref="/home/super-admin/enemies/browse"
+                  entityLabel="enemy"
+                  disabled={submitting}
+                />
+              ) : null}
+            </div>
           </form>
         </FormProvider>
       ) : null}

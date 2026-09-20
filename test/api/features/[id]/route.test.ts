@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
   invokeRoute,
   makeAuthedRequest,
@@ -155,6 +156,29 @@ describe("/api/features/[id] route handlers", () => {
   });
 
   describe("DELETE", () => {
+    it("returns 401 when unauthenticated", async () => {
+      const { DELETE } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeUnauthedRequest(),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(401);
+      expect(deleteFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      const { DELETE } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(deleteFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
     it("returns 404 when feature missing", async () => {
       getFeatureMock.mockResolvedValue(null);
       const { DELETE } = await import("@/app/api/features/[id]/route");
@@ -178,6 +202,7 @@ describe("/api/features/[id] route handlers", () => {
       );
       expect(response.status).toBe(204);
       expect(deleteFeatureCatalogueMock).toHaveBeenCalledWith("f-1");
+      expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["features"]);
     });
   });
 });

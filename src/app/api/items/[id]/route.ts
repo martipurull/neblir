@@ -1,10 +1,12 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
 import {
   deleteItem,
   getItem,
   getItems,
   updateItem,
 } from "@/app/lib/prisma/item";
+import { clearFavouriteWeaponPointersToItem } from "@/app/lib/prisma/pathCharacter";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
@@ -164,7 +166,14 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid item ID", 400);
     }
 
+    const existing = await getItem(id);
+    if (!existing) {
+      return errorResponse("Item not found", 404);
+    }
+
+    await clearFavouriteWeaponPointersToItem(id);
     await deleteItem(id);
+    await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
     await touchStaffCatalogueDrift(["items"]);
 
     return new NextResponse(null, { status: 204 });

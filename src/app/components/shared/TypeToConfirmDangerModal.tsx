@@ -172,3 +172,9 @@ export function getDeleteCharacterConfirmationPhrase(
 ): string {
   return `I want to delete ${characterName}`;
 }
+
+export function getDeleteOfficialCatalogueConfirmationPhrase(
+  rowName: string
+): string {
+  return `I want to delete ${rowName}`;
+}

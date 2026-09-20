@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
+  clearCatalogueR2,
   invokeRoute,
   makeAuthedRequest,
   makeParams,
   makeUnauthedRequest,
+  setCatalogueR2,
 } from "../../helpers";
 
 const getMapMock = vi.fn();
@@ -13,6 +16,21 @@ const deleteMapMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const userIsSuperAdminMock = vi.fn();
+const countOfficialRowsWithCatalogueImageKeyMock = vi.fn();
+const s3SendMock = vi.fn();
+const deleteObjectCommandCtorMock = vi.fn();
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: vi.fn().mockImplementation(function () {
+    return {
+      send: s3SendMock,
+    };
+  }),
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    deleteObjectCommandCtorMock(args);
+    return args;
+  }),
+}));
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
@@ -34,6 +52,11 @@ vi.mock("@/app/lib/prisma/game", () => ({
   userIsInGame: userIsInGameMock,
 }));
 
+vi.mock("@/app/lib/prisma/officialCatalogueImage", () => ({
+  countOfficialRowsWithCatalogueImageKey:
+    countOfficialRowsWithCatalogueImageKeyMock,
+}));
+
 const globalMap = {
   id: "m-1",
   name: "World Map",
@@ -45,6 +68,9 @@ describe("/api/maps/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     userIsSuperAdminMock.mockResolvedValue(true);
+    countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+    s3SendMock.mockResolvedValue({});
+    clearCatalogueR2();
   });
 
   describe("GET", () => {
@@ -319,6 +345,21 @@ describe("/api/maps/[id] route handlers", () => {
       expect(response.status).toBe(403);
     });
 
+    it("returns 403 when a non-super-admin deletes an Official map", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      getMapMock.mockResolvedValue(globalMap);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(403);
+      expect(deleteMapMock).not.toHaveBeenCalled();
+    });
+
     it("returns 204 on success", async () => {
       getMapMock.mockResolvedValue(globalMap);
       deleteMapMock.mockResolvedValue(globalMap);
@@ -332,6 +373,51 @@ describe("/api/maps/[id] route handlers", () => {
 
       expect(response.status).toBe(204);
       expect(deleteMapMock).toHaveBeenCalledWith("m-1");
+      expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["maps"]);
+    });
+
+    it("removes an unreferenced catalogue imageKey after Official delete", async () => {
+      setCatalogueR2();
+      getMapMock.mockResolvedValue({
+        ...globalMap,
+        imageKey: "maps-world.png",
+      });
+      deleteMapMock.mockResolvedValue(globalMap);
+      countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(204);
+      expect(deleteObjectCommandCtorMock).toHaveBeenCalledWith({
+        Bucket: "neblir-catalogue",
+        Key: "maps-world.png",
+      });
+      expect(s3SendMock).toHaveBeenCalled();
+    });
+
+    it("keeps a catalogue imageKey still used by another Official row", async () => {
+      setCatalogueR2();
+      getMapMock.mockResolvedValue({
+        ...globalMap,
+        imageKey: "maps-world.png",
+      });
+      deleteMapMock.mockResolvedValue(globalMap);
+      countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(1);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(204);
+      expect(s3SendMock).not.toHaveBeenCalled();
     });
 
     it("returns 500 when delete throws", async () => {

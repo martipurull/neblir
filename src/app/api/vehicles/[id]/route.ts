@@ -1,4 +1,5 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
 import {
   deleteVehicle,
   getVehicle,
@@ -164,7 +165,13 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid vehicle ID", 400);
     }
 
+    const existing = await getVehicle(id);
+    if (!existing) {
+      return errorResponse("Vehicle not found", 404);
+    }
+
     await deleteVehicle(id);
+    await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
     await touchStaffCatalogueDrift(["vehicles"]);
 
     return new NextResponse(null, { status: 204 });

@@ -15,6 +15,7 @@ import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
@@ -189,9 +190,22 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
             </InfoCard>
           ) : null}
 
-          <Button type="submit" variant="primary" disabled={submitting}>
-            {submitting ? "Saving…" : "Save changes"}
-          </Button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+            <Button type="submit" variant="primary" disabled={submitting}>
+              {submitting ? "Saving…" : "Save changes"}
+            </Button>
+            {data ? (
+              <SuperAdminOfficialDeleteSection
+                catalogueDomain="maps"
+                rowId={mapId}
+                rowName={data.name}
+                deleteUrl={`/api/maps/${mapId}`}
+                successHref="/home/super-admin/maps/browse"
+                entityLabel="map"
+                disabled={submitting}
+              />
+            ) : null}
+          </div>
         </form>
       ) : null}
 
