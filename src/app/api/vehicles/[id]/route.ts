@@ -2,6 +2,7 @@ import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   deleteVehicle,
   getVehicle,
+  getVehicles,
   updateVehicle,
 } from "@/app/lib/prisma/vehicle";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
@@ -11,7 +12,14 @@ import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { serializeError } from "../../shared/errors";
+import {
+  isPrismaUniqueConstraintError,
+  serializeError,
+} from "../../shared/errors";
+import {
+  officialNameConflictResponse,
+  officialNameTakenResponse,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -92,6 +100,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    const conflict = officialNameConflictResponse(
+      await getVehicles(),
+      parsedBody.name,
+      id
+    );
+    if (conflict) return conflict;
+
     const updatedVehicle = await updateVehicle(id, parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -99,6 +114,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     return NextResponse.json(updatedVehicle);
   } catch (error) {
+    if (isPrismaUniqueConstraintError(error)) {
+      return officialNameTakenResponse();
+    }
     if (error instanceof ZodError) {
       logger.error({
         method: "PATCH",

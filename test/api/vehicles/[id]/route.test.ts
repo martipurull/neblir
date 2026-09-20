@@ -7,6 +7,7 @@ import {
 } from "../../helpers";
 
 const getVehicleMock = vi.fn();
+const getVehiclesMock = vi.fn();
 const updateVehicleMock = vi.fn();
 const deleteVehicleMock = vi.fn();
 const safeParseMock = vi.fn();
@@ -22,6 +23,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/vehicle", () => ({
   getVehicle: getVehicleMock,
+  getVehicles: getVehiclesMock,
   updateVehicle: updateVehicleMock,
   deleteVehicle: deleteVehicleMock,
 }));
@@ -85,6 +87,7 @@ describe("/api/vehicles/[id] route handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
+    getVehiclesMock.mockResolvedValue([]);
     safeParseMock.mockReturnValue({
       data: { name: "Updated" },
       error: undefined,
@@ -103,6 +106,47 @@ describe("/api/vehicles/[id] route handlers", () => {
       { name: "Updated" },
       { officialCatalogueWrite: true }
     );
+  });
+
+  it("PATCH returns 409 when the Official name collides with another row", async () => {
+    getVehiclesMock.mockResolvedValue([
+      { id: "vehicle-1", name: "Old" },
+      { id: "vehicle-2", name: "Siike Gun" },
+    ]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike gun" },
+      error: undefined,
+    });
+    const { PATCH } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "siike gun" }),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(409);
+    expect(updateVehicleMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH returns 200 when renaming a row to its own Official name", async () => {
+    getVehiclesMock.mockResolvedValue([{ id: "vehicle-1", name: "Siike Gun" }]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike gun" },
+      error: undefined,
+    });
+    updateVehicleMock.mockResolvedValue({
+      id: "vehicle-1",
+      name: "siike gun",
+    });
+    const { PATCH } = await import("@/app/api/vehicles/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "siike gun" }),
+      makeParams({ id: "vehicle-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateVehicleMock).toHaveBeenCalled();
   });
 
   it("DELETE returns 403 when requester is not a super admin", async () => {

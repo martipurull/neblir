@@ -70,9 +70,10 @@ describe("/api/features route handlers", () => {
     expect(createFeatureCatalogueMock).not.toHaveBeenCalled();
   });
 
-  it("POST returns 400 when create throws duplicate / missing path", async () => {
+  it("POST returns 400 when create throws missing path", async () => {
+    getAllFeaturesMock.mockResolvedValue([]);
     createFeatureCatalogueMock.mockRejectedValue(
-      new Error('A feature named "Dup" already exists.')
+      new Error("No Path rows for PathName(s): SLEUTH. Create paths first.")
     );
     const { POST } = await import("@/app/api/features/route");
     const response = await invokeRoute(
@@ -89,6 +90,24 @@ describe("/api/features route handlers", () => {
     expect(response.status).toBe(400);
   });
 
+  it("POST returns 409 when the Official name collides after trim and case-fold", async () => {
+    getAllFeaturesMock.mockResolvedValue([{ id: "f-1", name: "Siike Gun" }]);
+    const { POST } = await import("@/app/api/features/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        name: "siike  gun",
+        description: "D",
+        minPathRank: 1,
+        maxGrade: 3,
+        examples: [],
+        applicablePaths: ["SCIENTIST_DOCTOR"],
+      })
+    );
+    expect(response.status).toBe(409);
+    expect(createFeatureCatalogueMock).not.toHaveBeenCalled();
+  });
+
   it("POST returns 201 on success", async () => {
     const created = {
       id: "f-1",
@@ -100,6 +119,7 @@ describe("/api/features route handlers", () => {
       applicablePaths: ["SLEUTH"],
     };
     createFeatureCatalogueMock.mockResolvedValue(created);
+    getAllFeaturesMock.mockResolvedValue([]);
     const { POST } = await import("@/app/api/features/route");
     const response = await invokeRoute(
       POST,

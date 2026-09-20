@@ -9,7 +9,14 @@ import { featureCatalogueCreateSchema } from "@/app/lib/types/featureCatalogue";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
-import { serializeError } from "../shared/errors";
+import {
+  isPrismaUniqueConstraintError,
+  serializeError,
+} from "../shared/errors";
+import {
+  officialNameConflictResponse,
+  officialNameTakenResponse,
+} from "../shared/officialNameConflict";
 import { errorResponse } from "../shared/responses";
 
 const route = "/api/features";
@@ -57,17 +64,23 @@ export const POST = auth(async (request: AuthNextRequest) => {
     }
 
     try {
+      const conflict = officialNameConflictResponse(
+        await getAllFeatures(),
+        parsed.data.name
+      );
+      if (conflict) return conflict;
+
       const feature = await createFeatureCatalogue(parsed.data, {
         officialCatalogueWrite: true,
       });
       await touchStaffCatalogueDrift(["features"]);
       return NextResponse.json(feature, { status: 201 });
     } catch (e) {
+      if (isPrismaUniqueConstraintError(e)) {
+        return officialNameTakenResponse();
+      }
       const message = e instanceof Error ? e.message : String(e);
-      if (
-        message.includes("already exists") ||
-        message.includes("No Path rows")
-      ) {
+      if (message.includes("No Path rows")) {
         return errorResponse(message, 400);
       }
       throw e;

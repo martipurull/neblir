@@ -37,14 +37,6 @@ export async function createFeatureCatalogue(
   input: FeatureCatalogueCreate,
   options: { officialCatalogueWrite: boolean }
 ) {
-  const duplicate = await prisma.feature.findFirst({
-    where: { name: input.name.trim() },
-    select: { id: true },
-  });
-  if (duplicate) {
-    throw new Error(`A feature named "${input.name.trim()}" already exists.`);
-  }
-
   const feature = await prisma.feature.create({
     data: {
       name: input.name.trim(),
@@ -70,16 +62,6 @@ export async function updateFeatureCatalogue(
   if (!existing) return null;
 
   const nextName = input.name !== undefined ? input.name.trim() : existing.name;
-  if (input.name !== undefined && nextName !== existing.name) {
-    const duplicate = await prisma.feature.findFirst({
-      where: { name: nextName, NOT: { id } },
-      select: { id: true },
-    });
-    if (duplicate) {
-      throw new Error(`A feature named "${nextName}" already exists.`);
-    }
-  }
-
   const nextApplicablePaths = input.applicablePaths ?? existing.applicablePaths;
 
   const data: Prisma.FeatureUpdateInput = {};

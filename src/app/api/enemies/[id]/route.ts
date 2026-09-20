@@ -1,12 +1,19 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
-import { getEnemy, updateEnemy } from "@/app/lib/prisma/enemy";
+import { getEnemies, getEnemy, updateEnemy } from "@/app/lib/prisma/enemy";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
-import { serializeError } from "../../shared/errors";
+import {
+  isPrismaUniqueConstraintError,
+  serializeError,
+} from "../../shared/errors";
+import {
+  officialNameConflictResponse,
+  officialNameTakenResponse,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 const route = "/api/enemies/[id]";
@@ -74,6 +81,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("No fields to update", 400);
     }
 
+    if (parsed.data.name !== undefined) {
+      const conflict = officialNameConflictResponse(
+        await getEnemies(),
+        parsed.data.name,
+        id.trim()
+      );
+      if (conflict) return conflict;
+    }
+
     const updated = await updateEnemy(id.trim(), {
       ...parsed.data,
       protectedFromOfficialImport: true,
@@ -81,6 +97,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     await touchStaffCatalogueDrift(["enemies"]);
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
+    if (isPrismaUniqueConstraintError(error)) {
+      return officialNameTakenResponse();
+    }
     logger.error({
       method: "PATCH",
       route,

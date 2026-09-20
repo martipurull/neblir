@@ -7,6 +7,7 @@ import {
 } from "../../helpers";
 
 const getMapMock = vi.fn();
+const getMapsMock = vi.fn();
 const updateMapMock = vi.fn();
 const deleteMapMock = vi.fn();
 const getGameMock = vi.fn();
@@ -23,6 +24,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/map", () => ({
   getMap: getMapMock,
+  getMaps: getMapsMock,
   updateMap: updateMapMock,
   deleteMap: deleteMapMock,
 }));
@@ -208,6 +210,7 @@ describe("/api/maps/[id] route handlers", () => {
 
     it("returns 200 on success", async () => {
       getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([globalMap]);
       updateMapMock.mockResolvedValue({ ...globalMap, name: "Updated" });
       const { PATCH } = await import("@/app/api/maps/[id]/route");
 
@@ -227,8 +230,43 @@ describe("/api/maps/[id] route handlers", () => {
       );
     });
 
+    it("returns 409 when the Official name collides with another row", async () => {
+      getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([
+        globalMap,
+        { id: "m-2", name: "Siike Gun", gameId: null },
+      ]);
+      const { PATCH } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(409);
+      expect(updateMapMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 200 when renaming a row to its own Official name", async () => {
+      getMapMock.mockResolvedValue({ ...globalMap, name: "Siike Gun" });
+      getMapsMock.mockResolvedValue([{ ...globalMap, name: "Siike Gun" }]);
+      updateMapMock.mockResolvedValue({ ...globalMap, name: "siike gun" });
+      const { PATCH } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(200);
+      expect(updateMapMock).toHaveBeenCalled();
+    });
+
     it("returns 500 when update throws", async () => {
       getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([globalMap]);
       updateMapMock.mockRejectedValue(new Error("db down"));
       const { PATCH } = await import("@/app/api/maps/[id]/route");
 

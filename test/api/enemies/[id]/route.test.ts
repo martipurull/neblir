@@ -8,6 +8,7 @@ import {
 
 const userIsSuperAdminMock = vi.fn();
 const getEnemyMock = vi.fn();
+const getEnemiesMock = vi.fn();
 const updateEnemyMock = vi.fn();
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
@@ -20,6 +21,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/enemy", () => ({
   getEnemy: getEnemyMock,
+  getEnemies: getEnemiesMock,
   updateEnemy: updateEnemyMock,
 }));
 
@@ -90,11 +92,42 @@ describe("/api/enemies/[id] route handlers", () => {
 
     it("returns 200 when updated", async () => {
       getEnemyMock.mockResolvedValue({ id: "e-1", name: "Bandit" });
+      getEnemiesMock.mockResolvedValue([{ id: "e-1", name: "Bandit" }]);
       updateEnemyMock.mockResolvedValue({ id: "e-1", name: "Bandit II" });
       const { PATCH } = await import("@/app/api/enemies/[id]/route");
       const response = await invokeRoute(
         PATCH,
         makeAuthedRequest({ name: "Bandit II" }),
+        makeParams({ id: "e-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateEnemyMock).toHaveBeenCalled();
+    });
+
+    it("returns 409 when the Official name collides with another row", async () => {
+      getEnemyMock.mockResolvedValue({ id: "e-1", name: "Bandit" });
+      getEnemiesMock.mockResolvedValue([
+        { id: "e-1", name: "Bandit" },
+        { id: "e-2", name: "Siike Gun" },
+      ]);
+      const { PATCH } = await import("@/app/api/enemies/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "e-1" })
+      );
+      expect(response.status).toBe(409);
+      expect(updateEnemyMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 200 when renaming a row to its own Official name", async () => {
+      getEnemyMock.mockResolvedValue({ id: "e-1", name: "Siike Gun" });
+      getEnemiesMock.mockResolvedValue([{ id: "e-1", name: "Siike Gun" }]);
+      updateEnemyMock.mockResolvedValue({ id: "e-1", name: "siike gun" });
+      const { PATCH } = await import("@/app/api/enemies/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
         makeParams({ id: "e-1" })
       );
       expect(response.status).toBe(200);

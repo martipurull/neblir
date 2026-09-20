@@ -1,5 +1,10 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
-import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
+import {
+  deleteItem,
+  getItem,
+  getItems,
+  updateItem,
+} from "@/app/lib/prisma/item";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
@@ -7,7 +12,14 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { logger } from "@/logger";
-import { serializeError } from "../../shared/errors";
+import {
+  isPrismaUniqueConstraintError,
+  serializeError,
+} from "../../shared/errors";
+import {
+  officialNameConflictResponse,
+  officialNameTakenResponse,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -88,6 +100,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    const conflict = officialNameConflictResponse(
+      await getItems(),
+      parsedBody.name,
+      id
+    );
+    if (conflict) return conflict;
+
     const updatedItem = await updateItem(id, parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -95,6 +114,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     return NextResponse.json(updatedItem);
   } catch (error) {
+    if (isPrismaUniqueConstraintError(error)) {
+      return officialNameTakenResponse();
+    }
     if (error instanceof ZodError) {
       logger.error({
         method: "PATCH",

@@ -92,6 +92,7 @@ describe("/api/enemies route handlers", () => {
   });
 
   it("POST returns 201 and created enemy on success", async () => {
+    getEnemiesMock.mockResolvedValue([]);
     const created = {
       id: "e-new",
       name: "Orc",
@@ -120,7 +121,25 @@ describe("/api/enemies route handlers", () => {
     );
   });
 
+  it("POST returns 409 when the Official name collides after trim and case-fold", async () => {
+    getEnemiesMock.mockResolvedValue([{ id: "e-1", name: "Siike Gun" }]);
+    const { POST } = await import("@/app/api/enemies/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        name: "siike  gun",
+        health: 20,
+        speed: 5,
+        initiativeModifier: 0,
+        numberOfReactions: 1,
+      })
+    );
+    expect(response.status).toBe(409);
+    expect(createEnemyMock).not.toHaveBeenCalled();
+  });
+
   it("POST returns 500 when createEnemy throws", async () => {
+    getEnemiesMock.mockResolvedValue([]);
     createEnemyMock.mockRejectedValue(new Error("unique constraint"));
     const { POST } = await import("@/app/api/enemies/route");
     const response = await invokeRoute(

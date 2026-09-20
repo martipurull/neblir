@@ -59,6 +59,7 @@ describe("/api/vehicles route handlers", () => {
   });
 
   it("POST returns 201 on success", async () => {
+    getVehiclesMock.mockResolvedValue([]);
     safeParseMock.mockReturnValue({
       data: { name: "Bike" },
       error: undefined,
@@ -75,6 +76,22 @@ describe("/api/vehicles route handlers", () => {
       { name: "Bike" },
       { officialCatalogueWrite: true }
     );
+  });
+
+  it("POST returns 409 when the Official name collides after trim and case-fold", async () => {
+    getVehiclesMock.mockResolvedValue([{ id: "vehicle-1", name: "Siike Gun" }]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike  gun" },
+      error: undefined,
+    });
+    const { POST } = await import("@/app/api/vehicles/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "siike  gun" })
+    );
+    expect(response.status).toBe(409);
+    expect(createVehicleMock).not.toHaveBeenCalled();
   });
 
   it("GET returns 200 with vehicles for authenticated users", async () => {

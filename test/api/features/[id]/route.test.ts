@@ -8,6 +8,7 @@ import {
 
 const userIsSuperAdminMock = vi.fn();
 const getFeatureMock = vi.fn();
+const getAllFeaturesMock = vi.fn();
 const updateFeatureCatalogueMock = vi.fn();
 const deleteFeatureCatalogueMock = vi.fn();
 
@@ -21,6 +22,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/feature", () => ({
   getFeature: getFeatureMock,
+  getAllFeatures: getAllFeaturesMock,
   updateFeatureCatalogue: updateFeatureCatalogueMock,
   deleteFeatureCatalogue: deleteFeatureCatalogueMock,
 }));
@@ -120,6 +122,35 @@ describe("/api/features/[id] route handlers", () => {
         { description: "New", applicablePaths: ["SLEUTH", "SOLDIER"] },
         { officialCatalogueWrite: true }
       );
+    });
+
+    it("returns 409 when the Official name collides with another row", async () => {
+      getAllFeaturesMock.mockResolvedValue([
+        { id: "f-1", name: "Old" },
+        { id: "f-2", name: "Siike Gun" },
+      ]);
+      const { PATCH } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(409);
+      expect(updateFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 200 when renaming a row to its own Official name", async () => {
+      getAllFeaturesMock.mockResolvedValue([{ id: "f-1", name: "Siike Gun" }]);
+      const updated = { id: "f-1", name: "siike gun" };
+      updateFeatureCatalogueMock.mockResolvedValue(updated);
+      const { PATCH } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateFeatureCatalogueMock).toHaveBeenCalled();
     });
   });
 

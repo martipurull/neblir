@@ -7,6 +7,7 @@ import {
 } from "../../helpers";
 
 const getItemMock = vi.fn();
+const getItemsMock = vi.fn();
 const updateItemMock = vi.fn();
 const deleteItemMock = vi.fn();
 const safeParseMock = vi.fn();
@@ -22,6 +23,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/item", () => ({
   getItem: getItemMock,
+  getItems: getItemsMock,
   updateItem: updateItemMock,
   deleteItem: deleteItemMock,
 }));
@@ -72,6 +74,7 @@ describe("/api/items/[id] route handlers", () => {
   });
 
   it("PATCH returns 200 on success", async () => {
+    getItemsMock.mockResolvedValue([]);
     safeParseMock.mockReturnValue({
       data: { name: "Updated" },
       error: undefined,
@@ -92,6 +95,44 @@ describe("/api/items/[id] route handlers", () => {
         officialCatalogueWrite: true,
       }
     );
+  });
+
+  it("PATCH returns 409 when the Official name collides with another row", async () => {
+    getItemsMock.mockResolvedValue([
+      { id: "item-1", name: "Old Name" },
+      { id: "item-2", name: "Siike Gun" },
+    ]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike gun" },
+      error: undefined,
+    });
+    const { PATCH } = await import("@/app/api/items/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "siike gun" }),
+      makeParams({ id: "item-1" })
+    );
+    expect(response.status).toBe(409);
+    expect(updateItemMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH returns 200 when renaming a row to its own Official name", async () => {
+    getItemsMock.mockResolvedValue([{ id: "item-1", name: "Siike Gun" }]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike gun" },
+      error: undefined,
+    });
+    updateItemMock.mockResolvedValue({ id: "item-1", name: "siike gun" });
+    const { PATCH } = await import("@/app/api/items/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "siike gun" }),
+      makeParams({ id: "item-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateItemMock).toHaveBeenCalled();
   });
 
   it("DELETE returns 204 on success", async () => {

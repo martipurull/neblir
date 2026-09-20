@@ -6,7 +6,14 @@ import { itemSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { logger } from "@/logger";
-import { serializeError } from "../shared/errors";
+import {
+  isPrismaUniqueConstraintError,
+  serializeError,
+} from "../shared/errors";
+import {
+  officialNameConflictResponse,
+  officialNameTakenResponse,
+} from "../shared/officialNameConflict";
 import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
@@ -40,6 +47,12 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
+    const conflict = officialNameConflictResponse(
+      await getItems(),
+      parsedBody.name
+    );
+    if (conflict) return conflict;
+
     const item = await createItem(parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -47,6 +60,9 @@ export const POST = auth(async (request: AuthNextRequest) => {
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
+    if (isPrismaUniqueConstraintError(error)) {
+      return officialNameTakenResponse();
+    }
     const details = serializeError(error);
     logger.error({
       method: "POST",
