@@ -12,13 +12,10 @@ import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { serializeError } from "../../shared/errors";
 import {
-  isPrismaUniqueConstraintError,
-  serializeError,
-} from "../../shared/errors";
-import {
-  officialNameConflictResponse,
-  officialNameTakenResponse,
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
 } from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
@@ -100,7 +97,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const conflict = officialNameConflictResponse(
+    const conflict = responseIfOfficialNameTaken(
       await getVehicles(),
       parsedBody.name,
       id
@@ -114,9 +111,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     return NextResponse.json(updatedVehicle);
   } catch (error) {
-    if (isPrismaUniqueConstraintError(error)) {
-      return officialNameTakenResponse();
-    }
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     if (error instanceof ZodError) {
       logger.error({
         method: "PATCH",

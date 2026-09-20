@@ -7,13 +7,10 @@ import { mapUpdateSchema } from "@/app/lib/types/map";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
+import { serializeError } from "../../shared/errors";
 import {
-  isPrismaUniqueConstraintError,
-  serializeError,
-} from "../../shared/errors";
-import {
-  officialNameConflictResponse,
-  officialNameTakenResponse,
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
 } from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
@@ -118,7 +115,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     if (!nextGameId && parsedBody.name !== undefined) {
-      const conflict = officialNameConflictResponse(
+      const conflict = responseIfOfficialNameTaken(
         await getMaps({ gameId: null }),
         parsedBody.name,
         id
@@ -135,8 +132,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    if (officialWrite && isPrismaUniqueConstraintError(error)) {
-      return officialNameTakenResponse();
+    if (officialWrite) {
+      const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+      if (uniqueConflict) return uniqueConflict;
     }
     const details = serializeError(error);
     logger.error({

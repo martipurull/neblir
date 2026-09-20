@@ -6,13 +6,10 @@ import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { logger } from "@/logger";
+import { serializeError } from "../shared/errors";
 import {
-  isPrismaUniqueConstraintError,
-  serializeError,
-} from "../shared/errors";
-import {
-  officialNameConflictResponse,
-  officialNameTakenResponse,
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
 } from "../shared/officialNameConflict";
 import { errorResponse } from "../shared/responses";
 
@@ -37,7 +34,7 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
-    const conflict = officialNameConflictResponse(
+    const conflict = responseIfOfficialNameTaken(
       await getEnemies(),
       parsedBody.name
     );
@@ -50,9 +47,8 @@ export const POST = auth(async (request: AuthNextRequest) => {
     await touchStaffCatalogueDrift(["enemies"]);
     return NextResponse.json(enemy, { status: 201 });
   } catch (error) {
-    if (isPrismaUniqueConstraintError(error)) {
-      return officialNameTakenResponse();
-    }
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     logger.error({
       method: "POST",
       route: "/api/enemies",

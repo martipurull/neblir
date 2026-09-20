@@ -6,13 +6,10 @@ import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
+import { serializeError } from "../../shared/errors";
 import {
-  isPrismaUniqueConstraintError,
-  serializeError,
-} from "../../shared/errors";
-import {
-  officialNameConflictResponse,
-  officialNameTakenResponse,
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
 } from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
@@ -82,7 +79,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     if (parsed.data.name !== undefined) {
-      const conflict = officialNameConflictResponse(
+      const conflict = responseIfOfficialNameTaken(
         await getEnemies(),
         parsed.data.name,
         id.trim()
@@ -97,9 +94,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     await touchStaffCatalogueDrift(["enemies"]);
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    if (isPrismaUniqueConstraintError(error)) {
-      return officialNameTakenResponse();
-    }
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     logger.error({
       method: "PATCH",
       route,

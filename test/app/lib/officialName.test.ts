@@ -8,6 +8,11 @@ describe("normalizeOfficialName", () => {
   it("trims, case-folds, and collapses internal whitespace", () => {
     expect(normalizeOfficialName("  Siike   Gun  ")).toBe("siike gun");
   });
+
+  it("case-folds sharp s so STRAßE is the same Official name as STRASSE", () => {
+    expect(normalizeOfficialName("STRAßE")).toBe("strasse");
+    expect(normalizeOfficialName("STRAẞE")).toBe("strasse");
+  });
 });
 
 describe("officialNameConflicts", () => {
@@ -25,6 +30,15 @@ describe("officialNameConflicts", () => {
   it("does not report a conflict when the only match is the excluded id", () => {
     expect(officialNameConflicts(existing, "Siike Gun", "item-1")).toBe(false);
     expect(officialNameConflicts(existing, "siike gun", "item-1")).toBe(false);
+    expect(officialNameConflicts(existing, "Siike Gun", " item-1 ")).toBe(
+      false
+    );
+  });
+
+  it("treats STRAßE and STRASSE as the same Official name", () => {
+    expect(
+      officialNameConflicts([{ id: "item-1", name: "STRASSE" }], "STRAßE")
+    ).toBe(true);
   });
 
   it("reports a conflict even when the existing row would differ only by accessType identity", () => {
