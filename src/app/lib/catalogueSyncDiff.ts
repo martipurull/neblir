@@ -1,6 +1,7 @@
 import { CATALOGUE_EXPORT_DOMAIN_ORDER } from "@/app/lib/catalogueExportResolve";
 import type { CatalogueExportDomain } from "@/app/lib/catalogueExportResolve";
 import type { CatalogueEnvironment } from "@/app/lib/catalogueSyncEnv";
+import { isRecord } from "@/app/lib/isRecord";
 import { normalizeOfficialName } from "@/app/lib/officialName";
 import type { CatalogueSyncSnapshotData } from "@/app/lib/catalogueSyncPull";
 
@@ -39,17 +40,10 @@ export type CatalogueSyncPreviewResponse = {
   destHubUrl: string | null;
   totals?: CatalogueSyncDiff["totals"];
   domains?: CatalogueSyncDiff["domains"];
-};
-
-export type CatalogueSyncApplyRow = {
-  domain: CatalogueExportDomain;
-  id: string;
-};
-
-export type CatalogueSyncApplyResult = {
-  applied: CatalogueSyncApplyRow[];
-  skipped: Array<CatalogueSyncApplyRow & { reason: "blocked" }>;
-  failed: Array<CatalogueSyncApplyRow & { message: string }>;
+  destOnlyDelete?: {
+    apply: number;
+    skip: number;
+  };
 };
 
 const IGNORE_KEYS = new Set([
@@ -57,10 +51,6 @@ const IGNORE_KEYS = new Set([
   "createdAt",
   "updatedAt",
 ]);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function rowId(row: unknown): string | undefined {
   if (!isRecord(row)) return undefined;

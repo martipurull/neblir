@@ -27,19 +27,57 @@ vi.stubGlobal("fetch", fetchMock);
 
 vi.mock("@/app/lib/prisma/client", () => {
   const prisma = {
-    item: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    vehicle: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    enemy: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    item: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    itemCharacter: { count: vi.fn(), deleteMany: vi.fn() },
+    uniqueItem: { count: vi.fn(), delete: vi.fn() },
+    pathCharacter: { count: vi.fn(), deleteMany: vi.fn() },
+    vehicle: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    vehicleCharacter: { count: vi.fn(), deleteMany: vi.fn() },
+    uniqueVehicle: { count: vi.fn(), delete: vi.fn() },
+    enemy: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    enemyInstance: { count: vi.fn(), deleteMany: vi.fn() },
+    feature: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    featureCharacter: { count: vi.fn(), deleteMany: vi.fn() },
     path: {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
-    feature: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     pathFeature: { deleteMany: vi.fn(), createMany: vi.fn() },
-    map: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    referenceEntry: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    map: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    referenceEntry: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   };
   return { prisma };
@@ -539,6 +577,33 @@ function resetOfficialWriteMocks() {
   vi.mocked(touchStaffCatalogueDrift).mockReset();
   vi.mocked(touchStaffCatalogueDrift).mockResolvedValue(undefined);
   vi.mocked(acknowledgeStaffCatalogueDrift).mockReset();
+  for (const findUnique of [
+    prisma.item.findUnique,
+    prisma.vehicle.findUnique,
+    prisma.enemy.findUnique,
+    prisma.feature.findUnique,
+    prisma.path.findUnique,
+    prisma.map.findUnique,
+    prisma.referenceEntry.findUnique,
+  ]) {
+    vi.mocked(findUnique).mockReset();
+    vi.mocked(findUnique).mockResolvedValue({
+      id: "row",
+      gameId: null,
+    } as never);
+  }
+  for (const count of [
+    prisma.itemCharacter.count,
+    prisma.uniqueItem.count,
+    prisma.pathCharacter.count,
+    prisma.vehicleCharacter.count,
+    prisma.uniqueVehicle.count,
+    prisma.enemyInstance.count,
+    prisma.featureCharacter.count,
+  ]) {
+    vi.mocked(count).mockReset();
+    vi.mocked(count).mockResolvedValue(0 as never);
+  }
 }
 
 describe("/api/staff/catalogue-sync dest apply", () => {
@@ -805,6 +870,32 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
   });
 
+  it("POST does not apply when dest-only delete is on and nothing is dest-only", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [{ id: "same-1", name: "Siike Gun", accessType: "PLAYER" }],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "same-1", name: "Siike Gun", accessType: "PLAYER" }],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.message).toMatch(/nothing to add, update, or delete/i);
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
   it("POST does not apply when the only rows are blocked or dest-only", async () => {
     fetchMock.mockResolvedValue(
       snapshotResponse({
@@ -900,5 +991,433 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       data: [{ pathId: "path-1", featureId: "feat-1" }],
     });
     expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["features"]);
+  });
+
+  it("POST with dest-only delete off leaves dest-only Official rows", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [
+          { id: "added-1", name: "New Official item", accessType: "PLAYER" },
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        { id: "dest-1", name: "Dest-only Official item", accessType: "PLAYER" },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: false,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "added-1" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+  });
+
+  it("POST deletes an unused dest-only Official item when dest-only delete is on", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        { id: "dest-1", name: "Retired Official item", accessType: "PLAYER" },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "dest-1", action: "delete" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.item.delete).toHaveBeenCalledWith({
+      where: { id: "dest-1" },
+    });
+    expect(prisma.itemCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.uniqueItem.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+  });
+
+  it("POST blocks an in-use dest-only Official item and leaves it on dest", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        { id: "held-1", name: "Held Official item", accessType: "PLAYER" },
+      ],
+    });
+    vi.mocked(prisma.itemCharacter.count).mockImplementation((async (args: {
+      where?: { itemId?: string };
+    }) => (args?.where?.itemId === "held-1" ? 1 : 0)) as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [{ domain: "items", id: "held-1", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(prisma.itemCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST deletes unused dest-only Official rows in every catalogue domain", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      items: [{ id: "item-1", name: "Old item", accessType: "PLAYER" }],
+      vehicles: [{ id: "veh-1", name: "Old vehicle", accessType: "PLAYER" }],
+      enemies: [{ id: "enemy-1", name: "Old enemy" }],
+      paths: [
+        {
+          id: "path-1",
+          name: "SOLDIER",
+          description: "Fighter",
+          baseFeature: "Two attacks",
+        },
+      ],
+      features: [
+        {
+          id: "feat-1",
+          name: "Old feature",
+          description: "Strike",
+          minPathRank: 1,
+          maxGrade: 1,
+          examples: [],
+          applicablePaths: [],
+        },
+      ],
+      maps: [{ id: "map-1", name: "Old map", imageKey: "maps-old.png" }],
+      reference: [
+        {
+          id: "ref-1",
+          slug: "old-ref",
+          category: "MECHANICS",
+          title: "Old",
+        },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [
+        { domain: "items", id: "item-1", action: "delete" },
+        { domain: "vehicles", id: "veh-1", action: "delete" },
+        { domain: "enemies", id: "enemy-1", action: "delete" },
+        { domain: "paths", id: "path-1", action: "delete" },
+        { domain: "features", id: "feat-1", action: "delete" },
+        { domain: "maps", id: "map-1", action: "delete" },
+        { domain: "reference", id: "ref-1", action: "delete" },
+      ],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.item.delete).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+    });
+    expect(prisma.vehicle.delete).toHaveBeenCalledWith({
+      where: { id: "veh-1" },
+    });
+    expect(prisma.enemy.delete).toHaveBeenCalledWith({
+      where: { id: "enemy-1" },
+    });
+    expect(prisma.path.delete).toHaveBeenCalledWith({
+      where: { id: "path-1" },
+    });
+    expect(prisma.feature.delete).toHaveBeenCalledWith({
+      where: { id: "feat-1" },
+    });
+    expect(prisma.map.delete).toHaveBeenCalledWith({ where: { id: "map-1" } });
+    expect(prisma.referenceEntry.delete).toHaveBeenCalledWith({
+      where: { id: "ref-1" },
+    });
+    expect(prisma.enemyInstance.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.featureCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.pathCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.pathFeature.deleteMany).toHaveBeenCalledWith({
+      where: { pathId: "path-1" },
+    });
+    expect(prisma.pathFeature.deleteMany).toHaveBeenCalledWith({
+      where: { featureId: "feat-1" },
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith([
+      "items",
+      "vehicles",
+      "enemies",
+      "paths",
+      "features",
+      "maps",
+      "reference",
+    ]);
+  });
+
+  it("POST blocks dest-only rows that Official usage already counts and does not clean them up", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      items: [
+        { id: "held-1", name: "Held item", accessType: "PLAYER" },
+        { id: "unique-1", name: "Unique template", accessType: "PLAYER" },
+        { id: "fav-1", name: "Favourite weapon", accessType: "PLAYER" },
+      ],
+      vehicles: [
+        { id: "held-veh", name: "Held vehicle", accessType: "PLAYER" },
+        {
+          id: "unique-veh",
+          name: "Unique vehicle template",
+          accessType: "PLAYER",
+        },
+      ],
+      enemies: [{ id: "spawned-1", name: "Spawned enemy" }],
+      paths: [
+        {
+          id: "path-used",
+          name: "SOLDIER",
+          description: "Fighter",
+          baseFeature: "Two attacks",
+        },
+      ],
+      features: [
+        {
+          id: "granted-1",
+          name: "Granted feature",
+          description: "Strike",
+          minPathRank: 1,
+          maxGrade: 1,
+          examples: [],
+          applicablePaths: ["SOLDIER"],
+        },
+      ],
+      maps: [],
+      reference: [],
+    });
+    vi.mocked(prisma.itemCharacter.count).mockImplementation((async (args: {
+      where?: { itemId?: string };
+    }) => (args?.where?.itemId === "held-1" ? 2 : 0)) as never);
+    vi.mocked(prisma.uniqueItem.count).mockImplementation((async (args: {
+      where?: { itemId?: string };
+    }) => (args?.where?.itemId === "unique-1" ? 1 : 0)) as never);
+    vi.mocked(prisma.pathCharacter.count).mockImplementation((async (args: {
+      where?: { favouriteWeaponItemId?: string; pathId?: string };
+    }) => {
+      if (args?.where?.favouriteWeaponItemId === "fav-1") return 1;
+      if (args?.where?.pathId === "path-used") return 3;
+      return 0;
+    }) as never);
+    vi.mocked(prisma.vehicleCharacter.count).mockImplementation((async (args: {
+      where?: { vehicleId?: string };
+    }) => (args?.where?.vehicleId === "held-veh" ? 1 : 0)) as never);
+    vi.mocked(prisma.uniqueVehicle.count).mockImplementation((async (args: {
+      where?: { vehicleId?: string };
+    }) => (args?.where?.vehicleId === "unique-veh" ? 1 : 0)) as never);
+    vi.mocked(prisma.enemyInstance.count).mockImplementation((async (args: {
+      where?: { sourceOfficialEnemyId?: string };
+    }) =>
+      args?.where?.sourceOfficialEnemyId === "spawned-1" ? 4 : 0) as never);
+    vi.mocked(prisma.featureCharacter.count).mockImplementation((async (args: {
+      where?: { featureId?: string };
+    }) => (args?.where?.featureId === "granted-1" ? 1 : 0)) as never);
+
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [
+        { domain: "items", id: "held-1", reason: "blocked" },
+        { domain: "items", id: "unique-1", reason: "blocked" },
+        { domain: "items", id: "fav-1", reason: "blocked" },
+        { domain: "vehicles", id: "held-veh", reason: "blocked" },
+        { domain: "vehicles", id: "unique-veh", reason: "blocked" },
+        { domain: "enemies", id: "spawned-1", reason: "blocked" },
+        { domain: "paths", id: "path-used", reason: "blocked" },
+        { domain: "features", id: "granted-1", reason: "blocked" },
+      ],
+      failed: [],
+    });
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(prisma.vehicle.delete).not.toHaveBeenCalled();
+    expect(prisma.enemy.delete).not.toHaveBeenCalled();
+    expect(prisma.path.delete).not.toHaveBeenCalled();
+    expect(prisma.feature.delete).not.toHaveBeenCalled();
+    expect(prisma.itemCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.uniqueItem.delete).not.toHaveBeenCalled();
+    expect(prisma.vehicleCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.uniqueVehicle.delete).not.toHaveBeenCalled();
+    expect(prisma.enemyInstance.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.featureCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.pathCharacter.deleteMany).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST touches dest drift only for catalogue domains where dest-only deletes landed", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "item-1", name: "Unused item", accessType: "PLAYER" }],
+      vehicles: [
+        { id: "held-veh", name: "Held vehicle", accessType: "PLAYER" },
+      ],
+    });
+    vi.mocked(prisma.vehicleCharacter.count).mockResolvedValue(1 as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "item-1", action: "delete" }],
+      skipped: [{ domain: "vehicles", id: "held-veh", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.vehicle.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledTimes(1);
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+  });
+
+  it("POST keeps an earlier dest-only delete when a later one fails", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "item-1", name: "Unused item", accessType: "PLAYER" }],
+      vehicles: [{ id: "veh-1", name: "Unused vehicle", accessType: "PLAYER" }],
+    });
+    vi.mocked(prisma.vehicle.delete).mockRejectedValue(
+      new Error("delete failed")
+    );
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "item-1", action: "delete" }],
+      skipped: [],
+      failed: [{ domain: "vehicles", id: "veh-1", message: "delete failed" }],
+    });
+    expect(prisma.item.delete).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+    expect(acknowledgeStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 400 when dest-only delete is not a boolean", async () => {
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: "yes",
+      })
+    );
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      message: "Dest-only delete must be true or false.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("GET with dest-only delete counts unused deletes and in-use skips before apply", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        { id: "unused-1", name: "Unused Official item", accessType: "PLAYER" },
+        { id: "held-1", name: "Held Official item", accessType: "PLAYER" },
+      ],
+    });
+    vi.mocked(prisma.itemCharacter.count).mockImplementation((async (args: {
+      where?: { itemId?: string };
+    }) => (args?.where?.itemId === "held-1" ? 1 : 0)) as never);
+    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
+    const plain = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(previewUrl("development", "production"))
+    );
+    expect(plain.status).toBe(200);
+    const plainJson = await plain.json();
+    expect(plainJson.applyEnabled).toBe(false);
+    expect(plainJson.destOnlyDelete).toBeUndefined();
+    expect(plainJson.totals).toEqual({
+      added: 0,
+      updated: 0,
+      destOnly: 2,
+      blocked: 0,
+    });
+
+    const optedIn = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(
+        `${previewUrl("development", "production")}&deleteDestOnly=true`
+      )
+    );
+    expect(optedIn.status).toBe(200);
+    const json = await optedIn.json();
+    expect(json.applyEnabled).toBe(true);
+    expect(json.destOnlyDelete).toEqual({ apply: 1, skip: 1 });
+    expect(json.totals).toEqual({
+      added: 0,
+      updated: 0,
+      destOnly: 1,
+      blocked: 1,
+    });
+    expect(json.domains.items.rows).toEqual([
+      { id: "unused-1", label: "Unused Official item", bucket: "dest-only" },
+      { id: "held-1", label: "Held Official item", bucket: "blocked" },
+    ]);
   });
 });
