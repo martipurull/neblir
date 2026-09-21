@@ -34,13 +34,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -77,13 +77,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -120,13 +120,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -163,13 +163,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -206,13 +206,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -249,13 +249,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -296,13 +296,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -339,13 +339,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 6,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -373,13 +373,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -420,13 +420,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -467,13 +467,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -501,13 +501,13 @@
     "equippable": true,
     "equipSlotTypes": ["FOOT"],
     "equipSlotCost": 0,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -535,13 +535,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 0,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -569,13 +569,13 @@
     "equippable": true,
     "equipSlotTypes": ["FOOT"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": true,
-    "vehicleMountable": false
+    "isSpeedAltered": true
   },
   {
     "damage": null,
@@ -603,13 +603,13 @@
     "equippable": true,
     "equipSlotTypes": ["FOOT"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": true,
-    "vehicleMountable": false
+    "isSpeedAltered": true
   },
   {
     "damage": null,
@@ -637,13 +637,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 2,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -671,13 +671,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 4,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -705,13 +705,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 8,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -739,13 +739,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 0,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -782,13 +782,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -816,13 +816,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY", "HEAD"],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -850,13 +850,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY", "HEAD"],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -884,13 +884,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY", "HEAD"],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -927,13 +927,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -970,13 +970,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 50,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1004,13 +1004,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1038,13 +1038,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1072,13 +1072,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1106,13 +1106,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1140,13 +1140,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1174,13 +1174,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1217,13 +1217,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1264,13 +1264,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1307,13 +1307,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1350,13 +1350,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1393,13 +1393,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1436,13 +1436,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1470,13 +1470,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1504,13 +1504,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1547,13 +1547,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 14,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1590,13 +1590,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1624,13 +1624,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1671,13 +1671,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1714,13 +1714,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1757,13 +1757,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1791,13 +1791,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1825,13 +1825,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1859,13 +1859,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1902,13 +1902,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -1936,13 +1936,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -1979,13 +1979,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2013,13 +2013,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -2056,13 +2056,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2090,13 +2090,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 1,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2124,13 +2124,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 1,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2158,13 +2158,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2192,13 +2192,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 0,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2226,13 +2226,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2260,13 +2260,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2294,13 +2294,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2328,13 +2328,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2362,13 +2362,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2396,13 +2396,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2430,13 +2430,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2464,13 +2464,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 2,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -2507,13 +2507,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2541,13 +2541,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2575,13 +2575,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -2618,13 +2618,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -2661,13 +2661,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -2704,13 +2704,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2738,13 +2738,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2772,13 +2772,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2806,13 +2806,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2840,13 +2840,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY", "HEAD"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2874,13 +2874,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY", "HEAD"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2908,13 +2908,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2942,13 +2942,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -2976,13 +2976,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3010,13 +3010,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 1,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3053,13 +3053,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3096,13 +3096,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3139,13 +3139,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3182,13 +3182,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3216,13 +3216,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3250,13 +3250,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3284,13 +3284,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3327,13 +3327,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 6,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3370,13 +3370,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3413,13 +3413,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3456,13 +3456,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3499,13 +3499,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3533,13 +3533,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3567,13 +3567,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3601,13 +3601,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3635,13 +3635,13 @@
     "equippable": true,
     "equipSlotTypes": ["FOOT"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3669,13 +3669,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3703,13 +3703,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3746,13 +3746,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -3789,13 +3789,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3823,13 +3823,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3857,13 +3857,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 1,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3891,13 +3891,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3925,13 +3925,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3959,13 +3959,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 15,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -3993,13 +3993,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4027,13 +4027,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 0,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4061,13 +4061,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4095,13 +4095,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4129,13 +4129,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4163,13 +4163,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 100,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4197,13 +4197,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 30,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4231,13 +4231,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 1,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4274,13 +4274,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4308,13 +4308,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4342,13 +4342,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4385,13 +4385,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4428,13 +4428,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 2,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4471,13 +4471,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4514,13 +4514,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4557,13 +4557,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4591,13 +4591,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4634,13 +4634,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 20,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4668,13 +4668,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4702,13 +4702,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 3,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4736,13 +4736,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4779,13 +4779,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4813,13 +4813,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4847,13 +4847,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4881,13 +4881,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4915,13 +4915,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -4949,13 +4949,13 @@
     "equippable": true,
     "equipSlotTypes": ["BODY"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -4992,13 +4992,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": 5,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5026,13 +5026,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": "aim",
     "skillMod": 1,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5060,13 +5060,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": "aim",
     "skillMod": 2,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5094,13 +5094,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": "aim",
     "skillMod": 3,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5128,13 +5128,13 @@
     "equippable": true,
     "equipSlotTypes": ["BRAIN"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": "wisdom.perception",
     "attributeMod": 1,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5162,13 +5162,13 @@
     "equippable": true,
     "equipSlotTypes": ["HEAD"],
     "equipSlotCost": 2,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": "dexterity.stealth",
     "attributeMod": -1,
     "modifiesSkill": "survival",
     "skillMod": 2,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5196,13 +5196,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5230,13 +5230,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": null,
@@ -5264,13 +5264,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -5307,13 +5307,13 @@
     "equippable": false,
     "equipSlotTypes": [],
     "equipSlotCost": null,
+    "vehicleMountable": false,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -5350,13 +5350,13 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 2,
+    "vehicleMountable": true,
     "maxUses": null,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": true
+    "isSpeedAltered": false
   },
   {
     "damage": {
@@ -5393,12 +5393,46 @@
     "equippable": true,
     "equipSlotTypes": ["HAND"],
     "equipSlotCost": 1,
+    "vehicleMountable": false,
     "maxUses": 10,
     "modifiesAttribute": null,
     "attributeMod": null,
     "modifiesSkill": null,
     "skillMod": null,
-    "isSpeedAltered": false,
-    "vehicleMountable": false
+    "isSpeedAltered": false
+  },
+  {
+    "damage": null,
+    "id": "6ab13383214c06e1c68d46a8",
+    "accessType": "PLAYER",
+    "attackRoll": [],
+    "attackMeleeBonus": null,
+    "attackRangeBonus": null,
+    "attackThrowBonus": null,
+    "defenceMeleeBonus": null,
+    "defenceRangeBonus": null,
+    "gridAttackBonus": null,
+    "gridDefenceBonus": null,
+    "effectiveRange": null,
+    "maxRange": null,
+    "confCost": 1500,
+    "costInfo": "Cost per packet of 10.",
+    "description": "A potent drug developed to empower Melee Attacks at the expense of mental stability.",
+    "imageKey": "items-custom_items_items_fedamyte_vposn1vl-1inp12q6.png",
+    "name": "Fedamyte",
+    "notes": null,
+    "type": "GENERAL_ITEM",
+    "usage": "Take one pill to enjoy and suffer the following effect for the next minute (10 rounds): Your Melee Attacks deal an additional 1d4, but you take half that damage as Mental Health HP.",
+    "weight": 0.1,
+    "equippable": false,
+    "equipSlotTypes": [],
+    "equipSlotCost": null,
+    "vehicleMountable": false,
+    "maxUses": 10,
+    "modifiesAttribute": null,
+    "attributeMod": null,
+    "modifiesSkill": null,
+    "skillMod": null,
+    "isSpeedAltered": false
   }
 ]
