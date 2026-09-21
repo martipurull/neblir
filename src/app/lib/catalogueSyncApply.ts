@@ -1,16 +1,21 @@
 import { CATALOGUE_EXPORT_DOMAIN_ORDER } from "@/app/lib/catalogueExportResolve";
 import type { CatalogueExportDomain } from "@/app/lib/catalogueExportResolve";
-import type {
-  CatalogueSyncApplyResult,
-  CatalogueSyncApplyRow,
+import {
+  diffCatalogueSyncSnapshots,
+  type CatalogueSyncDiff,
 } from "@/app/lib/catalogueSyncDiff";
-import { diffCatalogueSyncSnapshots } from "@/app/lib/catalogueSyncDiff";
 import type { CatalogueSyncSnapshotData } from "@/app/lib/catalogueSyncPull";
+import { isRecord } from "@/app/lib/isRecord";
 import {
   ATTRIBUTE_PATH_API_TO_PRISMA,
   GENERAL_SKILL_API_TO_PRISMA,
 } from "@/app/lib/itemModifierEnums";
+import {
+  isOfficialCatalogueUsageDomain,
+  officialCatalogueUsageIsUnused,
+} from "@/app/lib/officialCatalogueUsage";
 import { prisma } from "@/app/lib/prisma/client";
+import { getOfficialCatalogueUsage } from "@/app/lib/prisma/officialCatalogueUsage";
 import { Prisma, type PathName } from "@prisma/client";
 
 const OMIT_KEYS = new Set([
@@ -34,6 +39,24 @@ type CatalogueRowWriter = {
     where: { id: string };
     data: Record<string, unknown>;
   }): Promise<unknown>;
+  delete(args: { where: { id: string } }): Promise<unknown>;
+};
+
+export type CatalogueSyncApplyRow = {
+  domain: CatalogueExportDomain;
+  id: string;
+  action?: "delete";
+};
+
+type CatalogueSyncDestOnlyDeleteCounts = {
+  apply: number;
+  skip: number;
+};
+
+export type CatalogueSyncApplyResult = {
+  applied: CatalogueSyncApplyRow[];
+  skipped: Array<CatalogueSyncApplyRow & { reason: "blocked" }>;
+  failed: Array<CatalogueSyncApplyRow & { message: string }>;
 };
 
 type CatalogueSyncApplyOutcome =
@@ -42,10 +65,6 @@ type CatalogueSyncApplyOutcome =
       status: "applied";
       changedDomains: CatalogueExportDomain[];
     } & CatalogueSyncApplyResult);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function isUniqueConstraint(error: unknown): boolean {
   return (
@@ -175,6 +194,93 @@ async function writeFeatureRow(
   });
 }
 
+async function destOnlyOfficialRowInUse(
+  domain: CatalogueExportDomain,
+  id: string
+): Promise<boolean> {
+  if (domain === "paths") {
+    const characters = await prisma.pathCharacter.count({
+      where: { pathId: id },
+    });
+    return characters > 0;
+  }
+  if (!isOfficialCatalogueUsageDomain(domain)) return false;
+  const usage = await getOfficialCatalogueUsage(domain, id);
+  if (!usage) return false;
+  return !officialCatalogueUsageIsUnused(usage);
+}
+
+function recountCatalogueSyncDiff(
+  domains: CatalogueSyncDiff["domains"]
+): CatalogueSyncDiff {
+  const totals = { added: 0, updated: 0, destOnly: 0, blocked: 0 };
+  const recounted = {} as CatalogueSyncDiff["domains"];
+  for (const domain of CATALOGUE_EXPORT_DOMAIN_ORDER) {
+    const rows = domains[domain].rows;
+    const domainDiff = {
+      added: rows.filter((row) => row.bucket === "added").length,
+      updated: rows.filter((row) => row.bucket === "updated").length,
+      destOnly: rows.filter((row) => row.bucket === "dest-only").length,
+      blocked: rows.filter((row) => row.bucket === "blocked").length,
+      rows,
+    };
+    recounted[domain] = domainDiff;
+    totals.added += domainDiff.added;
+    totals.updated += domainDiff.updated;
+    totals.destOnly += domainDiff.destOnly;
+    totals.blocked += domainDiff.blocked;
+  }
+  return { totals, domains: recounted };
+}
+
+export async function classifyCatalogueSyncDestOnlyDeletes(
+  diff: CatalogueSyncDiff
+): Promise<{
+  diff: CatalogueSyncDiff;
+  destOnlyDelete: CatalogueSyncDestOnlyDeleteCounts;
+}> {
+  const destOnlyDelete = { apply: 0, skip: 0 };
+  const domains = {} as CatalogueSyncDiff["domains"];
+  for (const domain of CATALOGUE_EXPORT_DOMAIN_ORDER) {
+    const rows = [];
+    for (const row of diff.domains[domain].rows) {
+      if (row.bucket !== "dest-only") {
+        rows.push(row);
+        continue;
+      }
+      if (await destOnlyOfficialRowInUse(domain, row.id)) {
+        rows.push({ ...row, bucket: "blocked" as const });
+        destOnlyDelete.skip += 1;
+        continue;
+      }
+      rows.push(row);
+      destOnlyDelete.apply += 1;
+    }
+    domains[domain] = { ...diff.domains[domain], rows };
+  }
+  return {
+    diff: recountCatalogueSyncDiff(domains),
+    destOnlyDelete,
+  };
+}
+
+async function deleteUnusedDestOnlyRow(
+  domain: CatalogueExportDomain,
+  id: string
+) {
+  if (domain === "features") {
+    await prisma.pathFeature.deleteMany({ where: { featureId: id } });
+    await prisma.feature.delete({ where: { id } });
+    return;
+  }
+  if (domain === "paths") {
+    await prisma.pathFeature.deleteMany({ where: { pathId: id } });
+    await prisma.path.delete({ where: { id } });
+    return;
+  }
+  await catalogueRowWriter(domain).delete({ where: { id } });
+}
+
 async function writeCatalogueSyncRow(
   domain: CatalogueExportDomain,
   id: string,
@@ -197,9 +303,15 @@ async function writeCatalogueSyncRow(
 export async function applyCatalogueSyncOverlay(input: {
   source: CatalogueSyncSnapshotData;
   dest: CatalogueSyncSnapshotData;
+  deleteDestOnly?: boolean;
 }): Promise<CatalogueSyncApplyOutcome> {
+  const deleteDestOnly = input.deleteDestOnly === true;
   const diff = diffCatalogueSyncSnapshots(input);
-  if (diff.totals.added + diff.totals.updated === 0) {
+  const overlayCount = diff.totals.added + diff.totals.updated;
+  if (!deleteDestOnly && overlayCount === 0) {
+    return { status: "empty" };
+  }
+  if (deleteDestOnly && overlayCount === 0 && diff.totals.destOnly === 0) {
     return { status: "empty" };
   }
 
@@ -211,7 +323,28 @@ export async function applyCatalogueSyncOverlay(input: {
   for (const domain of CATALOGUE_EXPORT_DOMAIN_ORDER) {
     const sourceById = indexSourceRows(input.source[domain]);
     for (const row of diff.domains[domain].rows) {
-      if (row.bucket === "dest-only") continue;
+      if (row.bucket === "dest-only") {
+        if (!deleteDestOnly) continue;
+        try {
+          if (await destOnlyOfficialRowInUse(domain, row.id)) {
+            skipped.push({ domain, id: row.id, reason: "blocked" });
+            continue;
+          }
+          await deleteUnusedDestOnlyRow(domain, row.id);
+          applied.push({ domain, id: row.id, action: "delete" });
+          if (!changedDomains.includes(domain)) changedDomains.push(domain);
+        } catch (error) {
+          failed.push({
+            domain,
+            id: row.id,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Official dest-only delete failed",
+          });
+        }
+        continue;
+      }
       if (row.bucket === "blocked") {
         skipped.push({ domain, id: row.id, reason: "blocked" });
         continue;

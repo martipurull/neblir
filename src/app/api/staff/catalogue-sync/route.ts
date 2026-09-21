@@ -1,7 +1,10 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { CATALOGUE_EXPORT_DOMAIN_ORDER } from "@/app/lib/catalogueExportResolve";
 import { buildCatalogueSeedDataExport } from "@/app/lib/catalogueSeedExport";
-import { applyCatalogueSyncOverlay } from "@/app/lib/catalogueSyncApply";
+import {
+  applyCatalogueSyncOverlay,
+  classifyCatalogueSyncDestOnlyDeletes,
+} from "@/app/lib/catalogueSyncApply";
 import { diffCatalogueSyncSnapshots } from "@/app/lib/catalogueSyncDiff";
 import {
   catalogueEnvironmentBaseUrl,
@@ -17,6 +20,7 @@ import {
   type CatalogueSyncSnapshotData,
 } from "@/app/lib/catalogueSyncPull";
 import { catalogueSyncPullSecretFromEnv } from "@/app/lib/catalogueSyncPullSecret";
+import { isRecord } from "@/app/lib/isRecord";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -26,10 +30,6 @@ import { serializeError } from "../../shared/errors";
 import { errorResponse } from "../../shared/responses";
 
 const route = "/api/staff/catalogue-sync";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function asSnapshotData(
   data: Record<string, unknown>
@@ -94,9 +94,7 @@ function resolveCatalogueSyncPairing(
   return { thisEnvironment, source, dest };
 }
 
-function isPairing(
-  value: ResolvedPairing | NextResponse
-): value is ResolvedPairing {
+function isResolved<T>(value: T | NextResponse): value is T {
   return !(value instanceof NextResponse);
 }
 
@@ -144,20 +142,6 @@ async function loadCatalogueSyncSnapshots(
   };
 }
 
-function isSnapshotPair(
-  value:
-    | {
-        sourceData: CatalogueSyncSnapshotData;
-        destData: CatalogueSyncSnapshotData;
-      }
-    | NextResponse
-): value is {
-  sourceData: CatalogueSyncSnapshotData;
-  destData: CatalogueSyncSnapshotData;
-} {
-  return !(value instanceof NextResponse);
-}
-
 export const GET = auth(async (request: AuthNextRequest) => {
   try {
     const denied = await authorizeCatalogueSync(request);
@@ -168,7 +152,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
       url.searchParams.get("source"),
       url.searchParams.get("dest")
     );
-    if (!isPairing(pairing)) return pairing;
+    if (!isResolved(pairing)) return pairing;
 
     const { thisEnvironment, source, dest } = pairing;
     if (dest !== thisEnvironment) {
@@ -186,12 +170,20 @@ export const GET = auth(async (request: AuthNextRequest) => {
     }
 
     const snapshots = await loadCatalogueSyncSnapshots(source);
-    if (!isSnapshotPair(snapshots)) return snapshots;
+    if (!isResolved(snapshots)) return snapshots;
 
-    const diff = diffCatalogueSyncSnapshots({
+    const baseDiff = diffCatalogueSyncSnapshots({
       source: snapshots.sourceData,
       dest: snapshots.destData,
     });
+    const deleteDestOnly = url.searchParams.get("deleteDestOnly") === "true";
+    const classified = deleteDestOnly
+      ? await classifyCatalogueSyncDestOnlyDeletes(baseDiff)
+      : null;
+    const diff = classified?.diff ?? baseDiff;
+    const destOnlyWork =
+      (classified?.destOnlyDelete.apply ?? 0) +
+      (classified?.destOnlyDelete.skip ?? 0);
 
     return NextResponse.json(
       {
@@ -199,10 +191,12 @@ export const GET = auth(async (request: AuthNextRequest) => {
         source,
         dest,
         destIsThisEnvironment: true,
-        applyEnabled: diff.totals.added + diff.totals.updated > 0,
+        applyEnabled:
+          diff.totals.added + diff.totals.updated + destOnlyWork > 0,
         destHubUrl: null,
         totals: diff.totals,
         domains: diff.domains,
+        ...(classified ? { destOnlyDelete: classified.destOnlyDelete } : {}),
       },
       { status: 200 }
     );
@@ -235,12 +229,15 @@ export const POST = auth(async (request: AuthNextRequest) => {
     if (!isRecord(body)) {
       return errorResponse("Catalogue sync apply body must be JSON.", 400);
     }
+    if ("deleteDestOnly" in body && typeof body.deleteDestOnly !== "boolean") {
+      return errorResponse("Dest-only delete must be true or false.", 400);
+    }
 
     const pairing = resolveCatalogueSyncPairing(
       typeof body.source === "string" ? body.source : null,
       typeof body.dest === "string" ? body.dest : null
     );
-    if (!isPairing(pairing)) return pairing;
+    if (!isResolved(pairing)) return pairing;
 
     const { thisEnvironment, source, dest } = pairing;
     if (dest !== thisEnvironment) {
@@ -251,14 +248,20 @@ export const POST = auth(async (request: AuthNextRequest) => {
     }
 
     const snapshots = await loadCatalogueSyncSnapshots(source);
-    if (!isSnapshotPair(snapshots)) return snapshots;
+    if (!isResolved(snapshots)) return snapshots;
 
     const outcome = await applyCatalogueSyncOverlay({
       source: snapshots.sourceData,
       dest: snapshots.destData,
+      deleteDestOnly: body.deleteDestOnly === true,
     });
     if (outcome.status === "empty") {
-      return errorResponse("Nothing to add or update.", 400);
+      return errorResponse(
+        body.deleteDestOnly === true
+          ? "Nothing to add, update, or delete."
+          : "Nothing to add or update.",
+        400
+      );
     }
 
     if (outcome.changedDomains.length > 0) {
