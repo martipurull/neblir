@@ -56,8 +56,8 @@ export function SuperAdminCatalogueSyncCard({
         <p className="text-sm font-semibold text-black">Catalogue sync</p>
         <p className="mt-2 text-sm text-black/80">
           Overlay Official catalogue rows from a source Catalogue environment
-          onto a destination. Preview on dest; git seed-export stays the human
-          export door.
+          onto a destination. Diff and apply on dest; git seed-export stays the
+          human export door.
         </p>
         <div className="mt-4">
           <Button
