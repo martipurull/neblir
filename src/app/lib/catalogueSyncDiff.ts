@@ -41,6 +41,17 @@ export type CatalogueSyncPreviewResponse = {
   domains?: CatalogueSyncDiff["domains"];
 };
 
+export type CatalogueSyncApplyRow = {
+  domain: CatalogueExportDomain;
+  id: string;
+};
+
+export type CatalogueSyncApplyResult = {
+  applied: CatalogueSyncApplyRow[];
+  skipped: Array<CatalogueSyncApplyRow & { reason: "blocked" }>;
+  failed: Array<CatalogueSyncApplyRow & { message: string }>;
+};
+
 const IGNORE_KEYS = new Set([
   "protectedFromOfficialImport",
   "createdAt",

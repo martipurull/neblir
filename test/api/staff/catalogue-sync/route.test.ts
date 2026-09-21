@@ -1,4 +1,10 @@
+import { ItemAttributePath, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { prisma } from "@/app/lib/prisma/client";
+import {
+  acknowledgeStaffCatalogueDrift,
+  touchStaffCatalogueDrift,
+} from "@/app/lib/prisma/staffCatalogueDrift";
 import {
   invokeRoute,
   makeAuthedRequestWithUrl,
@@ -18,6 +24,31 @@ vi.mock("@/app/lib/catalogueSeedExport", () => ({
 }));
 
 vi.stubGlobal("fetch", fetchMock);
+
+vi.mock("@/app/lib/prisma/client", () => {
+  const prisma = {
+    item: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    vehicle: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    enemy: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    path: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findMany: vi.fn(),
+    },
+    feature: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    pathFeature: { deleteMany: vi.fn(), createMany: vi.fn() },
+    map: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    referenceEntry: { create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
+  };
+  return { prisma };
+});
+
+vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
+  touchStaffCatalogueDrift: vi.fn(),
+  acknowledgeStaffCatalogueDrift: vi.fn(),
+}));
 
 const previewUrl = (source: string, dest: string) =>
   `http://localhost/api/staff/catalogue-sync?source=${source}&dest=${dest}`;
@@ -272,7 +303,7 @@ describe("/api/staff/catalogue-sync dest preview", () => {
     );
     const json = await res.json();
     expect(json.destIsThisEnvironment).toBe(true);
-    expect(json.applyEnabled).toBe(false);
+    expect(json.applyEnabled).toBe(true);
     expect(json.totals).toEqual({
       added: 1,
       updated: 1,
@@ -301,6 +332,7 @@ describe("/api/staff/catalogue-sync dest preview", () => {
     const res = await previewDestHere();
     expect(res.status).toBe(200);
     const json = await res.json();
+    expect(json.applyEnabled).toBe(false);
     expect(json.totals).toEqual({
       added: 0,
       updated: 0,
@@ -377,6 +409,7 @@ describe("/api/staff/catalogue-sync dest preview", () => {
     const res = await previewDestHere();
     expect(res.status).toBe(200);
     const json = await res.json();
+    expect(json.applyEnabled).toBe(false);
     expect(json.totals).toEqual({
       added: 0,
       updated: 0,
@@ -466,5 +499,406 @@ describe("/api/staff/catalogue-sync dest preview", () => {
     ]);
     expect(json.totals.added).toBe(2);
     expect(json.totals.destOnly).toBe(0);
+  });
+});
+
+const APPLY_URL = "http://localhost/api/staff/catalogue-sync";
+
+function applyBody(
+  body: Record<string, unknown> = {
+    source: "development",
+    dest: "production",
+  }
+) {
+  return makeAuthedRequestWithUrl(APPLY_URL, "user-1", body);
+}
+
+function resetOfficialWriteMocks() {
+  const delegates = [
+    prisma.item,
+    prisma.vehicle,
+    prisma.enemy,
+    prisma.path,
+    prisma.feature,
+    prisma.map,
+    prisma.referenceEntry,
+  ];
+  for (const delegate of delegates) {
+    vi.mocked(delegate.create).mockReset();
+    vi.mocked(delegate.update).mockReset();
+    vi.mocked(delegate.delete).mockReset();
+  }
+  vi.mocked(prisma.path.findMany).mockReset();
+  vi.mocked(prisma.pathFeature.deleteMany).mockReset();
+  vi.mocked(prisma.pathFeature.createMany).mockReset();
+  vi.mocked(prisma.$transaction).mockReset();
+  vi.mocked(prisma.$transaction).mockImplementation((async (fn: unknown) => {
+    if (typeof fn === "function") return fn(prisma);
+    return fn;
+  }) as never);
+  vi.mocked(touchStaffCatalogueDrift).mockReset();
+  vi.mocked(touchStaffCatalogueDrift).mockResolvedValue(undefined);
+  vi.mocked(acknowledgeStaffCatalogueDrift).mockReset();
+}
+
+describe("/api/staff/catalogue-sync dest apply", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    userIsSuperAdminMock.mockResolvedValue(true);
+    buildCatalogueSeedDataExportMock.mockResolvedValue(emptySeedData());
+    resetOfficialWriteMocks();
+    process.env.CATALOGUE_ENVIRONMENT = "production";
+    process.env.CATALOGUE_SYNC_PULL_SECRET = "test-pull-secret";
+    process.env.CATALOGUE_SYNC_DEVELOPMENT_URL = "https://dev.example.com";
+    process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://prod.example.com";
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+  });
+
+  it("POST returns 401 when unauthenticated", async () => {
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, {
+      ...makeUnauthedRequest({ source: "development", dest: "production" }),
+      url: APPLY_URL,
+    });
+    expect(res.status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(prisma.item.create).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 403 when not Super Admin", async () => {
+    userIsSuperAdminMock.mockResolvedValue(false);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(prisma.item.create).not.toHaveBeenCalled();
+  });
+
+  it("POST refuses apply when dest is not this Catalogue environment", async () => {
+    process.env.CATALOGUE_ENVIRONMENT = "development";
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.message).toMatch(/destination/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(prisma.item.create).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST writes unblocked adds and updates, sets dest drift, and leaves dest-only rows", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [
+          {
+            id: "added-1",
+            name: "New Official item",
+            accessType: "PLAYER",
+            modifiesAttribute: "strength.athletics",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            protectedFromOfficialImport: false,
+          },
+          {
+            id: "same-1",
+            name: "Changed Official item",
+            accessType: "PLAYER",
+            imageKey: "items-new.png",
+          },
+        ],
+        paths: [
+          {
+            id: "path-1",
+            name: "SOLDIER",
+            description: "Fighter",
+            baseFeature: "Two attacks",
+          },
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        {
+          id: "same-1",
+          name: "Changed Official item",
+          accessType: "PLAYER",
+          imageKey: "items-old.png",
+        },
+        { id: "dest-1", name: "Dest-only Official item", accessType: "PLAYER" },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        domains: ["items"],
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [
+        { domain: "items", id: "added-1" },
+        { domain: "items", id: "same-1" },
+        { domain: "paths", id: "path-1" },
+      ],
+      skipped: [],
+      failed: [],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://dev.example.com/api/catalogue-sync/snapshot",
+      expect.objectContaining({ method: "GET" })
+    );
+    expect(prisma.item.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        id: "added-1",
+        name: "New Official item",
+        accessType: "PLAYER",
+        modifiesAttribute: ItemAttributePath.STRENGTH_ATHLETICS,
+        protectedFromOfficialImport: true,
+      }),
+    });
+    expect(prisma.item.create).toHaveBeenCalledTimes(1);
+    const created = vi.mocked(prisma.item.create).mock.calls[0]?.[0];
+    expect(created?.data).not.toHaveProperty("createdAt");
+    expect(prisma.item.update).toHaveBeenCalledWith({
+      where: { id: "same-1" },
+      data: expect.objectContaining({
+        name: "Changed Official item",
+        imageKey: "items-new.png",
+        protectedFromOfficialImport: true,
+      }),
+    });
+    expect(
+      vi.mocked(prisma.item.update).mock.calls[0]?.[0].data
+    ).not.toHaveProperty("id");
+    expect(prisma.path.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        id: "path-1",
+        name: "SOLDIER",
+        protectedFromOfficialImport: true,
+      }),
+    });
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(prisma.path.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledTimes(1);
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items", "paths"]);
+    expect(acknowledgeStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST skips blocked Official name collisions and still applies other rows", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [
+          { id: "src-1", name: "Siike Gun", accessType: "PLAYER" },
+          { id: "added-2", name: "Fresh Official item", accessType: "PLAYER" },
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "dest-2", name: "siike   gun", accessType: "GAME_MASTER" }],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "added-2" }],
+      skipped: [{ domain: "items", id: "src-1", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.item.create).toHaveBeenCalledTimes(1);
+    expect(prisma.item.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ id: "added-2" }),
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+  });
+
+  it("POST keeps earlier successes when a later Official write fails", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [
+          { id: "ok-1", name: "Kept Official item", accessType: "PLAYER" },
+          { id: "bad-1", name: "Failed Official item", accessType: "PLAYER" },
+        ],
+      })
+    );
+    vi.mocked(prisma.item.create).mockImplementation((async (args: {
+      data: { id?: string };
+    }) => {
+      if (args.data.id === "bad-1") throw new Error("write failed");
+      return { id: args.data.id };
+    }) as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "items", id: "ok-1" }],
+      skipped: [],
+      failed: [{ domain: "items", id: "bad-1", message: "write failed" }],
+    });
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(prisma.item.update).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["items"]);
+
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "ok-1", name: "Kept Official item", accessType: "PLAYER" }],
+    });
+    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
+    const preview = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(previewUrl("development", "production"))
+    );
+    expect(preview.status).toBe(200);
+    const previewJson = await preview.json();
+    expect(previewJson.domains.items.rows).toEqual([
+      { id: "bad-1", label: "Failed Official item", bucket: "added" },
+    ]);
+    expect(previewJson.applyEnabled).toBe(true);
+  });
+
+  it("POST reports a unique-name constraint miss as blocked", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [{ id: "src-1", name: "Siike Gun", accessType: "PLAYER" }],
+      })
+    );
+    vi.mocked(prisma.item.create).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "test",
+      })
+    );
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [{ domain: "items", id: "src-1", reason: "blocked" }],
+      failed: [],
+    });
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+    expect(acknowledgeStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST does not apply an empty overlay", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [{ id: "same-1", name: "Siike Gun", accessType: "PLAYER" }],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "same-1", name: "Siike Gun", accessType: "PLAYER" }],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.message).toMatch(/nothing to add or update/i);
+    expect(prisma.item.create).not.toHaveBeenCalled();
+    expect(prisma.item.update).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST does not apply when the only rows are blocked or dest-only", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [{ id: "src-1", name: "Siike Gun", accessType: "PLAYER" }],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [{ id: "dest-2", name: "siike   gun", accessType: "GAME_MASTER" }],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(400);
+    expect(prisma.item.create).not.toHaveBeenCalled();
+    expect(prisma.item.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST apply is idempotent once dest already matches the source row", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        items: [
+          { id: "added-1", name: "New Official item", accessType: "PLAYER" },
+        ],
+      })
+    );
+    const { POST, GET } = await import("@/app/api/staff/catalogue-sync/route");
+    const first = await invokeRoute(POST, applyBody());
+    expect(first.status).toBe(200);
+    expect(prisma.item.create).toHaveBeenCalledTimes(1);
+
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      items: [
+        { id: "added-1", name: "New Official item", accessType: "PLAYER" },
+      ],
+    });
+    const second = await invokeRoute(POST, applyBody());
+    expect(second.status).toBe(400);
+    const secondJson = await second.json();
+    expect(secondJson.message).toMatch(/nothing to add or update/i);
+    expect(prisma.item.create).toHaveBeenCalledTimes(1);
+
+    const preview = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(previewUrl("development", "production"))
+    );
+    expect(preview.status).toBe(200);
+    const previewJson = await preview.json();
+    expect(previewJson.domains.items.rows).toEqual([]);
+    expect(previewJson.applyEnabled).toBe(false);
+  });
+
+  it("POST feature overlay rebuilds path links for applicable paths", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        features: [
+          {
+            id: "feat-1",
+            name: "Two Attacks",
+            description: "Strike twice",
+            minPathRank: 1,
+            maxGrade: 1,
+            examples: [],
+            applicablePaths: ["SOLDIER"],
+          },
+        ],
+      })
+    );
+    vi.mocked(prisma.path.findMany).mockResolvedValue([
+      { id: "path-1", name: "SOLDIER" },
+    ] as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "features", id: "feat-1" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.feature.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        id: "feat-1",
+        name: "Two Attacks",
+        applicablePaths: ["SOLDIER"],
+        protectedFromOfficialImport: true,
+      }),
+    });
+    expect(prisma.pathFeature.deleteMany).toHaveBeenCalledWith({
+      where: { featureId: "feat-1" },
+    });
+    expect(prisma.pathFeature.createMany).toHaveBeenCalledWith({
+      data: [{ pathId: "path-1", featureId: "feat-1" }],
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["features"]);
   });
 });

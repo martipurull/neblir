@@ -132,7 +132,11 @@ On **Super admin**, open **Catalogue sync**. Choose source and destination Catal
 
 Cookie **Bulk export for seed files** / `GET /api/staff/catalogue-seed-export` stays the human git export door. Catalogue sync uses a separate snapshot door with the same Official payload shape (`scope=all` for all seven catalogue domains). It does not copy games, Characters, Custom or Unique content, currencies, or Official image bytes (images already live in the shared catalogue bucket).
 
-After dest apply (a later overlay write), dest will show the usual **Update seed data in git** banner for domains that actually changed. Export those domains into this folder and commit as usual, then acknowledge. Matching another Catalogue environment is not the same as matching git.
+On dest, **Apply** overlays unblocked adds and updates for all seven catalogue domains (source wins, and new rows keep the source id). Blocked Official-name or published-reference slug collisions are skipped. Dest-only Official rows stay. Confirm states how many rows will apply and how many blocked rows will be skipped. Production asks you to type the destination name; development and local use a light confirm. An empty overlay (nothing to add or update) does not write.
+
+Apply sets `protectedFromOfficialImport` on written rows and raises the usual **Update seed data in git** banner for catalogue domains that actually changed. It does not clear that banner, and it does not change the source Catalogue environment. The result lists applied, skipped, and failed rows. A later failure does not undo earlier rows. **Diff again** on the same pairing reloads the Official diff from live dest against a fresh source pull: applied ids drop out; rows that failed and still differ show as pending work.
+
+Then export the touched domains into this folder and commit as usual, and acknowledge. Matching another Catalogue environment is not the same as matching git.
 
 ---
 
