@@ -1,5 +1,12 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
-import { deleteItem, getItem, updateItem } from "@/app/lib/prisma/item";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
+import {
+  deleteItem,
+  getItem,
+  getItems,
+  updateItem,
+} from "@/app/lib/prisma/item";
+import { clearFavouriteWeaponPointersToItem } from "@/app/lib/prisma/pathCharacter";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { itemUpdateSchema } from "@/app/lib/types/item";
@@ -8,6 +15,10 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { logger } from "@/logger";
 import { serializeError } from "../../shared/errors";
+import {
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -88,6 +99,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    const conflict = responseIfOfficialNameTaken(
+      await getItems(),
+      parsedBody.name,
+      id
+    );
+    if (conflict) return conflict;
+
     const updatedItem = await updateItem(id, parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -95,6 +113,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     return NextResponse.json(updatedItem);
   } catch (error) {
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     if (error instanceof ZodError) {
       logger.error({
         method: "PATCH",
@@ -146,7 +166,14 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid item ID", 400);
     }
 
+    const existing = await getItem(id);
+    if (!existing) {
+      return errorResponse("Item not found", 404);
+    }
+
+    await clearFavouriteWeaponPointersToItem(id);
     await deleteItem(id);
+    await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
     await touchStaffCatalogueDrift(["items"]);
 
     return new NextResponse(null, { status: 204 });

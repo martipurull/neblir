@@ -1,4 +1,4 @@
-const CATALOGUE_EXPORT_DOMAIN_ORDER = [
+export const CATALOGUE_EXPORT_DOMAIN_ORDER = [
   "items",
   "vehicles",
   "enemies",
@@ -10,6 +10,18 @@ const CATALOGUE_EXPORT_DOMAIN_ORDER = [
 
 export type CatalogueExportDomain =
   (typeof CATALOGUE_EXPORT_DOMAIN_ORDER)[number];
+
+export const CATALOGUE_SEED_FILENAMES: Record<CatalogueExportDomain, string> = {
+  items: "Item_Upload.json",
+  vehicles: "Vehicle_Upload.json",
+  enemies: "Enemy_Upload.json",
+  paths: "Path_Upload.json",
+  features: "Feature_Upload.json",
+  maps: "Map_Upload.json",
+  reference: "Reference_Upload.json",
+};
+
+export const CATALOGUE_SEED_ZIP_FILENAME = "catalogue-seed-files.zip";
 
 const KNOWN = new Set<string>(CATALOGUE_EXPORT_DOMAIN_ORDER);
 

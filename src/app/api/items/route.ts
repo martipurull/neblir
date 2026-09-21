@@ -7,6 +7,10 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../shared/errors";
+import {
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
+} from "../shared/officialNameConflict";
 import { errorResponse } from "../shared/responses";
 
 export const POST = auth(async (request: AuthNextRequest) => {
@@ -40,6 +44,12 @@ export const POST = auth(async (request: AuthNextRequest) => {
       );
     }
 
+    const conflict = responseIfOfficialNameTaken(
+      await getItems(),
+      parsedBody.name
+    );
+    if (conflict) return conflict;
+
     const item = await createItem(parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -47,6 +57,8 @@ export const POST = auth(async (request: AuthNextRequest) => {
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     const details = serializeError(error);
     logger.error({
       method: "POST",

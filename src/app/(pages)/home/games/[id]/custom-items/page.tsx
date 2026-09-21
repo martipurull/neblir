@@ -11,6 +11,8 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
+import { useCataloguePromotionSuccess } from "@/hooks/use-catalogue-promotion-success";
 import { TextField } from "@/app/components/shared/TextField";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useGame } from "@/hooks/use-game";
@@ -106,6 +108,7 @@ export default function GameCustomItemsPage() {
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
   const [editCustomItemId, setEditCustomItemId] = useState<string | null>(null);
   const [editUniqueItemId, setEditUniqueItemId] = useState<string | null>(null);
+  const { promotionSuccess, onPromoted } = useCataloguePromotionSuccess();
   const [uniqueItems, setUniqueItems] = useState<UniqueItemListItem[]>([]);
   const [loadingUniqueItems, setLoadingUniqueItems] = useState(false);
 
@@ -266,6 +269,8 @@ export default function GameCustomItemsPage() {
           </Link>
         )}
       </div>
+
+      <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
 
       {detailLoadError && (
         <p className="mt-2 text-sm text-red-600" role="alert">
@@ -488,6 +493,7 @@ export default function GameCustomItemsPage() {
             void refetch();
             void mutate();
           }}
+          onPromoted={onPromoted}
         />
       )}
 

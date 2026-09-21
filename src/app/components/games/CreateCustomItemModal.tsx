@@ -12,6 +12,9 @@ import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemMod
 import { ItemModalStatModifierFields } from "@/app/components/games/shared/ItemModalStatModifierFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
 import { useCreateCustomItemModal } from "@/app/components/games/useCreateCustomItemModal";
+import { PromoteCustomTemplateSection } from "@/app/components/games/PromoteCustomTemplateSection";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
+
 const ITEM_TYPES = [
   { value: "GENERAL_ITEM", label: "General item" },
   { value: "WEAPON", label: "Weapon" },
@@ -25,6 +28,7 @@ type CreateCustomItemModalProps = {
   editCustomItemId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 export function CreateCustomItemModal({
@@ -34,6 +38,7 @@ export function CreateCustomItemModal({
   editCustomItemId = null,
   onClose,
   onSuccess,
+  onPromoted,
 }: CreateCustomItemModalProps) {
   const f = useCreateCustomItemModal({
     gameId,
@@ -272,6 +277,16 @@ export function CreateCustomItemModal({
               f.name.trim() ? `${f.name.trim()} image` : "Item image"
             }
           />
+          {isEdit && editCustomItemId ? (
+            <PromoteCustomTemplateSection
+              key={editCustomItemId}
+              gameId={gameId}
+              customId={editCustomItemId}
+              catalogueDomain="items"
+              disabled={f.submitting}
+              onPromoted={onPromoted}
+            />
+          ) : null}
         </GameFormModal>
       )}
     </GameFormModalDraftChrome>

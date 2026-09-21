@@ -1,17 +1,36 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
+  clearCatalogueR2,
   invokeRoute,
   makeAuthedRequest,
   makeParams,
   makeUnauthedRequest,
+  setCatalogueR2,
 } from "../../helpers";
 
 const getMapMock = vi.fn();
+const getMapsMock = vi.fn();
 const updateMapMock = vi.fn();
 const deleteMapMock = vi.fn();
 const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const userIsSuperAdminMock = vi.fn();
+const countOfficialRowsWithCatalogueImageKeyMock = vi.fn();
+const s3SendMock = vi.fn();
+const deleteObjectCommandCtorMock = vi.fn();
+
+vi.mock("@aws-sdk/client-s3", () => ({
+  S3Client: vi.fn().mockImplementation(function () {
+    return {
+      send: s3SendMock,
+    };
+  }),
+  DeleteObjectCommand: vi.fn().mockImplementation(function (args: unknown) {
+    deleteObjectCommandCtorMock(args);
+    return args;
+  }),
+}));
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
@@ -23,6 +42,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/map", () => ({
   getMap: getMapMock,
+  getMaps: getMapsMock,
   updateMap: updateMapMock,
   deleteMap: deleteMapMock,
 }));
@@ -30,6 +50,11 @@ vi.mock("@/app/lib/prisma/map", () => ({
 vi.mock("@/app/lib/prisma/game", () => ({
   getGame: getGameMock,
   userIsInGame: userIsInGameMock,
+}));
+
+vi.mock("@/app/lib/prisma/officialCatalogueImage", () => ({
+  countOfficialRowsWithCatalogueImageKey:
+    countOfficialRowsWithCatalogueImageKeyMock,
 }));
 
 const globalMap = {
@@ -43,6 +68,9 @@ describe("/api/maps/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     userIsSuperAdminMock.mockResolvedValue(true);
+    countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+    s3SendMock.mockResolvedValue({});
+    clearCatalogueR2();
   });
 
   describe("GET", () => {
@@ -208,6 +236,7 @@ describe("/api/maps/[id] route handlers", () => {
 
     it("returns 200 on success", async () => {
       getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([globalMap]);
       updateMapMock.mockResolvedValue({ ...globalMap, name: "Updated" });
       const { PATCH } = await import("@/app/api/maps/[id]/route");
 
@@ -227,8 +256,43 @@ describe("/api/maps/[id] route handlers", () => {
       );
     });
 
+    it("returns 409 when the Official name collides with another row", async () => {
+      getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([
+        globalMap,
+        { id: "m-2", name: "Siike Gun", gameId: null },
+      ]);
+      const { PATCH } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(409);
+      expect(updateMapMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 200 when renaming a row to its own Official name", async () => {
+      getMapMock.mockResolvedValue({ ...globalMap, name: "Siike Gun" });
+      getMapsMock.mockResolvedValue([{ ...globalMap, name: "Siike Gun" }]);
+      updateMapMock.mockResolvedValue({ ...globalMap, name: "siike gun" });
+      const { PATCH } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(200);
+      expect(updateMapMock).toHaveBeenCalled();
+    });
+
     it("returns 500 when update throws", async () => {
       getMapMock.mockResolvedValue(globalMap);
+      getMapsMock.mockResolvedValue([globalMap]);
       updateMapMock.mockRejectedValue(new Error("db down"));
       const { PATCH } = await import("@/app/api/maps/[id]/route");
 
@@ -281,6 +345,21 @@ describe("/api/maps/[id] route handlers", () => {
       expect(response.status).toBe(403);
     });
 
+    it("returns 403 when a non-super-admin deletes an Official map", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      getMapMock.mockResolvedValue(globalMap);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(403);
+      expect(deleteMapMock).not.toHaveBeenCalled();
+    });
+
     it("returns 204 on success", async () => {
       getMapMock.mockResolvedValue(globalMap);
       deleteMapMock.mockResolvedValue(globalMap);
@@ -294,6 +373,51 @@ describe("/api/maps/[id] route handlers", () => {
 
       expect(response.status).toBe(204);
       expect(deleteMapMock).toHaveBeenCalledWith("m-1");
+      expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["maps"]);
+    });
+
+    it("removes an unreferenced catalogue imageKey after Official delete", async () => {
+      setCatalogueR2();
+      getMapMock.mockResolvedValue({
+        ...globalMap,
+        imageKey: "maps-world.png",
+      });
+      deleteMapMock.mockResolvedValue(globalMap);
+      countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(0);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(204);
+      expect(deleteObjectCommandCtorMock).toHaveBeenCalledWith({
+        Bucket: "neblir-catalogue",
+        Key: "maps-world.png",
+      });
+      expect(s3SendMock).toHaveBeenCalled();
+    });
+
+    it("keeps a catalogue imageKey still used by another Official row", async () => {
+      setCatalogueR2();
+      getMapMock.mockResolvedValue({
+        ...globalMap,
+        imageKey: "maps-world.png",
+      });
+      deleteMapMock.mockResolvedValue(globalMap);
+      countOfficialRowsWithCatalogueImageKeyMock.mockResolvedValue(1);
+      const { DELETE } = await import("@/app/api/maps/[id]/route");
+
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "m-1" })
+      );
+
+      expect(response.status).toBe(204);
+      expect(s3SendMock).not.toHaveBeenCalled();
     });
 
     it("returns 500 when delete throws", async () => {

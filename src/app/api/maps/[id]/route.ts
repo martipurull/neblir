@@ -1,5 +1,6 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
-import { deleteMap, getMap, updateMap } from "@/app/lib/prisma/map";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
+import { deleteMap, getMap, getMaps, updateMap } from "@/app/lib/prisma/map";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -8,6 +9,10 @@ import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../shared/errors";
+import {
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 const route = "/api/maps/[id]";
@@ -61,6 +66,7 @@ export const GET = auth(async (request: AuthNextRequest, { params }) => {
 });
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
+  let officialWrite = false;
   try {
     if (!request.auth?.user?.id) {
       return errorResponse("Unauthorised", 401);
@@ -98,6 +104,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     const nextGameId =
       parsedBody.gameId === undefined ? existing.gameId : parsedBody.gameId;
+    officialWrite = !nextGameId;
     if (nextGameId && nextGameId !== existing.gameId) {
       const nextGame = await getGame(nextGameId);
       if (!nextGame) {
@@ -106,6 +113,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       if (nextGame.gameMaster !== request.auth.user.id) {
         return errorResponse("Only the game master can move this map", 403);
       }
+    }
+
+    if (!nextGameId && parsedBody.name !== undefined) {
+      const conflict = responseIfOfficialNameTaken(
+        await getMaps({ gameId: null }),
+        parsedBody.name,
+        id
+      );
+      if (conflict) return conflict;
     }
 
     const updated = await updateMap(id, {
@@ -117,6 +133,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
+    if (officialWrite) {
+      const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+      if (uniqueConflict) return uniqueConflict;
+    }
     const details = serializeError(error);
     logger.error({
       method: "PATCH",
@@ -157,6 +177,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
 
     await deleteMap(id);
     if (!existing.gameId) {
+      await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
       await touchStaffCatalogueDrift(["maps"]);
     }
     return new NextResponse(null, { status: 204 });

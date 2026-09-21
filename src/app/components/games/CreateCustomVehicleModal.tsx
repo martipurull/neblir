@@ -10,6 +10,8 @@ import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
+import { PromoteCustomTemplateSection } from "@/app/components/games/PromoteCustomTemplateSection";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import {
   customVehicleCreateSchema,
   customVehicleUpdateSchema,
@@ -56,6 +58,7 @@ type Props = {
   editCustomVehicleId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 function optionalNum(value: string): number | undefined {
@@ -115,6 +118,7 @@ function CreateCustomVehicleModalBody({
   editCustomVehicleId = null,
   onClose,
   onSuccess,
+  onPromoted,
 }: Props) {
   const isEdit = Boolean(editCustomVehicleId);
   const [name, setName] = useState("");
@@ -613,6 +617,17 @@ function CreateCustomVehicleModalBody({
             name.trim() ? `${name.trim()} image` : "Vehicle image"
           }
         />
+
+        {isEdit && editCustomVehicleId ? (
+          <PromoteCustomTemplateSection
+            key={editCustomVehicleId}
+            gameId={gameId}
+            customId={editCustomVehicleId}
+            catalogueDomain="vehicles"
+            disabled={submitting || loadingEdit}
+            onPromoted={onPromoted}
+          />
+        ) : null}
 
         {isEdit ? (
           <div className="border-t border-white/10 pt-4">

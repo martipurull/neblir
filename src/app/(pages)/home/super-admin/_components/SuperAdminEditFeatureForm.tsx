@@ -17,6 +17,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
+import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
@@ -283,9 +284,22 @@ export function SuperAdminEditFeatureForm({
               </InfoCard>
             ) : null}
 
-            <Button type="submit" variant="primary" disabled={submitting}>
-              {submitting ? "Saving…" : "Save changes"}
-            </Button>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+              <Button type="submit" variant="primary" disabled={submitting}>
+                {submitting ? "Saving…" : "Save changes"}
+              </Button>
+              {data ? (
+                <SuperAdminOfficialDeleteSection
+                  catalogueDomain="features"
+                  rowId={featureId}
+                  rowName={data.name}
+                  deleteUrl={`/api/features/${featureId}`}
+                  successHref="/home/super-admin/features/browse"
+                  entityLabel="feature"
+                  disabled={submitting}
+                />
+              ) : null}
+            </div>
           </form>
         </FormProvider>
       ) : null}

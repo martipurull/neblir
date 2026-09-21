@@ -86,6 +86,18 @@ _Avoid_: madness counter (the roll track is separate)
 Published game content, not tied to one game: items, vehicles, enemies, maps, paths, features, currencies, and published reference entries (world info and game mechanics). Super-admin authors them.
 _Avoid_: seed data (when meaning the live rows), global (as a stored type)
 
+**Catalogue domain**:
+A named slice of Official content: items, vehicles, enemies, paths, features, maps, or published reference entries.
+_Avoid_: domain (unqualified), seed type
+
+**Promotion**:
+Creating Official content from a Custom item, Custom vehicle, or Custom enemy that was tested in a game.
+_Avoid_: upload, convert, publish (when meaning this)
+
+**Official name**:
+The unique name of an Official item, Official vehicle, Official enemy, Official map, or Feature within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
+_Avoid_: title (published reference entries use slug), custom name
+
 **Official item**:
 A published item template. Not game-scoped.
 _Avoid_: custom item, unique item

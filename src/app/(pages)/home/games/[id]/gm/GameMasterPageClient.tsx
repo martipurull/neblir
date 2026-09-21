@@ -1,5 +1,6 @@
 "use client";
 
+import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
 import { BrowseCustomEnemiesModal } from "@/app/components/games/BrowseCustomEnemiesModal";
 import { BrowseCustomItemsModal } from "@/app/components/games/BrowseCustomItemsModal";
 import { BrowseCustomVehiclesModal } from "@/app/components/games/BrowseCustomVehiclesModal";
@@ -39,6 +40,7 @@ import {
 } from "./sections";
 import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
+import { useCataloguePromotionSuccess } from "@/hooks/use-catalogue-promotion-success";
 import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
@@ -94,6 +96,7 @@ export function GameMasterPageClient() {
   const [resettingReactions, setResettingReactions] = useState(false);
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
+  const { promotionSuccess, onPromoted } = useCataloguePromotionSuccess();
 
   const initiativeOrder = game?.initiativeOrder ?? [];
   const hasInitiativeEntries = initiativeOrder.length > 0;
@@ -217,6 +220,7 @@ export function GameMasterPageClient() {
     <PageSection>
       <div className="flex flex-col gap-6">
         <PageTitle>Game master</PageTitle>
+        <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
 
         <div className="rounded-md border border-black p-4">
           <span className="text-sm font-semibold text-black">Next Session</span>
@@ -356,6 +360,7 @@ export function GameMasterPageClient() {
           setEditCustomEnemyId(null);
         }}
         onSuccess={() => void mutate()}
+        onPromoted={onPromoted}
       />
       <ImportCustomEnemiesModal
         isOpen={importCustomEnemiesOpen}
@@ -416,6 +421,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
+        onPromoted={onPromoted}
       />
       <BrowseVehiclesModal
         isOpen={browseVehiclesOpen}
@@ -436,6 +442,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
+        onPromoted={onPromoted}
       />
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}

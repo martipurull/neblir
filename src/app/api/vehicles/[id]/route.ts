@@ -1,7 +1,9 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
+import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
 import {
   deleteVehicle,
   getVehicle,
+  getVehicles,
   updateVehicle,
 } from "@/app/lib/prisma/vehicle";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
@@ -12,6 +14,10 @@ import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { serializeError } from "../../shared/errors";
+import {
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
+} from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
@@ -92,6 +98,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
+    const conflict = responseIfOfficialNameTaken(
+      await getVehicles(),
+      parsedBody.name,
+      id
+    );
+    if (conflict) return conflict;
+
     const updatedVehicle = await updateVehicle(id, parsedBody, {
       officialCatalogueWrite: true,
     });
@@ -99,6 +112,8 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
 
     return NextResponse.json(updatedVehicle);
   } catch (error) {
+    const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+    if (uniqueConflict) return uniqueConflict;
     if (error instanceof ZodError) {
       logger.error({
         method: "PATCH",
@@ -150,7 +165,13 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Invalid vehicle ID", 400);
     }
 
+    const existing = await getVehicle(id);
+    if (!existing) {
+      return errorResponse("Vehicle not found", 404);
+    }
+
     await deleteVehicle(id);
+    await deleteUnreferencedCatalogueImageIfUnused(existing.imageKey);
     await touchStaffCatalogueDrift(["vehicles"]);
 
     return new NextResponse(null, { status: 204 });

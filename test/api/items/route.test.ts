@@ -60,6 +60,7 @@ describe("/api/items route handlers", () => {
   });
 
   it("POST returns 201 on success", async () => {
+    getItemsMock.mockResolvedValue([]);
     safeParseMock.mockReturnValue({
       data: { name: "Sword" },
       error: undefined,
@@ -76,6 +77,69 @@ describe("/api/items route handlers", () => {
       { name: "Sword" },
       { officialCatalogueWrite: true }
     );
+  });
+
+  it("POST returns 409 when the Official name collides after trim and case-fold", async () => {
+    getItemsMock.mockResolvedValue([
+      { id: "item-1", name: "Siike Gun", accessType: "PLAYER" },
+    ]);
+    safeParseMock.mockReturnValue({
+      data: { name: "siike  gun", accessType: "GAME_MASTER" },
+      error: undefined,
+    });
+    const { POST } = await import("@/app/api/items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "siike  gun", accessType: "GAME_MASTER" })
+    );
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "This Official name is already taken",
+    });
+    expect(createItemMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 201 when SiikeGun is a different Official name from Siike Gun", async () => {
+    getItemsMock.mockResolvedValue([{ id: "item-1", name: "Siike Gun" }]);
+    safeParseMock.mockReturnValue({
+      data: { name: "SiikeGun" },
+      error: undefined,
+    });
+    createItemMock.mockResolvedValue({ id: "item-2", name: "SiikeGun" });
+    const { POST } = await import("@/app/api/items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "SiikeGun" })
+    );
+    expect(response.status).toBe(201);
+    expect(createItemMock).toHaveBeenCalled();
+  });
+
+  it("POST returns 409 when Prisma reports an exact Official name unique conflict", async () => {
+    getItemsMock.mockResolvedValue([]);
+    safeParseMock.mockReturnValue({
+      data: { name: "Siike Gun" },
+      error: undefined,
+    });
+    const { Prisma } = await import("@prisma/client");
+    createItemMock.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint", {
+        code: "P2002",
+        clientVersion: "test",
+      } as never)
+    );
+    const { POST } = await import("@/app/api/items/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "Siike Gun" })
+    );
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "This Official name is already taken",
+    });
   });
 
   it("GET returns 200 with items for authenticated users", async () => {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
 import {
   invokeRoute,
   makeAuthedRequest,
@@ -8,6 +9,7 @@ import {
 
 const userIsSuperAdminMock = vi.fn();
 const getFeatureMock = vi.fn();
+const getAllFeaturesMock = vi.fn();
 const updateFeatureCatalogueMock = vi.fn();
 const deleteFeatureCatalogueMock = vi.fn();
 
@@ -21,6 +23,7 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
 
 vi.mock("@/app/lib/prisma/feature", () => ({
   getFeature: getFeatureMock,
+  getAllFeatures: getAllFeaturesMock,
   updateFeatureCatalogue: updateFeatureCatalogueMock,
   deleteFeatureCatalogue: deleteFeatureCatalogueMock,
 }));
@@ -121,9 +124,61 @@ describe("/api/features/[id] route handlers", () => {
         { officialCatalogueWrite: true }
       );
     });
+
+    it("returns 409 when the Official name collides with another row", async () => {
+      getAllFeaturesMock.mockResolvedValue([
+        { id: "f-1", name: "Old" },
+        { id: "f-2", name: "Siike Gun" },
+      ]);
+      const { PATCH } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(409);
+      expect(updateFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 200 when renaming a row to its own Official name", async () => {
+      getAllFeaturesMock.mockResolvedValue([{ id: "f-1", name: "Siike Gun" }]);
+      const updated = { id: "f-1", name: "siike gun" };
+      updateFeatureCatalogueMock.mockResolvedValue(updated);
+      const { PATCH } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ name: "siike gun" }),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateFeatureCatalogueMock).toHaveBeenCalled();
+    });
   });
 
   describe("DELETE", () => {
+    it("returns 401 when unauthenticated", async () => {
+      const { DELETE } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeUnauthedRequest(),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(401);
+      expect(deleteFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when not super admin", async () => {
+      userIsSuperAdminMock.mockResolvedValue(false);
+      const { DELETE } = await import("@/app/api/features/[id]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(),
+        makeParams({ id: "f-1" })
+      );
+      expect(response.status).toBe(403);
+      expect(deleteFeatureCatalogueMock).not.toHaveBeenCalled();
+    });
+
     it("returns 404 when feature missing", async () => {
       getFeatureMock.mockResolvedValue(null);
       const { DELETE } = await import("@/app/api/features/[id]/route");
@@ -147,6 +202,7 @@ describe("/api/features/[id] route handlers", () => {
       );
       expect(response.status).toBe(204);
       expect(deleteFeatureCatalogueMock).toHaveBeenCalledWith("f-1");
+      expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["features"]);
     });
   });
 });

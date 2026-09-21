@@ -499,6 +499,8 @@ model Vehicle {
   locomotionModes             VehicleLocomotion[]
   vehicleSizeCategory         VehicleSizeCategory
   protectedFromOfficialImport Boolean             @default(false)
+
+  @@unique([name])
 }
 
 model CustomVehicle {
@@ -902,6 +904,8 @@ model Item {
   protectedFromOfficialImport Boolean                    @default(false)
 
   soldierFavouriteWeaponPathCharacters PathCharacter[] @relation("SoldierFavouriteWeapon")
+
+  @@unique([name])
 }
 
 model CustomItem {
@@ -999,6 +1003,7 @@ model Feature {
   pathFeature      PathFeature[]
   FeatureCharacter FeatureCharacter[]
 
+  @@unique([name])
   @@index([applicablePaths])
   @@index([minPathRank])
 }

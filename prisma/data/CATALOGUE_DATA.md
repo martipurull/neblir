@@ -29,7 +29,7 @@ sequenceDiagram
   SA->>App: Create or edit official catalogue row
   App->>App: Save to database; set drift flag
   SA->>Dev: Notify (or dev sees drift banner)
-  Dev->>App: Export JSON (touched domains or single record)
+  Dev->>App: Export seed files (per-domain arrays or all-domains zip)
   Dev->>Git: Update *_Upload.json files
   Dev->>Git: Commit and merge
   Dev->>SA: Repo seeds are updated
@@ -42,13 +42,14 @@ sequenceDiagram
 Official catalogue is managed under **Super admin** → browse or create flows for:
 
 - Items
+- Vehicles
 - Paths
 - Features
 - Enemies
 - Reference entries (global rows only — no `gameId`)
 - Maps (global rows only — no `gameId`)
 
-Each successful **create, update, or delete** on those official endpoints sets a drift record (`needsSeedRepoUpdate: true`) and appends the affected **domain** (`items`, `enemies`, `paths`, `features`, `maps`, or `reference`).
+Each successful **create, update, or delete** on those official endpoints sets a drift record (`needsSeedRepoUpdate: true`) and appends the affected **domain** (`items`, `vehicles`, `enemies`, `paths`, `features`, `maps`, or `reference`).
 
 On the super admin hub, a warning banner appears: **Update seed data in git**, listing the touched domains and when the last change was recorded.
 
@@ -60,23 +61,17 @@ Use one of these (super-admin access required):
 
 1. Open `/home/super-admin`.
 2. Under **Bulk export for seed files**:
-   - **Download touched domains** — exports only domains listed on the drift banner (disabled after acknowledge until the next write).
-   - **Download all domains** — full snapshot of every official domain (use when refreshing everything).
-3. The download is a single JSON file shaped like:
-   ```json
-   {
-     "exportedAt": "...",
-     "scope": "touched",
-     "domains": ["items"],
-     "data": {
-       "items": [
-         /* ... */
-       ]
-     }
-   }
-   ```
+   - One **Download {seed filename}** button per catalogue domain (for example **Download Item_Upload.json**). Enabled only while that domain is listed on the drift banner; all of these buttons are disabled when nothing is touched. Each file is a JSON **array of all current Official rows** in that domain, ready to replace the matching git seed file.
+   - **Download all domains** — a **zip** whose entries are `Item_Upload.json`, `Vehicle_Upload.json`, `Enemy_Upload.json`, `Path_Upload.json`, `Feature_Upload.json`, `Map_Upload.json`, and `Reference_Upload.json` (full snapshot of every official domain).
+3. Drop the array file(s) or unzip over `prisma/data`. Do **not** treat a download as acknowledging drift: the banner stays until the super admin clicks **I have updated the repo seeds** after git is updated.
 
 **REST alternative:** `GET /api/staff/catalogue-seed-export?scope=touched` or `?scope=all`. Optional `&domains=items,reference` for a subset.
+
+- Default `format` (omit it, or `format=envelope`) returns the envelope `{ exportedAt, scope, domains, data }`.
+- `format=array` requires exactly one domain and returns that domain’s JSON array with `Content-Disposition` using the git seed filename.
+- `format=zip` returns a zip of those arrays with the same filenames.
+
+Downloading via the hub or this endpoint does **not** acknowledge drift.
 
 **Single-record export (small changes)**
 
@@ -91,17 +86,18 @@ Map export domains to seed files:
 | Drift / export domain | Seed file               | JSON root shape                                |
 | --------------------- | ----------------------- | ---------------------------------------------- |
 | `items`               | `Item_Upload.json`      | Array of item objects                          |
+| `vehicles`            | `Vehicle_Upload.json`   | Array of vehicle objects                       |
 | `enemies`             | `Enemy_Upload.json`     | Array of enemy objects                         |
 | `paths`               | `Path_Upload.json`      | Array of path objects                          |
 | `features`            | `Feature_Upload.json`   | Array of feature objects                       |
 | `maps`                | `Map_Upload.json`       | Array of map objects (global only)             |
 | `reference`           | `Reference_Upload.json` | Array of reference entry objects (global only) |
 
-**Recommended approach for bulk export:** take `data.<domain>` from the export and use it as the full contents of the matching file (pretty-printed array). That keeps git aligned with the database for that domain.
+**Recommended approach for bulk export:** use the hub’s per-domain array download (or unzip **Download all domains**) as the full contents of the matching file. That keeps git aligned with the database for that domain. The envelope REST payload still exposes the same arrays under `data.<domain>` if you need them.
 
 **Recommended approach for a single new/edited row:** find the row in the target file by `id` (or `name` for paths) and replace it, or append if it is new. Preserve stable `id` values so imports and in-game references stay consistent.
 
-Paths and features are imported together by `upsertPathsAndFeaturesFromFile.ts` but are stored in **separate** files in this folder (`Path_Upload.json` and `Feature_Upload.json`). A bundle export still provides `data.paths` and `data.features` as separate arrays.
+Paths and features are imported together by `upsertPathsAndFeaturesFromFile.ts` but are stored in **separate** files in this folder (`Path_Upload.json` and `Feature_Upload.json`). A zip export includes both files.
 
 ### 4. Developer verifies (optional)
 
@@ -135,6 +131,7 @@ That clears the drift banner until the next official catalogue write. It does **
 | Step             | Script                              | Typical file                               |
 | ---------------- | ----------------------------------- | ------------------------------------------ |
 | Items            | `upsertItemsFromFile.ts`            | `Item_Upload.json`                         |
+| Vehicles         | `upsertVehiclesFromFile.ts`         | `Vehicle_Upload.json`                      |
 | Paths & features | `upsertPathsAndFeaturesFromFile.ts` | `Feature_Upload.json` + `Path_Upload.json` |
 | Enemies          | `upsertEnemiesFromFile.ts`          | `Enemy_Upload.json`                        |
 | Maps             | `upsertMapsFromFile.ts`             | `Map_Upload.json`                          |
@@ -149,7 +146,7 @@ Rows edited only in the app carry `protectedFromOfficialImport` in the database 
 ## Quick checklist (developer)
 
 1. Super admin reports catalogue changes (or drift banner is visible).
-2. Export **touched domains** (or **all domains**) from super admin hub, or merge single-record JSON.
+2. Export touched catalogue domains (or **Download all domains**) from the super admin hub, or merge single-record JSON. A download does not acknowledge drift.
 3. Update the matching `*_Upload.json` file(s) under `prisma/data/`.
 4. Commit and merge.
 5. Tell the super admin to click **I have updated the repo seeds**.

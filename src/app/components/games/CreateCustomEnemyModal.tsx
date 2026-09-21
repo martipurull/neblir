@@ -10,6 +10,8 @@ import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField
 import { TextField } from "@/app/components/shared/TextField";
 import { CustomEnemyActionListEditor } from "@/app/components/games/CustomEnemyActionListEditor";
 import { useCreateCustomEnemyModal } from "@/app/components/games/useCreateCustomEnemyModal";
+import { PromoteCustomTemplateSection } from "@/app/components/games/PromoteCustomTemplateSection";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 
 type CreateCustomEnemyModalProps = {
   isOpen: boolean;
@@ -19,6 +21,7 @@ type CreateCustomEnemyModalProps = {
   editCustomEnemyId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 export function CreateCustomEnemyModal({
@@ -28,6 +31,7 @@ export function CreateCustomEnemyModal({
   editCustomEnemyId = null,
   onClose,
   onSuccess,
+  onPromoted,
 }: CreateCustomEnemyModalProps) {
   const f = useCreateCustomEnemyModal({
     gameId,
@@ -284,6 +288,16 @@ export function CreateCustomEnemyModal({
             disabled={f.submitting}
             syncKey={f.richTextSyncKey}
           />
+          {isEdit && editCustomEnemyId ? (
+            <PromoteCustomTemplateSection
+              key={editCustomEnemyId}
+              gameId={gameId}
+              customId={editCustomEnemyId}
+              catalogueDomain="enemies"
+              disabled={f.submitting}
+              onPromoted={onPromoted}
+            />
+          ) : null}
         </GameFormModal>
       )}
     </GameFormModalDraftChrome>

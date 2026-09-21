@@ -2,7 +2,6 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
-import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -37,6 +36,7 @@ import {
 } from "@/app/lib/constants/vehicleFields";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
+import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
@@ -221,10 +221,7 @@ function SuperAdminVehicleFormFields({
       };
   const imageKeyRef = useRef(initialValues.imageKey);
   const [status, setStatus] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const form = useForm<VehicleFormValues>({
     defaultValues: initialValues,
@@ -249,7 +246,6 @@ function SuperAdminVehicleFormFields({
 
   const onSubmit = form.handleSubmit(async (values) => {
     setStatus(null);
-    setDeleteError(null);
 
     const description = optionalStoredRichHtml(values.description);
     if (!description) {
@@ -324,29 +320,6 @@ function SuperAdminVehicleFormFields({
       setSubmitting(false);
     }
   });
-
-  const handleDelete = useCallback(async () => {
-    if (!isEdit || !editVehicleId) return;
-    setDeleteError(null);
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/vehicles/${editVehicleId}`, {
-        method: "DELETE",
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setDeleteError(
-          typeof body?.message === "string"
-            ? body.message
-            : `Delete failed (${res.status})`
-        );
-        return;
-      }
-      router.push("/home/super-admin/vehicles/browse");
-    } finally {
-      setDeleting(false);
-    }
-  }, [editVehicleId, isEdit, router]);
 
   const trimmedWatchedName =
     typeof watchedName === "string"
@@ -443,7 +416,7 @@ function SuperAdminVehicleFormFields({
             uploadType="vehicles"
             id="official-vehicle-image"
             label="Vehicle image (optional)"
-            disabled={submitting || deleting}
+            disabled={submitting}
             initialImageKey={form.watch("imageKey")}
             onImageKey={onImageKey}
             previewLayout="itemThumbnail"
@@ -608,12 +581,8 @@ function SuperAdminVehicleFormFields({
             </InfoCard>
           ) : null}
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={submitting || deleting}
-            >
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+            <Button type="submit" variant="primary" disabled={submitting}>
               {submitting
                 ? isEdit
                   ? "Saving…"
@@ -622,18 +591,16 @@ function SuperAdminVehicleFormFields({
                   ? "Save changes"
                   : "Create vehicle"}
             </Button>
-            {isEdit ? (
-              <Button
-                type="button"
-                variant="danger"
-                disabled={submitting || deleting}
-                onClick={() => {
-                  setDeleteError(null);
-                  setDeleteConfirmOpen(true);
-                }}
-              >
-                {deleting ? "Deleting…" : "Delete vehicle"}
-              </Button>
+            {isEdit && editVehicleId && data ? (
+              <SuperAdminOfficialDeleteSection
+                catalogueDomain="vehicles"
+                rowId={editVehicleId}
+                rowName={data.name}
+                deleteUrl={`/api/vehicles/${editVehicleId}`}
+                successHref="/home/super-admin/vehicles/browse"
+                entityLabel="vehicle"
+                disabled={submitting}
+              />
             ) : null}
           </div>
         </form>
@@ -645,22 +612,6 @@ function SuperAdminVehicleFormFields({
       >
         ← Back to vehicles
       </Link>
-      <DangerConfirmModal
-        isOpen={deleteConfirmOpen}
-        title="Delete this official vehicle from the catalogue?"
-        description="This cannot be undone."
-        confirmLabel="Delete vehicle"
-        cancelLabel="Cancel"
-        isSubmitting={deleting}
-        errorMessage={deleteError}
-        onCancel={() => {
-          if (deleting) return;
-          setDeleteConfirmOpen(false);
-        }}
-        onConfirm={() => {
-          void handleDelete();
-        }}
-      />
     </SuperAdminSectionShell>
   );
 }

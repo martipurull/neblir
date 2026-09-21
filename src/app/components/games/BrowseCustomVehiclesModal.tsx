@@ -16,6 +16,7 @@ import type { GameDetail } from "@/app/lib/types/game";
 import type { CustomVehicleResponse } from "@/app/lib/types/vehicle";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -26,6 +27,7 @@ type BrowseCustomVehiclesModalProps = {
   gameName: string;
   onClose: () => void;
   onSuccess?: () => void | Promise<void>;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 function vehicleLabel(vehicle: CustomVehicleResponse): string {
@@ -46,6 +48,7 @@ function BrowseCustomVehiclesModalContent({
   gameName,
   onClose,
   onSuccess,
+  onPromoted,
 }: BrowseCustomVehiclesModalProps) {
   const [vehicles, setVehicles] = useState<CustomVehicleResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -284,6 +287,7 @@ function BrowseCustomVehiclesModalContent({
           setEditCustomVehicleId(null);
           void loadVehicles().then(() => onSuccess?.());
         }}
+        onPromoted={onPromoted}
       />
     </>
   );

@@ -9,8 +9,7 @@ import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import Link from "next/link";
 import useSWR from "swr";
-import { useState } from "react";
-import { downloadCatalogueBundleFromApi } from "./_utils/catalogueJsonDownload";
+import { SuperAdminCatalogueSeedExportCard } from "./_components/SuperAdminCatalogueSeedExportCard";
 import { superAdminNavLinkClassName } from "./_components/superAdminNavLinkClass";
 
 type DriftPayload = {
@@ -28,9 +27,6 @@ async function driftFetcher(url: string): Promise<DriftPayload> {
 }
 
 export function SuperAdminPageClient() {
-  const [bundleExportError, setBundleExportError] = useState<string | null>(
-    null
-  );
   const { data, error, isLoading, mutate } = useSWR<DriftPayload>(
     "/api/staff/catalogue-drift",
     driftFetcher
@@ -213,57 +209,9 @@ export function SuperAdminPageClient() {
         </Link>
       </div>
 
-      <InfoCard className="mt-4">
-        <p className="text-sm font-semibold text-black">
-          Bulk export for seed files
-        </p>
-        <p className="mt-2 text-sm text-black/80">
-          Downloads current database rows as JSON (one file).{" "}
-          <strong>Touched domains</strong> matches the drift banner list (after
-          acknowledge, that list is empty until the next catalogue write).{" "}
-          <strong>All domains</strong> includes items, vehicles, enemies, paths,
-          features, global maps, and global reference entries—use when
-          refreshing full snapshots.
-        </p>
-        {bundleExportError ? (
-          <p className="mt-2 text-sm text-neblirDanger-600" role="alert">
-            {bundleExportError}
-          </p>
-        ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="semanticSafeOutline"
-            fullWidth={false}
-            disabled={!data?.touchedDomains?.length}
-            onClick={() => {
-              setBundleExportError(null);
-              void downloadCatalogueBundleFromApi("touched").catch((e) =>
-                setBundleExportError(
-                  e instanceof Error ? e.message : "Export failed"
-                )
-              );
-            }}
-          >
-            Download touched domains
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth={false}
-            onClick={() => {
-              setBundleExportError(null);
-              void downloadCatalogueBundleFromApi("all").catch((e) =>
-                setBundleExportError(
-                  e instanceof Error ? e.message : "Export failed"
-                )
-              );
-            }}
-          >
-            Download all domains
-          </Button>
-        </div>
-      </InfoCard>
+      <SuperAdminCatalogueSeedExportCard
+        touchedDomains={data?.touchedDomains}
+      />
 
       <InfoCard className="mt-2">
         <p className="text-sm font-semibold text-black">REST endpoints</p>
@@ -283,8 +231,11 @@ export function SuperAdminPageClient() {
           ). Bulk JSON for seeds:{" "}
           <code className="rounded bg-black/5 px-1">
             GET /api/staff/catalogue-seed-export?scope=touched|all
-          </code>
-          .
+          </code>{" "}
+          (envelope by default;{" "}
+          <code className="rounded bg-black/5 px-1">format=array</code> or{" "}
+          <code className="rounded bg-black/5 px-1">format=zip</code> for git
+          seed files).
         </p>
       </InfoCard>
     </PageSection>

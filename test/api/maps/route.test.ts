@@ -160,6 +160,7 @@ describe("/api/maps route handlers", () => {
     });
 
     it("returns 201 for global maps", async () => {
+      getMapsMock.mockResolvedValue([]);
       createMapMock.mockResolvedValue({ id: "m-1", name: "World Map" });
       const { POST } = await import("@/app/api/maps/route");
 
@@ -183,6 +184,45 @@ describe("/api/maps route handlers", () => {
           protectedFromOfficialImport: true,
         })
       );
+    });
+
+    it("returns 409 when an Official map name collides after trim and case-fold", async () => {
+      getMapsMock.mockResolvedValue([{ id: "m-1", name: "Siike Gun" }]);
+      const { POST } = await import("@/app/api/maps/route");
+
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest({
+          name: "siike  gun",
+          imageKey: "maps/siike.png",
+        })
+      );
+
+      expect(response.status).toBe(409);
+      expect(createMapMock).not.toHaveBeenCalled();
+      expect(getMapsMock).toHaveBeenCalledWith({ gameId: null });
+    });
+
+    it("returns 201 for a Custom map that reuses an Official name", async () => {
+      getGameMock.mockResolvedValue({ id: "game-1", gameMaster: "gm-1" });
+      createMapMock.mockResolvedValue({ id: "m-custom" });
+      const { POST } = await import("@/app/api/maps/route");
+
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            name: "siike gun",
+            imageKey: "maps/siike.png",
+            gameId: "game-1",
+          },
+          "gm-1"
+        )
+      );
+
+      expect(response.status).toBe(201);
+      expect(createMapMock).toHaveBeenCalled();
+      expect(getMapsMock).not.toHaveBeenCalled();
     });
 
     it("returns 403 for global maps when not super admin", async () => {
@@ -221,6 +261,7 @@ describe("/api/maps route handlers", () => {
     });
 
     it("returns 500 when creation throws", async () => {
+      getMapsMock.mockResolvedValue([]);
       createMapMock.mockRejectedValue(new Error("db down"));
       const { POST } = await import("@/app/api/maps/route");
 

@@ -8,6 +8,10 @@ import { auth } from "@/auth";
 import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../shared/errors";
+import {
+  responseIfOfficialNameTaken,
+  responseIfOfficialNameUniqueConstraint,
+} from "../shared/officialNameConflict";
 import { errorResponse } from "../shared/responses";
 
 const route = "/api/maps";
@@ -44,6 +48,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
 });
 
 export const POST = auth(async (request: AuthNextRequest) => {
+  let officialWrite = false;
   try {
     if (!request.auth?.user?.id) {
       return errorResponse("Unauthorised", 401);
@@ -72,16 +77,29 @@ export const POST = auth(async (request: AuthNextRequest) => {
       return errorResponse("Forbidden", 403);
     }
 
+    if (!parsedBody.gameId) {
+      officialWrite = true;
+      const conflict = responseIfOfficialNameTaken(
+        await getMaps({ gameId: null }),
+        parsedBody.name
+      );
+      if (conflict) return conflict;
+    }
+
     const map = await createMap({
       ...parsedBody,
       gameId: parsedBody.gameId ?? null,
       protectedFromOfficialImport: !parsedBody.gameId,
     });
-    if (!parsedBody.gameId) {
+    if (officialWrite) {
       await touchStaffCatalogueDrift(["maps"]);
     }
     return NextResponse.json(map, { status: 201 });
   } catch (error) {
+    if (officialWrite) {
+      const uniqueConflict = responseIfOfficialNameUniqueConstraint(error);
+      if (uniqueConflict) return uniqueConflict;
+    }
     const details = serializeError(error);
     logger.error({
       method: "POST",
