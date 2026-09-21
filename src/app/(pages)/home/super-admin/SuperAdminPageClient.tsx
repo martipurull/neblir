@@ -9,7 +9,9 @@ import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import Link from "next/link";
 import useSWR from "swr";
+import type { CatalogueSyncHubConfig } from "@/app/lib/catalogueSyncEnv";
 import { SuperAdminCatalogueSeedExportCard } from "./_components/SuperAdminCatalogueSeedExportCard";
+import { SuperAdminCatalogueSyncCard } from "./_components/SuperAdminCatalogueSyncCard";
 import { superAdminNavLinkClassName } from "./_components/superAdminNavLinkClass";
 
 type DriftPayload = {
@@ -26,7 +28,15 @@ async function driftFetcher(url: string): Promise<DriftPayload> {
   return (await res.json()) as DriftPayload;
 }
 
-export function SuperAdminPageClient() {
+export function SuperAdminPageClient({
+  catalogueSync,
+  catalogueSyncSource,
+  catalogueSyncDest,
+}: {
+  catalogueSync: CatalogueSyncHubConfig;
+  catalogueSyncSource?: string;
+  catalogueSyncDest?: string;
+}) {
   const { data, error, isLoading, mutate } = useSWR<DriftPayload>(
     "/api/staff/catalogue-drift",
     driftFetcher
@@ -208,6 +218,12 @@ export function SuperAdminPageClient() {
           Maps
         </Link>
       </div>
+
+      <SuperAdminCatalogueSyncCard
+        catalogueSync={catalogueSync}
+        initialSource={catalogueSyncSource}
+        initialDest={catalogueSyncDest}
+      />
 
       <SuperAdminCatalogueSeedExportCard
         touchedDomains={data?.touchedDomains}
