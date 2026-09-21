@@ -38,6 +38,20 @@ export function makeAuthedRequestWithUrl(
   } as any;
 }
 
+/** Machine-door GET handlers that read `request.headers` and `request.url`. */
+export function makeRequestWithUrlAndHeaders(
+  url: string,
+  headers: Record<string, string>,
+  extra?: { auth?: { user: { id: string } } | null }
+) {
+  return {
+    auth: extra?.auth ?? null,
+    url,
+    headers: new Headers(headers),
+    json: vi.fn(),
+  } as any;
+}
+
 /** Env / catalogue R2 vars used by image upload and image-url route tests. */
 export function setEnvR2() {
   process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
