@@ -1,5 +1,6 @@
 "use client";
 
+import { CataloguePromotionSuccessCopy } from "@/app/components/games/CataloguePromotionSuccessBanner";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Button } from "@/app/components/shared/Button";
@@ -11,7 +12,10 @@ import { TextField } from "@/app/components/shared/TextField";
 import { DAMAGE_TYPES } from "@/app/lib/constants/itemCatalogue";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
-import type { PromotableCatalogueDomain } from "@/app/lib/types/cataloguePromotion";
+import {
+  PROMOTABLE_CATALOGUE_DOMAIN_LABEL,
+  type PromotableCatalogueDomain,
+} from "@/app/lib/types/cataloguePromotion";
 import { itemDamageSchema, type ItemDamage } from "@/app/lib/types/item";
 import { normalizeItemBrowseDamage } from "@/app/lib/types/itemBrowseDetail";
 import { useUser } from "@/hooks/use-user";
@@ -24,14 +28,17 @@ import { getCustomEnemy } from "@/lib/api/customEnemies";
 import { getGameCustomItemRecord } from "@/lib/api/customItems";
 import { getGameCustomVehicleRecord } from "@/lib/api/customVehicles";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import Link from "next/link";
 import { useState } from "react";
 
-type MissingOfficialRequireds = {
+type PromoteFormSeed = {
   confCost: boolean;
   description: boolean;
   usage: boolean;
-  damage: boolean;
+  isWeapon: boolean;
+  needsDamageDice: boolean;
+  damageTypes: string[];
+  damageDiceType: string;
+  damageNumberOfDice: string;
 };
 
 const ACCESS_OPTIONS = [
@@ -44,33 +51,80 @@ function isBlankRequiredText(value: unknown): boolean {
   return richTextToPlainTextPreview(value) == null;
 }
 
-async function loadMissingOfficialRequireds(
+function emptyPromoteFormSeed(
+  extras: Pick<PromoteFormSeed, "confCost" | "description" | "usage">
+): PromoteFormSeed {
+  return {
+    ...extras,
+    isWeapon: false,
+    needsDamageDice: false,
+    damageTypes: [],
+    damageDiceType: "",
+    damageNumberOfDice: "",
+  };
+}
+
+async function loadItemPromoteFormSeed(
+  gameId: string,
+  customId: string
+): Promise<PromoteFormSeed> {
+  const item = await getGameCustomItemRecord(gameId, customId);
+  const isWeapon = item.type === "WEAPON";
+  const existingDamage = normalizeItemBrowseDamage(item.damage);
+  const damageTypes = existingDamage?.damageType ?? [];
+  return {
+    confCost: typeof item.confCost !== "number",
+    description: isBlankRequiredText(item.description),
+    usage: item.type === "GENERAL_ITEM" && isBlankRequiredText(item.usage),
+    isWeapon,
+    needsDamageDice: isWeapon && existingDamage == null,
+    damageTypes,
+    damageDiceType:
+      existingDamage != null ? String(existingDamage.diceType) : "",
+    damageNumberOfDice:
+      existingDamage != null ? String(existingDamage.numberOfDice) : "",
+  };
+}
+
+async function loadVehiclePromoteFormSeed(
+  gameId: string,
+  customId: string
+): Promise<PromoteFormSeed> {
+  const vehicle = await getGameCustomVehicleRecord(gameId, customId);
+  return emptyPromoteFormSeed({
+    confCost: typeof vehicle.confCost !== "number",
+    description: isBlankRequiredText(vehicle.description),
+    usage: false,
+  });
+}
+
+async function loadEnemyPromoteFormSeed(
+  gameId: string,
+  customId: string
+): Promise<PromoteFormSeed> {
+  await getCustomEnemy(gameId, customId);
+  return emptyPromoteFormSeed({
+    confCost: false,
+    description: false,
+    usage: false,
+  });
+}
+
+const PROMOTE_FORM_SEED_LOADERS: Record<
+  PromotableCatalogueDomain,
+  (gameId: string, customId: string) => Promise<PromoteFormSeed>
+> = {
+  items: loadItemPromoteFormSeed,
+  vehicles: loadVehiclePromoteFormSeed,
+  enemies: loadEnemyPromoteFormSeed,
+};
+
+async function loadPromoteFormSeed(
   gameId: string,
   customId: string,
   catalogueDomain: PromotableCatalogueDomain
-): Promise<MissingOfficialRequireds> {
-  if (catalogueDomain === "items") {
-    const item = await getGameCustomItemRecord(gameId, customId);
-    return {
-      confCost: typeof item.confCost !== "number",
-      description: isBlankRequiredText(item.description),
-      usage: item.type === "GENERAL_ITEM" && isBlankRequiredText(item.usage),
-      damage:
-        item.type === "WEAPON" &&
-        normalizeItemBrowseDamage(item.damage) == null,
-    };
-  }
-  if (catalogueDomain === "vehicles") {
-    const vehicle = await getGameCustomVehicleRecord(gameId, customId);
-    return {
-      confCost: typeof vehicle.confCost !== "number",
-      description: isBlankRequiredText(vehicle.description),
-      usage: false,
-      damage: false,
-    };
-  }
-  await getCustomEnemy(gameId, customId);
-  return { confCost: false, description: false, usage: false, damage: false };
+): Promise<PromoteFormSeed> {
+  return PROMOTE_FORM_SEED_LOADERS[catalogueDomain](gameId, customId);
 }
 
 function buildPromoteDamage(
@@ -78,6 +132,7 @@ function buildPromoteDamage(
   damageDiceType: string,
   damageNumberOfDice: string
 ): ItemDamage | null {
+  if (damageTypes.length === 0) return null;
   const diceType = Number.parseInt(damageDiceType.trim(), 10);
   const numberOfDice = Number.parseInt(damageNumberOfDice.trim(), 10);
   const parsed = itemDamageSchema.safeParse({
@@ -86,14 +141,6 @@ function buildPromoteDamage(
     numberOfDice,
   });
   return parsed.success ? parsed.data : null;
-}
-
-function catalogueDomainLabel(
-  catalogueDomain: PromotableCatalogueDomain
-): string {
-  if (catalogueDomain === "items") return "item";
-  if (catalogueDomain === "vehicles") return "vehicle";
-  return "enemy";
 }
 
 type PromoteCustomTemplateSectionProps = {
@@ -117,12 +164,13 @@ export function PromoteCustomTemplateSection({
   const [opening, setOpening] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [missing, setMissing] = useState<MissingOfficialRequireds>({
-    confCost: false,
-    description: false,
-    usage: false,
-    damage: false,
-  });
+  const [seed, setSeed] = useState<PromoteFormSeed>(
+    emptyPromoteFormSeed({
+      confCost: false,
+      description: false,
+      usage: false,
+    })
+  );
   const [accessType, setAccessType] = useState<"PLAYER" | "GAME_MASTER">(
     "PLAYER"
   );
@@ -146,19 +194,19 @@ export function PromoteCustomTemplateSection({
     setSuccess(null);
     setOpening(true);
     try {
-      const nextMissing = await loadMissingOfficialRequireds(
+      const nextSeed = await loadPromoteFormSeed(
         gameId,
         customId,
         catalogueDomain
       );
-      setMissing(nextMissing);
+      setSeed(nextSeed);
       setAccessType("PLAYER");
       setConfCost("");
       setDescription("");
       setUsage("");
-      setDamageTypes([]);
-      setDamageDiceType("");
-      setDamageNumberOfDice("");
+      setDamageTypes(nextSeed.damageTypes);
+      setDamageDiceType(nextSeed.damageDiceType);
+      setDamageNumberOfDice(nextSeed.damageNumberOfDice);
       setRichTextSyncKey((key) => key + 1);
       setFormOpen(true);
     } catch (err) {
@@ -175,14 +223,14 @@ export function PromoteCustomTemplateSection({
 
   const confCostNumber = Number.parseInt(confCost.trim(), 10);
   const descriptionStored = serializeEditorToStoredHtml(description);
-  const promoteDamage = missing.damage
+  const promoteDamage = seed.isWeapon
     ? buildPromoteDamage(damageTypes, damageDiceType, damageNumberOfDice)
     : null;
   const missingRequiredsUnfilled =
-    (missing.confCost && !Number.isFinite(confCostNumber)) ||
-    (missing.description && descriptionStored === "") ||
-    (missing.usage && usage.trim() === "") ||
-    (missing.damage && promoteDamage == null);
+    (seed.confCost && !Number.isFinite(confCostNumber)) ||
+    (seed.description && descriptionStored === "") ||
+    (seed.usage && usage.trim() === "") ||
+    (seed.isWeapon && promoteDamage == null);
 
   const handlePromote = async () => {
     if (missingRequiredsUnfilled) return;
@@ -193,10 +241,10 @@ export function PromoteCustomTemplateSection({
         catalogueDomain,
         customId,
         ...(needsAccessType ? { accessType } : {}),
-        ...(missing.confCost ? { confCost: confCostNumber } : {}),
-        ...(missing.description ? { description: descriptionStored } : {}),
-        ...(missing.usage ? { usage: usage.trim() } : {}),
-        ...(missing.damage && promoteDamage ? { damage: promoteDamage } : {}),
+        ...(seed.confCost ? { confCost: confCostNumber } : {}),
+        ...(seed.description ? { description: descriptionStored } : {}),
+        ...(seed.usage ? { usage: usage.trim() } : {}),
+        ...(seed.isWeapon && promoteDamage ? { damage: promoteDamage } : {}),
       });
       setSuccess(result);
       onPromoted?.(result);
@@ -229,7 +277,7 @@ export function PromoteCustomTemplateSection({
       <ModalShell
         isOpen={formOpen}
         onClose={closeForm}
-        title={`Promote Custom ${catalogueDomainLabel(catalogueDomain)}`}
+        title={`Promote Custom ${PROMOTABLE_CATALOGUE_DOMAIN_LABEL[catalogueDomain]}`}
         titleId="promote-custom-template-title"
         subtitle="Creates a new Official catalogue row. The Custom template and its holdings stay as they are."
         zIndexClass="z-[60]"
@@ -274,15 +322,7 @@ export function PromoteCustomTemplateSection({
         }
       >
         {success ? (
-          <p className="text-sm text-neblirSafe-400">
-            Promoted “{success.name}” to Official.{" "}
-            <Link
-              href={success.editHref}
-              className="font-semibold text-paleBlue underline underline-offset-2"
-            >
-              Edit Official {success.catalogueDomain}
-            </Link>
-          </p>
+          <CataloguePromotionSuccessCopy promotion={success} variant="modal" />
         ) : (
           <div className="space-y-4">
             {needsAccessType ? (
@@ -303,7 +343,7 @@ export function PromoteCustomTemplateSection({
                 copies it into the catalogue with a new id.
               </p>
             )}
-            {missing.confCost ? (
+            {seed.confCost ? (
               <ModalNumberField
                 id="promote-conf-cost"
                 label="Conf cost"
@@ -314,7 +354,7 @@ export function PromoteCustomTemplateSection({
                 placeholder="0"
               />
             ) : null}
-            {missing.description ? (
+            {seed.description ? (
               <GameModalRichTextField
                 id="promote-description"
                 label="Description"
@@ -325,7 +365,7 @@ export function PromoteCustomTemplateSection({
                 syncKey={richTextSyncKey}
               />
             ) : null}
-            {missing.usage ? (
+            {seed.usage ? (
               <div>
                 <FieldLabel id="promote-usage" label="Usage" required />
                 <TextField
@@ -338,7 +378,7 @@ export function PromoteCustomTemplateSection({
                 />
               </div>
             ) : null}
-            {missing.damage ? (
+            {seed.isWeapon ? (
               <div className="space-y-3">
                 <div>
                   <FieldLabel
@@ -366,26 +406,28 @@ export function PromoteCustomTemplateSection({
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <ModalNumberField
-                    id="promote-dice-type"
-                    label="Dice type"
-                    value={damageDiceType}
-                    onChange={setDamageDiceType}
-                    disabled={submitting}
-                    min={1}
-                    placeholder="e.g. 6"
-                  />
-                  <ModalNumberField
-                    id="promote-number-dice"
-                    label="Number of dice"
-                    value={damageNumberOfDice}
-                    onChange={setDamageNumberOfDice}
-                    disabled={submitting}
-                    min={1}
-                    placeholder="e.g. 2"
-                  />
-                </div>
+                {seed.needsDamageDice ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <ModalNumberField
+                      id="promote-dice-type"
+                      label="Dice type"
+                      value={damageDiceType}
+                      onChange={setDamageDiceType}
+                      disabled={submitting}
+                      min={1}
+                      placeholder="e.g. 6"
+                    />
+                    <ModalNumberField
+                      id="promote-number-dice"
+                      label="Number of dice"
+                      value={damageNumberOfDice}
+                      onChange={setDamageNumberOfDice}
+                      disabled={submitting}
+                      min={1}
+                      placeholder="e.g. 2"
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {error ? (

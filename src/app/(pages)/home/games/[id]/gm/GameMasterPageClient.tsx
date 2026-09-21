@@ -23,7 +23,6 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ThemedDatePicker } from "@/app/components/shared/ThemedDatePicker";
-import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import {
   withAdjustedInitiativeEntry,
   withClearedInitiative,
@@ -41,6 +40,7 @@ import {
 } from "./sections";
 import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
 import { useGames } from "@/hooks/use-games";
+import { useCataloguePromotionSuccess } from "@/hooks/use-catalogue-promotion-success";
 import {
   adjustGameInitiativeEntry,
   clearGameInitiative,
@@ -96,8 +96,7 @@ export function GameMasterPageClient() {
   const [resettingReactions, setResettingReactions] = useState(false);
   const [nextSessionBusy, setNextSessionBusy] = useState(false);
   const [nextSessionError, setNextSessionError] = useState<string | null>(null);
-  const [promotionSuccess, setPromotionSuccess] =
-    useState<CataloguePromotionSuccess | null>(null);
+  const { promotionSuccess, onPromoted } = useCataloguePromotionSuccess();
 
   const initiativeOrder = game?.initiativeOrder ?? [];
   const hasInitiativeEntries = initiativeOrder.length > 0;
@@ -221,9 +220,7 @@ export function GameMasterPageClient() {
     <PageSection>
       <div className="flex flex-col gap-6">
         <PageTitle>Game master</PageTitle>
-        {promotionSuccess ? (
-          <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
-        ) : null}
+        <CataloguePromotionSuccessBanner promotion={promotionSuccess} />
 
         <div className="rounded-md border border-black p-4">
           <span className="text-sm font-semibold text-black">Next Session</span>
@@ -363,7 +360,7 @@ export function GameMasterPageClient() {
           setEditCustomEnemyId(null);
         }}
         onSuccess={() => void mutate()}
-        onPromoted={setPromotionSuccess}
+        onPromoted={onPromoted}
       />
       <ImportCustomEnemiesModal
         isOpen={importCustomEnemiesOpen}
@@ -424,7 +421,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
-        onPromoted={setPromotionSuccess}
+        onPromoted={onPromoted}
       />
       <BrowseVehiclesModal
         isOpen={browseVehiclesOpen}
@@ -445,7 +442,7 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
-        onPromoted={setPromotionSuccess}
+        onPromoted={onPromoted}
       />
       <CreateUniqueItemModal
         isOpen={uniqueItemModalOpen}

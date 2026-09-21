@@ -37,15 +37,18 @@ export type CataloguePromotionBody = z.infer<
 export type PromotableCatalogueDomain =
   CataloguePromotionBody["catalogueDomain"];
 
+export const PROMOTABLE_CATALOGUE_DOMAIN_LABEL: Record<
+  PromotableCatalogueDomain,
+  string
+> = {
+  items: "item",
+  vehicles: "vehicle",
+  enemies: "enemy",
+};
+
 export function officialCatalogueEditPath(
   catalogueDomain: PromotableCatalogueDomain,
   officialId: string
 ): string {
-  const segment =
-    catalogueDomain === "items"
-      ? "items"
-      : catalogueDomain === "vehicles"
-        ? "vehicles"
-        : "enemies";
-  return `/home/super-admin/${segment}/${encodeURIComponent(officialId)}/edit`;
+  return `/home/super-admin/${catalogueDomain}/${encodeURIComponent(officialId)}/edit`;
 }

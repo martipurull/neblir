@@ -249,6 +249,24 @@ describe("POST /api/games/[id]/catalogue-promotions", () => {
     expect(createItemMock).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when a Custom weapon has no damage type", async () => {
+    getCustomItemMock.mockResolvedValue({
+      ...completeCustomItem(),
+      type: "WEAPON",
+      attackRoll: ["MELEE"],
+      damage: { damageType: [], diceType: 6, numberOfDice: 1 },
+    });
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(promoteBody, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(createItemMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 when the short form sends a blank Official description", async () => {
     getCustomItemMock.mockResolvedValue(incompleteCustomItem());
     const { POST } =
@@ -502,6 +520,50 @@ describe("POST /api/games/[id]/catalogue-promotions", () => {
           damageType: ["BLADE"],
           diceType: 6,
           numberOfDice: 1,
+        }),
+      }),
+      { officialCatalogueWrite: true }
+    );
+  });
+
+  it("returns 201 when the short form supplies a damage type", async () => {
+    getCustomItemMock.mockResolvedValue({
+      ...completeCustomItem(),
+      type: "WEAPON",
+      attackRoll: ["MELEE"],
+      damage: { damageType: [], diceType: 8, numberOfDice: 2 },
+    });
+    createItemMock.mockResolvedValue({
+      id: "official-weapon",
+      name: "Playtest Blade",
+    });
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "items",
+          customId: "custom-1",
+          accessType: "PLAYER",
+          damage: {
+            damageType: ["FIRE"],
+            diceType: 8,
+            numberOfDice: 2,
+          },
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "WEAPON",
+        damage: expect.objectContaining({
+          damageType: ["FIRE"],
+          diceType: 8,
+          numberOfDice: 2,
         }),
       }),
       { officialCatalogueWrite: true }
