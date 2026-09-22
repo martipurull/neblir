@@ -31,6 +31,11 @@ export type CatalogueSyncDiff = {
   domains: Record<CatalogueExportDomain, CatalogueSyncDomainDiff>;
 };
 
+export type CatalogueSyncDestOnlyDeleteCounts = {
+  unused: number;
+  inUse: number;
+};
+
 export type CatalogueSyncPreviewResponse = {
   thisEnvironment: CatalogueEnvironment;
   source: CatalogueEnvironment;
@@ -40,10 +45,7 @@ export type CatalogueSyncPreviewResponse = {
   destHubUrl: string | null;
   totals?: CatalogueSyncDiff["totals"];
   domains?: CatalogueSyncDiff["domains"];
-  destOnlyDelete?: {
-    apply: number;
-    skip: number;
-  };
+  destOnlyDelete?: CatalogueSyncDestOnlyDeleteCounts;
 };
 
 const IGNORE_KEYS = new Set([

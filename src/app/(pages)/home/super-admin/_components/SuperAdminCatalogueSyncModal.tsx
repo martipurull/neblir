@@ -5,7 +5,10 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
 import type { CatalogueSyncApplyResult } from "@/app/lib/catalogueSyncApply";
-import type { CatalogueSyncPreviewResponse } from "@/app/lib/catalogueSyncDiff";
+import type {
+  CatalogueSyncDestOnlyDeleteCounts,
+  CatalogueSyncPreviewResponse,
+} from "@/app/lib/catalogueSyncDiff";
 import type {
   CatalogueEnvironment,
   CatalogueSyncHubConfig,
@@ -35,14 +38,14 @@ function overlayConfirmCopy(
     updated: number;
     blocked: number;
   },
-  destOnlyDelete?: { apply: number; skip: number }
+  destOnlyDelete?: CatalogueSyncDestOnlyDeleteCounts
 ): string {
   const applyCount = totals.added + totals.updated;
   if (!destOnlyDelete) {
     return `Apply ${applyCount} Official rows. Skip ${totals.blocked} blocked rows. Dest-only Official rows stay.`;
   }
-  const collisionSkip = totals.blocked - destOnlyDelete.skip;
-  return `Apply ${applyCount} Official rows. Delete ${destOnlyDelete.apply} unused dest-only Official rows. Skip ${destOnlyDelete.skip} in-use dest-only rows. Skip ${collisionSkip} blocked rows.`;
+  const collisionSkip = totals.blocked - destOnlyDelete.inUse;
+  return `Apply ${applyCount} Official rows. Delete ${destOnlyDelete.unused} unused dest-only Official rows. Skip ${destOnlyDelete.inUse} in-use dest-only rows. Skip ${collisionSkip} blocked rows.`;
 }
 
 export function SuperAdminCatalogueSyncModal({

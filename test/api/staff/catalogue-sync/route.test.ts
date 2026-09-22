@@ -705,9 +705,9 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
       applied: [
-        { domain: "items", id: "added-1" },
-        { domain: "items", id: "same-1" },
-        { domain: "paths", id: "path-1" },
+        { domain: "items", id: "added-1", action: "overlay" },
+        { domain: "items", id: "same-1", action: "overlay" },
+        { domain: "paths", id: "path-1", action: "overlay" },
       ],
       skipped: [],
       failed: [],
@@ -771,7 +771,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     const res = await invokeRoute(POST, applyBody());
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      applied: [{ domain: "items", id: "added-2" }],
+      applied: [{ domain: "items", id: "added-2", action: "overlay" }],
       skipped: [{ domain: "items", id: "src-1", reason: "blocked" }],
       failed: [],
     });
@@ -801,7 +801,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     const res = await invokeRoute(POST, applyBody());
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      applied: [{ domain: "items", id: "ok-1" }],
+      applied: [{ domain: "items", id: "ok-1", action: "overlay" }],
       skipped: [],
       failed: [{ domain: "items", id: "bad-1", message: "write failed" }],
     });
@@ -972,7 +972,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     const res = await invokeRoute(POST, applyBody());
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      applied: [{ domain: "features", id: "feat-1" }],
+      applied: [{ domain: "features", id: "feat-1", action: "overlay" }],
       skipped: [],
       failed: [],
     });
@@ -1018,7 +1018,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     );
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      applied: [{ domain: "items", id: "added-1" }],
+      applied: [{ domain: "items", id: "added-1", action: "overlay" }],
       skipped: [],
       failed: [],
     });
@@ -1408,7 +1408,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     expect(optedIn.status).toBe(200);
     const json = await optedIn.json();
     expect(json.applyEnabled).toBe(true);
-    expect(json.destOnlyDelete).toEqual({ apply: 1, skip: 1 });
+    expect(json.destOnlyDelete).toEqual({ unused: 1, inUse: 1 });
     expect(json.totals).toEqual({
       added: 0,
       updated: 0,
