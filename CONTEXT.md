@@ -92,7 +92,15 @@ _Avoid_: domain (unqualified), seed type
 
 **Promotion**:
 Creating Official content from a Custom item, Custom vehicle, or Custom enemy that was tested in a game.
-_Avoid_: upload, convert, publish (when meaning this)
+_Avoid_: upload, convert, publish (when meaning this), Catalogue sync
+
+**Catalogue environment**:
+A live Official catalogue in one named environment: development, production, or a distinct local database. A process is configured as exactly one of those; preview is development. Local may receive Catalogue sync; other environments cannot pull it as a source.
+_Avoid_: db (when meaning this), staging (there is none), preview (as a fourth catalogue)
+
+**Catalogue sync**:
+A one-way copy of Official catalogue rows from a source Catalogue environment to a destination Catalogue environment. Rows match by id. Diff and apply only when this process is the destination. The destination gains missing ids and updates ids that differ (source wins). Destination-only ids stay unless the operator also chooses to delete them; in-use destination-only rows are not deleted. An Official name or published-reference slug that collides with a different id is not merged. Blocked rows are skipped; the rest apply. A failed row stays different and shows on the next diff; already-applied ids do not. Apply does not roll back other rows. It does not copy games, Characters, Custom or Unique content, or Official images.
+_Avoid_: sync dbs, database sync, Promotion, seed import (the git CLI path), acknowledge repo seeds
 
 **Official name**:
 The unique name of an Official item, Official vehicle, Official enemy, Official map, or Feature within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
