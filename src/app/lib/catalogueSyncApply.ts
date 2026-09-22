@@ -2,6 +2,7 @@ import { CATALOGUE_EXPORT_DOMAIN_ORDER } from "@/app/lib/catalogueExportResolve"
 import type { CatalogueExportDomain } from "@/app/lib/catalogueExportResolve";
 import {
   diffCatalogueSyncSnapshots,
+  type CatalogueSyncDestOnlyDeleteCounts,
   type CatalogueSyncDiff,
 } from "@/app/lib/catalogueSyncDiff";
 import type { CatalogueSyncSnapshotData } from "@/app/lib/catalogueSyncPull";
@@ -42,19 +43,17 @@ type CatalogueRowWriter = {
   delete(args: { where: { id: string } }): Promise<unknown>;
 };
 
-export type CatalogueSyncApplyRow = {
+type CatalogueSyncApplyRow = {
   domain: CatalogueExportDomain;
   id: string;
-  action?: "delete";
 };
 
-type CatalogueSyncDestOnlyDeleteCounts = {
-  apply: number;
-  skip: number;
+type CatalogueSyncAppliedRow = CatalogueSyncApplyRow & {
+  action: "overlay" | "delete";
 };
 
 export type CatalogueSyncApplyResult = {
-  applied: CatalogueSyncApplyRow[];
+  applied: CatalogueSyncAppliedRow[];
   skipped: Array<CatalogueSyncApplyRow & { reason: "blocked" }>;
   failed: Array<CatalogueSyncApplyRow & { message: string }>;
 };
@@ -239,7 +238,7 @@ export async function classifyCatalogueSyncDestOnlyDeletes(
   diff: CatalogueSyncDiff;
   destOnlyDelete: CatalogueSyncDestOnlyDeleteCounts;
 }> {
-  const destOnlyDelete = { apply: 0, skip: 0 };
+  const destOnlyDelete = { unused: 0, inUse: 0 };
   const domains = {} as CatalogueSyncDiff["domains"];
   for (const domain of CATALOGUE_EXPORT_DOMAIN_ORDER) {
     const rows = [];
@@ -250,11 +249,11 @@ export async function classifyCatalogueSyncDestOnlyDeletes(
       }
       if (await destOnlyOfficialRowInUse(domain, row.id)) {
         rows.push({ ...row, bucket: "blocked" as const });
-        destOnlyDelete.skip += 1;
+        destOnlyDelete.inUse += 1;
         continue;
       }
       rows.push(row);
-      destOnlyDelete.apply += 1;
+      destOnlyDelete.unused += 1;
     }
     domains[domain] = { ...diff.domains[domain], rows };
   }
@@ -315,7 +314,7 @@ export async function applyCatalogueSyncOverlay(input: {
     return { status: "empty" };
   }
 
-  const applied: CatalogueSyncApplyRow[] = [];
+  const applied: CatalogueSyncAppliedRow[] = [];
   const skipped: CatalogueSyncApplyResult["skipped"] = [];
   const failed: CatalogueSyncApplyResult["failed"] = [];
   const changedDomains: CatalogueExportDomain[] = [];
@@ -360,7 +359,7 @@ export async function applyCatalogueSyncOverlay(input: {
       }
       try {
         await writeCatalogueSyncRow(domain, row.id, row.bucket, sourceRow);
-        applied.push({ domain, id: row.id });
+        applied.push({ domain, id: row.id, action: "overlay" });
         if (!changedDomains.includes(domain)) changedDomains.push(domain);
       } catch (error) {
         if (isUniqueConstraint(error)) {

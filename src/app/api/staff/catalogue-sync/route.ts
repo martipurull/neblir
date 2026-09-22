@@ -182,8 +182,8 @@ export const GET = auth(async (request: AuthNextRequest) => {
       : null;
     const diff = classified?.diff ?? baseDiff;
     const destOnlyWork =
-      (classified?.destOnlyDelete.apply ?? 0) +
-      (classified?.destOnlyDelete.skip ?? 0);
+      (classified?.destOnlyDelete.unused ?? 0) +
+      (classified?.destOnlyDelete.inUse ?? 0);
 
     return NextResponse.json(
       {
