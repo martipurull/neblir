@@ -5,13 +5,14 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
+import { NumberInput } from "@/app/components/shared/NumberInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { RichTextField } from "@/app/components/shared/RichTextField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import useSWR from "swr";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import {
   parseCreatedCatalogueId,
   superAdminCatalogueCreatedHref,
@@ -47,22 +48,22 @@ type VehicleFormValues = {
   accessType: VehicleAccessType;
   name: string;
   brand: string;
-  year: string;
+  year: number | undefined;
   imageKey: string;
-  confCost: string;
+  confCost: number;
   costInfo: string;
   description: string;
   notes: string;
-  maxHp: string;
-  travelSpeedKmh: string;
-  combatSpeedMetres: string;
-  manoeuvrability: string;
-  acceleration: string;
-  weight: string;
-  heightMetres: string;
-  maxCargoWeightKg: string;
-  maxMountedItems: string;
-  maxPassengers: string;
+  maxHp: number;
+  travelSpeedKmh: number;
+  combatSpeedMetres: number;
+  manoeuvrability: number;
+  acceleration: number;
+  weight: number | undefined;
+  heightMetres: number | undefined;
+  maxCargoWeightKg: number | undefined;
+  maxMountedItems: number | undefined;
+  maxPassengers: number;
   vehicleSizeCategory: VehicleSizeCategory;
   locomotionModes: VehicleLocomotion[];
 };
@@ -93,48 +94,27 @@ function optionalTrimmedText(value: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function optionalInt(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function optionalFloat(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function requiredInt(value: string): number {
-  return Number.parseInt(value.trim(), 10);
-}
-
 function vehicleToFormValues(vehicle: VehicleRow): VehicleFormValues {
   return {
     accessType: vehicle.accessType,
     name: vehicle.name,
     brand: vehicle.brand ?? "",
-    year: vehicle.year != null ? String(vehicle.year) : "",
+    year: vehicle.year ?? undefined,
     imageKey: vehicle.imageKey ?? "",
-    confCost: String(vehicle.confCost),
+    confCost: vehicle.confCost,
     costInfo: vehicle.costInfo ?? "",
     description: vehicle.description,
     notes: vehicle.notes ?? "",
-    maxHp: String(vehicle.maxHp),
-    travelSpeedKmh: String(vehicle.travelSpeedKmh),
-    combatSpeedMetres: String(vehicle.combatSpeedMetres),
-    manoeuvrability: String(vehicle.manoeuvrability),
-    acceleration: String(vehicle.acceleration),
-    weight: vehicle.weight != null ? String(vehicle.weight) : "",
-    heightMetres:
-      vehicle.heightMetres != null ? String(vehicle.heightMetres) : "",
-    maxCargoWeightKg:
-      vehicle.maxCargoWeightKg != null ? String(vehicle.maxCargoWeightKg) : "",
-    maxMountedItems:
-      vehicle.maxMountedItems != null ? String(vehicle.maxMountedItems) : "",
-    maxPassengers: String(vehicle.maxPassengers),
+    maxHp: vehicle.maxHp,
+    travelSpeedKmh: vehicle.travelSpeedKmh,
+    combatSpeedMetres: vehicle.combatSpeedMetres,
+    manoeuvrability: vehicle.manoeuvrability,
+    acceleration: vehicle.acceleration,
+    weight: vehicle.weight ?? undefined,
+    heightMetres: vehicle.heightMetres ?? undefined,
+    maxCargoWeightKg: vehicle.maxCargoWeightKg ?? undefined,
+    maxMountedItems: vehicle.maxMountedItems ?? undefined,
+    maxPassengers: vehicle.maxPassengers,
     vehicleSizeCategory: vehicle.vehicleSizeCategory,
     locomotionModes: vehicle.locomotionModes,
   };
@@ -200,22 +180,22 @@ function SuperAdminVehicleFormFields({
         accessType: "PLAYER" as const,
         name: "",
         brand: "",
-        year: "",
+        year: undefined,
         imageKey: "",
-        confCost: "0",
+        confCost: 0,
         costInfo: "",
         description: "",
         notes: "",
-        maxHp: "1",
-        travelSpeedKmh: "1",
-        combatSpeedMetres: "1",
-        manoeuvrability: "0",
-        acceleration: "1",
-        weight: "",
-        heightMetres: "",
-        maxCargoWeightKg: "",
-        maxMountedItems: "",
-        maxPassengers: "1",
+        maxHp: 1,
+        travelSpeedKmh: 1,
+        combatSpeedMetres: 1,
+        manoeuvrability: 0,
+        acceleration: 1,
+        weight: undefined,
+        heightMetres: undefined,
+        maxCargoWeightKg: undefined,
+        maxMountedItems: undefined,
+        maxPassengers: 1,
         vehicleSizeCategory: "LIGHT" as const,
         locomotionModes: ["LAND"] as VehicleLocomotion[],
       };
@@ -257,22 +237,22 @@ function SuperAdminVehicleFormFields({
       accessType: values.accessType,
       name: values.name.trim(),
       brand: optionalTrimmedText(values.brand),
-      year: optionalInt(values.year),
+      year: values.year,
       imageKey: optionalTrimmedText(imageKeyRef.current),
-      confCost: requiredInt(values.confCost),
+      confCost: values.confCost,
       costInfo: optionalTrimmedText(values.costInfo),
       description,
       notes: optionalTrimmedText(values.notes),
-      maxHp: requiredInt(values.maxHp),
-      travelSpeedKmh: requiredInt(values.travelSpeedKmh),
-      combatSpeedMetres: requiredInt(values.combatSpeedMetres),
-      manoeuvrability: requiredInt(values.manoeuvrability),
-      acceleration: requiredInt(values.acceleration),
-      weight: optionalFloat(values.weight),
-      heightMetres: optionalFloat(values.heightMetres),
-      maxCargoWeightKg: optionalFloat(values.maxCargoWeightKg),
-      maxMountedItems: optionalInt(values.maxMountedItems),
-      maxPassengers: requiredInt(values.maxPassengers),
+      maxHp: values.maxHp,
+      travelSpeedKmh: values.travelSpeedKmh,
+      combatSpeedMetres: values.combatSpeedMetres,
+      manoeuvrability: values.manoeuvrability,
+      acceleration: values.acceleration,
+      weight: values.weight,
+      heightMetres: values.heightMetres,
+      maxCargoWeightKg: values.maxCargoWeightKg,
+      maxMountedItems: values.maxMountedItems,
+      maxPassengers: values.maxPassengers,
       locomotionModes: values.locomotionModes,
       vehicleSizeCategory: values.vehicleSizeCategory,
     };
@@ -358,252 +338,220 @@ function SuperAdminVehicleFormFields({
       ) : null}
 
       {!isEdit || data ? (
-        <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
-          <div className="mb-6">
-            <SelectDropdown
-              id="vehicle-access"
-              label="Access"
-              placeholder="Access"
-              value={form.watch("accessType")}
-              options={accessOptions}
-              onChange={(value) =>
-                form.setValue("accessType", value as VehicleAccessType, {
-                  shouldValidate: true,
-                })
-              }
-            />
-          </div>
-
-          <SuperAdminLabeledField
-            id="vehicle-name"
-            label="Name"
-            register={form.register}
-            name="name"
-          />
-          <SuperAdminLabeledField
-            id="vehicle-brand"
-            label="Brand (optional)"
-            register={form.register}
-            name="brand"
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SuperAdminLabeledField
-              id="vehicle-year"
-              label="Year (optional)"
-              register={form.register}
-              name="year"
-              type="number"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-cost"
-              label="Cost (CONF)"
-              register={form.register}
-              name="confCost"
-              type="number"
-            />
-          </div>
-
-          <SuperAdminLabeledField
-            id="vehicle-cost-info"
-            label="Cost info (optional)"
-            register={form.register}
-            name="costInfo"
-          />
-
-          <SuperAdminCatalogueImageBlock
-            key={form.watch("imageKey") || "vehicle-image"}
-            uploadType="vehicles"
-            id="official-vehicle-image"
-            label="Vehicle image (optional)"
-            disabled={submitting}
-            initialImageKey={form.watch("imageKey")}
-            onImageKey={onImageKey}
-            previewLayout="itemThumbnail"
-            previewAlt={previewAlt}
-          />
-
-          <div className="mb-6">
-            <label
-              htmlFor="vehicle-description"
-              className="mb-1 block font-bold text-black"
-            >
-              Description
-            </label>
-            <Controller
-              name="description"
-              control={form.control}
-              render={({ field }) => (
-                <RichTextField
-                  id="vehicle-description"
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  minHeightClass="min-h-24"
-                  editorContentClassName={superAdminRichEditorScrollClass}
-                />
-              )}
-            />
-          </div>
-
-          <SuperAdminLabeledField
-            id="vehicle-notes"
-            label="Notes (optional)"
-            register={form.register}
-            name="notes"
-            rows={4}
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <SuperAdminLabeledField
-              id="vehicle-max-hp"
-              label="Max HP"
-              register={form.register}
-              name="maxHp"
-              type="number"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-manoeuvrability"
-              label={VEHICLE_MANOEUVRABILITY_LABEL}
-              register={form.register}
-              name="manoeuvrability"
-              type="number"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-acceleration"
-              label={VEHICLE_ACCELERATION_LABEL}
-              register={form.register}
-              name="acceleration"
-              type="number"
-            />
-            <div>
-              <SuperAdminLabeledField
-                id="vehicle-travel-speed"
-                label={VEHICLE_TRAVEL_SPEED_LABEL}
-                register={form.register}
-                name="travelSpeedKmh"
-                type="number"
-              />
-              <p className="mt-1 text-xs text-black/65">
-                {VEHICLE_TRAVEL_SPEED_HELP}
-              </p>
-            </div>
-            <div>
-              <SuperAdminLabeledField
-                id="vehicle-combat-speed"
-                label={VEHICLE_COMBAT_SPEED_LABEL}
-                register={form.register}
-                name="combatSpeedMetres"
-                type="number"
-              />
-              <p className="mt-1 text-xs text-black/65">
-                {VEHICLE_COMBAT_SPEED_HELP}
-              </p>
-            </div>
-            <SuperAdminLabeledField
-              id="vehicle-max-passengers"
-              label="Max passengers (incl. driver)"
-              register={form.register}
-              name="maxPassengers"
-              type="number"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-max-mounted"
-              label="Max mounted items (optional)"
-              register={form.register}
-              name="maxMountedItems"
-              type="number"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-weight"
-              label="Weight kg (optional)"
-              register={form.register}
-              name="weight"
-              type="number"
-              step="any"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-height"
-              label="Height metres (optional)"
-              register={form.register}
-              name="heightMetres"
-              type="number"
-              step="any"
-            />
-            <SuperAdminLabeledField
-              id="vehicle-cargo"
-              label="Max cargo weight kg (optional)"
-              register={form.register}
-              name="maxCargoWeightKg"
-              type="number"
-              step="any"
-            />
-          </div>
-
-          <div className="mb-6">
-            <SelectDropdown
-              id="vehicle-size"
-              label="Vehicle size"
-              placeholder="Vehicle size"
-              value={form.watch("vehicleSizeCategory")}
-              options={sizeOptions}
-              onChange={(value) =>
-                form.setValue(
-                  "vehicleSizeCategory",
-                  value as VehicleSizeCategory,
-                  {
+        <FormProvider {...form}>
+          <form onSubmit={(e) => void onSubmit(e)} className="mt-4">
+            <div className="mb-6">
+              <SelectDropdown
+                id="vehicle-access"
+                label="Access"
+                placeholder="Access"
+                value={form.watch("accessType")}
+                options={accessOptions}
+                onChange={(value) =>
+                  form.setValue("accessType", value as VehicleAccessType, {
                     shouldValidate: true,
-                  }
-                )
-              }
-            />
-          </div>
-
-          <div className="mb-6">
-            <p className="mb-2 block font-bold text-black">Locomotion modes</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {locomotionOptions.map((option) => (
-                <Checkbox
-                  key={option.value}
-                  checked={form.watch("locomotionModes").includes(option.value)}
-                  onChange={(checked) =>
-                    toggleLocomotion(option.value, checked)
-                  }
-                  label={option.label}
-                />
-              ))}
-            </div>
-          </div>
-
-          {status ? (
-            <InfoCard className="border-neblirDanger bg-paleBlue/20">
-              <p className="text-sm text-black">{status}</p>
-            </InfoCard>
-          ) : null}
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
-            <Button type="submit" variant="primary" disabled={submitting}>
-              {submitting
-                ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
-                : isEdit
-                  ? "Save changes"
-                  : "Create vehicle"}
-            </Button>
-            {isEdit && editVehicleId && data ? (
-              <SuperAdminOfficialDeleteSection
-                catalogueDomain="vehicles"
-                rowId={editVehicleId}
-                rowName={data.name}
-                deleteUrl={`/api/vehicles/${editVehicleId}`}
-                successHref="/home/super-admin/vehicles/browse"
-                entityLabel="vehicle"
-                disabled={submitting}
+                  })
+                }
               />
+            </div>
+
+            <SuperAdminLabeledField
+              id="vehicle-name"
+              label="Name"
+              register={form.register}
+              name="name"
+            />
+            <SuperAdminLabeledField
+              id="vehicle-brand"
+              label="Brand (optional)"
+              register={form.register}
+              name="brand"
+            />
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+              <NumberInput name="year" label="Year (optional)" allowEmpty />
+              <NumberInput name="confCost" label="Cost (CONF)" />
+            </div>
+
+            <SuperAdminLabeledField
+              id="vehicle-cost-info"
+              label="Cost info (optional)"
+              register={form.register}
+              name="costInfo"
+            />
+
+            <SuperAdminCatalogueImageBlock
+              key={form.watch("imageKey") || "vehicle-image"}
+              uploadType="vehicles"
+              id="official-vehicle-image"
+              label="Vehicle image (optional)"
+              disabled={submitting}
+              initialImageKey={form.watch("imageKey")}
+              onImageKey={onImageKey}
+              previewLayout="itemThumbnail"
+              previewAlt={previewAlt}
+            />
+
+            <div className="mb-6">
+              <label
+                htmlFor="vehicle-description"
+                className="mb-1 block font-bold text-black"
+              >
+                Description
+              </label>
+              <Controller
+                name="description"
+                control={form.control}
+                render={({ field }) => (
+                  <RichTextField
+                    id="vehicle-description"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    minHeightClass="min-h-24"
+                    editorContentClassName={superAdminRichEditorScrollClass}
+                  />
+                )}
+              />
+            </div>
+
+            <SuperAdminLabeledField
+              id="vehicle-notes"
+              label="Notes (optional)"
+              register={form.register}
+              name="notes"
+              rows={4}
+            />
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
+              <NumberInput name="maxHp" label="Max HP" />
+              <NumberInput
+                name="manoeuvrability"
+                label={VEHICLE_MANOEUVRABILITY_LABEL}
+              />
+              <NumberInput
+                name="acceleration"
+                label={VEHICLE_ACCELERATION_LABEL}
+              />
+              <div className="[&>div]:mb-0">
+                <NumberInput
+                  name="travelSpeedKmh"
+                  label={VEHICLE_TRAVEL_SPEED_LABEL}
+                />
+                <p className="mt-1 text-xs text-black/65">
+                  {VEHICLE_TRAVEL_SPEED_HELP}
+                </p>
+              </div>
+              <div className="[&>div]:mb-0">
+                <NumberInput
+                  name="combatSpeedMetres"
+                  label={VEHICLE_COMBAT_SPEED_LABEL}
+                />
+                <p className="mt-1 text-xs text-black/65">
+                  {VEHICLE_COMBAT_SPEED_HELP}
+                </p>
+              </div>
+              <NumberInput
+                name="maxPassengers"
+                label="Max passengers (incl. driver)"
+              />
+              <NumberInput
+                name="maxMountedItems"
+                label="Max mounted items (optional)"
+                allowEmpty
+              />
+              <NumberInput
+                name="weight"
+                label="Weight kg (optional)"
+                parseAs="float"
+                step="any"
+                allowEmpty
+              />
+              <NumberInput
+                name="heightMetres"
+                label="Height metres (optional)"
+                parseAs="float"
+                step="any"
+                allowEmpty
+              />
+              <NumberInput
+                name="maxCargoWeightKg"
+                label="Max cargo weight kg (optional)"
+                parseAs="float"
+                step="any"
+                allowEmpty
+              />
+            </div>
+
+            <div className="mb-6">
+              <SelectDropdown
+                id="vehicle-size"
+                label="Vehicle size"
+                placeholder="Vehicle size"
+                value={form.watch("vehicleSizeCategory")}
+                options={sizeOptions}
+                onChange={(value) =>
+                  form.setValue(
+                    "vehicleSizeCategory",
+                    value as VehicleSizeCategory,
+                    {
+                      shouldValidate: true,
+                    }
+                  )
+                }
+              />
+            </div>
+
+            <div className="mb-6">
+              <p className="mb-2 block font-bold text-black">
+                Locomotion modes
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {locomotionOptions.map((option) => (
+                  <Checkbox
+                    key={option.value}
+                    checked={form
+                      .watch("locomotionModes")
+                      .includes(option.value)}
+                    onChange={(checked) =>
+                      toggleLocomotion(option.value, checked)
+                    }
+                    label={option.label}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {status ? (
+              <InfoCard className="border-neblirDanger bg-paleBlue/20">
+                <p className="text-sm text-black">{status}</p>
+              </InfoCard>
             ) : null}
-          </div>
-        </form>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+              <Button type="submit" variant="primary" disabled={submitting}>
+                {submitting
+                  ? isEdit
+                    ? "Saving…"
+                    : "Creating…"
+                  : isEdit
+                    ? "Save changes"
+                    : "Create vehicle"}
+              </Button>
+              {isEdit && editVehicleId && data ? (
+                <SuperAdminOfficialDeleteSection
+                  catalogueDomain="vehicles"
+                  rowId={editVehicleId}
+                  rowName={data.name}
+                  deleteUrl={`/api/vehicles/${editVehicleId}`}
+                  successHref="/home/super-admin/vehicles/browse"
+                  entityLabel="vehicle"
+                  disabled={submitting}
+                />
+              ) : null}
+            </div>
+          </form>
+        </FormProvider>
       ) : null}
 
       <Link

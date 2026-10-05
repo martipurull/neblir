@@ -16,7 +16,7 @@ import {
   sharedNumberFieldInnerClass,
   sharedNumberFieldShellClass,
 } from "@/app/components/shared/inputStyles";
-import { forwardRef, type FocusEvent } from "react";
+import { forwardRef, type FocusEvent, type WheelEvent } from "react";
 
 type NumberFieldVariant = "light" | "dark";
 type NumberFieldDensity = "default" | "compact";
@@ -68,6 +68,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       "aria-label": ariaLabel,
       onBlur,
       onFocus,
+      onWheel,
       ...rest
     },
     ref
@@ -85,6 +86,13 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
         e.target.select();
       }
       onFocus?.(e);
+    };
+
+    const handleWheel = (e: WheelEvent<HTMLInputElement>) => {
+      // A focused number input consumes the wheel and steps its value.
+      // Blurring lets the surrounding form scroll and leaves the value alone.
+      e.currentTarget.blur();
+      onWheel?.(e);
     };
 
     if (density === "compact") {
@@ -106,6 +114,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           onChange={(e) => handleChange(e.target.value)}
           onFocus={handleFocus}
           onBlur={onBlur}
+          onWheel={handleWheel}
           className={mergedClass}
           disabled={disabled}
           placeholder={placeholder}
@@ -149,6 +158,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           onChange={(e) => handleChange(e.target.value)}
           onFocus={handleFocus}
           onBlur={onBlur}
+          onWheel={handleWheel}
           className={mergedInnerClass}
           disabled={disabled}
           placeholder={placeholder}

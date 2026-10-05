@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   bumpNumericFieldValue,
   coerceNumericFieldValue,
+  isIncompleteNumericText,
   isReplaceableZeroDisplay,
   normalizeNumericInputOnType,
+  shouldKeepDecimalDraft,
 } from "@/app/components/shared/bumpNumericFieldValue";
 
 describe("bumpNumericFieldValue", () => {
@@ -19,6 +21,12 @@ describe("bumpNumericFieldValue", () => {
 
   it("treats empty as zero before applying min", () => {
     expect(bumpNumericFieldValue("", 1, 1, undefined, 1)).toBe("1");
+  });
+
+  it("steps a decimal by 1 and keeps the fraction", () => {
+    expect(bumpNumericFieldValue("1.5", 1)).toBe("2.5");
+    expect(bumpNumericFieldValue("1.5", -1)).toBe("0.5");
+    expect(bumpNumericFieldValue("1.25", 1)).toBe("2.25");
   });
 });
 
@@ -51,6 +59,35 @@ describe("normalizeNumericInputOnType", () => {
   it("does not rewrite when previous value was not replaceable zero", () => {
     expect(normalizeNumericInputOnType("12", "125")).toBe("125");
     expect(normalizeNumericInputOnType("0.", "0.5")).toBe("0.5");
+  });
+});
+
+describe("isIncompleteNumericText", () => {
+  it("treats a trailing dot or a lone sign as unfinished", () => {
+    expect(isIncompleteNumericText("1.")).toBe(true);
+    expect(isIncompleteNumericText("-")).toBe(true);
+    expect(isIncompleteNumericText(".")).toBe(true);
+    expect(isIncompleteNumericText("-.")).toBe(true);
+  });
+
+  it("treats a finished integer or decimal as complete", () => {
+    expect(isIncompleteNumericText("1")).toBe(false);
+    expect(isIncompleteNumericText("1.5")).toBe(false);
+    expect(isIncompleteNumericText("1.50")).toBe(false);
+    expect(isIncompleteNumericText("-2")).toBe(false);
+  });
+});
+
+describe("shouldKeepDecimalDraft", () => {
+  it("keeps a decimal spelling that String(number) would shorten", () => {
+    expect(shouldKeepDecimalDraft("1.50", 1.5)).toBe(true);
+    expect(shouldKeepDecimalDraft("1.0", 1)).toBe(true);
+  });
+
+  it("does not keep a spelling that already matches the number", () => {
+    expect(shouldKeepDecimalDraft("1.5", 1.5)).toBe(false);
+    expect(shouldKeepDecimalDraft("2", 2)).toBe(false);
+    expect(shouldKeepDecimalDraft("99", 6)).toBe(false);
   });
 });
 

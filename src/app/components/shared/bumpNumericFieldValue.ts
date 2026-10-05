@@ -1,3 +1,25 @@
+/** True when the text is not yet a finished number ("-", "1.", "."). */
+export function isIncompleteNumericText(raw: string): boolean {
+  const trimmed = raw.trim();
+  return (
+    trimmed === "-" ||
+    trimmed === "." ||
+    trimmed === "-." ||
+    trimmed.endsWith(".")
+  );
+}
+
+/**
+ * True when typed text is a decimal spelling of `coerced` that
+ * `String(coerced)` would shorten ("1.50" → "1.5", "1.0" → "1").
+ */
+export function shouldKeepDecimalDraft(raw: string, coerced: number): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed.includes(".")) return false;
+  if (!Number.isFinite(coerced)) return false;
+  return trimmed !== String(coerced) && Number(trimmed) === coerced;
+}
+
 /** True when the field shows integer zero and typing should replace it (not append). */
 export function isReplaceableZeroDisplay(value: string): boolean {
   const trimmed = value.trim();
@@ -61,6 +83,13 @@ export function bumpNumericFieldValue(
     const decPart = step.toString().split(".")[1];
     const decimals = decPart ? decPart.length : 1;
     return Number(next.toFixed(decimals)).toString();
+  }
+  if (!Number.isInteger(n)) {
+    const decPart = trimmed.split(".")[1];
+    const decimals = decPart ? decPart.length : 0;
+    if (decimals > 0) {
+      return Number(next.toFixed(decimals)).toString();
+    }
   }
   return String(Math.round(next));
 }
