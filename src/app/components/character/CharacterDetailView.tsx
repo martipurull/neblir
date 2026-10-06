@@ -241,6 +241,7 @@ export function CharacterDetailView({
         readOnly: sheetReadOnly,
         allowUniqueCreate: hasAuthorship && !sheetReadOnly,
         rollPrivacy,
+        canRoll: !diceLocked,
       })
     );
     list.push(

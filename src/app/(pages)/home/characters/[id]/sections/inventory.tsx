@@ -28,6 +28,7 @@ import {
 } from "@/app/lib/types/item";
 import { getGameById } from "@/lib/api/game";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
+import { InventoryDamageRollModal } from "@/app/components/character/InventoryDamageRollModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
@@ -572,6 +573,46 @@ const CARRY_WEIGHT_TOOLTIP = (
   </span>
 );
 
+function InventoryTitleSupplement({
+  character,
+  canRoll,
+  gameId,
+  rollPrivacy,
+}: {
+  character: CharacterDetail;
+  canRoll: boolean;
+  gameId: string | null;
+  rollPrivacy: RollPrivacyOptions;
+}) {
+  const [damageRollOpen, setDamageRollOpen] = useState(false);
+
+  return (
+    <>
+      <span className="inline-flex items-center gap-2">
+        {canRoll ? (
+          <Button
+            type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
+            onClick={() => setDamageRollOpen(true)}
+          >
+            Roll damage
+          </Button>
+        ) : null}
+        <InventoryCarryWeightTitleSupplement character={character} />
+      </span>
+      {canRoll && damageRollOpen ? (
+        <InventoryDamageRollModal
+          character={character}
+          gameId={gameId}
+          rollPrivacy={rollPrivacy}
+          onClose={() => setDamageRollOpen(false)}
+        />
+      ) : null}
+    </>
+  );
+}
+
 function InventoryCarryWeightTitleSupplement({
   character,
 }: {
@@ -634,6 +675,8 @@ export function getInventorySection(
     readOnly?: boolean;
     allowUniqueCreate?: boolean;
     rollPrivacy?: RollPrivacyOptions;
+    /** Shown only when this user is allowed to roll. */
+    canRoll?: boolean;
   }
 ): CharacterSectionSlide {
   const readOnly = options?.readOnly === true;
@@ -648,7 +691,12 @@ export function getInventorySection(
     id: "inventory",
     title: "Inventory",
     titleSupplement: (
-      <InventoryCarryWeightTitleSupplement character={character} />
+      <InventoryTitleSupplement
+        character={character}
+        canRoll={options?.canRoll === true}
+        gameId={activeGameId}
+        rollPrivacy={rollPrivacy}
+      />
     ),
     children: (
       <InventorySectionContent
