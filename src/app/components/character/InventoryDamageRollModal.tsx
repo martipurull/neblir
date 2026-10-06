@@ -1,5 +1,6 @@
 "use client";
 
+import { rollDice } from "@/app/components/character/itemDetailModal/utils";
 import { getDamageRollWeaponOptions } from "@/app/lib/damageRollWeaponOptions";
 import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
@@ -25,8 +26,14 @@ type DamageRollSnapshot = {
   total: number;
 };
 
-function rollDie(diceType: number): number {
-  return Math.floor(Math.random() * diceType) + 1;
+function diceExpressionOf(dice: number[]): string {
+  const counts = new Map<number, number>();
+  for (const diceType of dice) {
+    counts.set(diceType, (counts.get(diceType) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([diceType, count]) => `${count}d${diceType}`)
+    .join(" + ");
 }
 
 export function InventoryDamageRollModal({
@@ -70,12 +77,12 @@ export function InventoryDamageRollModal({
       planned.splice(Math.max(0, planned.length + extraDice));
     }
 
-    const results = planned.map((diceType) => rollDie(diceType));
+    const results = planned.map((diceType) => rollDice(diceType));
 
     const ordered = sortDiceResultsHighToLow(results);
     if (ordered.length === 0) return;
 
-    const diceExpression = `${totalDamageDice}d${baseDamageType}`;
+    const diceExpression = diceExpressionOf(planned);
     const total = ordered.reduce((sum, value) => sum + value, 0);
     setLastResult({
       optionLabel: selected.label,
