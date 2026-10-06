@@ -356,8 +356,11 @@ export function GameMasterPageClient() {
         gameName={game.name}
         editCustomEnemyId={editCustomEnemyId}
         onClose={() => {
+          const returnToBrowse =
+            browseCustomEnemiesOpen && editCustomEnemyId != null;
           setCustomEnemyModalOpen(false);
           setEditCustomEnemyId(null);
+          if (returnToBrowse) void mutate();
         }}
         onSuccess={() => void mutate()}
         onPromoted={onPromoted}
@@ -391,6 +394,7 @@ export function GameMasterPageClient() {
       />
       <BrowseCustomEnemiesModal
         isOpen={browseCustomEnemiesOpen}
+        concealed={editCustomEnemyId != null}
         game={game}
         gameName={game.name}
         onClose={() => setBrowseCustomEnemiesOpen(false)}

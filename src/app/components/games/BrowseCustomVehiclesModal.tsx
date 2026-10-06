@@ -60,20 +60,24 @@ function BrowseCustomVehiclesModalContent({
     null
   );
 
-  const loadVehicles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await fetchGameCustomVehicles(gameId);
-      setVehicles(rows);
-      setSelectedId((curr) => curr || rows[0]?.id || "");
-    } catch (e) {
-      setError(getUserSafeErrorMessage(e, "Failed to load custom vehicles"));
-      setVehicles([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [gameId]);
+  const loadVehicles = useCallback(
+    async (opts?: { refresh?: boolean }) => {
+      const refresh = opts?.refresh === true;
+      if (!refresh) setLoading(true);
+      setError(null);
+      try {
+        const rows = await fetchGameCustomVehicles(gameId);
+        setVehicles(rows);
+        setSelectedId((curr) => curr || rows[0]?.id || "");
+      } catch (e) {
+        setError(getUserSafeErrorMessage(e, "Failed to load custom vehicles"));
+        setVehicles([]);
+      } finally {
+        if (!refresh) setLoading(false);
+      }
+    },
+    [gameId]
+  );
 
   useEffect(() => {
     void loadVehicles();
@@ -113,6 +117,7 @@ function BrowseCustomVehiclesModalContent({
     <>
       <ModalShell
         isOpen
+        concealed={editCustomVehicleId != null}
         onClose={onClose}
         title={`Browse custom vehicles — ${gameName}`}
         titleId="browse-custom-vehicles-title"
@@ -282,10 +287,12 @@ function BrowseCustomVehiclesModalContent({
         gameId={gameId}
         gameName={gameName}
         editCustomVehicleId={editCustomVehicleId}
-        onClose={() => setEditCustomVehicleId(null)}
+        onClose={() => {
+          setEditCustomVehicleId(null);
+          void loadVehicles({ refresh: true }).then(() => onSuccess?.());
+        }}
         onSuccess={() => {
           setEditCustomVehicleId(null);
-          void loadVehicles().then(() => onSuccess?.());
         }}
         onPromoted={onPromoted}
       />

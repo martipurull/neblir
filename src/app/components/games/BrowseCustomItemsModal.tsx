@@ -46,20 +46,24 @@ function BrowseCustomItemsModalContent({
   const [giveOpen, setGiveOpen] = useState(false);
   const [editCustomItemId, setEditCustomItemId] = useState<string | null>(null);
 
-  const loadItems = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await fetchGameCustomItemsForBrowse(gameId);
-      setItems(rows);
-      setSelectedId((curr) => curr || rows[0]?.id || "");
-    } catch (e) {
-      setError(getUserSafeErrorMessage(e, "Failed to load custom items"));
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [gameId]);
+  const loadItems = useCallback(
+    async (opts?: { refresh?: boolean }) => {
+      const refresh = opts?.refresh === true;
+      if (!refresh) setLoading(true);
+      setError(null);
+      try {
+        const rows = await fetchGameCustomItemsForBrowse(gameId);
+        setItems(rows);
+        setSelectedId((curr) => curr || rows[0]?.id || "");
+      } catch (e) {
+        setError(getUserSafeErrorMessage(e, "Failed to load custom items"));
+        setItems([]);
+      } finally {
+        if (!refresh) setLoading(false);
+      }
+    },
+    [gameId]
+  );
 
   useEffect(() => {
     void loadItems();
@@ -93,6 +97,7 @@ function BrowseCustomItemsModalContent({
     <>
       <ModalShell
         isOpen
+        concealed={editCustomItemId != null}
         onClose={onClose}
         title={`Browse custom items — ${gameName}`}
         titleId="browse-custom-items-title"
@@ -226,10 +231,12 @@ function BrowseCustomItemsModalContent({
         gameId={gameId}
         gameName={gameName}
         editCustomItemId={editCustomItemId}
-        onClose={() => setEditCustomItemId(null)}
+        onClose={() => {
+          setEditCustomItemId(null);
+          void loadItems({ refresh: true }).then(() => onSuccess?.());
+        }}
         onSuccess={() => {
           setEditCustomItemId(null);
-          void loadItems().then(() => onSuccess?.());
         }}
         onPromoted={onPromoted}
       />

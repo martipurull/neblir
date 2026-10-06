@@ -26,6 +26,8 @@ type BrowseCustomEnemiesModalProps = {
   onClose: () => void;
   onEdit: (customEnemyId: string) => void;
   onSuccess?: () => void | Promise<void>;
+  /** Edit from this list is the only dialog; Browse stays mounted underneath. */
+  concealed?: boolean;
 };
 
 export function BrowseCustomEnemiesModal(props: BrowseCustomEnemiesModalProps) {
@@ -39,6 +41,7 @@ function BrowseCustomEnemiesModalContent({
   onClose,
   onEdit,
   onSuccess,
+  concealed = false,
 }: BrowseCustomEnemiesModalProps) {
   const enemies = useMemo(() => game.customEnemies ?? [], [game.customEnemies]);
   const imageUrls = useImageUrls(
@@ -99,6 +102,7 @@ function BrowseCustomEnemiesModalContent({
     <>
       <ModalShell
         isOpen
+        concealed={concealed}
         onClose={onClose}
         title={`Browse custom enemies — ${gameName}`}
         titleId="browse-custom-enemies-title"
