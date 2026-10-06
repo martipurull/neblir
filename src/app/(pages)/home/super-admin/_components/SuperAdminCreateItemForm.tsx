@@ -651,7 +651,7 @@ export function SuperAdminCreateItemForm({
             />
           ) : null}
 
-          <div className="mb-6 space-y-3">
+          <div className="mb-6 flex flex-wrap gap-3">
             <Controller
               name="equippable"
               control={form.control}

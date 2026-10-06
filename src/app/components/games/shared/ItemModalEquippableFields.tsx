@@ -28,22 +28,24 @@ export function ItemModalEquippableFields({
 }: Props) {
   return (
     <div className="space-y-3">
-      <Checkbox
-        checked={equippable}
-        onChange={onEquippableChange}
-        disabled={disabled}
-        tone="inverse"
-        label="Can be equipped"
-      />
-      {onVehicleMountableChange ? (
+      <div className="flex flex-wrap gap-2">
         <Checkbox
-          checked={vehicleMountable}
-          onChange={onVehicleMountableChange}
+          checked={equippable}
+          onChange={onEquippableChange}
           disabled={disabled}
           tone="inverse"
-          label="Can be mounted on a vehicle"
+          label="Can be equipped"
         />
-      ) : null}
+        {onVehicleMountableChange ? (
+          <Checkbox
+            checked={vehicleMountable}
+            onChange={onVehicleMountableChange}
+            disabled={disabled}
+            tone="inverse"
+            label="Can be mounted on a vehicle"
+          />
+        ) : null}
+      </div>
       {equippable && (
         <>
           <div>
