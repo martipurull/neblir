@@ -12,7 +12,7 @@ import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
 import { useMemo, useState } from "react";
 
-type InventoryDamageRollModalProps = {
+type CombatDamageRollModalProps = {
   character: CharacterDetail;
   gameId?: string | null;
   rollPrivacy?: RollPrivacyOptions;
@@ -36,12 +36,12 @@ function diceExpressionOf(dice: number[]): string {
     .join(" + ");
 }
 
-export function InventoryDamageRollModal({
+export function CombatDamageRollModal({
   character,
   gameId,
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
   onClose,
-}: InventoryDamageRollModalProps) {
+}: CombatDamageRollModalProps) {
   const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
     usePrivateRollState(true, rollPrivacy);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
