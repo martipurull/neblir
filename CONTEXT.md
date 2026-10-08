@@ -172,6 +172,34 @@ _Avoid_: File, lore
 A per-round combat resource on a character or enemy instance: how many remain this round, up to that combatant’s cap. Spending one (for example to defend) reduces remaining; a reset restores remaining to the cap.
 _Avoid_: defence reaction cost (an area-effect item rule), clear (when meaning this restore)
 
+**Attack mode**:
+Melee, range, throw, or GRID. One weapon can have more than one.
+_Avoid_: attack type
+
+**Weapon option**:
+One way a character can make an attack roll or a damage roll: an equipped weapon in a single attack mode, Unarmed, Improvised weapon, or a GRID attack. A carried weapon that is not equipped is not a weapon option.
+_Avoid_: item, weapon (when meaning a bag row)
+
+**Unarmed**:
+The weapon option for a melee or throw attack with no weapon in that mode. Its damage is 1d4 bludgeoning.
+_Avoid_: Improvised weapon
+
+**Improvised weapon**:
+The weapon option for a range attack with no ranged weapon. Its damage is 1d4 bludgeoning.
+_Avoid_: Unarmed
+
+**GRID attack**:
+The weapon option for attack mode GRID: equipped Brain-item damage, plus Software Warrior dice when the character has that feature. With no damage dice it is to-hit only.
+_Avoid_: GRID skill, GRID defence
+
+**Attack roll**:
+A to-hit roll for one weapon option. Any die of 8–10 is a success.
+_Avoid_: damage roll
+
+**Damage roll**:
+A roll of one weapon option’s damage dice. It may follow a successful attack roll, or be made with no attack roll.
+_Avoid_: attack roll, to-hit
+
 ### Enemies
 
 **Custom enemy**:

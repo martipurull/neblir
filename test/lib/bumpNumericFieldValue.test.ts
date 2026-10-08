@@ -23,10 +23,21 @@ describe("bumpNumericFieldValue", () => {
     expect(bumpNumericFieldValue("", 1, 1, undefined, 1)).toBe("1");
   });
 
-  it("steps a decimal by 1 and keeps the fraction", () => {
-    expect(bumpNumericFieldValue("1.5", 1)).toBe("2.5");
-    expect(bumpNumericFieldValue("1.5", -1)).toBe("0.5");
-    expect(bumpNumericFieldValue("1.25", 1)).toBe("2.25");
+  it("rounds a decimal when an integer step does not keep the fraction", () => {
+    expect(bumpNumericFieldValue("1.5", 1)).toBe("3");
+    expect(bumpNumericFieldValue("1.25", 1)).toBe("2");
+  });
+
+  it("steps a decimal by 1 and keeps the fraction when asked", () => {
+    expect(bumpNumericFieldValue("1.5", 1, undefined, undefined, 1, true)).toBe(
+      "2.5"
+    );
+    expect(
+      bumpNumericFieldValue("1.5", -1, undefined, undefined, 1, true)
+    ).toBe("0.5");
+    expect(
+      bumpNumericFieldValue("1.25", 1, undefined, undefined, 1, true)
+    ).toBe("2.25");
   });
 });
 

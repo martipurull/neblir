@@ -59,13 +59,30 @@ export function normalizeNumericInputOnType(
   return next;
 }
 
+function decimalPlaces(raw: string): number {
+  const decPart = raw.split(".")[1];
+  return decPart ? decPart.length : 0;
+}
+
+function formatSteppedNumber(next: number, decimals: number): string {
+  if (decimals <= 0) {
+    return String(Math.round(next));
+  }
+  return Number(next.toFixed(decimals)).toString();
+}
+
 /** Bump a numeric string for ± stepper controls (shared by light and modal number fields). */
 export function bumpNumericFieldValue(
   raw: string,
   direction: 1 | -1,
   min?: number,
   max?: number,
-  step = 1
+  step = 1,
+  /**
+   * When true, an integer step keeps a fractional current value
+   * (`1.5` + 1 → `2.5`). Default false rounds, so other fields stay unchanged.
+   */
+  preserveFraction = false
 ): string {
   const trimmed = raw.trim();
   let n = trimmed === "" ? 0 : Number(trimmed);
@@ -80,15 +97,12 @@ export function bumpNumericFieldValue(
     next = Math.min(max, next);
   }
   if (!Number.isInteger(step)) {
-    const decPart = step.toString().split(".")[1];
-    const decimals = decPart ? decPart.length : 1;
-    return Number(next.toFixed(decimals)).toString();
+    return formatSteppedNumber(next, decimalPlaces(step.toString()) || 1);
   }
-  if (!Number.isInteger(n)) {
-    const decPart = trimmed.split(".")[1];
-    const decimals = decPart ? decPart.length : 0;
+  if (preserveFraction && !Number.isInteger(n)) {
+    const decimals = decimalPlaces(trimmed);
     if (decimals > 0) {
-      return Number(next.toFixed(decimals)).toString();
+      return formatSteppedNumber(next, decimals);
     }
   }
   return String(Math.round(next));

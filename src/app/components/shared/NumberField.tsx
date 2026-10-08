@@ -33,6 +33,11 @@ export type NumberFieldProps = Omit<
   step?: number | "any";
   /** ± rail increment. Defaults to 1 so steppers bump integers unless overridden. */
   stepperStep?: number;
+  /**
+   * When true, an integer ± step keeps a fractional value (`1.5` → `2.5`).
+   * Default false rounds, matching fields that are not free-decimal stats.
+   */
+  preserveStepperFraction?: boolean;
   variant?: NumberFieldVariant;
   /**
    * `compact`: border-only input without ± rail (e.g. qty between external buttons).
@@ -62,6 +67,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       max,
       step = 1,
       stepperStep = 1,
+      preserveStepperFraction = false,
       placeholder,
       id,
       stepperLabel,
@@ -89,10 +95,10 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
     };
 
     const handleWheel = (e: WheelEvent<HTMLInputElement>) => {
-      // A focused number input consumes the wheel and steps its value.
-      // Blurring lets the surrounding form scroll and leaves the value alone.
-      e.currentTarget.blur();
+      // Notify first so a parent can ignore the blur that follows.
+      // A focused number input otherwise consumes the wheel and steps its value.
       onWheel?.(e);
+      e.currentTarget.blur();
     };
 
     if (density === "compact") {
@@ -142,7 +148,14 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
 
     const bump = (direction: 1 | -1) => {
       onChange(
-        bumpNumericFieldValue(displayValue, direction, min, max, stepperStep)
+        bumpNumericFieldValue(
+          displayValue,
+          direction,
+          min,
+          max,
+          stepperStep,
+          preserveStepperFraction
+        )
       );
     };
 

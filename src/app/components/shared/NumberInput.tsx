@@ -6,7 +6,7 @@ import {
   shouldKeepDecimalDraft,
 } from "@/app/components/shared/bumpNumericFieldValue";
 import { NumberField } from "@/app/components/shared/NumberField";
-import { useState, type Ref } from "react";
+import { useRef, useState, type Ref } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 export interface NumberInputProps {
@@ -19,6 +19,11 @@ export interface NumberInputProps {
   step?: number | "any";
   /** ± rail increment. Defaults to 1. */
   stepperStep?: number;
+  /**
+   * When true, ± keeps a fractional value (`1.5` → `2.5`).
+   * Official vehicle weight, height, and cargo set this. Other fields round.
+   */
+  preserveStepperFraction?: boolean;
   /** Defaults to "int". */
   parseAs?: "int" | "float";
   disabled?: boolean;
@@ -37,6 +42,15 @@ function fieldValueToString(value: unknown): string {
   return String(value);
 }
 
+/** An explicit `mb-*` in `className` replaces the default `mb-6`. */
+function numberInputShellClass(className: string): string {
+  const extra = className.trim();
+  if (extra.split(/\s+/).some((token) => token.includes("mb-"))) {
+    return extra;
+  }
+  return extra ? `mb-6 ${extra}` : "mb-6";
+}
+
 function NumberInputControl({
   name,
   value,
@@ -48,6 +62,7 @@ function NumberInputControl({
   max,
   step,
   stepperStep,
+  preserveStepperFraction,
   parseAs,
   disabled,
   inputClassName,
@@ -64,6 +79,7 @@ function NumberInputControl({
   max?: number;
   step: number | "any";
   stepperStep: number;
+  preserveStepperFraction: boolean;
   parseAs: "int" | "float";
   disabled: boolean;
   inputClassName: string;
@@ -71,7 +87,9 @@ function NumberInputControl({
   label: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const skipCommitOnBlur = useRef(false);
   const committed = fieldValueToString(value);
+  const allowDecimalDraft = step === "any";
 
   const commit = (raw: string, keepDraft: boolean) => {
     if (allowEmpty && raw.trim() === "") {
@@ -79,12 +97,12 @@ function NumberInputControl({
       onValueChange(undefined);
       return;
     }
-    if (keepDraft && isIncompleteNumericText(raw)) {
+    if (keepDraft && allowDecimalDraft && isIncompleteNumericText(raw)) {
       setDraft(raw);
       return;
     }
     const next = coerceNumericFieldValue(raw, parseAs, min, max);
-    if (keepDraft && shouldKeepDecimalDraft(raw, next)) {
+    if (keepDraft && allowDecimalDraft && shouldKeepDecimalDraft(raw, next)) {
       setDraft(raw);
     } else {
       setDraft(null);
@@ -99,8 +117,16 @@ function NumberInputControl({
       name={name}
       value={draft ?? committed}
       onChange={(raw) => commit(raw, true)}
+      onWheel={() => {
+        skipCommitOnBlur.current = true;
+      }}
       onBlur={(e) => {
         onFieldBlur();
+        if (skipCommitOnBlur.current) {
+          skipCommitOnBlur.current = false;
+          setDraft(null);
+          return;
+        }
         commit(e.target.value, false);
       }}
       disabled={disabled}
@@ -109,6 +135,7 @@ function NumberInputControl({
       max={max}
       step={step}
       stepperStep={stepperStep}
+      preserveStepperFraction={preserveStepperFraction}
       variant="light"
       stepperLabel={label}
       inputClassName={inputClassName}
@@ -124,6 +151,7 @@ export function NumberInput({
   max,
   step = 1,
   stepperStep = 1,
+  preserveStepperFraction = false,
   parseAs = "int",
   disabled = false,
   className = "",
@@ -133,7 +161,7 @@ export function NumberInput({
   const { control } = useFormContext();
 
   return (
-    <div className={`mb-6 ${className}`.trim()}>
+    <div className={numberInputShellClass(className)}>
       <label htmlFor={name} className="mb-1 block font-bold text-black">
         {label}
       </label>
@@ -152,6 +180,7 @@ export function NumberInput({
             max={max}
             step={step}
             stepperStep={stepperStep}
+            preserveStepperFraction={preserveStepperFraction}
             parseAs={parseAs}
             disabled={disabled}
             inputClassName={inputClassName}

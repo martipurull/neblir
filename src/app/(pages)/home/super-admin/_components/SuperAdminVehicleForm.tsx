@@ -368,9 +368,18 @@ function SuperAdminVehicleFormFields({
               name="brand"
             />
 
-            <div className="mb-6 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
-              <NumberInput name="year" label="Year (optional)" allowEmpty />
-              <NumberInput name="confCost" label="Cost (CONF)" />
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              <NumberInput
+                name="year"
+                label="Year (optional)"
+                allowEmpty
+                className="mb-0"
+              />
+              <NumberInput
+                name="confCost"
+                label="Cost (CONF)"
+                className="mb-0"
+              />
             </div>
 
             <SuperAdminLabeledField
@@ -423,29 +432,33 @@ function SuperAdminVehicleFormFields({
               rows={4}
             />
 
-            <div className="mb-6 grid gap-4 sm:grid-cols-2 [&>div]:mb-0">
-              <NumberInput name="maxHp" label="Max HP" />
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              <NumberInput name="maxHp" label="Max HP" className="mb-0" />
               <NumberInput
                 name="manoeuvrability"
                 label={VEHICLE_MANOEUVRABILITY_LABEL}
+                className="mb-0"
               />
               <NumberInput
                 name="acceleration"
                 label={VEHICLE_ACCELERATION_LABEL}
+                className="mb-0"
               />
-              <div className="[&>div]:mb-0">
+              <div>
                 <NumberInput
                   name="travelSpeedKmh"
                   label={VEHICLE_TRAVEL_SPEED_LABEL}
+                  className="mb-0"
                 />
                 <p className="mt-1 text-xs text-black/65">
                   {VEHICLE_TRAVEL_SPEED_HELP}
                 </p>
               </div>
-              <div className="[&>div]:mb-0">
+              <div>
                 <NumberInput
                   name="combatSpeedMetres"
                   label={VEHICLE_COMBAT_SPEED_LABEL}
+                  className="mb-0"
                 />
                 <p className="mt-1 text-xs text-black/65">
                   {VEHICLE_COMBAT_SPEED_HELP}
@@ -454,11 +467,13 @@ function SuperAdminVehicleFormFields({
               <NumberInput
                 name="maxPassengers"
                 label="Max passengers (incl. driver)"
+                className="mb-0"
               />
               <NumberInput
                 name="maxMountedItems"
                 label="Max mounted items (optional)"
                 allowEmpty
+                className="mb-0"
               />
               <NumberInput
                 name="weight"
@@ -466,6 +481,8 @@ function SuperAdminVehicleFormFields({
                 parseAs="float"
                 step="any"
                 allowEmpty
+                preserveStepperFraction
+                className="mb-0"
               />
               <NumberInput
                 name="heightMetres"
@@ -473,6 +490,8 @@ function SuperAdminVehicleFormFields({
                 parseAs="float"
                 step="any"
                 allowEmpty
+                preserveStepperFraction
+                className="mb-0"
               />
               <NumberInput
                 name="maxCargoWeightKg"
@@ -480,6 +499,8 @@ function SuperAdminVehicleFormFields({
                 parseAs="float"
                 step="any"
                 allowEmpty
+                preserveStepperFraction
+                className="mb-0"
               />
             </div>
 
