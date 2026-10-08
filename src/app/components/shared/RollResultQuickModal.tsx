@@ -2,7 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { useMemo } from "react";
 
 export type RollHighlightMode = "d10" | "plain";
@@ -21,7 +21,7 @@ type RollResultQuickModalProps = {
 
 function spanClassForValue(value: number, mode: RollHighlightMode): string {
   if (mode === "d10") {
-    const isSuccess = value >= 8;
+    const isSuccess = isD10Success(value);
     const isTen = value === 10;
     const isOne = value === 1;
     const colorClass = isSuccess

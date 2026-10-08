@@ -7,13 +7,12 @@ import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { RemoteThumbnail } from "@/app/components/shared/RemoteThumbnail";
 import { TextField } from "@/app/components/shared/TextField";
-import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
 import type { GameDetail } from "@/app/lib/types/game";
+import { useBrowseCustomTemplates } from "@/hooks/use-browse-custom-templates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { fetchGameCustomItemsForBrowse } from "@/lib/api/customItems";
 import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
-import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type BrowseCustomItemsModalProps = {
   isOpen: boolean;
@@ -38,32 +37,21 @@ function BrowseCustomItemsModalContent({
   onSuccess,
   onPromoted,
 }: BrowseCustomItemsModalProps) {
-  const [items, setItems] = useState<ItemBrowseDetailFields[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    rows: items,
+    loading,
+    error,
+    selectedId,
+    setSelectedId,
+    refresh,
+  } = useBrowseCustomTemplates(
+    gameId,
+    fetchGameCustomItemsForBrowse,
+    "Failed to load custom items"
+  );
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState("");
   const [giveOpen, setGiveOpen] = useState(false);
   const [editCustomItemId, setEditCustomItemId] = useState<string | null>(null);
-
-  const loadItems = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await fetchGameCustomItemsForBrowse(gameId);
-      setItems(rows);
-      setSelectedId((curr) => curr || rows[0]?.id || "");
-    } catch (e) {
-      setError(getUserSafeErrorMessage(e, "Failed to load custom items"));
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [gameId]);
-
-  useEffect(() => {
-    void loadItems();
-  }, [loadItems]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -93,6 +81,7 @@ function BrowseCustomItemsModalContent({
     <>
       <ModalShell
         isOpen
+        concealed={editCustomItemId != null}
         onClose={onClose}
         title={`Browse custom items — ${gameName}`}
         titleId="browse-custom-items-title"
@@ -228,8 +217,7 @@ function BrowseCustomItemsModalContent({
         editCustomItemId={editCustomItemId}
         onClose={() => setEditCustomItemId(null)}
         onSuccess={() => {
-          setEditCustomItemId(null);
-          void loadItems().then(() => onSuccess?.());
+          void refresh().then(() => onSuccess?.());
         }}
         onPromoted={onPromoted}
       />

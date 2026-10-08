@@ -1,3 +1,7 @@
+export function isD10Success(face: number): boolean {
+  return face >= 8;
+}
+
 /** Returns a new array of die faces ordered from highest to lowest. */
 export function sortDiceResultsHighToLow(results: readonly number[]): number[] {
   return [...results].sort((a, b) => b - a);

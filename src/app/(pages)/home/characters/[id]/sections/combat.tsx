@@ -23,6 +23,8 @@ interface CombatSectionOptions {
     onOpenRoll: () => void;
     onOpenOrder: () => void;
   };
+  /** Present only when this user is allowed to roll, even on a read-only sheet. */
+  onOpenDamageRoll?: () => void;
   readOnly?: boolean;
 }
 
@@ -193,6 +195,25 @@ export function getCombatSection(
                 className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
               >
                 Show Initiative Order
+              </Button>
+            </div>
+          </li>
+        )}
+        {options.onOpenDamageRoll && (
+          <li className="flex flex-col gap-2.5 py-2.5 first:pt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="flex shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-widest text-black">
+              <span className="h-3 w-px bg-black" aria-hidden />
+              Damage
+            </span>
+            <div className="flex min-w-0 flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="semanticWarningOutline"
+                fullWidth={false}
+                onClick={options.onOpenDamageRoll}
+                className="!px-2 !py-1 !text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1"
+              >
+                Roll damage
               </Button>
             </div>
           </li>

@@ -15,6 +15,11 @@ type ModalShellBase = {
   panelClassName?: string;
   closeDisabled?: boolean;
   closeOnBackdrop?: boolean;
+  /**
+   * Keep the shell mounted so scroll and field state survive, but take it out
+   * of view and out of the accessibility tree. It is not a dialog while concealed.
+   */
+  concealed?: boolean;
 };
 
 export type ModalShellProps = ModalShellBase &
@@ -51,6 +56,7 @@ export function ModalShell({
   panelClassName = "",
   closeDisabled = false,
   closeOnBackdrop = true,
+  concealed = false,
 }: ModalShellProps) {
   if (!isOpen) return null;
 
@@ -59,17 +65,25 @@ export function ModalShell({
 
   return (
     <div
-      className={`fixed inset-0 ${zIndexClass} flex items-center justify-center bg-black/40 px-4 py-6`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={labelledBy}
-      aria-label={!hasTitle ? ariaLabel : undefined}
+      className={
+        concealed
+          ? undefined
+          : `fixed inset-0 ${zIndexClass} flex items-center justify-center bg-black/40 px-4 py-6`
+      }
+      {...(concealed
+        ? { hidden: true }
+        : {
+            role: "dialog" as const,
+            "aria-modal": true as const,
+            "aria-labelledby": labelledBy,
+            "aria-label": !hasTitle ? ariaLabel : undefined,
+          })}
       onClick={
-        closeOnBackdrop && !closeDisabled
-          ? () => {
+        concealed || !closeOnBackdrop || closeDisabled
+          ? undefined
+          : () => {
               onClose();
             }
-          : undefined
       }
     >
       <div

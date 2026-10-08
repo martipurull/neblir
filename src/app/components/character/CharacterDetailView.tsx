@@ -7,6 +7,7 @@ import {
 import { CharacterSectionGrid } from "@/app/components/character/CharacterSectionGrid";
 import { CharacterSummaryHeader } from "@/app/components/character/CharacterSummaryHeader";
 import { DedicatedDiceRollModal } from "@/app/components/character/DedicatedDiceRollModal";
+import { CombatDamageRollModal } from "@/app/components/character/CombatDamageRollModal";
 import { DiceRollModal } from "@/app/components/character/DiceRollModal";
 import { InitiativeOrderModal } from "@/app/components/combat/InitiativeOrderModal";
 import { InitiativeRollModal } from "@/app/components/combat/InitiativeRollModal";
@@ -101,6 +102,7 @@ export function CharacterDetailView({
   const [initiativeOrderInitialGameId, setInitiativeOrderInitialGameId] =
     useState<string | null>(null);
   const [dedicatedDiceRollerOpen, setDedicatedDiceRollerOpen] = useState(false);
+  const [damageRollOpen, setDamageRollOpen] = useState(false);
 
   const {
     activeGameId: storedActiveGameId,
@@ -215,6 +217,9 @@ export function CharacterDetailView({
             setInitiativeOrderOpen(true);
           },
         },
+        onOpenDamageRoll: diceLocked
+          ? undefined
+          : () => setDamageRollOpen(true),
         readOnly: sheetReadOnly,
       }),
       getGeneralSection(character),
@@ -354,6 +359,15 @@ export function CharacterDetailView({
           character={character}
           gameId={activeGameId}
           rollPrivacy={rollPrivacy}
+        />
+      )}
+
+      {!diceLocked && damageRollOpen && (
+        <CombatDamageRollModal
+          character={character}
+          gameId={activeGameId}
+          rollPrivacy={rollPrivacy}
+          onClose={() => setDamageRollOpen(false)}
         />
       )}
 

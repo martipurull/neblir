@@ -5,6 +5,7 @@ import { GameModalRichTextField } from "@/app/components/games/shared/GameModalR
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
@@ -386,7 +387,7 @@ export function PromoteCustomTemplateSection({
                     label="Damage types"
                     required
                   />
-                  <div className="flex flex-wrap gap-2">
+                  <CheckboxRow>
                     {DAMAGE_TYPES.map((damageType) => (
                       <Checkbox
                         key={damageType}
@@ -404,7 +405,7 @@ export function PromoteCustomTemplateSection({
                         className="text-xs"
                       />
                     ))}
-                  </div>
+                  </CheckboxRow>
                 </div>
                 {seed.needsDamageDice ? (
                   <div className="grid grid-cols-2 gap-2">

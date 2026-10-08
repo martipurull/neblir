@@ -1,14 +1,20 @@
 "use client";
 
+import {
+  applyAttackRollSession,
+  attackRollSessionShown,
+  openAttackRollSession,
+  type AttackRollWeaponOption,
+} from "@/app/lib/attackRollSession";
 import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
-import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 export type AttackType = "melee" | "range" | "throw" | "grid";
 
 const ATTACK_LABELS: Record<AttackType, string> = {
@@ -63,8 +69,62 @@ function formatDamageTypeLabel(damageText: string): string {
   return types ? `${types} damage` : "";
 }
 
-export function AttackRollModal({
-  isOpen,
+function bestOptionIndex(options: readonly AttackModifierOption[]): number {
+  if (options.length === 0) return 0;
+  return options.reduce(
+    (best, opt, i) => (opt.mod > (options[best]?.mod ?? -Infinity) ? i : best),
+    0
+  );
+}
+
+function damagePartsOf(
+  weapon: AttackRollWeaponOption
+): ReadonlyArray<{ numberOfDice: number; diceType: number }> {
+  if (weapon.damageDice && weapon.damageDice.length > 0) {
+    return weapon.damageDice;
+  }
+  return [{ numberOfDice: weapon.numberOfDice, diceType: weapon.diceType }];
+}
+
+function DamageRollTotal({
+  faces,
+  damageText,
+}: {
+  faces: readonly number[];
+  damageText: string;
+}) {
+  const total = faces.reduce((sum, face) => sum + face, 0);
+  const typeLabel = damageText ? formatDamageTypeLabel(damageText) : "";
+  return (
+    <div className="rounded border border-white/20 bg-black/20 p-2">
+      <p className="text-xs font-medium uppercase tracking-wider text-white/70">
+        Damage
+      </p>
+      <p className="text-base tabular-nums text-white">
+        {faces.join(" + ")} ={" "}
+        <span className="font-bold">
+          {total} HP
+          {typeLabel ? ` (${typeLabel})` : ""}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+function attackRollModalSessionKey(props: AttackRollModalProps): string {
+  const who =
+    props.enemyInstanceRoll?.instanceId ?? props.characterId ?? "roll";
+  return `${props.attackType}:${who}`;
+}
+
+export function AttackRollModal(props: AttackRollModalProps) {
+  if (!props.isOpen) return null;
+  return (
+    <OpenAttackRollModal key={attackRollModalSessionKey(props)} {...props} />
+  );
+}
+
+function OpenAttackRollModal({
   onClose,
   attackType,
   options,
@@ -77,46 +137,63 @@ export function AttackRollModal({
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: AttackRollModalProps) {
   const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
-    usePrivateRollState(isOpen, rollPrivacy);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [extraDice, setExtraDice] = useState(0);
-  const [rollResult, setRollResult] = useState<number[] | null>(null);
-  const [damageExtraDice, setDamageExtraDice] = useState(0);
-  const [damageRollResult, setDamageRollResult] = useState<number[] | null>(
-    null
+    usePrivateRollState(true, rollPrivacy);
+  const [selectedIndex, setSelectedIndex] = useState(() =>
+    bestOptionIndex(options)
   );
-
-  const selected = options[selectedIndex];
+  const [session, setSession] = useState(() =>
+    openAttackRollSession({
+      combatant: enemyInstanceRoll ? "enemyInstance" : "character",
+      attackType,
+      selectedWeapon: options[bestOptionIndex(options)],
+    })
+  );
+  const shown = attackRollSessionShown(session);
+  const boundedIndex =
+    options.length === 0 ? 0 : Math.min(selectedIndex, options.length - 1);
+  const selected = options[boundedIndex];
   const selectedMod = selected?.mod ?? 0;
-  const totalDice = Math.max(0, selectedMod + extraDice);
+  const totalDice = Math.max(0, selectedMod + shown.extraToHitDice);
+  const dealDamage = shown.dealDamage;
+  const damageWeapon = dealDamage?.weapon ?? null;
+  const damageExtraDice = dealDamage?.extraDamageDice ?? 0;
+  const damageDice = damageWeapon ? damagePartsOf(damageWeapon) : [];
+  const baseDamageType = damageWeapon?.diceType ?? 4;
+  const baseDamageDiceTotal = damageDice.reduce(
+    (total, part) => total + Math.max(0, part.numberOfDice),
+    0
+  );
+  const totalDamageDice = Math.max(0, baseDamageDiceTotal + damageExtraDice);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    queueMicrotask(() => {
-      const best =
-        options.length > 0
-          ? options.reduce(
-              (b, opt, i) => (opt.mod > (options[b]?.mod ?? -Infinity) ? i : b),
-              0
-            )
-          : 0;
-      setSelectedIndex(best);
-      setExtraDice(0);
-      setRollResult(null);
-      setDamageExtraDice(0);
-      setDamageRollResult(null);
-    });
-  }, [isOpen, options]);
+  const selectWeapon = (index: number) => {
+    setSelectedIndex(index);
+    const weapon = options[index];
+    if (!weapon) return;
+    setSession((current) =>
+      applyAttackRollSession(current, {
+        type: "changeSelectedWeapon",
+        weapon,
+      })
+    );
+  };
 
-  const handleRoll = useCallback(() => {
-    if (selected?.itemCharacterId && onWeaponUsed) {
+  const handleRoll = () => {
+    if (!selected) return;
+    if (selected.itemCharacterId && onWeaponUsed) {
       void onWeaponUsed(selected.itemCharacterId);
     }
-    const count = Math.max(0, selectedMod + extraDice);
+    const extraToHitDice = shown.extraToHitDice;
+    const count = Math.max(0, selectedMod + extraToHitDice);
     const results = sortDiceResultsHighToLow(
       Array.from({ length: count }, () => rollD10())
     );
-    setRollResult(results);
+    setSession((current) =>
+      applyAttackRollSession(current, {
+        type: "toHitRoll",
+        dice: results,
+        weapon: selected,
+      })
+    );
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
       isPrivate: emitIsPrivate,
@@ -125,9 +202,9 @@ export function AttackRollModal({
       results,
       metadata: {
         attackType,
-        weaponName: selected?.weaponName ?? null,
+        weaponName: selected.weaponName,
         modifier: selectedMod,
-        extraDice,
+        extraDice: extraToHitDice,
         ...(enemyInstanceRoll
           ? {
               source: "enemyInstance",
@@ -137,61 +214,46 @@ export function AttackRollModal({
           : {}),
       },
     });
-  }, [
-    selected,
-    selectedMod,
-    extraDice,
-    onWeaponUsed,
-    gameId,
-    characterId,
-    enemyInstanceRoll,
-    attackType,
-    emitIsPrivate,
-  ]);
+  };
 
-  const baseDamageDice = selected?.numberOfDice ?? 0;
-  const baseDamageType = selected?.diceType ?? 4;
-  const damageDice = useMemo(
-    () =>
-      selected?.damageDice ?? [
-        { numberOfDice: baseDamageDice, diceType: baseDamageType },
-      ],
-    [selected?.damageDice, baseDamageDice, baseDamageType]
-  );
-  const baseDamageDiceTotal = damageDice.reduce(
-    (a, d) => a + Math.max(0, d.numberOfDice),
-    0
-  );
-  const totalDamageDice = Math.max(0, baseDamageDiceTotal + damageExtraDice);
-
-  const handleDamageRoll = useCallback(() => {
+  const handleDamageRoll = () => {
+    if (!dealDamage) return;
+    const weapon = dealDamage.weapon;
+    const extraDamageDiceForRoll = dealDamage.extraDamageDice;
+    const parts = damagePartsOf(weapon);
     const results: number[] = [];
 
-    for (const d of damageDice) {
-      const count = Math.max(0, d.numberOfDice);
+    for (const part of parts) {
+      const count = Math.max(0, part.numberOfDice);
       for (let i = 0; i < count; i++) {
-        results.push(rollDice(d.diceType));
+        results.push(rollDice(part.diceType));
       }
     }
 
-    // GM extra dice are rolled using the base damage dice type.
-    for (let i = 0; i < Math.max(0, damageExtraDice); i++) {
-      results.push(rollDice(baseDamageType));
+    for (let i = 0; i < Math.max(0, extraDamageDiceForRoll); i++) {
+      results.push(rollDice(weapon.diceType));
     }
 
     const ordered = sortDiceResultsHighToLow(results);
-    setDamageRollResult(ordered);
+    const rolledCount = Math.max(
+      0,
+      parts.reduce((total, part) => total + Math.max(0, part.numberOfDice), 0) +
+        extraDamageDiceForRoll
+    );
+    setSession((current) =>
+      applyAttackRollSession(current, { type: "damageRoll", dice: ordered })
+    );
     void emitRollEvent(gameId, {
       characterId: enemyInstanceRoll ? undefined : characterId,
       isPrivate: emitIsPrivate,
       rollType: "ATTACK_DAMAGE",
-      diceExpression: `${totalDamageDice}d${baseDamageType}`,
+      diceExpression: `${rolledCount}d${weapon.diceType}`,
       results: ordered,
-      total: ordered.reduce((a, b) => a + b, 0),
+      total: ordered.reduce((sum, face) => sum + face, 0),
       metadata: {
         attackType,
-        weaponName: selected?.weaponName ?? null,
-        extraDamageDice: damageExtraDice,
+        weaponName: weapon.weaponName,
+        extraDamageDice: extraDamageDiceForRoll,
         ...(enemyInstanceRoll
           ? {
               source: "enemyInstance",
@@ -201,21 +263,7 @@ export function AttackRollModal({
           : {}),
       },
     });
-  }, [
-    damageDice,
-    baseDamageType,
-    damageExtraDice,
-    gameId,
-    characterId,
-    enemyInstanceRoll,
-    attackType,
-    selected?.weaponName,
-    totalDamageDice,
-    emitIsPrivate,
-    // Keep totalDamageDice out of deps: it's derived from the above.
-  ]);
-
-  if (!isOpen) return null;
+  };
 
   const title = ATTACK_LABELS[attackType];
 
@@ -270,13 +318,13 @@ export function AttackRollModal({
                   key={i}
                   type="button"
                   variant={
-                    selectedIndex === i
+                    boundedIndex === i
                       ? "modalOptionSelected"
                       : "modalOptionUnselected"
                   }
                   fullWidth={false}
                   className="w-full"
-                  onClick={() => setSelectedIndex(i)}
+                  onClick={() => selectWeapon(i)}
                 >
                   {optionLabel(opt)}
                 </Button>
@@ -292,19 +340,35 @@ export function AttackRollModal({
               type="button"
               variant="modalIconStepper"
               fullWidth={false}
-              onClick={() => setExtraDice((d) => d - 1)}
+              onClick={() =>
+                setSession((current) =>
+                  applyAttackRollSession(current, {
+                    type: "changeExtraToHitDice",
+                    extraToHitDice: current.extraToHitDice - 1,
+                  })
+                )
+              }
               aria-label="Decrease extra dice"
             >
               −
             </Button>
             <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
-              {extraDice >= 0 ? `+${extraDice}` : extraDice}
+              {shown.extraToHitDice >= 0
+                ? `+${shown.extraToHitDice}`
+                : shown.extraToHitDice}
             </span>
             <Button
               type="button"
               variant="modalIconStepper"
               fullWidth={false}
-              onClick={() => setExtraDice((d) => d + 1)}
+              onClick={() =>
+                setSession((current) =>
+                  applyAttackRollSession(current, {
+                    type: "changeExtraToHitDice",
+                    extraToHitDice: current.extraToHitDice + 1,
+                  })
+                )
+              }
               aria-label="Increase extra dice"
             >
               +
@@ -316,14 +380,14 @@ export function AttackRollModal({
           Total: {totalDice} d10{totalDice !== 1 ? "s" : ""}
         </p>
 
-        {rollResult !== null && (
+        {shown.toHitDice !== null && (
           <div className="rounded border border-white/30 bg-black/20 p-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-white/80">
               Result
             </p>
             <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
-              {rollResult.map((value, i) => {
-                const isSuccess = value >= 8;
+              {shown.toHitDice.map((value, i) => {
+                const isSuccess = isD10Success(value);
                 const isTen = value === 10;
                 const isOne = value === 1;
                 const colorClass = isSuccess
@@ -338,7 +402,7 @@ export function AttackRollModal({
                 return (
                   <span key={i} className={spanClass || undefined}>
                     {value}
-                    {i < rollResult.length - 1 ? ", " : ""}
+                    {i < (shown.toHitDice?.length ?? 0) - 1 ? ", " : ""}
                   </span>
                 );
               })}
@@ -346,83 +410,78 @@ export function AttackRollModal({
           </div>
         )}
 
-        {rollResult !== null &&
-          rollResult.some((v) => v >= 8) &&
-          (attackType !== "grid" || baseDamageDiceTotal > 0) && (
-            <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
-              <p className="text-sm font-medium text-white">Deal Damage</p>
-              {damageHint && (
-                <p className="whitespace-pre-line text-xs text-white/75">
-                  {damageHint}
-                </p>
-              )}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/80">Extra dice (GM)</span>
-                <Button
-                  type="button"
-                  variant="modalIconStepperSmall"
-                  fullWidth={false}
-                  onClick={() => setDamageExtraDice((d) => d - 1)}
-                  aria-label="Decrease extra damage dice"
-                >
-                  −
-                </Button>
-                <span className="min-w-[2rem] text-center text-sm font-bold text-white">
-                  {damageExtraDice >= 0
-                    ? `+${damageExtraDice}`
-                    : damageExtraDice}
-                </span>
-                <Button
-                  type="button"
-                  variant="modalIconStepperSmall"
-                  fullWidth={false}
-                  onClick={() => setDamageExtraDice((d) => d + 1)}
-                  aria-label="Increase extra damage dice"
-                >
-                  +
-                </Button>
-              </div>
-              <p className="text-md text-white">
-                {damageDice
-                  .filter((d) => d.numberOfDice > 0)
-                  .map((d) => `${d.numberOfDice}d${d.diceType}`)
-                  .join(" + ")}
-                {damageExtraDice !== 0
-                  ? ` + ${damageExtraDice} extra d${baseDamageType}`
-                  : ""}{" "}
-                = {totalDamageDice} total dice
+        {dealDamage && (
+          <div className="space-y-3 rounded border border-white/30 bg-black/20 p-3">
+            <p className="text-sm font-medium text-white">Deal Damage</p>
+            {damageHint && (
+              <p className="whitespace-pre-line text-xs text-white/75">
+                {damageHint}
               </p>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/80">Extra dice (GM)</span>
               <Button
                 type="button"
-                variant="modalBlockPrimary"
-                onClick={handleDamageRoll}
-                disabled={totalDamageDice === 0}
+                variant="modalIconStepperSmall"
+                fullWidth={false}
+                onClick={() =>
+                  setSession((current) =>
+                    applyAttackRollSession(current, {
+                      type: "changeExtraDamageDice",
+                      extraDamageDice: current.extraDamageDice - 1,
+                    })
+                  )
+                }
+                aria-label="Decrease extra damage dice"
               >
-                ROLL DAMAGE
+                −
               </Button>
-              {damageRollResult !== null &&
-                (() => {
-                  const total = damageRollResult.reduce((a, b) => a + b, 0);
-                  const typeLabel = selected?.damageText
-                    ? formatDamageTypeLabel(selected.damageText)
-                    : "";
-                  return (
-                    <div className="rounded border border-white/20 bg-black/20 p-2">
-                      <p className="text-xs font-medium uppercase tracking-wider text-white/70">
-                        Damage
-                      </p>
-                      <p className="text-base tabular-nums text-white">
-                        {damageRollResult.join(" + ")} ={" "}
-                        <span className="font-bold">
-                          {total} HP
-                          {typeLabel ? ` (${typeLabel})` : ""}
-                        </span>
-                      </p>
-                    </div>
-                  );
-                })()}
+              <span className="min-w-[2rem] text-center text-sm font-bold text-white">
+                {damageExtraDice >= 0 ? `+${damageExtraDice}` : damageExtraDice}
+              </span>
+              <Button
+                type="button"
+                variant="modalIconStepperSmall"
+                fullWidth={false}
+                onClick={() =>
+                  setSession((current) =>
+                    applyAttackRollSession(current, {
+                      type: "changeExtraDamageDice",
+                      extraDamageDice: current.extraDamageDice + 1,
+                    })
+                  )
+                }
+                aria-label="Increase extra damage dice"
+              >
+                +
+              </Button>
             </div>
-          )}
+            <p className="text-md text-white">
+              {damageDice
+                .filter((d) => d.numberOfDice > 0)
+                .map((d) => `${d.numberOfDice}d${d.diceType}`)
+                .join(" + ")}
+              {damageExtraDice !== 0
+                ? ` + ${damageExtraDice} extra d${baseDamageType}`
+                : ""}{" "}
+              = {totalDamageDice} total dice
+            </p>
+            <Button
+              type="button"
+              variant="modalBlockPrimary"
+              onClick={handleDamageRoll}
+              disabled={totalDamageDice === 0}
+            >
+              ROLL DAMAGE
+            </Button>
+            {dealDamage.damageResult !== null && (
+              <DamageRollTotal
+                faces={dealDamage.damageResult}
+                damageText={dealDamage.weapon.damageText}
+              />
+            )}
+          </div>
+        )}
       </div>
     </ModalShell>
   );

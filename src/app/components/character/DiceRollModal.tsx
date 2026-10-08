@@ -1,7 +1,7 @@
 "use client";
 
 import { getDiceLabel, getDiceValue } from "@/app/lib/dice-roll-utils";
-import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { DiceSelectionItem } from "@/app/lib/types/dice-roll";
@@ -169,7 +169,7 @@ export function DiceRollModal({
             </p>
             <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
               {rollResult.map((value, i) => {
-                const isSuccess = value >= 8;
+                const isSuccess = isD10Success(value);
                 const isTen = value === 10;
                 const isOne = value === 1;
                 const colorClass = isSuccess

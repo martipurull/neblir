@@ -391,6 +391,7 @@ export function GameMasterPageClient() {
       />
       <BrowseCustomEnemiesModal
         isOpen={browseCustomEnemiesOpen}
+        concealed={editCustomEnemyId != null}
         game={game}
         gameName={game.name}
         onClose={() => setBrowseCustomEnemiesOpen(false)}

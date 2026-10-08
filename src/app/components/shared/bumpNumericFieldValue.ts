@@ -1,3 +1,25 @@
+/** True when the text is not yet a finished number ("-", "1.", "."). */
+export function isIncompleteNumericText(raw: string): boolean {
+  const trimmed = raw.trim();
+  return (
+    trimmed === "-" ||
+    trimmed === "." ||
+    trimmed === "-." ||
+    trimmed.endsWith(".")
+  );
+}
+
+/**
+ * True when typed text is a decimal spelling of `coerced` that
+ * `String(coerced)` would shorten ("1.50" → "1.5", "1.0" → "1").
+ */
+export function shouldKeepDecimalDraft(raw: string, coerced: number): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed.includes(".")) return false;
+  if (!Number.isFinite(coerced)) return false;
+  return trimmed !== String(coerced) && Number(trimmed) === coerced;
+}
+
 /** True when the field shows integer zero and typing should replace it (not append). */
 export function isReplaceableZeroDisplay(value: string): boolean {
   const trimmed = value.trim();
@@ -37,13 +59,30 @@ export function normalizeNumericInputOnType(
   return next;
 }
 
+function decimalPlaces(raw: string): number {
+  const decPart = raw.split(".")[1];
+  return decPart ? decPart.length : 0;
+}
+
+function formatSteppedNumber(next: number, decimals: number): string {
+  if (decimals <= 0) {
+    return String(Math.round(next));
+  }
+  return Number(next.toFixed(decimals)).toString();
+}
+
 /** Bump a numeric string for ± stepper controls (shared by light and modal number fields). */
 export function bumpNumericFieldValue(
   raw: string,
   direction: 1 | -1,
   min?: number,
   max?: number,
-  step = 1
+  step = 1,
+  /**
+   * When true, an integer step keeps a fractional current value
+   * (`1.5` + 1 → `2.5`). Default false rounds, so other fields stay unchanged.
+   */
+  preserveFraction = false
 ): string {
   const trimmed = raw.trim();
   let n = trimmed === "" ? 0 : Number(trimmed);
@@ -58,9 +97,13 @@ export function bumpNumericFieldValue(
     next = Math.min(max, next);
   }
   if (!Number.isInteger(step)) {
-    const decPart = step.toString().split(".")[1];
-    const decimals = decPart ? decPart.length : 1;
-    return Number(next.toFixed(decimals)).toString();
+    return formatSteppedNumber(next, decimalPlaces(step.toString()) || 1);
+  }
+  if (preserveFraction && !Number.isInteger(n)) {
+    const decimals = decimalPlaces(trimmed);
+    if (decimals > 0) {
+      return formatSteppedNumber(next, decimals);
+    }
   }
   return String(Math.round(next));
 }

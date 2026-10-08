@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { isD10Success } from "@/app/lib/diceResults";
 
 export type CrisisRollResult = {
   kind: "death" | "madness";
@@ -83,7 +84,7 @@ export function CrisisRollResultModal({
             </p>
             <div className="flex flex-wrap gap-2">
               {result.dice.map((die, index) => {
-                const isHit = die >= 8;
+                const isHit = isD10Success(die);
                 return (
                   <span
                     key={`${index}-${die}`}

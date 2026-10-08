@@ -2,6 +2,7 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
@@ -651,7 +652,7 @@ export function SuperAdminCreateItemForm({
             />
           ) : null}
 
-          <div className="mb-6 space-y-3">
+          <CheckboxRow spacing="relaxed" className="mb-6">
             <Controller
               name="equippable"
               control={form.control}
@@ -680,14 +681,14 @@ export function SuperAdminCreateItemForm({
                 />
               )}
             />
-          </div>
+          </CheckboxRow>
 
           {equippable ? (
             <div className="mb-6 rounded-md border border-black/15 bg-paleBlue/25 p-4">
               <h2 className="mb-3 text-sm font-bold text-black">Equipment</h2>
               <div className="mb-4">
                 <p className="mb-2 text-sm font-bold text-black">Equip slots</p>
-                <div className="flex flex-wrap gap-3">
+                <CheckboxRow spacing="relaxed">
                   {EQUIP_SLOTS.map((s) => {
                     const slot = s.value as EquipSlotType;
                     const selected = form
@@ -717,7 +718,7 @@ export function SuperAdminCreateItemForm({
                       />
                     );
                   })}
-                </div>
+                </CheckboxRow>
               </div>
               <div className="mb-0">
                 <SelectDropdown

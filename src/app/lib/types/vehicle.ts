@@ -142,6 +142,7 @@ export type CustomVehicleUpdate = z.infer<typeof customVehicleUpdateSchema>;
 
 export const customVehicleResponseSchema = customVehicleCreateSchema.extend({
   id: z.string(),
+  brand: z.string().nullable().optional(),
 });
 export type CustomVehicleResponse = z.infer<typeof customVehicleResponseSchema>;
 

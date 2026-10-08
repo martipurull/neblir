@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import {
   ATTACK_ROLL_TYPES,
@@ -104,7 +105,7 @@ export function SuperAdminWeaponFieldsSection<
         <p className="mb-2 text-xs text-black/70">
           Select all modes this weapon supports. At least one is required.
         </p>
-        <div className="flex flex-wrap gap-3">
+        <CheckboxRow spacing="relaxed">
           {ATTACK_ROLL_TYPES.map((t) => (
             <Checkbox
               key={t.value}
@@ -116,7 +117,7 @@ export function SuperAdminWeaponFieldsSection<
               label={t.label}
             />
           ))}
-        </div>
+        </CheckboxRow>
       </div>
 
       {rolls.includes("MELEE") ? (
@@ -214,7 +215,7 @@ export function SuperAdminWeaponFieldsSection<
         <p className="mb-2 text-xs text-black/70">
           At least one type is required. Dice must be valid integers (e.g. 1d6).
         </p>
-        <div className="flex flex-wrap gap-2">
+        <CheckboxRow>
           {DAMAGE_TYPES.map((d) => (
             <Checkbox
               key={d}
@@ -225,7 +226,7 @@ export function SuperAdminWeaponFieldsSection<
               className="text-xs"
             />
           ))}
-        </div>
+        </CheckboxRow>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 [&>div]:mb-0">

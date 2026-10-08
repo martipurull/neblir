@@ -14,11 +14,11 @@ import {
 } from "@/app/lib/constants/vehicleFields";
 import type { GameDetail } from "@/app/lib/types/game";
 import type { CustomVehicleResponse } from "@/app/lib/types/vehicle";
+import { useBrowseCustomTemplates } from "@/hooks/use-browse-custom-templates";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
 import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
-import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type BrowseCustomVehiclesModalProps = {
   isOpen: boolean;
@@ -50,34 +50,23 @@ function BrowseCustomVehiclesModalContent({
   onSuccess,
   onPromoted,
 }: BrowseCustomVehiclesModalProps) {
-  const [vehicles, setVehicles] = useState<CustomVehicleResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    rows: vehicles,
+    loading,
+    error,
+    selectedId,
+    setSelectedId,
+    refresh,
+  } = useBrowseCustomTemplates(
+    gameId,
+    fetchGameCustomVehicles,
+    "Failed to load custom vehicles"
+  );
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState("");
   const [giveOpen, setGiveOpen] = useState(false);
   const [editCustomVehicleId, setEditCustomVehicleId] = useState<string | null>(
     null
   );
-
-  const loadVehicles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await fetchGameCustomVehicles(gameId);
-      setVehicles(rows);
-      setSelectedId((curr) => curr || rows[0]?.id || "");
-    } catch (e) {
-      setError(getUserSafeErrorMessage(e, "Failed to load custom vehicles"));
-      setVehicles([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [gameId]);
-
-  useEffect(() => {
-    void loadVehicles();
-  }, [loadVehicles]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -113,6 +102,7 @@ function BrowseCustomVehiclesModalContent({
     <>
       <ModalShell
         isOpen
+        concealed={editCustomVehicleId != null}
         onClose={onClose}
         title={`Browse custom vehicles — ${gameName}`}
         titleId="browse-custom-vehicles-title"
@@ -284,8 +274,7 @@ function BrowseCustomVehiclesModalContent({
         editCustomVehicleId={editCustomVehicleId}
         onClose={() => setEditCustomVehicleId(null)}
         onSuccess={() => {
-          setEditCustomVehicleId(null);
-          void loadVehicles().then(() => onSuccess?.());
+          void refresh().then(() => onSuccess?.());
         }}
         onPromoted={onPromoted}
       />
