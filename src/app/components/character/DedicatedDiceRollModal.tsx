@@ -13,7 +13,7 @@ import {
   DAMAGE_DICE_OPTIONS,
   DAMAGE_TYPE_OPTIONS,
 } from "@/app/lib/damage-roll-dropdown-options";
-import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { getSidesFromDieOption, rollDie } from "@/app/lib/general-dice";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -36,7 +36,7 @@ function rollD10() {
 }
 
 function d10ResultSpanClass(value: number): string {
-  const isSuccess = value >= 8;
+  const isSuccess = isD10Success(value);
   const isTen = value === 10;
   const isOne = value === 1;
   const colorClass = isSuccess
