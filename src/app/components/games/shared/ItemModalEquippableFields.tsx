@@ -1,4 +1,5 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { EQUIP_SLOTS } from "@/app/lib/constants/itemCatalogue";
@@ -28,7 +29,7 @@ export function ItemModalEquippableFields({
 }: Props) {
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <CheckboxRow>
         <Checkbox
           checked={equippable}
           onChange={onEquippableChange}
@@ -45,12 +46,12 @@ export function ItemModalEquippableFields({
             label="Can be mounted on a vehicle"
           />
         ) : null}
-      </div>
+      </CheckboxRow>
       {equippable && (
         <>
           <div>
             <FieldLabel id="custom-item-equip-slots" label="Equip slots" />
-            <div className="flex flex-wrap gap-2">
+            <CheckboxRow>
               {EQUIP_SLOTS.map((s) => (
                 <Checkbox
                   key={s.value}
@@ -61,7 +62,7 @@ export function ItemModalEquippableFields({
                   label={s.label}
                 />
               ))}
-            </div>
+            </CheckboxRow>
           </div>
           <ModalNumberField
             id="custom-item-equip-slot-cost"

@@ -1,4 +1,5 @@
 import { Checkbox } from "@/app/components/shared/Checkbox";
+import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
@@ -100,7 +101,7 @@ export function UniqueItemEquippableOverrideFields({
               id="unique-equip-slots-override"
               label="Equip slots override"
             />
-            <div className="flex flex-wrap gap-2">
+            <CheckboxRow>
               {EQUIP_SLOTS.map((s) => (
                 <Checkbox
                   key={s.value}
@@ -111,7 +112,7 @@ export function UniqueItemEquippableOverrideFields({
                   label={s.label}
                 />
               ))}
-            </div>
+            </CheckboxRow>
           </div>
           <ModalNumberField
             id="unique-equip-slot-cost-override"
