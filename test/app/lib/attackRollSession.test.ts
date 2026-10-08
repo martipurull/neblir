@@ -72,18 +72,17 @@ describe("attack roll session", () => {
     });
   });
 
-  it("keeps the to-hit dice and Deal Damage after a sheet refresh, including a limited-use weapon spending a use", () => {
+  it("keeps the to-hit dice and Deal Damage when a sheet refresh rebuilds the weapon option, including a limited-use weapon spending a use", () => {
+    const limitedUse = { ...sword, damageText: "2d6, blade (3 uses)" };
     const session = applyAttackRollSession(
-      applyAttackRollSession(
-        openAttackRollSession({ combatant: "character", attackType: "range" }),
-        { type: "toHitRoll", dice: [8, 8, 1], weapon: sword }
-      ),
-      { type: "sheetRefresh" }
+      openAttackRollSession({ combatant: "character", attackType: "range" }),
+      { type: "toHitRoll", dice: [8, 8, 1], weapon: limitedUse }
     );
+    limitedUse.damageText = "2d6, blade (2 uses)";
 
     expect(attackRollSessionShown(session).toHitDice).toEqual([8, 8, 1]);
     expect(attackRollSessionShown(session).dealDamage).toEqual({
-      weapon: sword,
+      weapon: { ...sword, damageText: "2d6, blade (3 uses)" },
       extraDamageDice: 0,
       damageResult: null,
     });
@@ -210,33 +209,6 @@ describe("attack roll session", () => {
       weapon: axe,
       extraDamageDice: 0,
       damageResult: null,
-    });
-  });
-
-  it("clears the session when the modal closes", () => {
-    let session = applyAttackRollSession(
-      openAttackRollSession({ combatant: "character", attackType: "melee" }),
-      { type: "toHitRoll", dice: [10], weapon: sword }
-    );
-    session = applyAttackRollSession(session, {
-      type: "changeSelectedWeapon",
-      weapon: axe,
-    });
-    session = applyAttackRollSession(session, {
-      type: "changeExtraToHitDice",
-      extraToHitDice: 2,
-    });
-    session = applyAttackRollSession(session, {
-      type: "changeExtraDamageDice",
-      extraDamageDice: 1,
-    });
-    session = applyAttackRollSession(session, { type: "close" });
-
-    expect(attackRollSessionShown(session)).toEqual({
-      toHitDice: null,
-      dealDamage: null,
-      selectedWeapon: null,
-      extraToHitDice: 0,
     });
   });
 

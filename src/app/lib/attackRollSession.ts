@@ -1,3 +1,5 @@
+import { isD10Success } from "@/app/lib/diceResults";
+
 export type AttackRollSessionCombatant = "character" | "enemyInstance";
 
 export type AttackRollSessionAttack = "melee" | "range" | "throw" | "grid";
@@ -16,12 +18,10 @@ export type AttackRollSessionEvent =
       dice: readonly number[];
       weapon: AttackRollWeaponOption;
     }
-  | { type: "sheetRefresh" }
   | { type: "changeSelectedWeapon"; weapon: AttackRollWeaponOption }
   | { type: "changeExtraDamageDice"; extraDamageDice: number }
   | { type: "changeExtraToHitDice"; extraToHitDice: number }
-  | { type: "damageRoll"; dice: readonly number[] }
-  | { type: "close" };
+  | { type: "damageRoll"; dice: readonly number[] };
 
 export type AttackRollSessionShown = {
   toHitDice: readonly number[] | null;
@@ -63,7 +63,7 @@ function copyWeapon(weapon: AttackRollWeaponOption): AttackRollWeaponOption {
 }
 
 function toHitIsSuccess(dice: readonly number[]): boolean {
-  return dice.some((die) => die >= 8);
+  return dice.some(isD10Success);
 }
 
 function weaponHasOwnDamageDice(weapon: AttackRollWeaponOption): boolean {
@@ -131,15 +131,6 @@ export function applyAttackRollSession(
   if (event.type === "damageRoll") {
     if (!showsDealDamage(session)) return session;
     return { ...session, damageResult: [...event.dice] };
-  }
-  if (event.type === "sheetRefresh") {
-    return session;
-  }
-  if (event.type === "close") {
-    return openAttackRollSession({
-      combatant: session.combatant,
-      attackType: session.attackType,
-    });
   }
   return session;
 }

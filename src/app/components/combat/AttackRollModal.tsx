@@ -10,7 +10,7 @@ import type { AttackModifierOption } from "@/app/lib/equipCombatUtils";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox";
-import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import { emitRollEvent } from "@/app/lib/roll-event-client";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
@@ -125,7 +125,6 @@ export function AttackRollModal(props: AttackRollModalProps) {
 }
 
 function OpenAttackRollModal({
-  isOpen,
   onClose,
   attackType,
   options,
@@ -138,7 +137,7 @@ function OpenAttackRollModal({
   rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: AttackRollModalProps) {
   const { isPrivateRoll, setIsPrivateRoll, emitIsPrivate } =
-    usePrivateRollState(isOpen, rollPrivacy);
+    usePrivateRollState(true, rollPrivacy);
   const [selectedIndex, setSelectedIndex] = useState(() =>
     bestOptionIndex(options)
   );
@@ -388,7 +387,7 @@ function OpenAttackRollModal({
             </p>
             <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
               {shown.toHitDice.map((value, i) => {
-                const isSuccess = value >= 8;
+                const isSuccess = isD10Success(value);
                 const isTen = value === 10;
                 const isOne = value === 1;
                 const colorClass = isSuccess
