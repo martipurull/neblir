@@ -67,11 +67,11 @@ export function ModalShell({
     <div
       className={
         concealed
-          ? "hidden"
+          ? undefined
           : `fixed inset-0 ${zIndexClass} flex items-center justify-center bg-black/40 px-4 py-6`
       }
       {...(concealed
-        ? { hidden: true, inert: true, "aria-hidden": true as const }
+        ? { hidden: true }
         : {
             role: "dialog" as const,
             "aria-modal": true as const,
