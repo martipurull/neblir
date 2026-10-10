@@ -226,3 +226,34 @@ Legacy `*_CSV` env names are still accepted by the orchestrator for backward com
 - Use different credentials for development and production environments
 - Rotate API keys and secrets regularly
 - If credentials are exposed, rotate them immediately
+
+---
+
+### Catalogue environment and Catalogue sync
+
+Each running process is configured as **exactly one** Catalogue environment. Do **not** infer this from `VERCEL_ENV` or `NODE_ENV`. Vercel preview deployments are the development Catalogue environment.
+
+#### `CATALOGUE_ENVIRONMENT`
+
+- **Description**: Which live Official catalogue this process is. Required for Catalogue sync.
+- **Values**: `development`, `production`, or `local`
+- **Preview**: `development`
+- **Local**: use `local` for a distinct local database. Local may be a Catalogue sync destination only; other environments cannot pull it as a source.
+
+#### `CATALOGUE_SYNC_PULL_SECRET`
+
+- **Description**: Server-only shared secret for the Catalogue sync **source snapshot** door (`GET /api/catalogue-sync/snapshot`). Dest pulls with this secret; the browser must never receive it. Cookie super-admin sessions are not this door.
+- **How to set**: Generate a long random string and set the **same** value on every environment that participates in Catalogue sync (development, production, and local dest).
+- ⚠️ **Important**: Treat this like a password. Rotate if leaked.
+
+#### `CATALOGUE_SYNC_DEVELOPMENT_URL`
+
+- **Description**: Public base URL of the development Catalogue environment (no trailing slash). Dest uses this to pull the Official snapshot when source is development. Also used to link Super Admins to that environment’s hub.
+- **Example**: `https://neblir-git-main-….vercel.app` or the stable development host
+
+#### `CATALOGUE_SYNC_PRODUCTION_URL`
+
+- **Description**: Public base URL of the production Catalogue environment (no trailing slash). Dest uses this to pull when source is production, and to link to production super-admin.
+- **Example**: `https://neblir.com`
+
+Local has no pullable source URL. Set **both** development and production public URLs on every participating process: dest uses the source URL to pull, and off-dest Catalogue sync uses the destination URL to link Super Admins to dest’s hub with the pairing.

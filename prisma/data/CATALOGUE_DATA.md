@@ -124,6 +124,22 @@ That clears the drift banner until the next official catalogue write. It does **
 
 ---
 
+## Catalogue sync (dest-pull overlay)
+
+Git seed files remain the versioned source of truth. Catalogue sync does **not** replace this loop. It copies live Official rows from a source Catalogue environment onto a destination Catalogue environment so Super Admins do not wait on a developer seed import to get Official templates onto dest.
+
+On **Super admin**, open **Catalogue sync**. Choose source and destination Catalogue environments (source defaults to this process; destination starts unselected). Preview and apply run only when this process **is** the destination: dest pulls the source Official snapshot over HTTP with a server-only secret. If dest is another environment, the modal does not load Official row payloads; apply is off and it links to dest’s super-admin with the pairing.
+
+Cookie **Bulk export for seed files** / `GET /api/staff/catalogue-seed-export` stays the human git export door. Catalogue sync uses a separate snapshot door with the same Official payload shape (`scope=all` for all seven catalogue domains). It does not copy games, Characters, Custom or Unique content, currencies, or Official image bytes (images already live in the shared catalogue bucket).
+
+On dest, **Apply** overlays unblocked adds and updates for all seven catalogue domains (source wins, and new rows keep the source id). Blocked Official-name or published-reference slug collisions are skipped. Dest-only Official rows stay unless **Delete unused dest-only Official rows** is checked. That checkbox is off by default. With it on, unused dest-only Official rows are deleted; rows still used in play (holdings, Unique rows from that template, Enemy instances, and the same usage Official delete already lists) are skipped, not deleted. Clean those up on dest’s existing Official delete flow. Confirm states how many rows will apply, how many unused dest-only rows will be deleted, how many in-use dest-only rows will be skipped, and how many other blocked rows will be skipped. Production asks you to type the destination name, including when dest-only delete is on; development and local use a light confirm. An empty overlay (nothing to add, update, or delete) does not write.
+
+Apply sets `protectedFromOfficialImport` on written rows and raises the usual **Update seed data in git** banner for catalogue domains that actually changed. It does not clear that banner, and it does not change the source Catalogue environment. The result lists applied, skipped, and failed rows. A later failure does not undo earlier rows. **Diff again** on the same pairing reloads the Official diff from live dest against a fresh source pull: applied ids drop out; rows that failed and still differ show as pending work.
+
+Then export the touched domains into this folder and commit as usual, and acknowledge. Matching another Catalogue environment is not the same as matching git.
+
+---
+
 ## How seed files are consumed
 
 `npm run data:seed:official` runs `prisma/scripts/seedOfficialDataFromFiles.ts`, which imports from the paths set in `OFFICIAL_DATA_*_FILE` (or legacy `*_CSV`) env vars:
