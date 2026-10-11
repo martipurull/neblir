@@ -6,6 +6,7 @@ import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { Button } from "@/app/components/shared/Button";
+import { FilePicker } from "@/app/components/shared/FilePicker";
 import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
 import {
   EMPTY_RICH_TEXT_DOC,
@@ -39,7 +40,7 @@ import { tryUploadPdfPage1Thumbnail } from "@/app/lib/pdfPage1Thumbnail";
 import { isImageFileName, isPdfFileName } from "@/app/lib/r2UploadKeys";
 import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import useSWR from "swr";
 
 type CreateGameLoreEntryModalProps = {
@@ -91,7 +92,6 @@ export function CreateGameLoreEntryModal({
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<
     string | null
   >(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const editor = useEditor({
     extensions: RICH_TEXT_EXTENSIONS,
@@ -157,7 +157,6 @@ export function CreateGameLoreEntryModal({
     setAccess("PLAYER");
     editor?.commands.setContent(EMPTY_RICH_TEXT_DOC);
     setPendingAttachments([]);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleClose = () => {
@@ -221,7 +220,6 @@ export function CreateGameLoreEntryModal({
       );
     } finally {
       setUploadingAttachment(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -449,26 +447,15 @@ export function CreateGameLoreEntryModal({
             ))}
           </ul>
         ) : null}
-        <Button
-          type="button"
-          variant="modalFooterSecondary"
-          fullWidth={false}
-          disabled={submitting || uploadingAttachment}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {uploadingAttachment ? "Uploading…" : "Add file"}
-        </Button>
-        <input
-          ref={fileInputRef}
+        <FilePicker
           id="game-lore-attachments"
-          type="file"
+          chrome="button"
+          buttonLabel={uploadingAttachment ? "Uploading…" : "Add file"}
           accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf"
           disabled={submitting || uploadingAttachment}
-          onChange={(event) => {
-            const nextFile = event.target.files?.[0] ?? null;
+          onFile={(nextFile) => {
             void addAttachmentFile(nextFile);
           }}
-          className="sr-only"
         />
       </div>
     </GameFormModal>

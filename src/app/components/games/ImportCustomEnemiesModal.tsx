@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { FilePicker } from "@/app/components/shared/FilePicker";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { importCustomEnemiesFile } from "@/lib/api/customEnemies";
 import { useCallback, useState } from "react";
@@ -81,19 +82,24 @@ export function ImportCustomEnemiesModal({
         >
           CSV or JSON file
         </label>
-        <input
+        <FilePicker
           id="enemy-csv-file"
-          type="file"
+          chrome="dropzone"
           accept=".csv,.json,text/csv,application/json"
-          className="mt-1 block w-full text-sm text-white file:mr-2 file:rounded file:border-0 file:bg-paleBlue/10 file:px-3 file:py-1.5 file:text-sm file:text-white"
           disabled={busy}
-          onChange={(ev) => {
-            const f = ev.target.files?.[0] ?? null;
-            setFile(f);
+          dropzoneLabel="Import custom enemies by dropping a CSV or JSON file or choosing one"
+          hint="or drag and drop a CSV or JSON export from this app"
+          onFile={(nextFile) => {
+            setFile(nextFile);
             setResultText(null);
             setError(null);
           }}
         />
+        {file ? (
+          <p className="mt-1 text-xs text-white/70">
+            Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
+          </p>
+        ) : null}
       </div>
       {error ? (
         <p className="mt-3 text-sm text-neblirDanger-300">{error}</p>

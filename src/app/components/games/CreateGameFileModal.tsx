@@ -2,9 +2,9 @@
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
+import { FilePicker } from "@/app/components/shared/FilePicker";
 import { TextField } from "@/app/components/shared/TextField";
 import { TextArea } from "@/app/components/shared/TextArea";
-import { Button } from "@/app/components/shared/Button";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import {
   DOCUMENT_IMAGE_MAX_SIZE_BYTES,
@@ -26,14 +26,7 @@ import {
   updateGameFile,
   uploadGameFileToStorage,
 } from "@/lib/api/gameFiles";
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  type DragEvent,
-  type FormEvent,
-} from "react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
 
 type CreateGameFileModalProps = {
   isOpen: boolean;
@@ -73,8 +66,6 @@ export function CreateGameFileModal({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isDragActive, setIsDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const submitDisabled = useMemo(
     () => submitting || !title.trim() || (!isEditMode && selectedFile == null),
@@ -87,7 +78,6 @@ export function CreateGameFileModal({
     setAccess(file?.access ?? "PLAYER");
     setError(null);
     setSelectedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   }, [file]);
 
   const handleClose = useCallback(() => {
@@ -114,16 +104,6 @@ export function CreateGameFileModal({
     setError(null);
     setSelectedFile(candidate);
   }, []);
-
-  const handleDrop = useCallback(
-    (event: DragEvent) => {
-      event.preventDefault();
-      setIsDragActive(false);
-      const dropped = event.dataTransfer.files?.[0] ?? null;
-      selectFile(dropped);
-    },
-    [selectFile]
-  );
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -279,67 +259,14 @@ export function CreateGameFileModal({
           label={isEditMode ? "File (optional replace)" : "File"}
           required={!isEditMode}
         />
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            if (!submitting) fileInputRef.current?.click();
-          }}
-          onKeyDown={(event) => {
-            if (submitting) return;
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
-          onDragOver={(event) => {
-            event.preventDefault();
-            if (!submitting) setIsDragActive(true);
-          }}
-          onDragLeave={(event) => {
-            event.preventDefault();
-            setIsDragActive(false);
-          }}
-          onDrop={handleDrop}
-          className={`rounded-md border-2 border-dashed px-4 py-4 transition-colors ${
-            isDragActive
-              ? "border-paleBlue bg-paleBlue/10"
-              : "border-white/40 bg-transparent"
-          }`}
-          aria-label="Upload an image or PDF by dropping a file or choosing one"
-        >
-          <div className="flex flex-col items-start gap-2">
-            <Button
-              type="button"
-              variant="modalFooterSecondary"
-              fullWidth={false}
-              disabled={submitting}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-            >
-              Choose file
-            </Button>
-            <p className="text-xs text-white/80">
-              Image (max {DOCUMENT_IMAGE_MAX_SIZE_LABEL}) or PDF (max{" "}
-              {PDF_MAX_SIZE_LABEL})
-            </p>
-          </div>
-        </div>
-        <input
-          ref={fileInputRef}
+        <FilePicker
           id="game-file-file"
-          type="file"
+          chrome="dropzone"
           accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf"
           disabled={submitting}
-          onChange={(event) => {
-            const nextFile = event.target.files?.[0] ?? null;
-            selectFile(nextFile);
-            event.target.value = "";
-          }}
-          className="sr-only"
+          dropzoneLabel="Upload an image or PDF by dropping a file or choosing one"
+          hint={`Image (max ${DOCUMENT_IMAGE_MAX_SIZE_LABEL}) or PDF (max ${PDF_MAX_SIZE_LABEL})`}
+          onFile={selectFile}
         />
         {selectedFile ? (
           <p className="mt-1 text-xs text-white/70">

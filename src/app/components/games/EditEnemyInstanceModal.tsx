@@ -7,7 +7,7 @@ import { GameModalRichTextField } from "@/app/components/games/shared/GameModalR
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { darkSelectClassName } from "@/app/components/shared/darkInputStyles";
+import { SelectField } from "@/app/components/shared/SelectField";
 import { TextField } from "@/app/components/shared/TextField";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import type { EnemyInstanceDetailResponse } from "@/lib/api/enemyInstances";
@@ -274,17 +274,18 @@ export function EditEnemyInstanceModal({
 
         <div>
           <FieldLabel id="edit-enemy-instance-status" label="Status" required />
-          <select
+          <SelectField<EnemyInstanceStatus>
             id="edit-enemy-instance-status"
-            className={darkSelectClassName}
+            variant="dark"
             value={status}
-            onChange={(e) => setStatus(e.target.value as EnemyInstanceStatus)}
+            onChange={setStatus}
             disabled={busy}
-          >
-            <option value="ACTIVE">Active</option>
-            <option value="DEFEATED">Defeated</option>
-            <option value="DEAD">Dead</option>
-          </select>
+            options={[
+              { value: "ACTIVE", label: "Active" },
+              { value: "DEFEATED", label: "Defeated" },
+              { value: "DEAD", label: "Dead" },
+            ]}
+          />
           <p className="mt-1 text-xs text-white/55">
             At 0 HP, choose Defeated or Dead (not Active).
           </p>
