@@ -6,7 +6,6 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { mapUpdateSchema } from "@/app/lib/types/map";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -18,7 +17,6 @@ import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 type MapRow = {
   id: string;
@@ -208,13 +206,6 @@ export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
           </div>
         </form>
       ) : null}
-
-      <Link
-        href="/home/super-admin/maps/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to maps
-      </Link>
     </SuperAdminSectionShell>
   );
 }

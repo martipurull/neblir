@@ -1,7 +1,9 @@
 "use client";
 
 import { FormProvider, useForm } from "react-hook-form";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { characterSheetHref } from "@/app/lib/navParent";
 import { Button } from "@/app/components/shared/Button";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
@@ -16,9 +18,31 @@ import {
 } from "./schemas";
 
 export default function CharacterUpdatePage() {
+  return (
+    <Suspense
+      fallback={
+        <PageSection>
+          <LoadingState text="Loading character..." />
+        </PageSection>
+      }
+    >
+      <CharacterUpdatePageContent />
+    </Suspense>
+  );
+}
+
+function CharacterUpdatePageContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = typeof params.id === "string" ? params.id : null;
+  const sheetHref =
+    id == null
+      ? "/home/characters"
+      : characterSheetHref({
+          characterId: id,
+          returnTo: searchParams.get("returnTo"),
+        });
   const { character, loading, error, refetch } = useCharacter(id);
 
   if (id == null) {
@@ -56,7 +80,7 @@ export default function CharacterUpdatePage() {
           type="button"
           variant="semanticDangerOutline"
           fullWidth={false}
-          onClick={() => router.push(`/home/characters/${id}`)}
+          onClick={() => router.push(sheetHref)}
           className="text-xs"
         >
           Exit to character page

@@ -31,7 +31,6 @@ import {
 } from "@/app/lib/types/item";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import type { z } from "zod";
-import Link from "next/link";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -49,7 +48,6 @@ import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminWeaponFieldsSection } from "./SuperAdminWeaponFieldsSection";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 import {
   catalogueItemImageKey,
   catalogueItemToFormValues,
@@ -845,15 +843,6 @@ export function SuperAdminCreateItemForm({
           </div>
         </form>
       </FormProvider>
-
-      {isEdit ? (
-        <Link
-          href="/home/super-admin/items/browse"
-          className={`${superAdminNavLinkClassName} mt-6`}
-        >
-          ← Back to items
-        </Link>
-      ) : null}
     </SuperAdminSectionShell>
   );
 }

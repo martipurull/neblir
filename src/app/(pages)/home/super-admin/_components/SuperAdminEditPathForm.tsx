@@ -11,7 +11,6 @@ import {
   type PathCreate,
 } from "@/app/lib/types/path";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -19,7 +18,6 @@ import useSWR from "swr";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 async function pathFetcher(url: string): Promise<Path> {
   const res = await fetch(url);
@@ -194,13 +192,6 @@ export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
           </Button>
         </form>
       ) : null}
-
-      <Link
-        href="/home/super-admin/paths/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to paths
-      </Link>
     </SuperAdminSectionShell>
   );
 }

@@ -2,6 +2,7 @@ import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveChar
 import { Button } from "@/app/components/shared/Button";
 import { gmNpcCardActionClassName } from "@/app/components/shared/buttonStyles";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { characterSheetHref } from "@/app/lib/navParent";
 import type { GameDetail } from "@/app/lib/types/game";
 import {
   linkVisibilityBadgeClassName,
@@ -46,7 +47,11 @@ export function GmNpcCard({
     <li className="flex flex-col gap-2 rounded-md border border-black/10 bg-paleBlue/40 px-3 py-2">
       <div className="flex items-center gap-3">
         <Link
-          href={`/home/characters/${char.id}?returnTo=${encodeURIComponent(`/home/games/${gameId}/gm`)}`}
+          href={characterSheetHref({
+            characterId: char.id,
+            gameId: char.isOwnedByCurrentUser ? null : gameId,
+            returnTo: `/home/games/${gameId}/gm`,
+          })}
           className="min-w-0 flex-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-black/30"
         >
           <div className="flex items-center gap-3">

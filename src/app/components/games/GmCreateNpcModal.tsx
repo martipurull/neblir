@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { createCharacterHref } from "@/app/lib/navParent";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
@@ -29,13 +30,14 @@ export function GmCreateNpcModal({
   const [knownToPlayers, setKnownToPlayers] = useState(defaultKnownToPlayers);
 
   const startCreate = () => {
-    const params = new URLSearchParams({
-      fresh: "1",
-      gameId,
-      returnTo,
-      gameLinkIsPublic: knownToPlayers ? "1" : "0",
-    });
-    router.push(`/home/characters/create?${params.toString()}`);
+    router.push(
+      createCharacterHref({
+        fresh: true,
+        gameId,
+        returnTo,
+        gameLinkIsPublic: knownToPlayers,
+      })
+    );
     onClose();
   };
 

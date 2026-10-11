@@ -1,4 +1,5 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { characterSheetHref } from "@/app/lib/navParent";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { CharacterDetail } from "@/app/lib/types/character";
@@ -31,6 +32,11 @@ import type {
 
 export function useCharacterLevelUp(id: string, character: CharacterDetail) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sheetHref = characterSheetHref({
+    characterId: id,
+    returnTo: searchParams.get("returnTo"),
+  });
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [paths, setPaths] = useState<PathOption[]>([]);
   const [features, setFeatures] = useState<FeatureOption[]>([]);
@@ -548,7 +554,7 @@ export function useCharacterLevelUp(id: string, character: CharacterDetail) {
       });
       setSubmitSuccess(true);
       clearLevelUpDraft(id);
-      router.push(`/home/characters/${id}`);
+      router.push(sheetHref);
     } catch (e) {
       setSubmitError(
         getUserSafeErrorMessage(e, "Failed to level up character")
@@ -560,6 +566,7 @@ export function useCharacterLevelUp(id: string, character: CharacterDetail) {
 
   return {
     form,
+    sheetHref,
     currentStepIndex,
     goToStep,
     onSubmit,

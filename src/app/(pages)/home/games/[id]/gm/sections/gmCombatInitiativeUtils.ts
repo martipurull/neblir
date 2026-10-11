@@ -1,3 +1,4 @@
+import { characterSheetHref as buildCharacterSheetHref } from "@/app/lib/navParent";
 import type {
   EnemyInstanceRow,
   GameCharacterRow,
@@ -8,10 +9,11 @@ export function characterSheetHref(
   gameId: string,
   character: GameCharacterRow["character"]
 ): string {
-  if (character.isOwnedByCurrentUser) {
-    return `/home/characters/${character.id}?returnTo=${encodeURIComponent(`/home/games/${gameId}/gm`)}`;
-  }
-  return `/home/games/${gameId}/characters/${character.id}`;
+  return buildCharacterSheetHref({
+    characterId: character.id,
+    gameId: character.isOwnedByCurrentUser ? null : gameId,
+    returnTo: `/home/games/${gameId}/gm`,
+  });
 }
 
 export function buildCharacterById(
