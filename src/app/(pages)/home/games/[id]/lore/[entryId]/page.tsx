@@ -9,14 +9,12 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
-import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
 import { isImageFileName } from "@/app/lib/r2UploadKeys";
 import type { ReferenceEntryAttachment } from "@/app/lib/types/referenceEntryAttachment";
 import { useGame } from "@/hooks/use-game";
 import { useLoreAttachmentPreviewUrls } from "@/hooks/use-game-file-urls";
 import { getLoreAttachmentUrl } from "@/lib/api/loreAttachments";
 import { getReferenceEntry } from "@/lib/api/referenceEntries";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
@@ -152,18 +150,6 @@ export default function GameLoreEntryPage() {
 
   return (
     <PageSection>
-      <div className="mb-4 flex items-center gap-2">
-        <Link
-          href={
-            game?.isGameMaster
-              ? gameMasterTableSettingsPath(gameId)
-              : `/home/games/${gameId}/lore`
-          }
-          className="text-sm text-black/70 hover:underline"
-        >
-          {game?.isGameMaster ? "← Back to table settings" : "← Back to lore"}
-        </Link>
-      </div>
       <PageTitle>{entry.title}</PageTitle>
       {showAccessBadge ? (
         <div className="mt-2">

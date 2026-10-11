@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 
 /**
- * Index URL for /gm/enemies (no instance id). The shell BackButton strips the last
- * segment from instance pages and lands here — without this route that navigation 404s.
- * The enemies UI lives on the GM page.
+ * Index URL for /gm/enemies (no instance id). Existing links still resolve
+ * here and land on the Game master page. The enemies UI lives on that page.
  */
 export default async function GmEnemiesIndexPage({
   params,

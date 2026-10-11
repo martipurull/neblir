@@ -8,7 +8,6 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -20,7 +19,6 @@ import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 type EnemyFormValues = {
   name: string;
@@ -267,13 +265,6 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
           </form>
         </FormProvider>
       ) : null}
-
-      <Link
-        href="/home/super-admin/enemies/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to enemies
-      </Link>
     </SuperAdminSectionShell>
   );
 }

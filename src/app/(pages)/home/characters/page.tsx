@@ -7,6 +7,7 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageSubtitle } from "@/app/components/shared/PageSubtitle";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
+import { characterSheetHref, createCharacterHref } from "@/app/lib/navParent";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
@@ -34,7 +35,7 @@ const CharactersPage: React.FC = () => {
           </PageSubtitle>
         </div>
         <Link
-          href="/home/characters/create?fresh=1"
+          href={createCharacterHref({ fresh: true })}
           className="inline-flex shrink-0 items-center justify-center rounded-md border border-black bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
         >
           Create Character
@@ -61,7 +62,7 @@ const CharactersPage: React.FC = () => {
               return (
                 <ResourceListCard
                   key={character.id}
-                  href={`/home/characters/${character.id}`}
+                  href={characterSheetHref({ characterId: character.id })}
                   title={`${character.name}${character.surname ? ` ${character.surname}` : ""}`}
                   subtitle={
                     <>

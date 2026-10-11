@@ -4,16 +4,6 @@ import type {
   InitiativeEntry,
 } from "./gmCombatInitiativeTypes";
 
-export function characterSheetHref(
-  gameId: string,
-  character: GameCharacterRow["character"]
-): string {
-  if (character.isOwnedByCurrentUser) {
-    return `/home/characters/${character.id}?returnTo=${encodeURIComponent(`/home/games/${gameId}/gm`)}`;
-  }
-  return `/home/games/${gameId}/characters/${character.id}`;
-}
-
 export function buildCharacterById(
   rows: GameCharacterRow[] | null | undefined
 ): Map<string, GameCharacterRow["character"]> {

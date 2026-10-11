@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { BackButton } from "@/app/components/BackButton";
+import { NavParentLink } from "@/app/components/NavParentLink";
 import { HomeButton } from "@/app/components/HomeButton";
 import { SignOut } from "@/app/components/SignOut";
 import { redirect } from "next/navigation";
@@ -21,7 +21,7 @@ export default async function HomeLayout({
         <nav className="mb-1 flex shrink-0 items-center justify-between gap-2 sm:mb-2">
           <div className="min-w-0 flex-1 basis-0 text-left">
             {/*
-              BackButton uses useSearchParams(). Next App Router requires a Suspense
+              NavParentLink uses useSearchParams(). Next App Router requires a Suspense
               boundary above any such hook (CSR bailout). This wraps all /home routes,
               not only the GM page — without it, /home/games/[id]/gm can resolve as 404.
             */}
@@ -30,7 +30,7 @@ export default async function HomeLayout({
                 <div className="inline-block min-h-[2.25rem] min-w-[4rem]" />
               }
             >
-              <BackButton />
+              <NavParentLink />
             </Suspense>
           </div>
           <HomeButton />

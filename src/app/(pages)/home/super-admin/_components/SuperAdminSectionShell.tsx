@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import React from "react";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 type SuperAdminSectionShellProps = {
   title: string;
@@ -20,12 +18,6 @@ const SuperAdminSectionShell: React.FC<SuperAdminSectionShellProps> = ({
 }) => {
   return (
     <div className="mx-auto w-full max-w-2xl pb-10">
-      <Link
-        href="/home/super-admin"
-        className={`${superAdminNavLinkClassName} mb-4 sm:mb-5`}
-      >
-        ← Super admin hub
-      </Link>
       <div
         className={
           titleAside

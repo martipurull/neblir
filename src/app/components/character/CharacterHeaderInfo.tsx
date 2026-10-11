@@ -5,7 +5,7 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import {
   CharacterNameActionsModal,
@@ -125,19 +125,21 @@ export function CharacterHeaderInfo({
         ) : null}
       </div>
 
-      {showCharacterActions && (
-        <CharacterNameActionsModal
-          isOpen={actionsOpen}
-          onClose={() => setActionsOpen(false)}
-          characterId={characterId}
-          characterName={name}
-          gameOptions={activeGameOptions}
-          gameLinks={gameLinks}
-          activeGameId={activeGameId}
-          onActiveGameChange={onActiveGameChange}
-          onVisibilityUpdated={onVisibilityUpdated}
-        />
-      )}
+      {showCharacterActions ? (
+        <Suspense fallback={null}>
+          <CharacterNameActionsModal
+            isOpen={actionsOpen}
+            onClose={() => setActionsOpen(false)}
+            characterId={characterId}
+            characterName={name}
+            gameOptions={activeGameOptions}
+            gameLinks={gameLinks}
+            activeGameId={activeGameId}
+            onActiveGameChange={onActiveGameChange}
+            onVisibilityUpdated={onVisibilityUpdated}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

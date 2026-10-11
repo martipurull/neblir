@@ -2,6 +2,8 @@ import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
+import { gameMasterTableSettingsPath } from "@/app/lib/gameMasterPaths";
+import { loreEntryHref } from "@/app/lib/navParent";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import Link from "next/link";
@@ -77,7 +79,11 @@ export function GmLoreSection({
                   className="rounded-md border border-black/10 bg-paleBlue/50 transition-colors duration-150 hover:bg-paleBlue/70"
                 >
                   <Link
-                    href={`/home/games/${gameId}/lore/${entry.id}`}
+                    href={loreEntryHref({
+                      gameId,
+                      entryId: entry.id,
+                      returnTo: gameMasterTableSettingsPath(gameId),
+                    })}
                     className="block px-3 py-2"
                   >
                     <div className="flex items-center justify-between gap-2">

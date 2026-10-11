@@ -8,6 +8,7 @@ import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
+import { characterSheetHref } from "@/app/lib/navParent";
 import { useGame } from "@/hooks/use-game";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useUser } from "@/hooks/use-user";
@@ -140,7 +141,11 @@ export default function GameDetailPage() {
                 return (
                   <li key={gc.id}>
                     <Link
-                      href={`/home/games/${game.id}/characters/${gc.character.id}`}
+                      href={characterSheetHref({
+                        characterId: gc.character.id,
+                        gameId: game.id,
+                        returnTo: `/home/games/${game.id}`,
+                      })}
                       className="block rounded-md border border-black p-3 text-sm font-semibold text-black transition-colors duration-200 ease-in-out md:hover:bg-paleBlue/30"
                     >
                       {name}
