@@ -5,7 +5,7 @@ import { ResourceListCard } from "@/app/components/shared/ResourceListCard";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveCharacterFromGameButton";
 import { isKnownNpcSheetLinkForViewer } from "@/app/lib/gmUtils";
-import { characterSheetHref } from "@/app/lib/navParent";
+import { linkedCharacterSheetHref } from "@/app/lib/navParent";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
@@ -81,9 +81,10 @@ export function GameLinkedCharactersList({
           char.isOwnedByCurrentUser ||
           game.isGameMaster === true ||
           isPlayGrantee
-            ? characterSheetHref({
+            ? linkedCharacterSheetHref({
                 characterId: char.id,
-                gameId: char.isOwnedByCurrentUser ? null : game.id,
+                gameId: game.id,
+                ownedByCurrentUser: char.isOwnedByCurrentUser,
                 returnTo,
               })
             : null;

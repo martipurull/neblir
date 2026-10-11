@@ -1,20 +1,8 @@
-import { characterSheetHref as buildCharacterSheetHref } from "@/app/lib/navParent";
 import type {
   EnemyInstanceRow,
   GameCharacterRow,
   InitiativeEntry,
 } from "./gmCombatInitiativeTypes";
-
-export function characterSheetHref(
-  gameId: string,
-  character: GameCharacterRow["character"]
-): string {
-  return buildCharacterSheetHref({
-    characterId: character.id,
-    gameId: character.isOwnedByCurrentUser ? null : gameId,
-    returnTo: `/home/games/${gameId}/gm`,
-  });
-}
 
 export function buildCharacterById(
   rows: GameCharacterRow[] | null | undefined

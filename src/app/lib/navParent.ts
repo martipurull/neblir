@@ -44,15 +44,6 @@ const CATALOGUE_SIBLING = new RegExp(
 const CATALOGUE_EDIT = new RegExp(
   `^/home/super-admin/(${CATALOGUE_DOMAIN})/(${ID_SOURCE})/edit$`
 );
-const GAME_PAGE_HREF = new RegExp(`^/home/games/(${ID_SOURCE})$`);
-const CHARACTER_RETURN_GAME = new RegExp(`^/home/games/(${ID_SOURCE})$`);
-const CHARACTER_RETURN_PLAYERS = new RegExp(
-  `^/home/games/(${ID_SOURCE})/characters$`
-);
-const CHARACTER_RETURN_NPCS = new RegExp(
-  `^/home/games/(${ID_SOURCE})/known-npcs$`
-);
-const CHARACTER_RETURN_GM = new RegExp(`^/home/games/(${ID_SOURCE})/gm$`);
 
 const DASHBOARD_CHILDREN = new Set([
   "/home/settings",
@@ -95,12 +86,47 @@ export type NavParent = NavParentLink | { hidden: true };
 
 const HIDDEN: NavParent = { hidden: true };
 
+const GAME_SCOPED_RETURN_KINDS = [
+  "game",
+  "player-characters",
+  "known-npcs",
+  "game-master",
+] as const;
+
+type GameScopedReturnKind = (typeof GAME_SCOPED_RETURN_KINDS)[number];
+
 type CharacterReturn =
-  | { kind: "characters" }
-  | { kind: "game"; gameId: string }
-  | { kind: "player-characters"; gameId: string }
-  | { kind: "known-npcs"; gameId: string }
-  | { kind: "game-master"; gameId: string };
+  | { kind: "characters"; gameId: null }
+  | { kind: GameScopedReturnKind; gameId: string };
+
+type GameScopedReturn = {
+  pattern: RegExp;
+  href: (gameId: string) => string;
+  title: (titles: NavParentTitles) => string;
+};
+
+const GAME_SCOPED_RETURNS: Record<GameScopedReturnKind, GameScopedReturn> = {
+  game: {
+    pattern: GAME_PAGE,
+    href: (gameId) => `/home/games/${gameId}`,
+    title: (titles) => resolveEntityPageTitle(titles.gameTitle, "Game"),
+  },
+  "player-characters": {
+    pattern: new RegExp(`^/home/games/(${ID_SOURCE})/characters$`),
+    href: (gameId) => `/home/games/${gameId}/characters`,
+    title: () => "Player Characters",
+  },
+  "known-npcs": {
+    pattern: new RegExp(`^/home/games/(${ID_SOURCE})/known-npcs$`),
+    href: (gameId) => `/home/games/${gameId}/known-npcs`,
+    title: () => "Known NPCs",
+  },
+  "game-master": {
+    pattern: new RegExp(`^/home/games/(${ID_SOURCE})/gm$`),
+    href: (gameId) => `/home/games/${gameId}/gm`,
+    title: () => "Game master",
+  },
+};
 
 type ReturnScope =
   | { mode: "any-game" }
@@ -149,15 +175,13 @@ function normalizeReturnTarget(raw: string | null | undefined): string | null {
 }
 
 function parseCharacterReturn(path: string): CharacterReturn | null {
-  if (path === "/home/characters") return { kind: "characters" };
-  const game = CHARACTER_RETURN_GAME.exec(path);
-  if (game?.[1]) return { kind: "game", gameId: game[1] };
-  const players = CHARACTER_RETURN_PLAYERS.exec(path);
-  if (players?.[1]) return { kind: "player-characters", gameId: players[1] };
-  const npcs = CHARACTER_RETURN_NPCS.exec(path);
-  if (npcs?.[1]) return { kind: "known-npcs", gameId: npcs[1] };
-  const gm = CHARACTER_RETURN_GM.exec(path);
-  if (gm?.[1]) return { kind: "game-master", gameId: gm[1] };
+  if (path === "/home/characters") {
+    return { kind: "characters", gameId: null };
+  }
+  for (const kind of GAME_SCOPED_RETURN_KINDS) {
+    const gameId = GAME_SCOPED_RETURNS[kind].pattern.exec(path)?.[1];
+    if (gameId) return { kind, gameId };
+  }
   return null;
 }
 
@@ -175,46 +199,27 @@ function acceptCharacterReturn(
   return parsed;
 }
 
-function characterReturnPath(target: CharacterReturn): string {
-  switch (target.kind) {
-    case "characters":
-      return "/home/characters";
-    case "game":
-      return `/home/games/${target.gameId}`;
-    case "player-characters":
-      return `/home/games/${target.gameId}/characters`;
-    case "known-npcs":
-      return `/home/games/${target.gameId}/known-npcs`;
-    case "game-master":
-      return `/home/games/${target.gameId}/gm`;
-  }
+function characterReturnHref(target: CharacterReturn): string {
+  if (target.kind === "characters") return "/home/characters";
+  return GAME_SCOPED_RETURNS[target.kind].href(target.gameId);
+}
+
+function characterReturnTitle(
+  target: CharacterReturn,
+  titles: NavParentTitles
+): string {
+  if (target.kind === "characters") return "Characters";
+  return GAME_SCOPED_RETURNS[target.kind].title(titles);
 }
 
 function parentForCharacterReturn(
   target: CharacterReturn,
   titles: NavParentTitles
 ): NavParentLink {
-  switch (target.kind) {
-    case "characters":
-      return parentLink("/home/characters", "Characters");
-    case "game":
-      return parentLink(
-        `/home/games/${target.gameId}`,
-        resolveEntityPageTitle(titles.gameTitle, "Game")
-      );
-    case "player-characters":
-      return parentLink(
-        `/home/games/${target.gameId}/characters`,
-        "Player Characters"
-      );
-    case "known-npcs":
-      return parentLink(
-        `/home/games/${target.gameId}/known-npcs`,
-        "Known NPCs"
-      );
-    case "game-master":
-      return parentLink(`/home/games/${target.gameId}/gm`, "Game master");
-  }
+  return parentLink(
+    characterReturnHref(target),
+    characterReturnTitle(target, titles)
+  );
 }
 
 function withReturnTo(path: string, returnTo: string | null): string {
@@ -249,7 +254,7 @@ export function characterSheetHref(input: {
   const path = gameId
     ? `/home/games/${gameId}/characters/${input.characterId}`
     : `/home/characters/${input.characterId}`;
-  return withReturnTo(path, accepted ? characterReturnPath(accepted) : null);
+  return withReturnTo(path, accepted ? characterReturnHref(accepted) : null);
 }
 
 export function createCharacterHref(
@@ -268,7 +273,7 @@ export function createCharacterHref(
   const params = new URLSearchParams();
   if (input.fresh) params.set("fresh", "1");
   if (gameId) params.set("gameId", gameId);
-  if (accepted) params.set("returnTo", characterReturnPath(accepted));
+  if (accepted) params.set("returnTo", characterReturnHref(accepted));
   if (input.gameLinkIsPublic != null) {
     params.set("gameLinkIsPublic", input.gameLinkIsPublic ? "1" : "0");
   }
@@ -285,31 +290,64 @@ export function loreEntryHref(input: {
   return withReturnTo(path, acceptLoreReturn(input.returnTo, input.gameId));
 }
 
+function ownedCharacterEditorHref(
+  characterId: string,
+  editor: "update" | "level-up",
+  returnTo: string | null | undefined
+): string {
+  return withReturnTo(
+    `/home/characters/${characterId}/${editor}`,
+    acceptedOwnedReturnPath(returnTo)
+  );
+}
+
 export function characterUpdateHref(input: {
   characterId: string;
   returnTo?: string | null;
 }): string {
-  return withReturnTo(
-    `/home/characters/${input.characterId}/update`,
-    acceptedOwnedReturnPath(input.returnTo)
-  );
+  return ownedCharacterEditorHref(input.characterId, "update", input.returnTo);
 }
 
 export function characterLevelUpHref(input: {
   characterId: string;
   returnTo?: string | null;
 }): string {
-  return withReturnTo(
-    `/home/characters/${input.characterId}/level-up`,
-    acceptedOwnedReturnPath(input.returnTo)
+  return ownedCharacterEditorHref(
+    input.characterId,
+    "level-up",
+    input.returnTo
   );
+}
+
+export function linkedCharacterSheetHref(input: {
+  characterId: string;
+  gameId: string;
+  ownedByCurrentUser: boolean;
+  returnTo?: string | null;
+}): string {
+  return characterSheetHref({
+    characterId: input.characterId,
+    gameId: input.ownedByCurrentUser ? null : input.gameId,
+    returnTo: input.returnTo,
+  });
+}
+
+export function gmLinkedCharacterSheetHref(input: {
+  characterId: string;
+  gameId: string;
+  ownedByCurrentUser: boolean;
+}): string {
+  return linkedCharacterSheetHref({
+    ...input,
+    returnTo: GAME_SCOPED_RETURNS["game-master"].href(input.gameId),
+  });
 }
 
 function acceptedOwnedReturnPath(
   raw: string | null | undefined
 ): string | null {
   const accepted = acceptCharacterReturn(raw, { mode: "any-game" });
-  return accepted ? characterReturnPath(accepted) : null;
+  return accepted ? characterReturnHref(accepted) : null;
 }
 
 function charactersFallback(): NavParentLink {
@@ -454,7 +492,7 @@ export function navParentTitleIds(
 ): { gameId: string | null; characterId: string | null } {
   const parent = resolveNavParent(pathname, query, {});
   const gameId =
-    "href" in parent ? (GAME_PAGE_HREF.exec(parent.href)?.[1] ?? null) : null;
+    "href" in parent ? (GAME_PAGE.exec(parent.href)?.[1] ?? null) : null;
   const characterId = OWNED_EDITOR.exec(normalizePath(pathname))?.[1] ?? null;
   return { gameId, characterId };
 }

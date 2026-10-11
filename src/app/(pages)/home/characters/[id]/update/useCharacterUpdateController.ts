@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { z } from "zod";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { characterSheetHref } from "@/app/lib/navParent";
+import { useParams, useRouter } from "next/navigation";
+import { useOwnedCharacterSheetHref } from "../useOwnedCharacterSheetHref";
 import type { UseFormSetError } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 import { characterCreationRequestSchema } from "@/app/api/characters/schemas";
@@ -50,9 +50,9 @@ function summarizeZodError(error: z.ZodError): string {
 
 export function useCharacterUpdateController() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const params = useParams();
   const characterId = typeof params.id === "string" ? params.id : "";
+  const sheetHref = useOwnedCharacterSheetHref(characterId);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -472,12 +472,7 @@ export function useCharacterUpdateController() {
           })
         );
         setSubmitSuccess(true);
-        router.replace(
-          characterSheetHref({
-            characterId,
-            returnTo: searchParams.get("returnTo"),
-          })
-        );
+        router.replace(sheetHref);
       } catch (e) {
         setSubmitError(
           getUserSafeErrorMessage(e, "Failed to update character")
@@ -486,7 +481,7 @@ export function useCharacterUpdateController() {
         setIsSubmitting(false);
       }
     },
-    [characterId, router, searchParams, validateAllSteps]
+    [characterId, router, sheetHref, validateAllSteps]
   );
 
   const onConfirmLevelDecrease = useCallback(() => {

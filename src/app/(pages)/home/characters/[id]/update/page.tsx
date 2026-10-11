@@ -2,8 +2,8 @@
 
 import { FormProvider, useForm } from "react-hook-form";
 import { Suspense } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { characterSheetHref } from "@/app/lib/navParent";
+import { useParams, useRouter } from "next/navigation";
+import { useOwnedCharacterSheetHref } from "../useOwnedCharacterSheetHref";
 import { Button } from "@/app/components/shared/Button";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
@@ -34,15 +34,8 @@ export default function CharacterUpdatePage() {
 function CharacterUpdatePageContent() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const id = typeof params.id === "string" ? params.id : null;
-  const sheetHref =
-    id == null
-      ? "/home/characters"
-      : characterSheetHref({
-          characterId: id,
-          returnTo: searchParams.get("returnTo"),
-        });
+  const sheetHref = useOwnedCharacterSheetHref(id);
   const { character, loading, error, refetch } = useCharacter(id);
 
   if (id == null) {

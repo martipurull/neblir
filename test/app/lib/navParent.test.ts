@@ -4,6 +4,8 @@ import {
   characterSheetHref,
   characterUpdateHref,
   createCharacterHref,
+  gmLinkedCharacterSheetHref,
+  linkedCharacterSheetHref,
   loreEntryHref,
   resolveNavParent,
   type NavParent,
@@ -429,6 +431,31 @@ describe("nav parent href builders", () => {
     ).toBe(
       "/home/characters/create?fresh=1&gameId=g1&returnTo=%2Fhome%2Fgames%2Fg1%2Fgm&gameLinkIsPublic=1"
     );
+  });
+
+  it("opens an owned sheet or a game-scoped sheet from a game link", () => {
+    expect(
+      linkedCharacterSheetHref({
+        characterId: "c1",
+        gameId: "g1",
+        ownedByCurrentUser: true,
+        returnTo: "/home/games/g1/gm",
+      })
+    ).toBe("/home/characters/c1?returnTo=%2Fhome%2Fgames%2Fg1%2Fgm");
+    expect(
+      gmLinkedCharacterSheetHref({
+        characterId: "c1",
+        gameId: "g1",
+        ownedByCurrentUser: false,
+      })
+    ).toBe("/home/games/g1/characters/c1?returnTo=%2Fhome%2Fgames%2Fg1%2Fgm");
+    expect(
+      gmLinkedCharacterSheetHref({
+        characterId: "c1",
+        gameId: "g1",
+        ownedByCurrentUser: true,
+      })
+    ).toBe("/home/characters/c1?returnTo=%2Fhome%2Fgames%2Fg1%2Fgm");
   });
 
   it("omits an illegal lore return target", () => {
