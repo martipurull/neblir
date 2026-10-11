@@ -17,7 +17,6 @@ import {
   type ReferenceEntry,
 } from "@/app/lib/types/reference";
 import type { JSONContent } from "@tiptap/core";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -28,7 +27,6 @@ import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 type RefFormValues = {
   category: ReferenceCategory;
@@ -254,13 +252,6 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
           </form>
         </FormProvider>
       ) : null}
-
-      <Link
-        href="/home/super-admin/reference/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to reference entries
-      </Link>
     </SuperAdminSectionShell>
   );
 }

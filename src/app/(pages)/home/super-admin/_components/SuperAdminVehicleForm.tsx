@@ -8,7 +8,6 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { RichTextField } from "@/app/components/shared/RichTextField";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import useSWR from "swr";
@@ -39,7 +38,6 @@ import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type VehicleRow = Vehicle & { id: string; imageKey?: string | null };
@@ -574,13 +572,6 @@ function SuperAdminVehicleFormFields({
           </form>
         </FormProvider>
       ) : null}
-
-      <Link
-        href="/home/super-admin/vehicles/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to vehicles
-      </Link>
     </SuperAdminSectionShell>
   );
 }

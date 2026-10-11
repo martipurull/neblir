@@ -18,11 +18,12 @@ import { setGameCharacterVisibility } from "@/lib/api/game";
 import { updateUserCharacterLayoutMode } from "@/lib/api/user";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
+import { characterLevelUpHref, characterUpdateHref } from "@/app/lib/navParent";
 import { useUser } from "@/hooks/use-user";
 import { useGame } from "@/hooks/use-game";
 import { PlayGrantActions } from "./PlayGrantActions";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export type CharacterGameLinkForActions = {
@@ -54,6 +55,8 @@ export function CharacterNameActionsModal({
   onVisibilityUpdated,
 }: CharacterNameActionsModalProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const { user, refetch: refetchUser } = useUser();
   const { game: activeGame, refetch: refetchActiveGame } = useGame(
     isOpen ? activeGameId : null
@@ -197,14 +200,14 @@ export function CharacterNameActionsModal({
         >
           <div className="flex flex-col gap-2">
             <Link
-              href={`/home/characters/${characterId}/update`}
+              href={characterUpdateHref({ characterId, returnTo })}
               className={actionBlockLinkClass}
               onClick={onClose}
             >
               Update Character
             </Link>
             <Link
-              href={`/home/characters/${characterId}/level-up`}
+              href={characterLevelUpHref({ characterId, returnTo })}
               className={actionBlockLinkClass}
               onClick={onClose}
             >

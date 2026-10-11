@@ -10,7 +10,6 @@ import { RichTextField } from "@/app/components/shared/RichTextField";
 import { featureCatalogueUpdateSchema } from "@/app/lib/types/featureCatalogue";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { NumberInput } from "@/app/components/shared/NumberInput";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -21,7 +20,6 @@ import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSecti
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
-import { superAdminNavLinkClassName } from "./superAdminNavLinkClass";
 
 type FeatureRow = {
   id: string;
@@ -303,13 +301,6 @@ export function SuperAdminEditFeatureForm({
           </form>
         </FormProvider>
       ) : null}
-
-      <Link
-        href="/home/super-admin/features/browse"
-        className={`${superAdminNavLinkClassName} mt-6`}
-      >
-        ← Back to features
-      </Link>
     </SuperAdminSectionShell>
   );
 }

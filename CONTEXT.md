@@ -34,6 +34,10 @@ _Avoid_: edit (when meaning in-play)
 The user recorded as the game master for that game. The GM has standing play control of every character linked to the game.
 _Avoid_: owner (when meaning the GM's table role)
 
+**Game master page**:
+The GM's screen for one game, where that GM runs dice, combat, NPCs, and enemies.
+_Avoid_: GM page
+
 **GM-controlled character**:
 A character linked to a game whose Owners among that game's users are none or only the GM. Table fiction: NPC.
 _Avoid_: NPC (as a stored type), co-controlled (when meaning a play grant)
@@ -149,7 +153,7 @@ An extra max HP on a character’s vehicle holding, added to the template or uni
 _Avoid_: unique max HP, maxHpOverride
 
 **Custom item / custom vehicle**:
-A game-scoped template the GM creates and edits from the GM page. Changing it changes every holding of that template.
+A game-scoped template the GM creates and edits from the Game master page. Changing it changes every holding of that template.
 _Avoid_: unique item, unique vehicle, official item, official vehicle
 
 **Unique item / unique vehicle**:

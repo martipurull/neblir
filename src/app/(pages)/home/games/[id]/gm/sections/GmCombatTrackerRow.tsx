@@ -12,7 +12,7 @@ import {
 } from "./gmCombatDisplay";
 import { GmCombatHpDisplay } from "./GmCombatHpDisplay";
 import { GmCombatantAvatar } from "./GmCombatantAvatar";
-import { characterSheetHref } from "./gmCombatInitiativeUtils";
+import { gmLinkedCharacterSheetHref } from "@/app/lib/navParent";
 import type { CombatTrackerRowProps } from "./gmCombatInitiativeTypes";
 import type { Status } from "@prisma/client";
 import Link from "next/link";
@@ -40,7 +40,11 @@ export function GmCombatTrackerRow({
     entry.combatantType === "ENEMY"
       ? `/home/games/${gameId}/gm/enemies/${entry.combatantId}`
       : character
-        ? characterSheetHref(gameId, character)
+        ? gmLinkedCharacterSheetHref({
+            characterId: character.id,
+            gameId,
+            ownedByCurrentUser: character.isOwnedByCurrentUser,
+          })
         : null;
 
   const imageKey =

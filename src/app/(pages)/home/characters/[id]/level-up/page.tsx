@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
@@ -31,6 +32,7 @@ function CharacterLevelUpLoaded({
     form,
     currentStepIndex,
     goToStep,
+    sheetHref,
     onSubmit,
     submitError,
     submitSuccess,
@@ -71,7 +73,7 @@ function CharacterLevelUpLoaded({
           fullWidth={false}
           onClick={() => {
             clearLevelUpDraft(id);
-            router.push(`/home/characters/${id}`);
+            router.push(sheetHref);
           }}
           className="text-xs"
         >
@@ -208,6 +210,20 @@ function CharacterLevelUpLoaded({
 }
 
 export default function CharacterLevelUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageSection>
+          <LoadingState text="Loading character..." />
+        </PageSection>
+      }
+    >
+      <CharacterLevelUpPageContent />
+    </Suspense>
+  );
+}
+
+function CharacterLevelUpPageContent() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
   const { character, loading, error, refetch } = useCharacter(id);
