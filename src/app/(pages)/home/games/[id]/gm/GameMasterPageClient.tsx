@@ -46,6 +46,7 @@ import {
   clearGameInitiative,
   removeGameInitiativeEntry,
   resetGameCombatReactions,
+  renameGameNpcGroup,
   setGameCharacterNpcGroup,
   setGameCharacterVisibility,
   updateGame,
@@ -294,6 +295,10 @@ export function GameMasterPageClient() {
           }}
           onSetNpcGroup={async (characterId, npcGroup) => {
             await setGameCharacterNpcGroup(game.id, characterId, npcGroup);
+            await mutate();
+          }}
+          onRenameNpcGroup={async (from, npcGroup) => {
+            await renameGameNpcGroup(game.id, from, npcGroup);
             await mutate();
           }}
           onCharacterRemoved={async () => {

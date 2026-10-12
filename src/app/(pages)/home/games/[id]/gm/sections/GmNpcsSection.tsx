@@ -4,13 +4,18 @@ import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
-import { groupNpcList, UNGROUPED_NPC_HEADING } from "@/app/lib/npcList";
+import {
+  groupNpcList,
+  isArchivedNpcGroup,
+  UNGROUPED_NPC_HEADING,
+} from "@/app/lib/npcList";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useCallback, useMemo, useState } from "react";
 import { GmNpcCard } from "./GmNpcCard";
+import { GmNpcGroupHeading } from "./GmNpcGroupHeading";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
@@ -20,6 +25,7 @@ type GmNpcsSectionProps = {
     characterId: string,
     npcGroup: string | null
   ) => Promise<void>;
+  onRenameNpcGroup: (from: string, npcGroup: string) => Promise<void>;
   onCharacterRemoved: () => void | Promise<void>;
   onCharactersAdded?: () => void | Promise<void>;
   onInitiativeRolled: (game: GameDetail) => void | Promise<void>;
@@ -29,6 +35,7 @@ export function GmNpcsSection({
   game,
   onSetVisibility,
   onSetNpcGroup,
+  onRenameNpcGroup,
   onCharacterRemoved,
   onCharactersAdded,
   onInitiativeRolled,
@@ -36,6 +43,7 @@ export function GmNpcsSection({
   const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
   const [addNpcModalOpen, setAddNpcModalOpen] = useState(false);
   const [busyCharacterId, setBusyCharacterId] = useState<string | null>(null);
+  const [renamingHeading, setRenamingHeading] = useState<string | null>(null);
   const [visibilityBusyId, setVisibilityBusyId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const {
@@ -132,6 +140,20 @@ export function GmNpcsSection({
       });
   };
 
+  const runRename = (from: string, npcGroup: string) => {
+    setUpdateError(null);
+    setRenamingHeading(from);
+    void onRenameNpcGroup(from, npcGroup)
+      .catch((error) => {
+        setUpdateError(
+          error instanceof Error ? error.message : "Failed to rename NPC group."
+        );
+      })
+      .finally(() => {
+        setRenamingHeading(null);
+      });
+  };
+
   return (
     <InfoCard border>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -169,9 +191,21 @@ export function GmNpcsSection({
         ) : (
           npcSections.map((section) => (
             <section key={section.heading}>
-              <h3 className="text-sm font-semibold text-black">
-                {section.heading}
-              </h3>
+              {section.heading === UNGROUPED_NPC_HEADING ||
+              isArchivedNpcGroup(section.heading) ? (
+                <h3 className="text-sm font-semibold text-black">
+                  {section.heading}
+                </h3>
+              ) : (
+                <GmNpcGroupHeading
+                  key={section.heading}
+                  heading={section.heading}
+                  disabled={
+                    renamingHeading !== null || busyCharacterId !== null
+                  }
+                  onRename={runRename}
+                />
+              )}
               <ul className="mt-2 space-y-2">
                 {section.rows.map((gc) => {
                   const char = gc.character;

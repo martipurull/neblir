@@ -2,6 +2,7 @@ import { Button } from "@/app/components/shared/Button";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { SelectField } from "@/app/components/shared/SelectField";
 import { TextField } from "@/app/components/shared/TextField";
+import { ARCHIVED_NPC_GROUP, isArchivedNpcGroup } from "@/app/lib/npcList";
 import { useState } from "react";
 
 const NEW_GROUP_VALUE = "\u241fnew";
@@ -24,13 +25,20 @@ export function GmNpcGroupField({
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState("");
   const selectId = `npc-group-${characterId}`;
+  const namedGroups = groupNames.filter((name) => !isArchivedNpcGroup(name));
   const names =
-    currentGroup && !groupNames.includes(currentGroup)
-      ? [...groupNames, currentGroup]
-      : groupNames;
+    currentGroup &&
+    !isArchivedNpcGroup(currentGroup) &&
+    !namedGroups.includes(currentGroup)
+      ? [...namedGroups, currentGroup]
+      : namedGroups;
+  const selectedGroup = isArchivedNpcGroup(currentGroup)
+    ? ARCHIVED_NPC_GROUP
+    : (currentGroup ?? "");
   const options = [
     { value: "", label: "Ungrouped" },
     ...names.map((name) => ({ value: name, label: name })),
+    { value: ARCHIVED_NPC_GROUP, label: ARCHIVED_NPC_GROUP },
     { value: NEW_GROUP_VALUE, label: "New group…" },
   ];
 
@@ -39,7 +47,7 @@ export function GmNpcGroupField({
       <FieldLabel id={selectId} label="NPC group" variant="light" />
       <SelectField
         id={selectId}
-        value={creating ? NEW_GROUP_VALUE : (currentGroup ?? "")}
+        value={creating ? NEW_GROUP_VALUE : selectedGroup}
         disabled={disabled}
         options={options}
         onChange={(value) => {
@@ -50,7 +58,7 @@ export function GmNpcGroupField({
           setCreating(false);
           setDraft("");
           const next = value === "" ? null : value;
-          if (next === currentGroup) return;
+          if ((next ?? "") === selectedGroup) return;
           onSetGroup(next);
         }}
       />

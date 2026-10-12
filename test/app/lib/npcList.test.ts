@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { groupNpcList, type NpcListEntry } from "@/app/lib/npcList";
+import {
+  groupNpcList,
+  npcRollPickerCandidates,
+  type NpcListEntry,
+} from "@/app/lib/npcList";
 
 function entry(
   partial: Partial<NpcListEntry> & Pick<NpcListEntry, "id" | "name">
@@ -98,5 +102,79 @@ describe("groupNpcList", () => {
       "first",
       "second",
     ]);
+  });
+
+  it("pins Archived last, after Ungrouped and named groups", () => {
+    const sections = groupNpcList([
+      entry({ id: "archived", name: "Ada", npcGroup: "Archived" }),
+      entry({ id: "zeta", name: "Zed", npcGroup: "Zeta" }),
+      entry({ id: "ungrouped", name: "Uma", npcGroup: null }),
+      entry({ id: "alpha", name: "Ann", npcGroup: "alpha" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "alpha",
+      "Zeta",
+      "Archived",
+    ]);
+    expect(
+      sections.map((section) => section.entries.map((row) => row.id))
+    ).toEqual([["ungrouped"], ["alpha"], ["zeta"], ["archived"]]);
+  });
+
+  it("omits Archived when it has no members", () => {
+    const sections = groupNpcList([
+      entry({ id: "a", name: "Ann", npcGroup: "alpha" }),
+      entry({ id: "b", name: "Bea", npcGroup: null }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "alpha",
+    ]);
+  });
+
+  it("places any capitalisation of Archived in the Archived section", () => {
+    const sections = groupNpcList([
+      entry({ id: "lower", name: "Ann", npcGroup: "archived" }),
+      entry({ id: "spaced", name: "Bea", npcGroup: "  ARCHIVED " }),
+      entry({ id: "named", name: "Cy", npcGroup: "alpha" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "alpha",
+      "Archived",
+    ]);
+    expect(sections[1]?.entries.map((row) => row.id)).toEqual([
+      "lower",
+      "spaced",
+    ]);
+  });
+
+  it("shows a character with no group under Ungrouped, beside Archived", () => {
+    const sections = groupNpcList([
+      entry({ id: "back", name: "Bea", npcGroup: null }),
+      entry({ id: "set-aside", name: "Ann", npcGroup: "Archived" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "Archived",
+    ]);
+    expect(sections[0]?.entries.map((row) => row.id)).toEqual(["back"]);
+  });
+});
+
+describe("npcRollPickerCandidates", () => {
+  it("is a flat list that omits characters in Archived", () => {
+    const candidates = npcRollPickerCandidates([
+      entry({ id: "first", name: "Ann", npcGroup: null }),
+      entry({ id: "set-aside", name: "Bea", npcGroup: " archived " }),
+      entry({ id: "second", name: "Cy", npcGroup: "alpha" }),
+      entry({ id: "also", name: "Dee", npcGroup: "ARCHIVED" }),
+    ]);
+
+    expect(candidates.map((row) => row.id)).toEqual(["first", "second"]);
   });
 });

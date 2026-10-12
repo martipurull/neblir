@@ -1,5 +1,5 @@
 import { isGmControlledFromOwnerIds } from "@/app/lib/gmUtils";
-import { npcGroupNameToStore } from "@/app/lib/npcList";
+import { npcGroupNameToStore, resolveNpcGroupRename } from "@/app/lib/npcList";
 import { prisma } from "./client";
 
 export type SetNpcGroupResult =
@@ -71,4 +71,48 @@ async function storedNpcGroupName(
     row.npcGroup ? [row.npcGroup] : []
   );
   return npcGroupNameToStore(candidate, spellings);
+}
+
+export type RenameNpcGroupResult =
+  | { ok: true; npcGroup: string }
+  | {
+      ok: false;
+      reason:
+        | "unauthorised"
+        | "not_found"
+        | "missing"
+        | "not_a_group"
+        | "ungrouped"
+        | "reserved";
+    };
+
+/** One update for every link on this game whose name matches `from`. */
+export async function renameNpcGroup(
+  gameId: string,
+  requesterId: string,
+  from: string,
+  npcGroup: string
+): Promise<RenameNpcGroupResult> {
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    select: { gameMaster: true },
+  });
+  if (!game) return { ok: false, reason: "not_found" };
+  if (game.gameMaster !== requesterId) {
+    return { ok: false, reason: "unauthorised" };
+  }
+
+  const links = await prisma.gameCharacter.findMany({
+    where: { gameId, npcGroup: { not: null } },
+    select: { id: true, npcGroup: true },
+    orderBy: { id: "asc" },
+  });
+  const resolved = resolveNpcGroupRename(links, from, npcGroup);
+  if (!resolved.ok) return { ok: false, reason: resolved.reason };
+
+  await prisma.gameCharacter.updateMany({
+    where: { id: { in: resolved.linkIds } },
+    data: { npcGroup: resolved.npcGroup },
+  });
+  return { ok: true, npcGroup: resolved.npcGroup };
 }

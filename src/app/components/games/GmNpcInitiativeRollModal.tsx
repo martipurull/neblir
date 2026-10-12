@@ -6,6 +6,7 @@ import { formatSignedModifier } from "@/app/lib/enemyDetailsView";
 import { instanceLabelOf } from "@/app/lib/enemyInstanceLabel";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
 import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
+import { npcRollPickerCandidates } from "@/app/lib/npcList";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
@@ -29,13 +30,26 @@ export function GmNpcInitiativeRollModal({
     onRolled: onSuccess,
   });
 
-  const npcRows = useMemo(
-    () =>
-      (game.characters ?? []).filter((gc) =>
-        isGmControlledGameCharacter(gc, game)
-      ),
-    [game]
-  );
+  const { npcRows, archivedOnly } = useMemo(() => {
+    const controlled = (game.characters ?? []).filter((gc) =>
+      isGmControlledGameCharacter(gc, game)
+    );
+    const offered = new Set(
+      npcRollPickerCandidates(
+        controlled.map((gc) => ({
+          id: gc.character.id,
+          name: gc.character.name,
+          npcGroup: gc.npcGroup,
+          hasPlayGrant: gc.playGrant != null,
+        }))
+      ).map((entry) => entry.id)
+    );
+    const rows = controlled.filter((gc) => offered.has(gc.character.id));
+    return {
+      npcRows: rows,
+      archivedOnly: controlled.length > 0 && rows.length === 0,
+    };
+  }, [game]);
 
   const handleRoll = useCallback(
     async (
@@ -84,7 +98,9 @@ export function GmNpcInitiativeRollModal({
           </p>
           {npcRows.length === 0 ? (
             <p className="mt-2 text-sm text-white/80">
-              No GM-controlled characters in this game yet.
+              {archivedOnly
+                ? "Archived characters are left out of this list."
+                : "No GM-controlled characters in this game yet."}
             </p>
           ) : (
             <ul className="mt-2 max-h-44 space-y-2 overflow-y-auto">

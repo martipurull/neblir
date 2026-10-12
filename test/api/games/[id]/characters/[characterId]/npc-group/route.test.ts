@@ -228,4 +228,28 @@ describe("PATCH /api/games/[id]/characters/[characterId]/npc-group", () => {
       data: { npcGroup: "Crimson Claws" },
     });
   });
+
+  it("stores any capitalisation of Archived as Archived", async () => {
+    mockGmControlledLink();
+    prismaMock.gameCharacter.findMany.mockResolvedValue([
+      { npcGroup: "archived" },
+    ]);
+    prismaMock.gameCharacter.update.mockResolvedValue({
+      id: "gc-1",
+      npcGroup: "Archived",
+    });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/characters/[characterId]/npc-group/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ npcGroup: "  aRcHiVeD " }, "gm-1"),
+      makeParams({ id: "g-1", characterId: "c-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ npcGroup: "Archived" });
+    expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
+      where: { id: "gc-1" },
+      data: { npcGroup: "Archived" },
+    });
+  });
 });

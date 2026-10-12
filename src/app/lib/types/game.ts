@@ -117,6 +117,14 @@ export const npcGroupUpdateSchema = z
   })
   .strict();
 
+/** PATCH /api/games/[id]/npc-groups */
+export const npcGroupRenameSchema = z
+  .object({
+    from: z.string(),
+    npcGroup: z.string(),
+  })
+  .strict();
+
 /** PUT /api/games/[id]/characters/[characterId]/play-grant */
 export const playGrantUpsertSchema = z
   .object({
