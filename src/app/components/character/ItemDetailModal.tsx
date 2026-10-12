@@ -10,7 +10,7 @@ import {
   transferInventoryItem,
   updateCharacterInventoryEntry,
 } from "@/lib/api/items";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { ItemDetailPicture } from "@/app/components/shared/ItemDetailPicture";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
@@ -18,7 +18,6 @@ import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useEffect, useMemo, useState } from "react";
 import { ItemDamageRollModal } from "./itemDetailModal/ItemDamageRollModal";
 import { ItemDetailExtraWeaponGrid } from "./itemDetailModal/ItemDetailExtraWeaponGrid";
@@ -242,22 +241,12 @@ export function ItemDetailModal({
               </span>
               <p className="mt-0.5 text-white">{name}</p>
             </div>
-            {itemImageKey ? (
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg mr-4">
-                {itemImageUrl ? (
-                  <SignedRemoteImage
-                    src={itemImageUrl}
-                    imageKey={itemImageKey ?? undefined}
-                    alt=""
-                    width={80}
-                    height={80}
-                    className="h-20 w-20 object-cover object-center"
-                  />
-                ) : itemImageUrl === undefined ? (
-                  <ImageLoadingSkeleton variant="item" />
-                ) : null}
-              </div>
-            ) : null}
+            <ItemDetailPicture
+              imageKey={itemImageKey}
+              imageUrl={itemImageUrl}
+              name={name}
+              className="mr-4"
+            />
           </div>
           <div>
             <span className="text-white/60 uppercase tracking-wider">

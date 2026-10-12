@@ -45,6 +45,13 @@ export type SelectDropdownProps = {
   ) => ReactNode;
   /** Max height of the options list (scrolls inside). Taller values help in modals with long option sets. */
   menuMaxHeightClass?: string;
+  /**
+   * When false, options stay in the order passed. The default sorts by label
+   * and keeps `pinValueFirst` at the top when that value is present.
+   */
+  sortOptions?: boolean;
+  /** Fires when the paleBlue list opens or closes. */
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function SelectDropdown({
@@ -59,6 +66,8 @@ export function SelectDropdown({
   pinValueFirst,
   renderOptionSuffix,
   menuMaxHeightClass = "max-h-44",
+  sortOptions = true,
+  onOpenChange,
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
@@ -71,6 +80,7 @@ export function SelectDropdown({
   const displayLabel = selectedOption?.label ?? placeholder;
 
   const sortedOptions = useMemo(() => {
+    if (!sortOptions) return options;
     const copy = [...options];
     if (pinValueFirst === undefined) {
       return copy.sort((a, b) => a.label.localeCompare(b.label));
@@ -82,7 +92,7 @@ export function SelectDropdown({
     const [pinned] = copy.splice(pinIndex, 1);
     copy.sort((a, b) => a.label.localeCompare(b.label));
     return [pinned, ...copy];
-  }, [options, pinValueFirst]);
+  }, [options, pinValueFirst, sortOptions]);
 
   const filteredOptions = useMemo(() => {
     const q = filterQuery.trim().toLowerCase();
@@ -137,6 +147,14 @@ export function SelectDropdown({
     [filteredOptions]
   );
 
+  const updateOpen = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange]
+  );
+
   useEffect(() => {
     if (!open || highlightedIndex < 0) return;
     const el = document.getElementById(`${id}-option-${highlightedIndex}`);
@@ -150,23 +168,23 @@ export function SelectDropdown({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setOpen(false);
+        updateOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+  }, [open, updateOpen]);
 
   const handleSelect = (opt: SelectDropdownOption) => {
+    updateOpen(false);
     onChange(opt.value);
-    setOpen(false);
   };
 
   const handleFilterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation();
     if (e.key === "Escape") {
       e.preventDefault();
-      setOpen(false);
+      updateOpen(false);
       return;
     }
     if (e.key === "ArrowDown") {
@@ -196,7 +214,7 @@ export function SelectDropdown({
     }
   };
 
-  const closeMenu = () => setOpen(false);
+  const closeMenu = () => updateOpen(false);
 
   return (
     <div ref={containerRef} className="relative">
@@ -214,7 +232,10 @@ export function SelectDropdown({
         fullWidth
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => {
+          if (disabled) return;
+          updateOpen(!open);
+        }}
         className={`${showLabel ? "mt-1" : ""} ${!selectedOption ? "text-black/60" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}

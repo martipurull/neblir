@@ -1,24 +1,16 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { TextArea } from "@/app/components/shared/TextArea";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import {
   ModalSelect,
   type ModalSelectOption,
 } from "@/app/components/games/shared/ModalSelect";
-import { RichTextToolbar } from "@/app/components/shared/RichTextToolbar";
-import {
-  RICH_TEXT_EXTENSIONS,
-  normalizeStoredHtmlForEditor,
-  serializeEditorToStoredHtml,
-} from "@/app/lib/tiptap/richText";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { TextField } from "@/app/components/shared/TextField";
 import type { CustomEnemyActionDraft } from "@/app/components/games/useCreateCustomEnemyModal";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
-import { EditorContent, useEditor } from "@tiptap/react";
-import { useEffect } from "react";
 
 const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
   { value: "", label: "None" },
@@ -44,57 +36,6 @@ type CustomEnemyActionListEditorProps = {
     value: string
   ) => void;
 };
-
-type ActionDescriptionRichTextProps = {
-  id: string;
-  value: string;
-  disabled: boolean;
-  onChange: (value: string) => void;
-};
-
-function ActionDescriptionRichText({
-  id,
-  value,
-  disabled,
-  onChange,
-}: ActionDescriptionRichTextProps) {
-  const editor = useEditor({
-    extensions: RICH_TEXT_EXTENSIONS,
-    content: normalizeStoredHtmlForEditor(value),
-    editable: !disabled,
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        class:
-          "outline-none text-sm text-white leading-relaxed focus:outline-none caret-white selection:bg-paleBlue/25 selection:text-black",
-      },
-    },
-    onUpdate: ({ editor: ed }) => {
-      onChange(serializeEditorToStoredHtml(ed.getHTML()));
-    },
-  });
-
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return;
-    editor.setEditable(!disabled);
-  }, [editor, disabled]);
-
-  return (
-    <div
-      id={id}
-      className="rich-text-content rounded border-2 border-white/50 bg-transparent px-3 py-2 text-white shadow-sm [&_.ProseMirror]:min-h-[7rem] [&_.ProseMirror]:text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror_a]:text-white [&_.ProseMirror_a]:underline"
-    >
-      {editor ? (
-        <>
-          <RichTextToolbar editor={editor} variant="dark" />
-          <EditorContent editor={editor} />
-        </>
-      ) : (
-        <p className="text-sm text-white/70">Loading editor...</p>
-      )}
-    </div>
-  );
-}
 
 export function CustomEnemyActionListEditor({
   which,
@@ -166,12 +107,15 @@ export function CustomEnemyActionListEditor({
                       id={`${prefix}-description`}
                       label="Description"
                     />
-                    <ActionDescriptionRichText
+                    <RichTextField
                       id={`${prefix}-description`}
+                      variant="dark"
                       value={row.description}
                       onChange={(value) =>
                         onChange(row.clientId, "description", value)
                       }
+                      onBlur={() => {}}
+                      minHeightClass="min-h-[7rem]"
                       disabled={disabled}
                     />
                   </div>
@@ -231,15 +175,15 @@ export function CustomEnemyActionListEditor({
                   />
                   <div>
                     <FieldLabel id={`${prefix}-notes`} label="Action notes" />
-                    <TextArea
+                    <RichTextField
                       id={`${prefix}-notes`}
                       variant="dark"
                       value={row.notes}
-                      onChange={(e) =>
-                        onChange(row.clientId, "notes", e.target.value)
+                      onChange={(value) =>
+                        onChange(row.clientId, "notes", value)
                       }
-                      className="min-h-[48px]"
-                      rows={2}
+                      onBlur={() => {}}
+                      minHeightClass="min-h-[7rem]"
                       disabled={disabled}
                     />
                   </div>

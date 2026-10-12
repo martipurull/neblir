@@ -581,6 +581,68 @@ export async function setGameCharacterVisibility(
   }
 }
 
+export async function setGameCharacterNpcGroup(
+  gameId: string,
+  characterId: string,
+  npcGroup: string | null
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}/npc-group`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ npcGroup }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to update NPC group"
+      )
+    );
+  }
+}
+
+export async function renameGameNpcGroup(
+  gameId: string,
+  from: string,
+  npcGroup: string
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/npc-groups`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from, npcGroup }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to rename NPC group"
+      )
+    );
+  }
+}
+
 export async function setGameCharacterPlayGrant(
   gameId: string,
   characterId: string,

@@ -207,11 +207,8 @@ export function GmEnemyInstanceList({
                   className="absolute inset-0 z-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                   aria-label={`Open ${instanceLabel}`}
                 />
-                <div className="relative z-10 flex min-w-0 flex-1 items-center gap-3">
-                  <div
-                    className="shrink-0"
-                    onClick={(event) => event.stopPropagation()}
-                  >
+                <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
+                  <div className="pointer-events-auto shrink-0">
                     <Checkbox
                       checked={selectedIds.has(inst.id)}
                       onChange={(checked) => toggleSelected(inst.id, checked)}
@@ -221,7 +218,7 @@ export function GmEnemyInstanceList({
                       }
                     />
                   </div>
-                  <div className="pointer-events-none flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     <RemoteAvatar
                       imageUrl={imageUrls[inst.id]}
                       imageKey={inst.imageKey}

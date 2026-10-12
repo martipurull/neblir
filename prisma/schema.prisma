@@ -855,6 +855,8 @@ model GameCharacter {
   gameId          String  @db.ObjectId
   characterId     String  @db.ObjectId
   isPublic        Boolean @default(true)
+  /** NPC group name on this game link. Absent means Ungrouped. */
+  npcGroup        String?
   playGrantUserId String? @db.ObjectId
 
   game          Game  @relation(fields: [gameId], references: [id])

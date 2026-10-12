@@ -88,15 +88,6 @@ export function heldPlayGrantCharactersInGame(
   );
 }
 
-/** Pin granted NPCs first within a public or private list. */
-export function sortGrantedNpcsFirst<T extends { playGrant?: unknown }>(
-  rows: T[]
-): T[] {
-  return [...rows].sort(
-    (a, b) => Number(b.playGrant != null) - Number(a.playGrant != null)
-  );
-}
-
 /**
  * Player characters visible on game hub lists: GM sees all; owners see their own;
  * other members only see public links.

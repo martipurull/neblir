@@ -63,6 +63,8 @@ const gameCharacterSchema = z.object({
   gameId: z.string(),
   characterId: z.string(),
   isPublic: z.boolean().optional(),
+  /** Present only on the GM's game detail. Null means Ungrouped. */
+  npcGroup: z.string().nullable().optional(),
   playGrant: z
     .object({
       userId: z.string(),
@@ -107,6 +109,21 @@ export const gameCharacterVisibilityUpdateSchema = z.object({
   characterId: z.string().min(1),
   isPublic: z.boolean(),
 });
+
+/** PATCH /api/games/[id]/characters/[characterId]/npc-group */
+export const npcGroupUpdateSchema = z
+  .object({
+    npcGroup: z.string().nullable(),
+  })
+  .strict();
+
+/** PATCH /api/games/[id]/npc-groups */
+export const npcGroupRenameSchema = z
+  .object({
+    from: z.string(),
+    npcGroup: z.string(),
+  })
+  .strict();
 
 /** PUT /api/games/[id]/characters/[characterId]/play-grant */
 export const playGrantUpsertSchema = z

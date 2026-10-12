@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/visibilityBadge";
 import Link from "next/link";
 import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
+import { GmNpcGroupControl } from "./GmNpcGroupControl";
 
 type GameNpcRow = NonNullable<GameDetail["characters"]>[number];
 
@@ -18,10 +19,13 @@ type GmNpcCardProps = {
   row: GameNpcRow;
   imageUrl?: string | null;
   isPublic: boolean;
-  isUpdating: boolean;
+  busy: boolean;
+  visibilityUpdating: boolean;
   isRolling: boolean;
   hasRolled: boolean;
+  groupNames: readonly string[];
   onToggleVisibility: () => void;
+  onSetGroup: (npcGroup: string | null) => void;
   onRoll: () => void;
   onRemoved: () => void | Promise<void>;
 };
@@ -31,10 +35,13 @@ export function GmNpcCard({
   row,
   imageUrl,
   isPublic,
-  isUpdating,
+  busy,
+  visibilityUpdating,
   isRolling,
   hasRolled,
+  groupNames,
   onToggleVisibility,
+  onSetGroup,
   onRoll,
   onRemoved,
 }: GmNpcCardProps) {
@@ -77,9 +84,22 @@ export function GmNpcCard({
             </div>
           </div>
         </Link>
-        <span className={`${linkVisibilityBadgeClassName(isPublic)} shrink-0`}>
-          {visibilityLabel}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <GmNpcGroupControl
+            key={`${char.id}:${row.npcGroup ?? ""}`}
+            characterId={char.id}
+            characterName={name}
+            currentGroup={row.npcGroup ?? null}
+            groupNames={groupNames}
+            disabled={busy || isRolling}
+            onSetGroup={onSetGroup}
+          />
+          <span
+            className={`${linkVisibilityBadgeClassName(isPublic)} shrink-0`}
+          >
+            {visibilityLabel}
+          </span>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
         <Button
@@ -87,16 +107,16 @@ export function GmNpcCard({
           variant="solidDark"
           className={gmNpcCardActionClassName}
           fullWidth
-          disabled={isUpdating || isRolling}
+          disabled={busy || isRolling}
           onClick={onToggleVisibility}
         >
-          {isUpdating ? "Updating..." : toggleLabel}
+          {visibilityUpdating ? "Updating..." : toggleLabel}
         </Button>
         <GmInitiativeRollButton
           hasRolled={hasRolled}
           busy={isRolling}
           modifier={char.initiativeMod ?? 0}
-          disabled={isUpdating}
+          disabled={busy}
           fullWidth
           className={gmNpcCardActionClassName}
           onClick={onRoll}

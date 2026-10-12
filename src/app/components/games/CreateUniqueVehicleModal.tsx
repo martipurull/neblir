@@ -29,6 +29,10 @@ import {
   VEHICLE_TRAVEL_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_LABEL,
 } from "@/app/lib/constants/vehicleFields";
+import {
+  uniqueVehicleTravelSpeedOverrideDefault,
+  standaloneUniqueVehicleCreateDefaults,
+} from "@/app/lib/newVehicleFormDefaults";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
 import {
   createUniqueVehicle,
@@ -120,19 +124,26 @@ function CreateUniqueVehicleModalBody({
   const [descriptionOverride, setDescriptionOverride] = useState("");
   const [notesOverride, setNotesOverride] = useState("");
   const [maxHpOverride, setMaxHpOverride] = useState("");
-  const [travelSpeedKmhOverride, setTravelSpeedKmhOverride] = useState("");
+  const [travelSpeedKmhOverride, setTravelSpeedKmhOverride] = useState(
+    uniqueVehicleTravelSpeedOverrideDefault("template")
+  );
+  const standaloneDefaults = standaloneUniqueVehicleCreateDefaults();
   const [combatSpeedMetresOverride, setCombatSpeedMetresOverride] =
     useState("");
-  const [manoeuvrabilityOverride, setManoeuvrabilityOverride] = useState("1");
-  const [accelerationOverride, setAccelerationOverride] = useState("1");
+  const [manoeuvrabilityOverride, setManoeuvrabilityOverride] = useState(
+    standaloneDefaults.manoeuvrability
+  );
+  const [accelerationOverride, setAccelerationOverride] = useState(
+    standaloneDefaults.acceleration
+  );
   const [maxPassengersOverride, setMaxPassengersOverride] = useState("");
   const [specialTag, setSpecialTag] = useState("");
   const [vehicleSizeCategoryOverride, setVehicleSizeCategoryOverride] =
     useState<VehicleSizeCategory | "">("");
   const [overrideLocomotionModes, setOverrideLocomotionModes] = useState(false);
-  const [locomotionModesOverride, setLocomotionModesOverride] = useState<
-    VehicleLocomotion[]
-  >(["LAND"]);
+  const [locomotionModesOverride, setLocomotionModesOverride] = useState(
+    standaloneDefaults.locomotionModes
+  );
 
   const isStandalone = creationMode === "standalone";
   const [globalVehicles, setGlobalVehicles] = useState<ResolvedVehicle[]>([]);
@@ -159,20 +170,26 @@ function CreateUniqueVehicleModalBody({
   } = imageUpload;
 
   const applyStatOverrideDefaults = () => {
-    setManoeuvrabilityOverride("1");
-    setAccelerationOverride("1");
+    const defaults = standaloneUniqueVehicleCreateDefaults();
+    setManoeuvrabilityOverride(defaults.manoeuvrability);
+    setAccelerationOverride(defaults.acceleration);
   };
 
   const applyStandaloneDefaults = () => {
-    setConfCostOverride("0");
+    const defaults = standaloneUniqueVehicleCreateDefaults();
+    setConfCostOverride(defaults.confCost);
     applyStatOverrideDefaults();
-    setMaxPassengersOverride("1");
-    setVehicleSizeCategoryOverride("LIGHT");
-    setLocomotionModesOverride(["LAND"]);
+    setTravelSpeedKmhOverride(defaults.travelSpeedKmh);
+    setMaxPassengersOverride(defaults.maxPassengers);
+    setVehicleSizeCategoryOverride(defaults.vehicleSizeCategory);
+    setLocomotionModesOverride(defaults.locomotionModes);
   };
 
   const applyTemplateOverrideDefaults = () => {
     applyStatOverrideDefaults();
+    setTravelSpeedKmhOverride(
+      uniqueVehicleTravelSpeedOverrideDefault("template")
+    );
     setMaxPassengersOverride("");
   };
 
@@ -219,6 +236,7 @@ function CreateUniqueVehicleModalBody({
           detail.sourceType === "STANDALONE" ? "standalone" : "template"
         );
         if (detail.sourceType === "STANDALONE") {
+          const standaloneDefaults = standaloneUniqueVehicleCreateDefaults();
           setConfCostOverride(
             detail.confCostOverride != null
               ? String(detail.confCostOverride)
@@ -228,15 +246,16 @@ function CreateUniqueVehicleModalBody({
           setAccelerationOverride(
             detail.accelerationOverride != null
               ? String(detail.accelerationOverride)
-              : "1"
+              : standaloneDefaults.acceleration
           );
           setVehicleSizeCategoryOverride(
-            detail.vehicleSizeCategoryOverride ?? "LIGHT"
+            detail.vehicleSizeCategoryOverride ??
+              standaloneDefaults.vehicleSizeCategory
           );
           setLocomotionModesOverride(
             detail.locomotionModesOverride?.length
               ? detail.locomotionModesOverride
-              : ["LAND"]
+              : standaloneDefaults.locomotionModes
           );
           setOverrideLocomotionModes(false);
         } else {
@@ -379,7 +398,9 @@ function CreateUniqueVehicleModalBody({
       maxPassengersOverride: requiredInt(maxPassengersOverride),
       locomotionModesOverride: locomotionModesOverride,
       vehicleSizeCategoryOverride:
-        vehicleSizeCategoryOverride || ("LIGHT" as VehicleSizeCategory),
+        vehicleSizeCategoryOverride === ""
+          ? standaloneUniqueVehicleCreateDefaults().vehicleSizeCategory
+          : vehicleSizeCategoryOverride,
       specialTag: specialTag.trim() || undefined,
     };
 
@@ -726,7 +747,11 @@ function CreateUniqueVehicleModalBody({
                 disabled={submitting || loadingEdit}
                 required={isStandalone}
                 min={1}
-                placeholder={isStandalone ? "1" : "Optional"}
+                placeholder={
+                  isStandalone
+                    ? uniqueVehicleTravelSpeedOverrideDefault("standalone")
+                    : "Optional"
+                }
               />
               <ModalNumberField
                 id="unique-vehicle-manoeuvrability-override"
@@ -739,7 +764,9 @@ function CreateUniqueVehicleModalBody({
                 onChange={setManoeuvrabilityOverride}
                 disabled={submitting || loadingEdit}
                 required={isStandalone}
-                placeholder={isStandalone ? "1" : "Optional"}
+                placeholder={
+                  isStandalone ? standaloneDefaults.manoeuvrability : "Optional"
+                }
               />
               <ModalNumberField
                 id="unique-vehicle-acceleration-override"
@@ -753,7 +780,9 @@ function CreateUniqueVehicleModalBody({
                 disabled={submitting || loadingEdit}
                 required={isStandalone}
                 min={1}
-                placeholder={isStandalone ? "1" : "Optional"}
+                placeholder={
+                  isStandalone ? standaloneDefaults.acceleration : "Optional"
+                }
               />
               <ModalNumberField
                 id="unique-vehicle-passengers-override"
@@ -767,7 +796,9 @@ function CreateUniqueVehicleModalBody({
                 disabled={submitting || loadingEdit}
                 required={isStandalone}
                 min={1}
-                placeholder={isStandalone ? "1" : "Optional"}
+                placeholder={
+                  isStandalone ? standaloneDefaults.maxPassengers : "Optional"
+                }
               />
             </div>
             <div>

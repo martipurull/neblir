@@ -54,6 +54,8 @@ export type AppButtonVariant =
   | "lightRowHit"
   /** Light UI — tiny pill Equip / Unequip (inventory last column). */
   | "lightPillAction"
+  /** Light UI — compact neutral pill beside a status badge (e.g. NPC group). */
+  | "lightNeutralPill"
   /** Light UI — compact outline toolbar (e.g. Browse / Create unique). */
   | "lightToolbarCompact"
   /** Light UI — muted underlined “show more” control. */
@@ -244,6 +246,9 @@ const lightRowHit =
 
 const lightPillAction =
   "w-[4.25rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-black bg-transparent px-1 py-0.5 text-[10px] font-medium text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 disabled:cursor-not-allowed disabled:opacity-50";
+
+const lightNeutralPill =
+  "inline-block max-w-[9rem] shrink-0 truncate rounded-full border border-black/20 bg-paleBlue/80 px-2 py-0.5 text-center text-[10px] font-semibold normal-case tracking-normal text-black transition-colors hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 const lightToolbarCompact =
   "w-fit rounded border border-black bg-transparent px-2 py-1 text-xs font-medium text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/35 disabled:cursor-not-allowed disabled:opacity-50";
@@ -474,6 +479,7 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   modalClosePale,
   lightRowHit,
   lightPillAction,
+  lightNeutralPill,
   lightToolbarCompact,
   lightLinkSubtle,
   lightChipSafe,

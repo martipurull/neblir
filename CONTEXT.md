@@ -42,6 +42,18 @@ _Avoid_: GM page
 A character linked to a game whose Owners among that game's users are none or only the GM. Table fiction: NPC.
 _Avoid_: NPC (as a stored type), co-controlled (when meaning a play grant)
 
+**NPC group**:
+The name that places a GM-controlled character with others on one game. Each such character has at most one. The same character can have a different group on another game. Only the GM sees it.
+_Avoid_: faction, tag, folder, NPC type
+
+**Ungrouped**:
+A GM-controlled character on a game who has no NPC group. Not a stored group.
+_Avoid_: default group, empty tag
+
+**Archived**:
+The built-in NPC group for GM-controlled characters set aside on that game. They stay linked to the game.
+_Avoid_: deleted character, unlinked character, archive flag
+
 **Player character**:
 A character linked to a game with at least one Owner among that game's users who is not the GM.
 _Avoid_: PC (as a stored type)
@@ -152,6 +164,10 @@ _Avoid_: nickname, custom name (ambiguous)
 An extra max HP on a character’s vehicle holding, added to the template or unique max HP. Editable on the character sheet for any owned vehicle.
 _Avoid_: unique max HP, maxHpOverride
 
+**Vehicle holding notes**:
+Notes on one character’s owned vehicle. They belong to that holding, not to the vehicle template.
+_Avoid_: instance notes (enemy instances already use “instance”), template notes
+
 **Custom item / custom vehicle**:
 A game-scoped template the GM creates and edits from the Game master page. Changing it changes every holding of that template.
 _Avoid_: unique item, unique vehicle, official item, official vehicle
@@ -217,6 +233,10 @@ _Avoid_: attack roll, to-hit
 **Custom enemy**:
 A game-scoped enemy template the GM creates. Spawning it produces enemy instances.
 _Avoid_: unique enemy, enemy instance (the template is not the combatant)
+
+**Action notes**:
+The note on one enemy action. Separate from that action’s description and from the enemy’s own notes.
+_Avoid_: enemy notes, GM notes, action description
 
 **Enemy instance**:
 A combatant spawned into a game from an official enemy or a custom enemy. It has its own name, HP, and status.
