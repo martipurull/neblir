@@ -54,9 +54,10 @@ export function EnemyInstanceActionListSection({
                   </p>
                 ) : null}
                 {a.notes ? (
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-black/80">
-                    {a.notes}
-                  </p>
+                  <StoredRichTextHtml
+                    content={a.notes}
+                    className="mt-1 text-sm text-black/85"
+                  />
                 ) : null}
                 <div className="mt-2 flex flex-wrap gap-2">
                   {a.numberOfDiceToHit ? (

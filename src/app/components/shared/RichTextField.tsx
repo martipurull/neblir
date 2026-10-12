@@ -38,6 +38,8 @@ export type RichTextFieldProps = {
   autoFocus?: boolean;
   /** Tailwind min-height class for the editable region (e.g. min-h-36). */
   minHeightClass?: string;
+  /** Lock the editor and toolbar while a parent save is in flight. */
+  disabled?: boolean;
   /**
    * Classes on the TipTap `EditorContent` root (e.g. `max-h-[…] overflow-y-auto min-h-0`)
    * so long HTML cannot stretch the whole page inside scroll layouts.
@@ -55,6 +57,7 @@ export function RichTextField({
   autoFocus = false,
   minHeightClass = "min-h-36",
   editorContentClassName,
+  disabled = false,
 }: RichTextFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
@@ -76,6 +79,7 @@ export function RichTextField({
   const editor = useEditor({
     extensions: RICH_TEXT_EXTENSIONS,
     content: normalizeStoredForEditor(value),
+    editable: !disabled,
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -85,6 +89,11 @@ export function RichTextField({
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    editor.setEditable(!disabled);
+  }, [editor, disabled]);
 
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
@@ -158,7 +167,8 @@ export function RichTextField({
   return (
     <div
       ref={wrapRef}
-      className={`flex min-h-0 flex-col ${shellClassName}`}
+      className={`flex min-h-0 flex-col ${shellClassName}${disabled ? " pointer-events-none opacity-60" : ""}`}
+      aria-disabled={disabled}
       onBlurCapture={handleContainerBlurCapture}
     >
       <RichTextToolbar editor={editor} variant={variant} />

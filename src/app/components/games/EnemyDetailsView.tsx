@@ -24,7 +24,6 @@ type VariantClasses = {
   muted: string;
   actionCard: string;
   richText: string;
-  notes: string;
 };
 
 const VARIANT_CLASSES: Record<EnemyDetailsVariant, VariantClasses> = {
@@ -36,7 +35,6 @@ const VARIANT_CLASSES: Record<EnemyDetailsVariant, VariantClasses> = {
     muted: "text-sm text-white/70",
     actionCard: "rounded border border-white/15 p-3",
     richText: "text-sm text-white/90",
-    notes: "whitespace-pre-wrap text-sm text-white/80",
   },
   light: {
     section: "rounded border border-black/20 p-4",
@@ -46,7 +44,6 @@ const VARIANT_CLASSES: Record<EnemyDetailsVariant, VariantClasses> = {
     muted: "text-sm text-black/70",
     actionCard: "rounded border border-black/10 p-3",
     richText: "text-sm text-black/85",
-    notes: "whitespace-pre-wrap text-sm text-black/80",
   },
 };
 
@@ -120,7 +117,10 @@ function EnemyActionReadOnlyList({
                   </p>
                 ) : null}
                 {action.notes ? (
-                  <p className={`mt-1 ${classes.notes}`}>{action.notes}</p>
+                  <StoredRichTextHtml
+                    content={action.notes}
+                    className={`mt-1 ${classes.richText}`}
+                  />
                 ) : null}
               </li>
             );

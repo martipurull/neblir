@@ -200,7 +200,7 @@ function SuperAdminVehicleFormFields({
       confCost: values.confCost,
       costInfo: optionalTrimmedText(values.costInfo),
       description,
-      notes: optionalTrimmedText(values.notes),
+      notes: optionalStoredRichHtml(values.notes) ?? null,
       maxHp: values.maxHp,
       travelSpeedKmh: values.travelSpeedKmh,
       combatSpeedMetres: values.combatSpeedMetres,
@@ -382,13 +382,28 @@ function SuperAdminVehicleFormFields({
               />
             </div>
 
-            <SuperAdminLabeledField
-              id="vehicle-notes"
-              label="Notes (optional)"
-              register={form.register}
-              name="notes"
-              rows={4}
-            />
+            <div className="mb-6">
+              <label
+                htmlFor="vehicle-notes"
+                className="mb-1 block font-bold text-black"
+              >
+                Notes (optional)
+              </label>
+              <Controller
+                name="notes"
+                control={form.control}
+                render={({ field }) => (
+                  <RichTextField
+                    id="vehicle-notes"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    minHeightClass="min-h-24"
+                    editorContentClassName={superAdminRichEditorScrollClass}
+                  />
+                )}
+              />
+            </div>
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2">
               <NumberInput name="maxHp" label="Max HP" className="mb-0" />
