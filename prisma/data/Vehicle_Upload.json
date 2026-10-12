@@ -29,7 +29,7 @@
     "name": "RaCeMe",
     "brand": "ConfCars",
     "year": 2088,
-    "imageKey": "vehicles-raceme.png",
+    "imageKey": "vehicles-raceme-lgsvz708.png",
     "confCost": 120000,
     "costInfo": null,
     "description": "<p>A workhorse of no-holds-barred racing in the 2080s, the RaCeMe has many racecourse victories to its name. Some claim no other model has achieved the perfect balance between speed, manoeuvrability and bulk as the RaCeMe has.</p><p><strong><u>Race Stats</u></strong></p><p><strong><em>Acceleration:</em></strong> 3d10 bonus to Manual + Driving/Mentality checks to execute speed bursts.</p><p><strong><em>Manoeuvrability:</em></strong> 3d10 to Manual + Driving checks to execute sharp turns or complex manoeuvres in confined spaces.</p><p><strong><em>Ramming damage:</em></strong> 2d6.</p><p><strong><em>Turbo:</em></strong> 2 charges per Phase. Roll 1d100 to fast-recharge to regain 1 charge: on a 33 or lower, it gains one use but takes 3d6 damage; on a 85 or higher, it regains both charges. Using one charge allows the RaCeMe to double its speed for one turn.</p><p><strong><em>Blinding:</em></strong> Powerful lights can blind a driver racing ahead of the RaCeMe. With direct line of sight on a vehicle at a maximum of 20 metres away from the RaCeMe. Any affected drivers must succeed on a Sense + Mentality check or lose all reactions until the the RaCeMe's next turn.</p>",
@@ -262,5 +262,29 @@
     "maxPassengers": 6,
     "locomotionModes": ["LAND", "SNOW"],
     "vehicleSizeCategory": "HEAVY"
+  },
+  {
+    "id": "6aca3c93cd3a3bd1246ae03d",
+    "accessType": "PLAYER",
+    "name": "Delivery Van LV",
+    "brand": "QadCar",
+    "year": 2075,
+    "imageKey": "vehicles-ptsd_van-hbnjjy5n.png",
+    "confCost": 10000,
+    "costInfo": null,
+    "description": "<p>And old land vehicle for the transport of goods within a district.</p>",
+    "notes": null,
+    "maxHp": 20,
+    "travelSpeedKmh": 100,
+    "combatSpeedMetres": 1,
+    "manoeuvrability": 0,
+    "acceleration": 1,
+    "weight": 1500,
+    "heightMetres": 2,
+    "maxCargoWeightKg": 1000,
+    "maxMountedItems": 4,
+    "maxPassengers": 8,
+    "locomotionModes": ["LAND"],
+    "vehicleSizeCategory": "STANDARD"
   }
 ]
