@@ -10,7 +10,7 @@ import {
 } from "@/app/lib/visibilityBadge";
 import Link from "next/link";
 import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
-import { GmNpcGroupField } from "./GmNpcGroupField";
+import { GmNpcGroupControl } from "./GmNpcGroupControl";
 
 type GameNpcRow = NonNullable<GameDetail["characters"]>[number];
 
@@ -84,18 +84,23 @@ export function GmNpcCard({
             </div>
           </div>
         </Link>
-        <span className={`${linkVisibilityBadgeClassName(isPublic)} shrink-0`}>
-          {visibilityLabel}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <GmNpcGroupControl
+            key={`${char.id}:${row.npcGroup ?? ""}`}
+            characterId={char.id}
+            characterName={name}
+            currentGroup={row.npcGroup ?? null}
+            groupNames={groupNames}
+            disabled={busy || isRolling}
+            onSetGroup={onSetGroup}
+          />
+          <span
+            className={`${linkVisibilityBadgeClassName(isPublic)} shrink-0`}
+          >
+            {visibilityLabel}
+          </span>
+        </div>
       </div>
-      <GmNpcGroupField
-        key={`${char.id}:${row.npcGroup ?? ""}`}
-        characterId={char.id}
-        currentGroup={row.npcGroup ?? null}
-        groupNames={groupNames}
-        disabled={busy || isRolling}
-        onSetGroup={onSetGroup}
-      />
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
         <Button
           type="button"
