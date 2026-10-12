@@ -120,38 +120,39 @@ export function GmNpcsSection({
     [enqueueRoll]
   );
 
+  const runNpcTask = (
+    fallback: string,
+    task: () => Promise<void>,
+    onDone: () => void
+  ) => {
+    setUpdateError(null);
+    void task()
+      .catch((error) => {
+        setUpdateError(error instanceof Error ? error.message : fallback);
+      })
+      .finally(onDone);
+  };
+
   const runCharacterUpdate = (
     characterId: string,
     action: "visibility" | "group",
     task: () => Promise<void>
   ) => {
-    setUpdateError(null);
     setBusyCharacterId(characterId);
     if (action === "visibility") setVisibilityBusyId(characterId);
-    void task()
-      .catch((error) => {
-        setUpdateError(
-          error instanceof Error ? error.message : "Failed to update NPC."
-        );
-      })
-      .finally(() => {
-        setBusyCharacterId(null);
-        setVisibilityBusyId(null);
-      });
+    runNpcTask("Failed to update NPC.", task, () => {
+      setBusyCharacterId(null);
+      setVisibilityBusyId(null);
+    });
   };
 
   const runRename = (from: string, npcGroup: string) => {
-    setUpdateError(null);
     setRenamingHeading(from);
-    void onRenameNpcGroup(from, npcGroup)
-      .catch((error) => {
-        setUpdateError(
-          error instanceof Error ? error.message : "Failed to rename NPC group."
-        );
-      })
-      .finally(() => {
-        setRenamingHeading(null);
-      });
+    runNpcTask(
+      "Failed to rename NPC group.",
+      () => onRenameNpcGroup(from, npcGroup),
+      () => setRenamingHeading(null)
+    );
   };
 
   return (
@@ -191,21 +192,17 @@ export function GmNpcsSection({
         ) : (
           npcSections.map((section) => (
             <section key={section.heading}>
-              {section.heading === UNGROUPED_NPC_HEADING ||
-              isArchivedNpcGroup(section.heading) ? (
-                <h3 className="text-sm font-semibold text-black">
-                  {section.heading}
-                </h3>
-              ) : (
-                <GmNpcGroupHeading
-                  key={section.heading}
-                  heading={section.heading}
-                  disabled={
-                    renamingHeading !== null || busyCharacterId !== null
-                  }
-                  onRename={runRename}
-                />
-              )}
+              <GmNpcGroupHeading
+                key={section.heading}
+                heading={section.heading}
+                disabled={renamingHeading !== null || busyCharacterId !== null}
+                onRename={
+                  section.heading === UNGROUPED_NPC_HEADING ||
+                  isArchivedNpcGroup(section.heading)
+                    ? undefined
+                    : runRename
+                }
+              />
               <ul className="mt-2 space-y-2">
                 {section.rows.map((gc) => {
                   const char = gc.character;

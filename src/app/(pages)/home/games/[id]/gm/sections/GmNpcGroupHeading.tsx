@@ -5,7 +5,7 @@ import { useState } from "react";
 type GmNpcGroupHeadingProps = {
   heading: string;
   disabled: boolean;
-  onRename: (from: string, npcGroup: string) => void;
+  onRename?: (from: string, npcGroup: string) => void;
 };
 
 export function GmNpcGroupHeading({
@@ -18,22 +18,24 @@ export function GmNpcGroupHeading({
   const next = draft.trim();
   const canSave = next !== "" && next !== heading;
 
-  if (!editing) {
+  if (!onRename || !editing) {
     return (
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-black">{heading}</h3>
-        <Button
-          type="button"
-          variant="lightToolbarCompact"
-          fullWidth={false}
-          disabled={disabled}
-          onClick={() => {
-            setDraft(heading);
-            setEditing(true);
-          }}
-        >
-          Rename
-        </Button>
+        {onRename ? (
+          <Button
+            type="button"
+            variant="lightToolbarCompact"
+            fullWidth={false}
+            disabled={disabled}
+            onClick={() => {
+              setDraft(heading);
+              setEditing(true);
+            }}
+          >
+            Rename
+          </Button>
+        ) : null}
       </div>
     );
   }

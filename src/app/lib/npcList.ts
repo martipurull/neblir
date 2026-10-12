@@ -162,8 +162,8 @@ export function groupNpcList(
 }
 
 /** Flat initiative roll-picker list. Characters in Archived are omitted. */
-export function npcRollPickerCandidates(
-  entries: readonly NpcListEntry[]
-): NpcListEntry[] {
+export function npcRollPickerCandidates<T extends { npcGroup?: string | null }>(
+  entries: readonly T[]
+): T[] {
   return entries.filter((entry) => !isArchivedNpcGroup(entry.npcGroup));
 }

@@ -34,17 +34,7 @@ export function GmNpcInitiativeRollModal({
     const controlled = (game.characters ?? []).filter((gc) =>
       isGmControlledGameCharacter(gc, game)
     );
-    const offered = new Set(
-      npcRollPickerCandidates(
-        controlled.map((gc) => ({
-          id: gc.character.id,
-          name: gc.character.name,
-          npcGroup: gc.npcGroup,
-          hasPlayGrant: gc.playGrant != null,
-        }))
-      ).map((entry) => entry.id)
-    );
-    const rows = controlled.filter((gc) => offered.has(gc.character.id));
+    const rows = npcRollPickerCandidates(controlled);
     return {
       npcRows: rows,
       archivedOnly: controlled.length > 0 && rows.length === 0,
