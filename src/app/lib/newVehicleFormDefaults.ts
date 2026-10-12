@@ -38,6 +38,18 @@ type CustomVehicleCreateFieldDefaults = {
   manoeuvrability: string;
   acceleration: string;
   maxPassengers: string;
+  vehicleSizeCategory: VehicleSizeCategory;
+  locomotionModes: VehicleLocomotion[];
+};
+
+type StandaloneUniqueVehicleCreateDefaults = {
+  confCost: string;
+  travelSpeedKmh: string;
+  manoeuvrability: string;
+  acceleration: string;
+  maxPassengers: string;
+  vehicleSizeCategory: VehicleSizeCategory;
+  locomotionModes: VehicleLocomotion[];
 };
 
 type UniqueVehicleCreationMode = "template" | "standalone";
@@ -77,6 +89,21 @@ export function customVehicleCreateFieldDefaults(): CustomVehicleCreateFieldDefa
     manoeuvrability: String(official.manoeuvrability),
     acceleration: String(official.acceleration),
     maxPassengers: String(official.maxPassengers),
+    vehicleSizeCategory: official.vehicleSizeCategory,
+    locomotionModes: [...official.locomotionModes],
+  };
+}
+
+export function standaloneUniqueVehicleCreateDefaults(): StandaloneUniqueVehicleCreateDefaults {
+  const official = officialVehicleCreateDefaults();
+  return {
+    confCost: String(official.confCost),
+    travelSpeedKmh: uniqueVehicleTravelSpeedOverrideDefault("standalone"),
+    manoeuvrability: "1",
+    acceleration: String(official.acceleration),
+    maxPassengers: String(official.maxPassengers),
+    vehicleSizeCategory: official.vehicleSizeCategory,
+    locomotionModes: [...official.locomotionModes],
   };
 }
 

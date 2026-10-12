@@ -148,11 +148,12 @@ function CreateCustomVehicleModalBody({
   const [maxPassengers, setMaxPassengers] = useState(
     createDefaults.maxPassengers
   );
-  const [vehicleSizeCategory, setVehicleSizeCategory] =
-    useState<VehicleSizeCategory>("LIGHT");
-  const [locomotionModes, setLocomotionModes] = useState<VehicleLocomotion[]>([
-    "LAND",
-  ]);
+  const [vehicleSizeCategory, setVehicleSizeCategory] = useState(
+    createDefaults.vehicleSizeCategory
+  );
+  const [locomotionModes, setLocomotionModes] = useState(
+    createDefaults.locomotionModes
+  );
   const [membersCanModify, setMembersCanModify] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
