@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { HiddenFileInput } from "@/app/components/shared/HiddenFileInput";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
@@ -51,13 +52,6 @@ type ImageUploadDropzoneProps = {
   previewImageAlt?: string;
   previewCaption?: string;
 };
-
-/**
- * Native file inputs must not use in-flow `sr-only` positioning: focusing them
- * (via label htmlFor) scrolls the page and can inflate scroll height.
- */
-const hiddenFileInputClassName =
-  "pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0";
 
 function previewMutedTextClassName(isLight: boolean) {
   return isLight ? "text-sm text-black/70" : "text-sm text-white/80";
@@ -436,20 +430,12 @@ export function ImageUploadDropzone({
             : dropzoneClassName
         }
       >
-        <input
+        <HiddenFileInput
           ref={fileInputRef}
           id={id}
-          type="file"
           accept="image/jpeg,image/png,image/gif,image/webp"
-          tabIndex={-1}
-          aria-hidden
-          className={hiddenFileInputClassName}
           disabled={inactive}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            onFileChange(f ?? null);
-            e.target.value = "";
-          }}
+          onFile={onFileChange}
         />
         {uploadedPreview}
         {error ? (

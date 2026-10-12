@@ -1,9 +1,10 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
+import { ChosenFileName } from "@/app/components/shared/ChosenFileName";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
+import { FilePicker } from "@/app/components/shared/FilePicker";
 import { TextField } from "@/app/components/shared/TextField";
-import { Button } from "@/app/components/shared/Button";
 import { TextArea } from "@/app/components/shared/TextArea";
 import {
   PDF_MAX_SIZE_BYTES,
@@ -18,7 +19,7 @@ import {
   updateGameRecap,
   uploadRecapPdfToStorage,
 } from "@/lib/api/recaps";
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 
 type CreateGameRecapModalProps = {
   isOpen: boolean;
@@ -43,10 +44,8 @@ export function CreateGameRecapModal({
   const [title, setTitle] = useState(recap?.title ?? "");
   const [summary, setSummary] = useState(recap?.summary ?? "");
   const [file, setFile] = useState<File | null>(null);
-  const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const submitDisabled = useMemo(
     () => submitting || !title.trim() || (!isEditMode && !file),
@@ -58,9 +57,6 @@ export function CreateGameRecapModal({
     setSummary(recap?.summary ?? "");
     setFile(null);
     setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handleClose = () => {
@@ -245,81 +241,27 @@ export function CreateGameRecapModal({
           label={isEditMode ? "PDF file (optional replace)" : "PDF file"}
           required={!isEditMode}
         />
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            if (!submitting) fileInputRef.current?.click();
-          }}
-          onKeyDown={(event) => {
-            if (submitting) return;
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
-          onDragOver={(event) => {
-            event.preventDefault();
-            if (!submitting) setIsDragActive(true);
-          }}
-          onDragLeave={(event) => {
-            event.preventDefault();
-            setIsDragActive(false);
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            setIsDragActive(false);
-            if (submitting) return;
-            const dropped = event.dataTransfer.files?.[0] ?? null;
-            selectPdfFile(dropped);
-          }}
-          className={`rounded-md border-2 border-dashed px-4 py-4 transition-colors ${
-            isDragActive
-              ? "border-paleBlue bg-paleBlue/10"
-              : "border-white/40 bg-transparent"
-          }`}
-          aria-label="Upload recap PDF by dropping a file or choosing one"
-        >
-          <div className="flex flex-col items-start gap-2">
-            <Button
-              type="button"
-              variant="modalFooterSecondary"
-              fullWidth={false}
-              disabled={submitting}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-            >
-              Choose file
-            </Button>
-            <p className="text-xs text-white/80">
-              or drag and drop a PDF here (max {PDF_MAX_SIZE_LABEL})
-            </p>
-          </div>
-        </div>
-        <input
-          ref={fileInputRef}
+        <FilePicker
           id="game-recap-file"
-          type="file"
+          chrome="dropzone"
           accept="application/pdf,.pdf"
           disabled={submitting}
-          onChange={(event) => {
-            const nextFile = event.target.files?.[0] ?? null;
-            selectPdfFile(nextFile);
-          }}
-          className="sr-only"
+          dropzoneLabel="Upload recap PDF by dropping a file or choosing one"
+          hint={`or drag and drop a PDF here (max ${PDF_MAX_SIZE_LABEL})`}
+          onFile={selectPdfFile}
         />
         {file ? (
-          <p className="mt-1 text-xs text-white/70">
-            Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Selected"
+            fileName={file.name}
+            fileSizeBytes={file.size}
+          />
         ) : isEditMode && recap ? (
-          <p className="mt-1 text-xs text-white/70">
-            Current file: {recap.fileName} (
-            {Math.ceil(recap.fileSizeBytes / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Current file"
+            fileName={recap.fileName}
+            fileSizeBytes={recap.fileSizeBytes}
+          />
         ) : null}
       </div>
     </GameFormModal>
