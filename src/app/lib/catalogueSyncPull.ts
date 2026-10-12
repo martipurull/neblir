@@ -66,6 +66,13 @@ function parseSnapshotBody(body: unknown): CatalogueSyncSnapshot {
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const MAX_SNAPSHOT_REDIRECTS = 5;
 
+function failedSourceSnapshot(status: number): CatalogueSyncPullError {
+  return new CatalogueSyncPullError(
+    `Failed to pull the source Official snapshot (${status}).`,
+    502
+  );
+}
+
 function snapshotRequestInit(pullSecret: string): RequestInit {
   return {
     method: "GET",
@@ -88,26 +95,15 @@ function mayReplayPullSecret(from: URL, to: URL): boolean {
 
 function redirectTarget(currentUrl: string, response: Response): string {
   const location = response.headers.get("location");
-  if (!location) {
-    throw new CatalogueSyncPullError(
-      `Failed to pull the source Official snapshot (${response.status}).`,
-      502
-    );
-  }
+  if (!location) throw failedSourceSnapshot(response.status);
   let next: URL;
   try {
     next = new URL(location, currentUrl);
   } catch {
-    throw new CatalogueSyncPullError(
-      `Failed to pull the source Official snapshot (${response.status}).`,
-      502
-    );
+    throw failedSourceSnapshot(response.status);
   }
   if (!mayReplayPullSecret(new URL(currentUrl), next)) {
-    throw new CatalogueSyncPullError(
-      `Failed to pull the source Official snapshot (${response.status}).`,
-      502
-    );
+    throw failedSourceSnapshot(response.status);
   }
   return next.toString();
 }
@@ -121,10 +117,7 @@ async function fetchCatalogueSnapshot(
     const response = await fetch(currentUrl, snapshotRequestInit(pullSecret));
     if (!REDIRECT_STATUSES.has(response.status)) return response;
     if (followed === MAX_SNAPSHOT_REDIRECTS) {
-      throw new CatalogueSyncPullError(
-        `Failed to pull the source Official snapshot (${response.status}).`,
-        502
-      );
+      throw failedSourceSnapshot(response.status);
     }
     currentUrl = redirectTarget(currentUrl, response);
   }
@@ -145,12 +138,7 @@ export async function pullCatalogueSyncSnapshot(input: {
       502
     );
   }
-  if (!response.ok) {
-    throw new CatalogueSyncPullError(
-      `Failed to pull the source Official snapshot (${response.status}).`,
-      502
-    );
-  }
+  if (!response.ok) throw failedSourceSnapshot(response.status);
   let body: unknown;
   try {
     body = await response.json();

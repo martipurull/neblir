@@ -126,6 +126,45 @@ function snapshotResponse(
   };
 }
 
+const APEX_SNAPSHOT_URL = "https://neblir.com/api/catalogue-sync/snapshot";
+const WWW_SNAPSHOT_URL = "https://www.neblir.com/api/catalogue-sync/snapshot";
+
+function snapshotRedirect(location?: string) {
+  return {
+    ok: false,
+    status: 307,
+    headers: new Headers(location === undefined ? {} : { location }),
+    json: async () => ({}),
+  };
+}
+
+function useApexProductionSource() {
+  process.env.CATALOGUE_ENVIRONMENT = "development";
+  process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://neblir.com";
+}
+
+async function previewProductionSource() {
+  const { GET } = await import("@/app/api/staff/catalogue-sync/route");
+  return invokeRoute(
+    GET,
+    makeAuthedRequestWithUrl(previewUrl("production", "development"))
+  );
+}
+
+function expectSnapshotPull(call: number, url: string) {
+  expect(fetchMock).toHaveBeenNthCalledWith(
+    call,
+    url,
+    expect.objectContaining({
+      method: "GET",
+      redirect: "manual",
+      headers: expect.objectContaining({
+        Authorization: "Bearer test-pull-secret",
+      }),
+    })
+  );
+}
+
 async function previewDestHere() {
   const { GET } = await import("@/app/api/staff/catalogue-sync/route");
   return invokeRoute(
@@ -303,52 +342,16 @@ describe("/api/staff/catalogue-sync dest preview", () => {
   });
 
   it("GET follows a 307 from the apex production host to www and keeps the pull secret", async () => {
-    process.env.CATALOGUE_ENVIRONMENT = "development";
-    process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://neblir.com";
+    useApexProductionSource();
     fetchMock.mockImplementation(async (url: string) => {
-      if (url === "https://neblir.com/api/catalogue-sync/snapshot") {
-        return {
-          ok: false,
-          status: 307,
-          headers: new Headers({
-            location: "https://www.neblir.com/api/catalogue-sync/snapshot",
-          }),
-          json: async () => ({}),
-        };
-      }
-      if (url === "https://www.neblir.com/api/catalogue-sync/snapshot") {
-        return snapshotResponse({});
-      }
+      if (url === APEX_SNAPSHOT_URL) return snapshotRedirect(WWW_SNAPSHOT_URL);
+      if (url === WWW_SNAPSHOT_URL) return snapshotResponse({});
       throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
     });
-    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
-    const res = await invokeRoute(
-      GET,
-      makeAuthedRequestWithUrl(previewUrl("production", "development"))
-    );
+    const res = await previewProductionSource();
     expect(res.status).toBe(200);
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://neblir.com/api/catalogue-sync/snapshot",
-      expect.objectContaining({
-        method: "GET",
-        redirect: "manual",
-        headers: expect.objectContaining({
-          Authorization: "Bearer test-pull-secret",
-        }),
-      })
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://www.neblir.com/api/catalogue-sync/snapshot",
-      expect.objectContaining({
-        method: "GET",
-        redirect: "manual",
-        headers: expect.objectContaining({
-          Authorization: "Bearer test-pull-secret",
-        }),
-      })
-    );
+    expectSnapshotPull(1, APEX_SNAPSHOT_URL);
+    expectSnapshotPull(2, WWW_SNAPSHOT_URL);
     const json = await res.json();
     expect(json.destIsThisEnvironment).toBe(true);
     expect(json.totals).toEqual({
@@ -360,20 +363,10 @@ describe("/api/staff/catalogue-sync dest preview", () => {
   });
 
   it("GET returns 502 including the upstream status when a 307 is followed by 401", async () => {
-    process.env.CATALOGUE_ENVIRONMENT = "development";
-    process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://neblir.com";
+    useApexProductionSource();
     fetchMock.mockImplementation(async (url: string) => {
-      if (url === "https://neblir.com/api/catalogue-sync/snapshot") {
-        return {
-          ok: false,
-          status: 307,
-          headers: new Headers({
-            location: "https://www.neblir.com/api/catalogue-sync/snapshot",
-          }),
-          json: async () => ({}),
-        };
-      }
-      if (url === "https://www.neblir.com/api/catalogue-sync/snapshot") {
+      if (url === APEX_SNAPSHOT_URL) return snapshotRedirect(WWW_SNAPSHOT_URL);
+      if (url === WWW_SNAPSHOT_URL) {
         return {
           ok: false,
           status: 401,
@@ -383,14 +376,52 @@ describe("/api/staff/catalogue-sync dest preview", () => {
       }
       throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
     });
-    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
-    const res = await invokeRoute(
-      GET,
-      makeAuthedRequestWithUrl(previewUrl("production", "development"))
-    );
+    const res = await previewProductionSource();
     expect(res.status).toBe(502);
     const json = await res.json();
     expect(json.message).toContain("401");
+  });
+
+  it("GET returns 502 and does not send the pull secret when a 307 leaves the production host", async () => {
+    useApexProductionSource();
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === APEX_SNAPSHOT_URL) {
+        return snapshotRedirect(
+          "https://evil.example/api/catalogue-sync/snapshot"
+        );
+      }
+      throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
+    });
+    const res = await previewProductionSource();
+    expect(res.status).toBe(502);
+    const json = await res.json();
+    expect(json.message).toContain("307");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expectSnapshotPull(1, APEX_SNAPSHOT_URL);
+  });
+
+  it("GET returns 502 including the upstream status when a 307 has no location", async () => {
+    useApexProductionSource();
+    fetchMock.mockResolvedValue(snapshotRedirect());
+    const res = await previewProductionSource();
+    expect(res.status).toBe(502);
+    const json = await res.json();
+    expect(json.message).toContain("307");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("GET returns 502 when production keeps redirecting past the follow limit", async () => {
+    useApexProductionSource();
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === APEX_SNAPSHOT_URL) return snapshotRedirect(WWW_SNAPSHOT_URL);
+      if (url === WWW_SNAPSHOT_URL) return snapshotRedirect(APEX_SNAPSHOT_URL);
+      throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
+    });
+    const res = await previewProductionSource();
+    expect(res.status).toBe(502);
+    const json = await res.json();
+    expect(json.message).toContain("307");
+    expect(fetchMock).toHaveBeenCalledTimes(6);
   });
 
   it("GET returns added, updated, and dest-only buckets when dest is this Catalogue environment", async () => {
