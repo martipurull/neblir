@@ -10,6 +10,7 @@ import {
 } from "@/app/lib/visibilityBadge";
 import Link from "next/link";
 import { GmInitiativeRollButton } from "./GmInitiativeRollButton";
+import { GmNpcGroupField } from "./GmNpcGroupField";
 
 type GameNpcRow = NonNullable<GameDetail["characters"]>[number];
 
@@ -18,10 +19,13 @@ type GmNpcCardProps = {
   row: GameNpcRow;
   imageUrl?: string | null;
   isPublic: boolean;
-  isUpdating: boolean;
+  busy: boolean;
+  visibilityUpdating: boolean;
   isRolling: boolean;
   hasRolled: boolean;
+  groupNames: readonly string[];
   onToggleVisibility: () => void;
+  onSetGroup: (npcGroup: string | null) => void;
   onRoll: () => void;
   onRemoved: () => void | Promise<void>;
 };
@@ -31,10 +35,13 @@ export function GmNpcCard({
   row,
   imageUrl,
   isPublic,
-  isUpdating,
+  busy,
+  visibilityUpdating,
   isRolling,
   hasRolled,
+  groupNames,
   onToggleVisibility,
+  onSetGroup,
   onRoll,
   onRemoved,
 }: GmNpcCardProps) {
@@ -81,22 +88,30 @@ export function GmNpcCard({
           {visibilityLabel}
         </span>
       </div>
+      <GmNpcGroupField
+        key={`${char.id}:${row.npcGroup ?? ""}`}
+        characterId={char.id}
+        currentGroup={row.npcGroup ?? null}
+        groupNames={groupNames}
+        disabled={busy || isRolling}
+        onSetGroup={onSetGroup}
+      />
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
         <Button
           type="button"
           variant="solidDark"
           className={gmNpcCardActionClassName}
           fullWidth
-          disabled={isUpdating || isRolling}
+          disabled={busy || isRolling}
           onClick={onToggleVisibility}
         >
-          {isUpdating ? "Updating..." : toggleLabel}
+          {visibilityUpdating ? "Updating..." : toggleLabel}
         </Button>
         <GmInitiativeRollButton
           hasRolled={hasRolled}
           busy={isRolling}
           modifier={char.initiativeMod ?? 0}
-          disabled={isUpdating}
+          disabled={busy}
           fullWidth
           className={gmNpcCardActionClassName}
           onClick={onRoll}

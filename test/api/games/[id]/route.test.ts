@@ -159,6 +159,67 @@ describe("/api/games/[id] handlers", () => {
       expect(data.characters?.[0]?.playGrant).toBeUndefined();
       expect(data.characters?.[0]?.playGrantUserId).toBeUndefined();
     });
+
+    it("includes the NPC group for the GM and omits it for anyone else", async () => {
+      getGameWithDetailsMock.mockResolvedValue({
+        id: "g-1",
+        gameMaster: "gm-1",
+        name: "Game",
+        users: [
+          {
+            id: "gu-1",
+            gameId: "g-1",
+            userId: "gm-1",
+            user: { id: "gm-1", name: "GM" },
+          },
+          {
+            id: "gu-2",
+            gameId: "g-1",
+            userId: "player-1",
+            user: { id: "player-1", name: "Player" },
+          },
+        ],
+        characters: [
+          {
+            id: "gc-1",
+            gameId: "g-1",
+            characterId: "c-1",
+            isPublic: true,
+            npcGroup: "Crimson Claws",
+            character: {
+              id: "c-1",
+              generalInformation: { name: "Shopkeep", surname: "Npc" },
+              combatInformation: { initiativeMod: 0 },
+              users: [{ userId: "gm-1" }],
+            },
+          },
+        ],
+        customItems: [],
+        enemyInstances: [],
+        initiativeOrder: [],
+      });
+      userIsInGameMock.mockResolvedValue(true);
+      const { GET } = await import("@/app/api/games/[id]/route");
+
+      const gmResponse = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1" })
+      );
+      const playerResponse = await invokeRoute(
+        GET,
+        makeAuthedRequest(undefined, "player-1"),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(gmResponse.status).toBe(200);
+      expect(playerResponse.status).toBe(200);
+      const gmData = await gmResponse.json();
+      const playerData = await playerResponse.json();
+      expect(gmData.characters?.[0]?.npcGroup).toBe("Crimson Claws");
+      expect(playerData.characters?.[0]?.npcGroup).toBeUndefined();
+      expect("npcGroup" in (playerData.characters?.[0] ?? {})).toBe(false);
+    });
   });
 
   describe("PATCH", () => {

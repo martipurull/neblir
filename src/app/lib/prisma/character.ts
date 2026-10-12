@@ -203,6 +203,10 @@ export async function getCharacter(id: string) {
       ),
     })),
     notes: normalizeNotesFromDb(character.notes ?? []),
+    games: character.games.map((link) => {
+      const { npcGroup: _npcGroup, ...rest } = link;
+      return rest;
+    }),
   };
 }
 

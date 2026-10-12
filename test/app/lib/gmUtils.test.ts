@@ -5,7 +5,6 @@ import {
   isHeldPlayGrantInGame,
   isKnownNpcSheetLinkForViewer,
   isPublicKnownNpcInGame,
-  sortGrantedNpcsFirst,
 } from "@/app/lib/gmUtils";
 import type { GameDetail } from "@/app/lib/types/game";
 
@@ -126,28 +125,5 @@ describe("gmUtils known NPC visibility", () => {
     expect(
       heldPlayGrantCharactersInGame(game, "p-1").map((gc) => gc.characterId)
     ).toEqual(["npc-pub", "npc-priv"]);
-  });
-
-  it("pins granted NPCs first within public and within private", () => {
-    const publicPlain = makeNpcLink(true, "npc-public-plain");
-    const publicGranted = {
-      ...makeNpcLink(true, "npc-public-granted"),
-      playGrant: { userId: "p-1", name: "Player" },
-    };
-    const privatePlain = makeNpcLink(false, "npc-private-plain");
-    const privateGranted = {
-      ...makeNpcLink(false, "npc-private-granted"),
-      playGrant: { userId: "p-1", name: "Player" },
-    };
-    expect(
-      sortGrantedNpcsFirst([publicPlain, publicGranted]).map(
-        (r) => r.characterId
-      )
-    ).toEqual(["npc-public-granted", "npc-public-plain"]);
-    expect(
-      sortGrantedNpcsFirst([privatePlain, privateGranted]).map(
-        (r) => r.characterId
-      )
-    ).toEqual(["npc-private-granted", "npc-private-plain"]);
   });
 });

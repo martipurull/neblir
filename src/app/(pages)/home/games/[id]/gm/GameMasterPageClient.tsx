@@ -46,6 +46,7 @@ import {
   clearGameInitiative,
   removeGameInitiativeEntry,
   resetGameCombatReactions,
+  setGameCharacterNpcGroup,
   setGameCharacterVisibility,
   updateGame,
 } from "@/lib/api/game";
@@ -289,6 +290,10 @@ export function GameMasterPageClient() {
           game={game}
           onSetVisibility={async (characterId, isPublic) => {
             await setGameCharacterVisibility(game.id, characterId, isPublic);
+            await mutate();
+          }}
+          onSetNpcGroup={async (characterId, npcGroup) => {
+            await setGameCharacterNpcGroup(game.id, characterId, npcGroup);
             await mutate();
           }}
           onCharacterRemoved={async () => {
