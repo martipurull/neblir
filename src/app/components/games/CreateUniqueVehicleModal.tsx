@@ -29,6 +29,7 @@ import {
   VEHICLE_TRAVEL_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_LABEL,
 } from "@/app/lib/constants/vehicleFields";
+import { uniqueVehicleTravelSpeedOverrideDefault } from "@/app/lib/newVehicleFormDefaults";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
 import {
   createUniqueVehicle,
@@ -120,7 +121,9 @@ function CreateUniqueVehicleModalBody({
   const [descriptionOverride, setDescriptionOverride] = useState("");
   const [notesOverride, setNotesOverride] = useState("");
   const [maxHpOverride, setMaxHpOverride] = useState("");
-  const [travelSpeedKmhOverride, setTravelSpeedKmhOverride] = useState("");
+  const [travelSpeedKmhOverride, setTravelSpeedKmhOverride] = useState(
+    uniqueVehicleTravelSpeedOverrideDefault("template")
+  );
   const [combatSpeedMetresOverride, setCombatSpeedMetresOverride] =
     useState("");
   const [manoeuvrabilityOverride, setManoeuvrabilityOverride] = useState("1");
@@ -166,6 +169,9 @@ function CreateUniqueVehicleModalBody({
   const applyStandaloneDefaults = () => {
     setConfCostOverride("0");
     applyStatOverrideDefaults();
+    setTravelSpeedKmhOverride(
+      uniqueVehicleTravelSpeedOverrideDefault("standalone")
+    );
     setMaxPassengersOverride("1");
     setVehicleSizeCategoryOverride("LIGHT");
     setLocomotionModesOverride(["LAND"]);
@@ -173,6 +179,9 @@ function CreateUniqueVehicleModalBody({
 
   const applyTemplateOverrideDefaults = () => {
     applyStatOverrideDefaults();
+    setTravelSpeedKmhOverride(
+      uniqueVehicleTravelSpeedOverrideDefault("template")
+    );
     setMaxPassengersOverride("");
   };
 
@@ -726,7 +735,11 @@ function CreateUniqueVehicleModalBody({
                 disabled={submitting || loadingEdit}
                 required={isStandalone}
                 min={1}
-                placeholder={isStandalone ? "1" : "Optional"}
+                placeholder={
+                  isStandalone
+                    ? uniqueVehicleTravelSpeedOverrideDefault("standalone")
+                    : "Optional"
+                }
               />
               <ModalNumberField
                 id="unique-vehicle-manoeuvrability-override"

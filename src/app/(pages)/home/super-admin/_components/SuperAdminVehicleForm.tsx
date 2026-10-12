@@ -34,6 +34,10 @@ import {
   VEHICLE_TRAVEL_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_LABEL,
 } from "@/app/lib/constants/vehicleFields";
+import {
+  officialVehicleCreateDefaults,
+  type OfficialVehicleCreateDefaults,
+} from "@/app/lib/newVehicleFormDefaults";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
@@ -42,29 +46,7 @@ import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type VehicleRow = Vehicle & { id: string; imageKey?: string | null };
 
-type VehicleFormValues = {
-  accessType: VehicleAccessType;
-  name: string;
-  brand: string;
-  year: number | undefined;
-  imageKey: string;
-  confCost: number;
-  costInfo: string;
-  description: string;
-  notes: string;
-  maxHp: number;
-  travelSpeedKmh: number;
-  combatSpeedMetres: number;
-  manoeuvrability: number;
-  acceleration: number;
-  weight: number | undefined;
-  heightMetres: number | undefined;
-  maxCargoWeightKg: number | undefined;
-  maxMountedItems: number | undefined;
-  maxPassengers: number;
-  vehicleSizeCategory: VehicleSizeCategory;
-  locomotionModes: VehicleLocomotion[];
-};
+type VehicleFormValues = OfficialVehicleCreateDefaults;
 
 const accessOptions = [
   { value: "PLAYER", label: "Player" },
@@ -174,29 +156,7 @@ function SuperAdminVehicleFormFields({
   const isEdit = Boolean(editVehicleId?.trim());
   const initialValues = data
     ? vehicleToFormValues(data)
-    : {
-        accessType: "PLAYER" as const,
-        name: "",
-        brand: "",
-        year: undefined,
-        imageKey: "",
-        confCost: 0,
-        costInfo: "",
-        description: "",
-        notes: "",
-        maxHp: 1,
-        travelSpeedKmh: 1,
-        combatSpeedMetres: 1,
-        manoeuvrability: 0,
-        acceleration: 1,
-        weight: undefined,
-        heightMetres: undefined,
-        maxCargoWeightKg: undefined,
-        maxMountedItems: undefined,
-        maxPassengers: 1,
-        vehicleSizeCategory: "LIGHT" as const,
-        locomotionModes: ["LAND"] as VehicleLocomotion[],
-      };
+    : officialVehicleCreateDefaults();
   const imageKeyRef = useRef(initialValues.imageKey);
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
