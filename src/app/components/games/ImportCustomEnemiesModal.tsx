@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { ChosenFileName } from "@/app/components/shared/ChosenFileName";
 import { FilePicker } from "@/app/components/shared/FilePicker";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { importCustomEnemiesFile } from "@/lib/api/customEnemies";
@@ -96,9 +97,11 @@ export function ImportCustomEnemiesModal({
           }}
         />
         {file ? (
-          <p className="mt-1 text-xs text-white/70">
-            Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Selected"
+            fileName={file.name}
+            fileSizeBytes={file.size}
+          />
         ) : null}
       </div>
       {error ? (

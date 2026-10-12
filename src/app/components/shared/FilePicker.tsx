@@ -59,6 +59,7 @@ export function FilePicker(props: FilePickerProps) {
   const chrome =
     props.chrome === "button" ? (
       <Button
+        id={id}
         type="button"
         variant="modalFooterSecondary"
         fullWidth={false}
@@ -92,6 +93,7 @@ export function FilePicker(props: FilePickerProps) {
       >
         <div className="flex flex-col items-start gap-2">
           <Button
+            id={id}
             type="button"
             variant="modalFooterSecondary"
             fullWidth={false}
@@ -114,7 +116,7 @@ export function FilePicker(props: FilePickerProps) {
       {chrome}
       <HiddenFileInput
         ref={inputRef}
-        id={id}
+        id={`${id}-input`}
         accept={accept}
         disabled={disabled}
         onFile={onFile}

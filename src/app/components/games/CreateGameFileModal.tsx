@@ -1,6 +1,7 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
+import { ChosenFileName } from "@/app/components/shared/ChosenFileName";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { FilePicker } from "@/app/components/shared/FilePicker";
 import { TextField } from "@/app/components/shared/TextField";
@@ -269,15 +270,17 @@ export function CreateGameFileModal({
           onFile={selectFile}
         />
         {selectedFile ? (
-          <p className="mt-1 text-xs text-white/70">
-            Selected: {selectedFile.name} ({Math.ceil(selectedFile.size / 1024)}{" "}
-            KB)
-          </p>
+          <ChosenFileName
+            label="Selected"
+            fileName={selectedFile.name}
+            fileSizeBytes={selectedFile.size}
+          />
         ) : isEditMode && file ? (
-          <p className="mt-1 text-xs text-white/70">
-            Current file: {file.fileName} (
-            {Math.ceil(file.fileSizeBytes / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Current file"
+            fileName={file.fileName}
+            fileSizeBytes={file.fileSizeBytes}
+          />
         ) : null}
       </div>
     </GameFormModal>

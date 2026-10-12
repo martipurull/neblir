@@ -1,6 +1,7 @@
 "use client";
 
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
+import { ChosenFileName } from "@/app/components/shared/ChosenFileName";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { FilePicker } from "@/app/components/shared/FilePicker";
 import { TextField } from "@/app/components/shared/TextField";
@@ -250,14 +251,17 @@ export function CreateGameRecapModal({
           onFile={selectPdfFile}
         />
         {file ? (
-          <p className="mt-1 text-xs text-white/70">
-            Selected: {file.name} ({Math.ceil(file.size / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Selected"
+            fileName={file.name}
+            fileSizeBytes={file.size}
+          />
         ) : isEditMode && recap ? (
-          <p className="mt-1 text-xs text-white/70">
-            Current file: {recap.fileName} (
-            {Math.ceil(recap.fileSizeBytes / 1024)} KB)
-          </p>
+          <ChosenFileName
+            label="Current file"
+            fileName={recap.fileName}
+            fileSizeBytes={recap.fileSizeBytes}
+          />
         ) : null}
       </div>
     </GameFormModal>
