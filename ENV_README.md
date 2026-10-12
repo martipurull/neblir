@@ -253,7 +253,7 @@ Each running process is configured as **exactly one** Catalogue environment. Do 
 
 #### `CATALOGUE_SYNC_PRODUCTION_URL`
 
-- **Description**: Public base URL of the production Catalogue environment (no trailing slash). Dest uses this to pull when source is production, and to link to production super-admin.
-- **Example**: `https://neblir.com`
+- **Description**: Public base URL of the production Catalogue environment (no trailing slash). Dest uses this to pull when source is production, and to link to production super-admin. Use the `www` host; the apex host redirects there.
+- **Example**: `https://www.neblir.com`
 
 Local has no pullable source URL. Set **both** development and production public URLs on every participating process: dest uses the source URL to pull, and off-dest Catalogue sync uses the destination URL to link Super Admins to dest’s hub with the pairing.

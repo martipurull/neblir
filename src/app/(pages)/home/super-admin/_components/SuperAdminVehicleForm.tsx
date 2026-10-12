@@ -34,6 +34,10 @@ import {
   VEHICLE_TRAVEL_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_LABEL,
 } from "@/app/lib/constants/vehicleFields";
+import {
+  officialVehicleCreateDefaults,
+  type OfficialVehicleCreateDefaults,
+} from "@/app/lib/newVehicleFormDefaults";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
@@ -42,29 +46,7 @@ import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type VehicleRow = Vehicle & { id: string; imageKey?: string | null };
 
-type VehicleFormValues = {
-  accessType: VehicleAccessType;
-  name: string;
-  brand: string;
-  year: number | undefined;
-  imageKey: string;
-  confCost: number;
-  costInfo: string;
-  description: string;
-  notes: string;
-  maxHp: number;
-  travelSpeedKmh: number;
-  combatSpeedMetres: number;
-  manoeuvrability: number;
-  acceleration: number;
-  weight: number | undefined;
-  heightMetres: number | undefined;
-  maxCargoWeightKg: number | undefined;
-  maxMountedItems: number | undefined;
-  maxPassengers: number;
-  vehicleSizeCategory: VehicleSizeCategory;
-  locomotionModes: VehicleLocomotion[];
-};
+type VehicleFormValues = OfficialVehicleCreateDefaults;
 
 const accessOptions = [
   { value: "PLAYER", label: "Player" },
@@ -174,29 +156,7 @@ function SuperAdminVehicleFormFields({
   const isEdit = Boolean(editVehicleId?.trim());
   const initialValues = data
     ? vehicleToFormValues(data)
-    : {
-        accessType: "PLAYER" as const,
-        name: "",
-        brand: "",
-        year: undefined,
-        imageKey: "",
-        confCost: 0,
-        costInfo: "",
-        description: "",
-        notes: "",
-        maxHp: 1,
-        travelSpeedKmh: 1,
-        combatSpeedMetres: 1,
-        manoeuvrability: 0,
-        acceleration: 1,
-        weight: undefined,
-        heightMetres: undefined,
-        maxCargoWeightKg: undefined,
-        maxMountedItems: undefined,
-        maxPassengers: 1,
-        vehicleSizeCategory: "LIGHT" as const,
-        locomotionModes: ["LAND"] as VehicleLocomotion[],
-      };
+    : officialVehicleCreateDefaults();
   const imageKeyRef = useRef(initialValues.imageKey);
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -240,7 +200,7 @@ function SuperAdminVehicleFormFields({
       confCost: values.confCost,
       costInfo: optionalTrimmedText(values.costInfo),
       description,
-      notes: optionalTrimmedText(values.notes),
+      notes: optionalStoredRichHtml(values.notes) ?? null,
       maxHp: values.maxHp,
       travelSpeedKmh: values.travelSpeedKmh,
       combatSpeedMetres: values.combatSpeedMetres,
@@ -422,13 +382,28 @@ function SuperAdminVehicleFormFields({
               />
             </div>
 
-            <SuperAdminLabeledField
-              id="vehicle-notes"
-              label="Notes (optional)"
-              register={form.register}
-              name="notes"
-              rows={4}
-            />
+            <div className="mb-6">
+              <label
+                htmlFor="vehicle-notes"
+                className="mb-1 block font-bold text-black"
+              >
+                Notes (optional)
+              </label>
+              <Controller
+                name="notes"
+                control={form.control}
+                render={({ field }) => (
+                  <RichTextField
+                    id="vehicle-notes"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    minHeightClass="min-h-24"
+                    editorContentClassName={superAdminRichEditorScrollClass}
+                  />
+                )}
+              />
+            </div>
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2">
               <NumberInput name="maxHp" label="Max HP" className="mb-0" />

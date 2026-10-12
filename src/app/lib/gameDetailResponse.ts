@@ -88,6 +88,7 @@ export function shapeGameForResponse(
         gameId: gc.gameId,
         characterId: gc.characterId,
         isPublic: gc.isPublic,
+        ...(isGameMaster ? { npcGroup: gc.npcGroup ?? null } : {}),
         playGrant:
           canSeeGrant && playGrantUser
             ? { userId: playGrantUser.id, name: playGrantUser.name }

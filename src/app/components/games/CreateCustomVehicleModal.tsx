@@ -27,6 +27,7 @@ import {
   VEHICLE_TRAVEL_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_LABEL,
 } from "@/app/lib/constants/vehicleFields";
+import { customVehicleCreateFieldDefaults } from "@/app/lib/newVehicleFormDefaults";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import {
   getGameCustomVehicleRecord,
@@ -128,21 +129,31 @@ function CreateCustomVehicleModalBody({
   const [costInfo, setCostInfo] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [maxHp, setMaxHp] = useState("1");
-  const [travelSpeedKmh, setTravelSpeedKmh] = useState("1");
-  const [combatSpeedMetres, setCombatSpeedMetres] = useState("1");
-  const [manoeuvrability, setManoeuvrability] = useState("0");
-  const [acceleration, setAcceleration] = useState("1");
+  const createDefaults = customVehicleCreateFieldDefaults();
+  const [maxHp, setMaxHp] = useState(createDefaults.maxHp);
+  const [travelSpeedKmh, setTravelSpeedKmh] = useState(
+    createDefaults.travelSpeedKmh
+  );
+  const [combatSpeedMetres, setCombatSpeedMetres] = useState(
+    createDefaults.combatSpeedMetres
+  );
+  const [manoeuvrability, setManoeuvrability] = useState(
+    createDefaults.manoeuvrability
+  );
+  const [acceleration, setAcceleration] = useState(createDefaults.acceleration);
   const [weight, setWeight] = useState("");
   const [heightMetres, setHeightMetres] = useState("");
   const [maxCargoWeightKg, setMaxCargoWeightKg] = useState("");
   const [maxMountedItems, setMaxMountedItems] = useState("");
-  const [maxPassengers, setMaxPassengers] = useState("1");
-  const [vehicleSizeCategory, setVehicleSizeCategory] =
-    useState<VehicleSizeCategory>("LIGHT");
-  const [locomotionModes, setLocomotionModes] = useState<VehicleLocomotion[]>([
-    "LAND",
-  ]);
+  const [maxPassengers, setMaxPassengers] = useState(
+    createDefaults.maxPassengers
+  );
+  const [vehicleSizeCategory, setVehicleSizeCategory] = useState(
+    createDefaults.vehicleSizeCategory
+  );
+  const [locomotionModes, setLocomotionModes] = useState(
+    createDefaults.locomotionModes
+  );
   const [membersCanModify, setMembersCanModify] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -491,7 +502,7 @@ function CreateCustomVehicleModalBody({
               onChange={setTravelSpeedKmh}
               disabled={submitting || loadingEdit}
               min={1}
-              placeholder="1"
+              placeholder={createDefaults.travelSpeedKmh}
             />
             <ModalNumberField
               id="custom-vehicle-combat-speed"

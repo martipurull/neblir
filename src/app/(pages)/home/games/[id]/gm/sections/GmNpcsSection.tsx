@@ -3,21 +3,29 @@ import { GmCreateNpcModal } from "@/app/components/games/GmCreateNpcModal";
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { hasCombatantInitiativeEntry } from "@/app/lib/gmCombatantInitiative";
+import { isGmControlledGameCharacter } from "@/app/lib/gmUtils";
 import {
-  isGmControlledGameCharacter,
-  sortGrantedNpcsFirst,
-} from "@/app/lib/gmUtils";
+  groupNpcList,
+  isArchivedNpcGroup,
+  UNGROUPED_NPC_HEADING,
+} from "@/app/lib/npcList";
 import { isPrivateGameCharacterLink } from "@/app/lib/roll-privacy";
 import type { GameDetail } from "@/app/lib/types/game";
 import { useQueuedGmCombatantInitiative } from "@/hooks/use-queued-gm-combatant-initiative";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useCallback, useMemo, useState } from "react";
 import { GmNpcCard } from "./GmNpcCard";
+import { GmNpcGroupHeading } from "./GmNpcGroupHeading";
 import { GmSectionTitle } from "./GmSectionTitle";
 
 type GmNpcsSectionProps = {
   game: GameDetail;
   onSetVisibility: (characterId: string, isPublic: boolean) => Promise<void>;
+  onSetNpcGroup: (
+    characterId: string,
+    npcGroup: string | null
+  ) => Promise<void>;
+  onRenameNpcGroup: (from: string, npcGroup: string) => Promise<void>;
   onCharacterRemoved: () => void | Promise<void>;
   onCharactersAdded?: () => void | Promise<void>;
   onInitiativeRolled: (game: GameDetail) => void | Promise<void>;
@@ -26,15 +34,17 @@ type GmNpcsSectionProps = {
 export function GmNpcsSection({
   game,
   onSetVisibility,
+  onSetNpcGroup,
+  onRenameNpcGroup,
   onCharacterRemoved,
   onCharactersAdded,
   onInitiativeRolled,
 }: GmNpcsSectionProps) {
   const [createNpcModalOpen, setCreateNpcModalOpen] = useState(false);
   const [addNpcModalOpen, setAddNpcModalOpen] = useState(false);
-  const [updatingCharacterId, setUpdatingCharacterId] = useState<string | null>(
-    null
-  );
+  const [busyCharacterId, setBusyCharacterId] = useState<string | null>(null);
+  const [renamingHeading, setRenamingHeading] = useState<string | null>(null);
+  const [visibilityBusyId, setVisibilityBusyId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const {
     isPending,
@@ -59,12 +69,33 @@ export function GmNpcsSection({
     [game.characters]
   );
 
-  const publicNpcs = sortGrantedNpcsFirst(
-    npcRows.filter((gc) => gc.isPublic ?? true)
-  );
-  const privateNpcs = sortGrantedNpcsFirst(
-    npcRows.filter((gc) => !(gc.isPublic ?? true))
-  );
+  const npcSections = useMemo(() => {
+    const rowById = new Map(npcRows.map((gc) => [gc.character.id, gc]));
+    return groupNpcList(
+      npcRows.map((gc) => {
+        const char = gc.character;
+        const name =
+          `${char.name}${char.surname ? ` ${char.surname}` : ""}`.trim();
+        return {
+          id: char.id,
+          name,
+          npcGroup: gc.npcGroup,
+          hasPlayGrant: gc.playGrant != null,
+        };
+      })
+    ).map((section) => ({
+      heading: section.heading,
+      rows: section.entries.flatMap((entry) => {
+        const row = rowById.get(entry.id);
+        return row ? [row] : [];
+      }),
+    }));
+  }, [npcRows]);
+
+  const groupNames = npcSections
+    .filter((section) => section.heading !== UNGROUPED_NPC_HEADING)
+    .map((section) => section.heading);
+
   const npcImageUrls = useImageUrls(
     npcRows.map((gc) => ({
       id: gc.character.id,
@@ -89,56 +120,38 @@ export function GmNpcsSection({
     [enqueueRoll]
   );
 
-  const renderNpcList = (
-    rows: typeof npcRows,
-    emptyText: string,
-    visibility: "Public" | "Private"
+  const runNpcTask = (
+    fallback: string,
+    task: () => Promise<void>,
+    onDone: () => void
   ) => {
-    if (rows.length === 0) {
-      return <p className="text-sm text-black/70">{emptyText}</p>;
-    }
-    return (
-      <ul className="space-y-2">
-        {rows.map((gc) => {
-          const char = gc.character;
-          const isUpdating = updatingCharacterId === char.id;
-          const isRolling = isPending("CHARACTER", char.id);
-          const targetVisibility = visibility === "Public" ? false : true;
-          return (
-            <GmNpcCard
-              key={gc.id}
-              gameId={game.id}
-              row={gc}
-              imageUrl={npcImageUrls[char.id]}
-              isPublic={visibility === "Public"}
-              isUpdating={isUpdating}
-              isRolling={isRolling}
-              hasRolled={hasCombatantInitiativeEntry(
-                game,
-                "CHARACTER",
-                char.id
-              )}
-              onToggleVisibility={() => {
-                setUpdateError(null);
-                setUpdatingCharacterId(char.id);
-                void onSetVisibility(char.id, targetVisibility)
-                  .catch((error) => {
-                    setUpdateError(
-                      error instanceof Error
-                        ? error.message
-                        : "Failed to update visibility."
-                    );
-                  })
-                  .finally(() => {
-                    setUpdatingCharacterId(null);
-                  });
-              }}
-              onRoll={() => void handleRollNpc(gc)}
-              onRemoved={onCharacterRemoved}
-            />
-          );
-        })}
-      </ul>
+    setUpdateError(null);
+    void task()
+      .catch((error) => {
+        setUpdateError(error instanceof Error ? error.message : fallback);
+      })
+      .finally(onDone);
+  };
+
+  const runCharacterUpdate = (
+    characterId: string,
+    action: "visibility" | "group",
+    task: () => Promise<void>
+  ) => {
+    setBusyCharacterId(characterId);
+    if (action === "visibility") setVisibilityBusyId(characterId);
+    runNpcTask("Failed to update NPC.", task, () => {
+      setBusyCharacterId(null);
+      setVisibilityBusyId(null);
+    });
+  };
+
+  const runRename = (from: string, npcGroup: string) => {
+    setRenamingHeading(from);
+    runNpcTask(
+      "Failed to rename NPC group.",
+      () => onRenameNpcGroup(from, npcGroup),
+      () => setRenamingHeading(null)
     );
   };
 
@@ -148,7 +161,7 @@ export function GmNpcsSection({
         <div className="min-w-0">
           <GmSectionTitle>NPCs</GmSectionTitle>
           <p className="mt-1 text-sm text-black/70">
-            NPCs linked to this game, grouped by player visibility.
+            GM-controlled characters on this game, by NPC group.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2 max-sm:w-full">
@@ -173,21 +186,63 @@ export function GmNpcsSection({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <section>
-          <h3 className="text-sm font-semibold text-black">
-            Public to players
-          </h3>
-          <div className="mt-2">
-            {renderNpcList(publicNpcs, "No public NPCs yet.", "Public")}
-          </div>
-        </section>
-        <section>
-          <h3 className="text-sm font-semibold text-black">Private to GM</h3>
-          <div className="mt-2">
-            {renderNpcList(privateNpcs, "No private NPCs yet.", "Private")}
-          </div>
-        </section>
+      <div className="mt-4 space-y-4">
+        {npcSections.length === 0 ? (
+          <p className="text-sm text-black/70">No NPCs yet.</p>
+        ) : (
+          npcSections.map((section) => (
+            <section key={section.heading}>
+              <GmNpcGroupHeading
+                key={section.heading}
+                heading={section.heading}
+                disabled={renamingHeading !== null || busyCharacterId !== null}
+                onRename={
+                  section.heading === UNGROUPED_NPC_HEADING ||
+                  isArchivedNpcGroup(section.heading)
+                    ? undefined
+                    : runRename
+                }
+              />
+              <ul className="mt-2 space-y-2">
+                {section.rows.map((gc) => {
+                  const char = gc.character;
+                  const isBusy = busyCharacterId === char.id;
+                  const isRolling = isPending("CHARACTER", char.id);
+                  return (
+                    <GmNpcCard
+                      key={gc.id}
+                      gameId={game.id}
+                      row={gc}
+                      imageUrl={npcImageUrls[char.id]}
+                      isPublic={gc.isPublic !== false}
+                      busy={isBusy}
+                      visibilityUpdating={visibilityBusyId === char.id}
+                      isRolling={isRolling}
+                      hasRolled={hasCombatantInitiativeEntry(
+                        game,
+                        "CHARACTER",
+                        char.id
+                      )}
+                      groupNames={groupNames}
+                      onToggleVisibility={() => {
+                        runCharacterUpdate(char.id, "visibility", () =>
+                          onSetVisibility(char.id, gc.isPublic === false)
+                        );
+                      }}
+                      onSetGroup={(npcGroup) => {
+                        runCharacterUpdate(char.id, "group", () =>
+                          onSetNpcGroup(char.id, npcGroup)
+                        );
+                      }}
+                      onRoll={() => void handleRollNpc(gc)}
+                      onRemoved={onCharacterRemoved}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+          ))
+        )}
       </div>
       {updateError ? (
         <p className="mt-3 text-sm text-neblirDanger-400">{updateError}</p>

@@ -2,9 +2,8 @@
 
 import { formatEquipSlotRequirementLines } from "@/app/lib/equipSlotDisplay";
 import type { ItemBrowseDetailFields } from "@/app/lib/types/itemBrowseDetail";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { ItemDetailPicture } from "@/app/components/shared/ItemDetailPicture";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useMemo } from "react";
 
@@ -47,22 +46,11 @@ export function BrowseItemDetailsView({
           <span className="text-white/60 uppercase tracking-wider">Name</span>
           <p className="mt-0.5 text-white">{item.name}</p>
         </div>
-        {itemImageKey ? (
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg">
-            {itemImageUrl ? (
-              <SignedRemoteImage
-                src={itemImageUrl}
-                imageKey={itemImageKey}
-                alt=""
-                width={80}
-                height={80}
-                className="h-20 w-20 object-cover object-center"
-              />
-            ) : itemImageUrl === undefined ? (
-              <ImageLoadingSkeleton variant="item" />
-            ) : null}
-          </div>
-        ) : null}
+        <ItemDetailPicture
+          imageKey={itemImageKey}
+          imageUrl={itemImageUrl}
+          name={item.name}
+        />
       </div>
 
       {item.description ? (

@@ -16,14 +16,15 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import { RichTextField } from "@/app/components/shared/RichTextField";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
-import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import {
   ModalSelect,
   type ModalSelectOption,
 } from "@/app/components/games/shared/ModalSelect";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   VEHICLE_ACCELERATION_LABEL,
   VEHICLE_COMBAT_SPEED_HELP,
@@ -47,7 +48,6 @@ import {
 } from "@/lib/api/vehicles";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useVehicleHpUpdates } from "@/hooks/use-vehicle-hp-updates";
-import { useEffect, useMemo, useState } from "react";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
@@ -106,6 +106,7 @@ export function VehicleDetailModal({
   }, [entry.id, flushVehicleHp]);
 
   const [notesDraft, setNotesDraft] = useState(entry.notes ?? "");
+  const notesRef = useRef(entry.notes ?? "");
   const [parkedAtDraft, setParkedAtDraft] = useState(entry.parkedAt ?? "");
   const [dismountLocation, setDismountLocation] = useState(
     entry.parkedAt ?? ""
@@ -586,13 +587,16 @@ export function VehicleDetailModal({
               template.
             </p>
           </div>
-          <TextArea
+          <RichTextField
             id={`vehicle-notes-${entry.id}`}
             variant="dark"
             value={notesDraft}
-            onChange={(e) => setNotesDraft(e.target.value)}
-            rows={4}
-            placeholder="Add vehicle notes"
+            onChange={(html) => {
+              notesRef.current = html;
+              setNotesDraft(html);
+            }}
+            onBlur={() => {}}
+            minHeightClass="min-h-24"
             disabled={busyAction != null}
           />
           <Button
@@ -604,7 +608,7 @@ export function VehicleDetailModal({
               void runAction("notes", async () => {
                 await updateCharacterVehicleEntry(characterId, entry.id, {
                   action: "setNotes",
-                  notes: notesDraft.trim() || null,
+                  notes: notesRef.current.trim() || null,
                 });
               });
             }}

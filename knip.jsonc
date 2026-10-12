@@ -9,7 +9,6 @@
     "@swc/helpers",
     "googleapis",
     "postcss-load-config",
-    "@testing-library/react",
     "@types/csv-parse",
     "eslint-plugin-react-hooks"
   ],
