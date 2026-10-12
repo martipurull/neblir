@@ -63,6 +63,73 @@ function parseSnapshotBody(body: unknown): CatalogueSyncSnapshot {
   };
 }
 
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const MAX_SNAPSHOT_REDIRECTS = 5;
+
+function snapshotRequestInit(pullSecret: string): RequestInit {
+  return {
+    method: "GET",
+    redirect: "manual",
+    headers: {
+      Authorization: `Bearer ${pullSecret}`,
+      Accept: "application/json",
+    },
+  };
+}
+
+/** Same host, or the apex ↔ www hop that would otherwise drop Authorization. */
+function mayReplayPullSecret(from: URL, to: URL): boolean {
+  if (to.protocol !== "https:" && to.protocol !== "http:") return false;
+  if (from.origin === to.origin) return true;
+  const fromHost = from.hostname.toLowerCase();
+  const toHost = to.hostname.toLowerCase();
+  return toHost === `www.${fromHost}` || fromHost === `www.${toHost}`;
+}
+
+function redirectTarget(currentUrl: string, response: Response): string {
+  const location = response.headers.get("location");
+  if (!location) {
+    throw new CatalogueSyncPullError(
+      `Failed to pull the source Official snapshot (${response.status}).`,
+      502
+    );
+  }
+  let next: URL;
+  try {
+    next = new URL(location, currentUrl);
+  } catch {
+    throw new CatalogueSyncPullError(
+      `Failed to pull the source Official snapshot (${response.status}).`,
+      502
+    );
+  }
+  if (!mayReplayPullSecret(new URL(currentUrl), next)) {
+    throw new CatalogueSyncPullError(
+      `Failed to pull the source Official snapshot (${response.status}).`,
+      502
+    );
+  }
+  return next.toString();
+}
+
+async function fetchCatalogueSnapshot(
+  startUrl: string,
+  pullSecret: string
+): Promise<Response> {
+  let currentUrl = startUrl;
+  for (let followed = 0; ; followed++) {
+    const response = await fetch(currentUrl, snapshotRequestInit(pullSecret));
+    if (!REDIRECT_STATUSES.has(response.status)) return response;
+    if (followed === MAX_SNAPSHOT_REDIRECTS) {
+      throw new CatalogueSyncPullError(
+        `Failed to pull the source Official snapshot (${response.status}).`,
+        502
+      );
+    }
+    currentUrl = redirectTarget(currentUrl, response);
+  }
+}
+
 export async function pullCatalogueSyncSnapshot(input: {
   sourceBaseUrl: string;
   pullSecret: string;
@@ -70,14 +137,9 @@ export async function pullCatalogueSyncSnapshot(input: {
   const url = `${input.sourceBaseUrl}/api/catalogue-sync/snapshot`;
   let response: Response;
   try {
-    response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${input.pullSecret}`,
-        Accept: "application/json",
-      },
-    });
-  } catch {
+    response = await fetchCatalogueSnapshot(url, input.pullSecret);
+  } catch (error) {
+    if (error instanceof CatalogueSyncPullError) throw error;
     throw new CatalogueSyncPullError(
       "Failed to pull the source Official snapshot.",
       502

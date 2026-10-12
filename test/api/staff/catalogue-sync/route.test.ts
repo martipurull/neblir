@@ -302,6 +302,97 @@ describe("/api/staff/catalogue-sync dest preview", () => {
     expect(json.message).toMatch(/source/i);
   });
 
+  it("GET follows a 307 from the apex production host to www and keeps the pull secret", async () => {
+    process.env.CATALOGUE_ENVIRONMENT = "development";
+    process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://neblir.com";
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === "https://neblir.com/api/catalogue-sync/snapshot") {
+        return {
+          ok: false,
+          status: 307,
+          headers: new Headers({
+            location: "https://www.neblir.com/api/catalogue-sync/snapshot",
+          }),
+          json: async () => ({}),
+        };
+      }
+      if (url === "https://www.neblir.com/api/catalogue-sync/snapshot") {
+        return snapshotResponse({});
+      }
+      throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
+    });
+    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(previewUrl("production", "development"))
+    );
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://neblir.com/api/catalogue-sync/snapshot",
+      expect.objectContaining({
+        method: "GET",
+        redirect: "manual",
+        headers: expect.objectContaining({
+          Authorization: "Bearer test-pull-secret",
+        }),
+      })
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://www.neblir.com/api/catalogue-sync/snapshot",
+      expect.objectContaining({
+        method: "GET",
+        redirect: "manual",
+        headers: expect.objectContaining({
+          Authorization: "Bearer test-pull-secret",
+        }),
+      })
+    );
+    const json = await res.json();
+    expect(json.destIsThisEnvironment).toBe(true);
+    expect(json.totals).toEqual({
+      added: 0,
+      updated: 0,
+      destOnly: 0,
+      blocked: 0,
+    });
+  });
+
+  it("GET returns 502 including the upstream status when a 307 is followed by 401", async () => {
+    process.env.CATALOGUE_ENVIRONMENT = "development";
+    process.env.CATALOGUE_SYNC_PRODUCTION_URL = "https://neblir.com";
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === "https://neblir.com/api/catalogue-sync/snapshot") {
+        return {
+          ok: false,
+          status: 307,
+          headers: new Headers({
+            location: "https://www.neblir.com/api/catalogue-sync/snapshot",
+          }),
+          json: async () => ({}),
+        };
+      }
+      if (url === "https://www.neblir.com/api/catalogue-sync/snapshot") {
+        return {
+          ok: false,
+          status: 401,
+          headers: new Headers(),
+          json: async () => ({ message: "Unauthorised" }),
+        };
+      }
+      throw new Error(`Unexpected catalogue sync pull URL: ${url}`);
+    });
+    const { GET } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      GET,
+      makeAuthedRequestWithUrl(previewUrl("production", "development"))
+    );
+    expect(res.status).toBe(502);
+    const json = await res.json();
+    expect(json.message).toContain("401");
+  });
+
   it("GET returns added, updated, and dest-only buckets when dest is this Catalogue environment", async () => {
     fetchMock.mockResolvedValue(
       snapshotResponse({
