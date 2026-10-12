@@ -610,7 +610,7 @@
   {
     "id": "692a2e886f6040cf47954fe5",
     "name": "Safety Nerd",
-    "description": "Either you were bullied at school or too clever to even let them do it to you. The world is a dangerous and violent place, and you know how to stay out of it: add a number of d10s equal your Grade in this feature to any Hide or Defence roll while in combat.",
+    "description": "Either you were bullied at school or too clever to even let them do it to you. The world is a dangerous and violent place, and you know how to stay out of it: add a number of d10s equal your Grade in this feature to any Hide or Defence roll.",
     "minPathRank": 2,
     "maxGrade": 4,
     "examples": [],
