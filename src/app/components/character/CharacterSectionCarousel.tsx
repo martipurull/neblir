@@ -56,7 +56,7 @@ export function CharacterSectionCarousel({
             <section
               key={section.id}
               data-slide-index={index}
-              className={`flex h-full w-[min(100vw-2rem,28rem)] shrink-0 flex-col rounded-lg border border-black bg-transparent ${section.panelClassName ?? ""}`}
+              className={`theme-raised flex h-full w-[min(100vw-2rem,28rem)] shrink-0 flex-col rounded-lg border border-black bg-transparent ${section.panelClassName ?? ""}`}
               style={{ scrollSnapAlign: "start" }}
             >
               <div className="shrink-0 border-b border-black px-4 py-3 flex items-center justify-between gap-3">

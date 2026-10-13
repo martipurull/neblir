@@ -283,3 +283,21 @@ _Avoid_: path feature (when meaning only the catalogue link)
 **Favourite weapon**:
 The Soldier path’s chosen weapon. Kept whenever a Soldier path row still exists after Update or Level-up; cleared when Soldier is removed.
 _Avoid_: favourite item (when meaning this)
+
+### Appearance
+
+**Theme**:
+The signed-in user's appearance for the whole app they see, including game modals. One of Neblir, Dark, or Light. It belongs to that user alone: not to a game, not to a catalogue environment, and not to the device.
+_Avoid_: mode, color scheme, system theme, table theme
+
+**Neblir**:
+The default Theme, including for signed-out surfaces and for a user who has not chosen. Today's appearance: the pink-to-blue page gradient and dark purple game modals.
+_Avoid_: light theme, pale pages
+
+**Dark**:
+The low-glare dark Theme: dim neutral surfaces in three steps (page, raised card, and modal) and deep brand-purple accents. Every signed-in surface uses it, including game modals.
+_Avoid_: dark mode, the purple game-modal shell, the page gradient
+
+**Light**:
+The calmer light Theme: neutral off-white surfaces in three steps (page, raised card, and modal), dark text, and deep brand-purple accents. Every signed-in surface uses it, including game modals.
+_Avoid_: light theme, pale pages, Neblir, lavender page fill, the purple game-modal shell

@@ -60,6 +60,7 @@ describe("/api/users/me handlers", () => {
       characterLayoutMode: "vertical",
       characterCarouselWrap: true,
       characterSectionOrder: ["inventory", "attributes"],
+      theme: "neblir",
     });
   });
 
@@ -89,6 +90,7 @@ describe("/api/users/me handlers", () => {
       characterLayoutMode: null,
       characterCarouselWrap: null,
       characterSectionOrder: null,
+      theme: "neblir",
     });
   });
 
@@ -118,6 +120,7 @@ describe("/api/users/me handlers", () => {
       characterLayoutMode: null,
       characterCarouselWrap: null,
       characterSectionOrder: null,
+      theme: "neblir",
     });
   });
 
@@ -146,6 +149,64 @@ describe("/api/users/me handlers", () => {
       characterLayoutMode: null,
       characterCarouselWrap: null,
       characterSectionOrder: null,
+      theme: "neblir",
+    });
+  });
+
+  it("GET returns neblir when the stored theme is absent", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+      theme: null,
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ theme: "neblir" });
+  });
+
+  it("GET returns a saved dark or light theme", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+      theme: "DARK",
+    });
+    const { GET } = await import("@/app/api/users/me/route");
+    const darkResponse = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    await expect(darkResponse.json()).resolves.toMatchObject({ theme: "dark" });
+
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      role: "USER",
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+      theme: "LIGHT",
+    });
+    const lightResponse = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1")
+    );
+    await expect(lightResponse.json()).resolves.toMatchObject({
+      theme: "light",
     });
   });
 
@@ -174,6 +235,7 @@ describe("/api/users/me handlers", () => {
       characterLayoutMode: null,
       characterCarouselWrap: null,
       characterSectionOrder: null,
+      theme: "neblir",
     });
   });
 

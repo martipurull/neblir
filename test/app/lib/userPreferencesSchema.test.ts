@@ -38,6 +38,27 @@ describe("userUpdateSchema character preferences", () => {
     ).toBe(true);
   });
 
+  it("accepts Neblir, Dark, and Light", () => {
+    expect(userUpdateSchema.safeParse({ theme: "neblir" }).success).toBe(true);
+    expect(userUpdateSchema.safeParse({ theme: "dark" }).success).toBe(true);
+    expect(userUpdateSchema.safeParse({ theme: "light" }).success).toBe(true);
+  });
+
+  it("rejects an invalid theme, including null and a device value", () => {
+    expect(userUpdateSchema.safeParse({ theme: "system" }).success).toBe(false);
+    expect(userUpdateSchema.safeParse({ theme: "device" }).success).toBe(false);
+    expect(userUpdateSchema.safeParse({ theme: null }).success).toBe(false);
+    expect(userUpdateSchema.safeParse({ theme: "" }).success).toBe(false);
+  });
+
+  it("allows a partial update to omit theme", () => {
+    const result = userUpdateSchema.safeParse({ name: "Taylor" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.theme).toBeUndefined();
+    }
+  });
+
   it("accepts valid characterSectionOrder updates", () => {
     expect(
       userUpdateSchema.safeParse({
@@ -85,8 +106,39 @@ describe("currentUserSchema character preferences", () => {
       characterLayoutMode: null,
       characterCarouselWrap: null,
       characterSectionOrder: null,
+      theme: "neblir",
     });
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.theme).toBe("neblir");
+    }
+  });
+
+  it("rejects a current user payload without a resolved theme", () => {
+    const result = currentUserSchema.safeParse({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a current user theme that is not Neblir, Dark, or Light", () => {
+    const result = currentUserSchema.safeParse({
+      id: "user-1",
+      name: "Taylor",
+      email: "taylor@example.com",
+      isSuperAdmin: false,
+      characterLayoutMode: null,
+      characterCarouselWrap: null,
+      characterSectionOrder: null,
+      theme: "system",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("accepts saved character section order", () => {
@@ -98,6 +150,7 @@ describe("currentUserSchema character preferences", () => {
       characterLayoutMode: "horizontal",
       characterCarouselWrap: false,
       characterSectionOrder: ["inventory", "attributes"],
+      theme: "dark",
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -117,6 +170,7 @@ describe("currentUserSchema character preferences", () => {
       characterLayoutMode: "horizontal",
       characterCarouselWrap: false,
       characterSectionOrder: null,
+      theme: "light",
     });
     expect(result.success).toBe(true);
     if (result.success) {

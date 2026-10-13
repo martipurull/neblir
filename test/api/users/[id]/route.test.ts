@@ -137,6 +137,75 @@ describe("/api/users/[id] handlers", () => {
     });
   });
 
+  it("PATCH returns 401 when unauthenticated", async () => {
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeUnauthedRequest({ theme: "dark" }),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(401);
+    expect(updateUserMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH returns 403 when updating another user's theme", async () => {
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ theme: "dark" }, "user-1"),
+      makeParams({ id: "user-2" })
+    );
+    expect(response.status).toBe(403);
+    expect(updateUserMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH stores neblir, dark, and light as the db enum", async () => {
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    for (const [wire, stored] of [
+      ["neblir", "NEBLIR"],
+      ["dark", "DARK"],
+      ["light", "LIGHT"],
+    ] as const) {
+      safeParseMock.mockReturnValue({
+        data: { theme: wire },
+        error: undefined,
+      });
+      updateUserMock.mockResolvedValue({ id: "user-1", theme: stored });
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest({ theme: wire }, "user-1"),
+        makeParams({ id: "user-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateUserMock).toHaveBeenCalledWith("user-1", {
+        theme: stored,
+        characterLayoutMode: undefined,
+        characterSectionOrder: undefined,
+      });
+    }
+  });
+
+  it("PATCH leaves theme unchanged when the field is omitted", async () => {
+    safeParseMock.mockReturnValue({
+      data: { name: "kept" },
+      error: undefined,
+    });
+    updateUserMock.mockResolvedValue({ id: "user-1", name: "kept" });
+    const { PATCH } = await import("@/app/api/users/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ name: "kept" }, "user-1"),
+      makeParams({ id: "user-1" })
+    );
+    expect(response.status).toBe(200);
+    const update = updateUserMock.mock.calls[0]?.[1] as { theme?: string };
+    expect(update.theme).toBeUndefined();
+    expect(updateUserMock).toHaveBeenCalledWith(
+      "user-1",
+      expect.objectContaining({ name: "kept" })
+    );
+  });
+
   it("PATCH passes null characterLayoutMode through to db", async () => {
     safeParseMock.mockReturnValue({
       data: { characterLayoutMode: null },

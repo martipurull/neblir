@@ -1,4 +1,5 @@
 import { toApiCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { resolveTheme } from "@/app/lib/theme";
 import { toApiCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { deleteUser, getUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -43,6 +44,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         characterSectionOrder: toApiCharacterSectionOrder(
           user.characterSectionOrder
         ),
+        theme: resolveTheme(user.theme),
       },
       { status: 200 }
     );

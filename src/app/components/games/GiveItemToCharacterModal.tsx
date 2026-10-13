@@ -253,7 +253,7 @@ export function GiveItemToCharacterModal({
             form="give-item-modal-form"
             variant="modalFooterPrimary"
             fullWidth={false}
-            className="font-medium !text-modalBackground-200 disabled:pointer-events-none"
+            className="font-medium text-modal-ink disabled:pointer-events-none"
             disabled={
               submitting ||
               !characterId ||
