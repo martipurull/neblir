@@ -50,7 +50,7 @@ export function GmCreateNpcModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-lg border border-black/15 bg-paleBlue/95 p-5 shadow-lg backdrop-blur-sm"
+        className="theme-modal w-full max-w-md rounded-lg border border-black/15 bg-paleBlue/95 p-5 shadow-lg backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id={titleId} className="text-lg font-semibold text-black">

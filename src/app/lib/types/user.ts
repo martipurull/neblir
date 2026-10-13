@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { characterSectionOrderSchema } from "@/app/lib/constants/characterSections";
+import { THEME_VALUES } from "@/app/lib/theme";
 import { gameUserSchema } from "./game";
 
+const themeWireSchema = z.enum(THEME_VALUES);
 const characterLayoutModeSchema = z.enum(["horizontal", "vertical"]).nullish();
 export type CharacterLayoutMode = NonNullable<
   z.infer<typeof characterLayoutModeSchema>
@@ -22,6 +24,7 @@ const userSchema = z.object({
   characterLayoutMode: characterLayoutModeSchema,
   characterCarouselWrap: characterCarouselWrapSchema,
   characterSectionOrder: characterSectionOrderSchema,
+  theme: themeWireSchema.optional(),
   games: z.array(z.lazy(() => gameUserSchema)).optional(),
   characters: z.array(z.lazy(() => characterUserSchema)).optional(),
 });
@@ -43,5 +46,6 @@ export const currentUserSchema = userSchema
   })
   .extend({
     isSuperAdmin: z.boolean(),
+    theme: themeWireSchema,
   });
 export type CurrentUser = z.infer<typeof currentUserSchema>;

@@ -252,6 +252,12 @@ enum CharacterLayoutMode {
   VERTICAL
 }
 
+enum Theme {
+  NEBLIR
+  DARK
+  LIGHT
+}
+
 type CharacterCombatInformation {
   armourCurrentHP   Int
   armourMaxHP       Int
@@ -1085,6 +1091,10 @@ model User {
    * Saved character section order (stable section ids). Empty/missing means default order.
    */
   characterSectionOrder String[]             @default([])
+  /**
+   * Appearance for this user. Null/missing means Neblir.
+   */
+  theme                 Theme?
 
   games                        GameUser[]
   characters                   CharacterUser[]

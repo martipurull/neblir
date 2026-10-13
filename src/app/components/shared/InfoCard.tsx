@@ -16,7 +16,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
   return (
     <div
       id={id}
-      className={`mt-5 rounded-md ${border ? "border border-black" : ""} p-4 ${className}`.trim()}
+      className={`theme-raised mt-5 rounded-md ${border ? "border border-black" : ""} p-4 ${className}`.trim()}
     >
       {children}
     </div>

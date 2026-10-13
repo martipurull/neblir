@@ -53,7 +53,7 @@ export function ResourceGridCard({
   return (
     <Link
       href={href}
-      className={`flex h-full w-full flex-col rounded-lg border-2 border-black bg-transparent p-5 text-black shadow-sm transition-colors duration-200 ease-in-out hover:bg-paleBlue/30 ${minHeightClass}`}
+      className={`theme-raised flex h-full w-full flex-col rounded-lg border-2 border-black bg-transparent p-5 text-black shadow-sm transition-colors duration-200 ease-in-out hover:bg-paleBlue/30 ${minHeightClass}`}
     >
       {showImage ? (
         <div className="mb-3 flex h-16 w-full shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/15 bg-paleBlue/20 p-1.5">

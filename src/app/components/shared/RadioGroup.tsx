@@ -51,7 +51,7 @@ export function RadioGroup({
   const hideNativeControl = variant === "chip";
   const optionsContainerClass =
     optionLayout === "equal"
-      ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
+      ? `grid grid-cols-1 gap-3 ${options.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`
       : density === "compact"
         ? "flex flex-wrap gap-2"
         : "flex flex-wrap gap-3 lg:justify-center";

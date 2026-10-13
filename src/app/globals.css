@@ -7,6 +7,24 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  /* Neblir fallbacks. The document overrides these from the signed-in Theme. */
+  --theme-page: radial-gradient(circle, #d227ad, #581659, #2541b2);
+  --theme-card-rgb: 219 234 254;
+  --theme-card-hover-rgb: 191 219 254;
+  --theme-modal-rgb: 74 61 94;
+  --theme-modal-400-rgb: 107 33 168;
+  --theme-modal-600-rgb: 139 92 246;
+  --theme-text-rgb: 0 0 0;
+  --theme-accent-rgb: 66 17 97;
+  --theme-safe-200-rgb: 187 247 208;
+  --theme-safe-400-rgb: 134 239 172;
+  --theme-safe-600-rgb: 74 222 128;
+  --theme-warning-200-rgb: 253 230 138;
+  --theme-warning-400-rgb: 252 211 77;
+  --theme-warning-600-rgb: 234 179 8;
+  --theme-danger-200-rgb: 254 202 202;
+  --theme-danger-400-rgb: 252 165 165;
+  --theme-danger-600-rgb: 248 113 113;
 }
 
 @layer base {
@@ -170,8 +188,129 @@
 }
 
 body {
-  background: radial-gradient(circle, #d227ad, #581659, #2541b2);
+  background: var(--theme-page);
+  color: rgb(var(--theme-text-rgb));
+  min-height: 100vh;
+}
+
+html[data-theme="neblir"] body {
   background-size: 200% 200%;
   animation: pulse 20s ease-in-out infinite;
-  min-height: 100vh;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"],
+html[data-theme="neblir"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] .theme-raised,
+html[data-theme="light"] .theme-raised {
+  background-color: rgb(var(--theme-card-rgb));
+}
+
+html[data-theme="dark"] a.theme-raised:hover,
+html[data-theme="light"] a.theme-raised:hover {
+  background-color: rgb(var(--theme-card-hover-rgb));
+}
+
+html[data-theme="dark"] .theme-modal,
+html[data-theme="light"] .theme-modal {
+  background-color: rgb(var(--theme-modal-rgb));
+}
+
+/* Dark and Light share one text color. Neblir keeps black page text and white modal text. */
+html[data-theme="dark"] [class*="text-black/"],
+html[data-theme="dark"] [class*="text-white/"],
+html[data-theme="dark"] [class*="text-paleBlue/"],
+html[data-theme="dark"] [class*="text-modalBackground/"],
+html[data-theme="light"] [class*="text-white/"],
+html[data-theme="light"] [class*="text-paleBlue/"],
+html[data-theme="light"] [class*="text-modalBackground/"] {
+  color: color-mix(
+    in srgb,
+    rgb(var(--theme-text-rgb)) 68%,
+    transparent
+  ) !important;
+}
+
+html[data-theme="dark"] [class~="text-black"],
+html[data-theme="dark"] [class~="text-white"],
+html[data-theme="dark"] [class~="text-paleBlue"],
+html[data-theme="dark"] [class*="!text-black"],
+html[data-theme="dark"] [class*="!text-white"],
+html[data-theme="dark"] [class*="!text-paleBlue"],
+html[data-theme="dark"] [class*="text-modalBackground"],
+html[data-theme="light"] [class~="text-white"],
+html[data-theme="light"] [class~="text-paleBlue"],
+html[data-theme="light"] [class*="!text-white"],
+html[data-theme="light"] [class*="!text-paleBlue"],
+html[data-theme="light"] [class*="text-modalBackground"] {
+  color: rgb(var(--theme-text-rgb)) !important;
+}
+
+html[data-theme="dark"] [class*="placeholder:text-"]::placeholder,
+html[data-theme="light"] [class*="placeholder:text-white"]::placeholder,
+html[data-theme="light"] [class*="placeholder:text-paleBlue"]::placeholder {
+  color: color-mix(in srgb, rgb(var(--theme-text-rgb)) 55%, transparent);
+}
+
+html[data-theme="dark"] [class*="border-black"],
+html[data-theme="dark"] [class*="border-white"],
+html[data-theme="dark"] [class*="border-paleBlue"],
+html[data-theme="light"] [class*="border-white"],
+html[data-theme="light"] [class*="border-paleBlue"] {
+  border-color: rgb(var(--theme-text-rgb) / 0.28) !important;
+}
+
+html[data-theme="light"] [class*="ring-black"],
+html[data-theme="light"] [class*="ring-white"],
+html[data-theme="light"] [class*="ring-blue"],
+html[data-theme="light"] [class*="ring-paleBlue"] {
+  --tw-ring-color: rgb(var(--theme-accent-rgb) / 0.85) !important;
+}
+
+html[data-theme="dark"] [class*="ring-black"],
+html[data-theme="dark"] [class*="ring-white"],
+html[data-theme="dark"] [class*="ring-blue"],
+html[data-theme="dark"] [class*="ring-paleBlue"],
+html[data-theme="dark"] [class*="ring-customPrimary"] {
+  --tw-ring-color: #d6c4ea !important;
+}
+
+html[data-theme="dark"] [class*="text-customPrimary"],
+html[data-theme="dark"] .rich-text-content a,
+html[data-theme="dark"] .reference-entry-html a {
+  color: #d6c4ea;
+}
+
+html[data-theme="dark"] .bg-black {
+  background-color: rgb(var(--theme-text-rgb));
+}
+
+html[data-theme="dark"] a.bg-black,
+html[data-theme="dark"] button.bg-black,
+html[data-theme="light"] a.bg-black,
+html[data-theme="light"] button.bg-black {
+  background-color: rgb(var(--theme-accent-rgb));
+  color: #f8ecff !important;
+}
+
+html[data-theme="light"] [class*="bg-white/"] {
+  background-color: rgb(var(--theme-text-rgb) / 0.05);
+}
+
+html[data-theme="dark"] [class*="caret-white"],
+html[data-theme="dark"] [class*="caret-black"],
+html[data-theme="light"] [class*="caret-white"] {
+  caret-color: rgb(var(--theme-text-rgb));
+}
+
+html[data-theme="dark"] select option,
+html[data-theme="light"] select option {
+  background-color: rgb(var(--theme-modal-rgb));
+  color: rgb(var(--theme-text-rgb));
 }

@@ -1,4 +1,5 @@
 import type { CharacterSectionOrder } from "@/app/lib/constants/characterSections";
+import type { Theme } from "@/app/lib/theme";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
@@ -72,6 +73,29 @@ export async function updateUserCharacterSectionOrder(
         body,
         "Failed to update character section order"
       )
+    );
+  }
+}
+
+export async function updateUserTheme(
+  userId: string,
+  theme: Theme
+): Promise<void> {
+  const response = await fetch(`/api/users/${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ theme }),
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to update theme")
     );
   }
 }

@@ -57,7 +57,7 @@ export function TypeToConfirmDangerModal({
   const isModalBg = variant === "modalBackground";
   const panelSurface = isModalBg
     ? "border-paleBlue/25 bg-modalBackground-200"
-    : "border-black bg-paleBlue/95 backdrop-blur-sm";
+    : "theme-modal border-black bg-paleBlue/95 backdrop-blur-sm";
   const titleClass = isModalBg ? "text-paleBlue" : "text-black";
   const bodyClass = isModalBg ? "text-paleBlue/85" : "text-black";
   const errorClass = isModalBg
