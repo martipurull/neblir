@@ -16,6 +16,7 @@
   --theme-modal-600-rgb: 139 92 246;
   --theme-text-rgb: 0 0 0;
   --theme-accent-rgb: 66 17 97;
+  --theme-on-accent: #f8ecff;
   --theme-safe-200-rgb: 187 247 208;
   --theme-safe-400-rgb: 134 239 172;
   --theme-safe-600-rgb: 74 222 128;
@@ -278,13 +279,13 @@ html[data-theme="dark"] [class*="ring-white"],
 html[data-theme="dark"] [class*="ring-blue"],
 html[data-theme="dark"] [class*="ring-paleBlue"],
 html[data-theme="dark"] [class*="ring-customPrimary"] {
-  --tw-ring-color: #d6c4ea !important;
+  --tw-ring-color: rgb(var(--theme-accent-rgb)) !important;
 }
 
 html[data-theme="dark"] [class*="text-customPrimary"],
 html[data-theme="dark"] .rich-text-content a,
 html[data-theme="dark"] .reference-entry-html a {
-  color: #d6c4ea;
+  color: rgb(var(--theme-accent-rgb));
 }
 
 html[data-theme="dark"] .bg-black {
@@ -296,7 +297,7 @@ html[data-theme="dark"] button.bg-black,
 html[data-theme="light"] a.bg-black,
 html[data-theme="light"] button.bg-black {
   background-color: rgb(var(--theme-accent-rgb));
-  color: #f8ecff !important;
+  color: var(--theme-on-accent) !important;
 }
 
 html[data-theme="light"] [class*="bg-white/"] {

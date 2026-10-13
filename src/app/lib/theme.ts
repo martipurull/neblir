@@ -1,9 +1,8 @@
+import type { Theme as PrismaTheme } from "@prisma/client";
 import type { CSSProperties } from "react";
 
 export const THEME_VALUES = ["neblir", "dark", "light"] as const;
 export type Theme = (typeof THEME_VALUES)[number];
-
-export type StoredTheme = "NEBLIR" | "DARK" | "LIGHT";
 
 export type ThemeTokens = {
   page: string;
@@ -90,8 +89,8 @@ const THEME_PAINT: Record<Theme, ThemePaint> = {
   },
   light: {
     page: "#f4f3ef",
-    card: "#ffffff",
-    cardHover: "#f7f6f3",
+    card: "#faf9f6",
+    cardHover: "#f3f1ec",
     modal: "#e6e4dd",
     modal400: "#d9d6ce",
     modal600: "#ccc9c0",
@@ -114,7 +113,7 @@ const STORED_TO_THEME: Record<string, Theme> = {
 };
 
 export function isTheme(value: string): value is Theme {
-  return value === "neblir" || value === "dark" || value === "light";
+  return (THEME_VALUES as readonly string[]).includes(value);
 }
 
 /** Turns a stored user value into a Theme. Absent, empty, and unknown resolve to Neblir. */
@@ -148,7 +147,7 @@ export function themeTokens(theme: Theme): ThemeTokens {
 
 export function toDbTheme(
   theme: Theme | null | undefined
-): StoredTheme | undefined {
+): PrismaTheme | undefined {
   if (theme === "neblir") return "NEBLIR";
   if (theme === "dark") return "DARK";
   if (theme === "light") return "LIGHT";
@@ -175,6 +174,7 @@ export function themeDocumentStyle(theme: Theme): CSSProperties {
     "--theme-modal-600-rgb": hexToRgbChannels(paint.modal600),
     "--theme-text-rgb": hexToRgbChannels(paint.text),
     "--theme-accent-rgb": hexToRgbChannels(paint.accent),
+    "--theme-on-accent": "#F8ECFF",
     "--theme-safe-200-rgb": hexToRgbChannels(paint.safe[200]),
     "--theme-safe-400-rgb": hexToRgbChannels(paint.safe[400]),
     "--theme-safe-600-rgb": hexToRgbChannels(paint.safe[600]),
