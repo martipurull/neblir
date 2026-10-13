@@ -170,8 +170,112 @@
 }
 
 body {
-  background: radial-gradient(circle, #d227ad, #581659, #2541b2);
+  background: var(--theme-page);
+  color: rgb(var(--theme-text-rgb));
+  min-height: 100vh;
+}
+
+html[data-theme="neblir"] body {
   background-size: 200% 200%;
   animation: pulse 20s ease-in-out infinite;
-  min-height: 100vh;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"],
+html[data-theme="neblir"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] .theme-raised,
+html[data-theme="light"] .theme-raised {
+  background-color: rgb(var(--theme-card-rgb));
+}
+
+html[data-theme="dark"] a.theme-raised:hover,
+html[data-theme="light"] a.theme-raised:hover {
+  background-color: rgb(var(--theme-card-hover-rgb));
+}
+
+html[data-theme="dark"] .theme-modal,
+html[data-theme="light"] .theme-modal {
+  background-color: rgb(var(--theme-modal-rgb));
+}
+
+.text-theme {
+  color: rgb(var(--theme-text-rgb));
+}
+
+.text-modal-ink {
+  color: rgb(var(--theme-modal-ink-rgb));
+}
+
+/* Dark and Light share one text color. Neblir keeps black page text and white modal text. */
+html[data-theme="dark"] [class*="text-black/"],
+html[data-theme="dark"] [class*="text-paleBlue/"],
+html[data-theme="dark"] [class*="text-modalBackground/"],
+html[data-theme="light"] [class*="text-paleBlue/"],
+html[data-theme="light"] [class*="text-modalBackground/"] {
+  color: color-mix(in srgb, rgb(var(--theme-text-rgb)) 68%, transparent);
+}
+
+html[data-theme="dark"] [class~="text-black"],
+html[data-theme="dark"] [class~="text-paleBlue"],
+html[data-theme="dark"] [class*="text-modalBackground"],
+html[data-theme="light"] [class~="text-paleBlue"],
+html[data-theme="light"] [class*="text-modalBackground"] {
+  color: rgb(var(--theme-text-rgb));
+}
+
+html[data-theme="dark"] [class*="placeholder:text-black"]::placeholder,
+html[data-theme="dark"] [class*="placeholder:text-paleBlue"]::placeholder,
+html[data-theme="light"] [class*="placeholder:text-paleBlue"]::placeholder {
+  color: color-mix(in srgb, rgb(var(--theme-text-rgb)) 55%, transparent);
+}
+
+html[data-theme="dark"] [class*="border-black"],
+html[data-theme="dark"] [class*="border-white"],
+html[data-theme="dark"] [class*="border-paleBlue"],
+html[data-theme="light"] [class*="border-white"],
+html[data-theme="light"] [class*="border-paleBlue"] {
+  border-color: rgb(var(--theme-text-rgb) / 0.28);
+}
+
+html[data-theme="light"] [class*="ring-black"],
+html[data-theme="light"] [class*="ring-white"],
+html[data-theme="light"] [class*="ring-blue"],
+html[data-theme="light"] [class*="ring-paleBlue"] {
+  --tw-ring-color: rgb(var(--theme-accent-rgb) / 0.85);
+}
+
+html[data-theme="dark"] [class*="ring-black"],
+html[data-theme="dark"] [class*="ring-white"],
+html[data-theme="dark"] [class*="ring-blue"],
+html[data-theme="dark"] [class*="ring-paleBlue"],
+html[data-theme="dark"] [class*="ring-customPrimary"] {
+  --tw-ring-color: rgb(var(--theme-accent-rgb));
+}
+
+html[data-theme="dark"] .bg-black {
+  background-color: rgb(var(--theme-text-rgb));
+}
+
+html[data-theme="dark"] a.bg-black,
+html[data-theme="dark"] button.bg-black,
+html[data-theme="light"] a.bg-black,
+html[data-theme="light"] button.bg-black {
+  background-color: rgb(var(--theme-accent-rgb));
+  color: rgb(var(--theme-on-accent-rgb));
+}
+
+html[data-theme="dark"] [class*="caret-black"] {
+  caret-color: rgb(var(--theme-text-rgb));
+}
+
+html[data-theme="dark"] select option,
+html[data-theme="light"] select option {
+  background-color: rgb(var(--theme-modal-rgb));
+  color: rgb(var(--theme-text-rgb));
 }

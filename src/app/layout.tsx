@@ -1,4 +1,6 @@
 import "./globals.css";
+import { loadDocumentTheme } from "@/app/lib/loadDocumentTheme";
+import { themeDocumentStyle, themeTokens } from "@/app/lib/theme";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import { SerwistProvider } from "./serwist-provider";
@@ -21,20 +23,24 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-  themeColor: "#421161",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = await loadDocumentTheme();
+  return {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+    themeColor: themeTokens(theme).toolbar,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = await loadDocumentTheme();
   return (
-    <html lang="en">
+    <html lang="en" data-theme={theme} style={themeDocumentStyle(theme)}>
       <body>
         <SerwistProvider swUrl="/serwist/sw.js">
           <Providers>{children}</Providers>

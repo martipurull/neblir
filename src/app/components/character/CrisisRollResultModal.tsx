@@ -40,7 +40,7 @@ export function CrisisRollResultModal({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-sm flex-col overflow-hidden rounded-lg border border-black bg-paleBlue/95 shadow-lg backdrop-blur-sm"
+        className="theme-modal flex max-h-[90vh] w-full max-w-sm flex-col overflow-hidden rounded-lg border border-black bg-paleBlue/95 shadow-lg backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/15 px-5 pb-3 pt-5 sm:px-6 sm:pb-4 sm:pt-6">
@@ -54,7 +54,7 @@ export function CrisisRollResultModal({
             type="button"
             variant="modalCloseLight"
             fullWidth={false}
-            className="!text-black"
+            className="text-theme"
             onClick={onClose}
             aria-label="Close"
           >

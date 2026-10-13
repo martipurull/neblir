@@ -57,7 +57,7 @@ export function GameListCard({ game, imageUrl }: GameListCardProps) {
   return (
     <Link
       href={gameHref}
-      className="flex h-full flex-col overflow-hidden rounded-md border border-black text-black transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black md:hover:bg-paleBlue/30"
+      className="theme-raised flex h-full flex-col overflow-hidden rounded-md border border-black text-black transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black md:hover:bg-paleBlue/30"
     >
       <div className="flex shrink-0 items-center gap-3 px-5 py-4">
         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">

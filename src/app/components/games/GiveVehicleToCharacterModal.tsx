@@ -282,7 +282,7 @@ function GiveVehicleToCharacterModalBody({
             form="give-vehicle-modal-form"
             variant="modalFooterPrimary"
             fullWidth={false}
-            className="font-medium !text-modalBackground-200 disabled:pointer-events-none"
+            className="font-medium text-modal-ink disabled:pointer-events-none"
             disabled={
               submitting ||
               !characterId ||

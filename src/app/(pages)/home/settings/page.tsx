@@ -10,6 +10,8 @@ import { PageTitle } from "@/app/components/shared/PageTitle";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { CharacterSectionOrderSettings } from "@/app/components/settings/CharacterSectionOrderSettings";
+import { applyDocumentTheme } from "@/app/lib/applyDocumentTheme";
+import { isTheme, type Theme } from "@/app/lib/theme";
 import type { CharacterLayoutMode } from "@/app/lib/types/user";
 import { useUser } from "@/hooks/use-user";
 import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
@@ -17,6 +19,7 @@ import {
   deleteCurrentUser,
   updateUserCharacterCarouselWrap,
   updateUserCharacterLayoutMode,
+  updateUserTheme,
 } from "@/lib/api/user";
 import { signOut } from "next-auth/react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -32,6 +35,9 @@ const SettingsPage: React.FC = () => {
   const [carouselWrapError, setCarouselWrapError] = useState<string | null>(
     null
   );
+  const [themeChoice, setThemeChoice] = useState<Theme | null>(null);
+  const [themeSaving, setThemeSaving] = useState(false);
+  const [themeError, setThemeError] = useState<string | null>(null);
 
   const effectiveLayoutMode = useMemo<CharacterLayoutMode>(
     () => user?.characterLayoutMode ?? "horizontal",
@@ -50,6 +56,26 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     setCarouselWrap(effectiveCarouselWrap);
   }, [effectiveCarouselWrap]);
+
+  const handleThemeChange = async (value: string) => {
+    if (!user || !isTheme(value)) return;
+    if (value === user.theme) return;
+
+    setThemeChoice(value);
+    setThemeSaving(true);
+    setThemeError(null);
+    try {
+      await updateUserTheme(user.id, value);
+      applyDocumentTheme(value);
+      await refetch();
+      setThemeChoice(null);
+    } catch (e) {
+      setThemeChoice(null);
+      setThemeError(e instanceof Error ? e.message : "Failed to update theme");
+    } finally {
+      setThemeSaving(false);
+    }
+  };
 
   const deleteAccount = async () => {
     await deleteCurrentUser();
@@ -123,6 +149,34 @@ const SettingsPage: React.FC = () => {
                 { label: "Email", value: user.email },
               ]}
             />
+            <div className="border-t border-black/20 pt-4">
+              <p className="text-sm font-bold text-black">Theme</p>
+              <p className="mt-1 text-xs text-black/75">
+                {"Neblir is today's pink look."}
+              </p>
+              <div className="mt-3">
+                <RadioGroup
+                  name="theme"
+                  value={themeChoice ?? user.theme}
+                  variant="chip"
+                  optionLayout="equal"
+                  options={[
+                    { value: "neblir", label: "Neblir" },
+                    { value: "dark", label: "Dark" },
+                    { value: "light", label: "Light" },
+                  ]}
+                  onChange={(value) => {
+                    void handleThemeChange(value);
+                  }}
+                  disabled={themeSaving}
+                />
+              </div>
+              {themeError ? (
+                <p className="mt-2 text-sm text-neblirDanger-600">
+                  {themeError}
+                </p>
+              ) : null}
+            </div>
             <div className="border-t border-black/20 pt-4">
               <p className="text-sm font-bold text-black">
                 Character page layout

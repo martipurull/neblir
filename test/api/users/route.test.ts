@@ -75,6 +75,51 @@ describe("/api/users POST", () => {
     });
   });
 
+  it("maps theme to the db enum on create", async () => {
+    safeParseMock.mockReturnValue({
+      data: {
+        email: "a@b.com",
+        name: "A",
+        theme: "dark",
+      },
+      error: undefined,
+    });
+    createUserMock.mockResolvedValue({ id: "u-1" });
+    const { POST } = await import("@/app/api/users/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        email: "a@b.com",
+        name: "A",
+        theme: "dark",
+      })
+    );
+    expect(response.status).toBe(201);
+    expect(createUserMock).toHaveBeenCalledWith({
+      email: "a@b.com",
+      name: "A",
+      theme: "DARK",
+      characterLayoutMode: undefined,
+      characterSectionOrder: undefined,
+    });
+  });
+
+  it("leaves theme unset when create omits it", async () => {
+    safeParseMock.mockReturnValue({
+      data: { email: "a@b.com", name: "A" },
+      error: undefined,
+    });
+    createUserMock.mockResolvedValue({ id: "u-1" });
+    const { POST } = await import("@/app/api/users/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ email: "a@b.com", name: "A" })
+    );
+    expect(response.status).toBe(201);
+    const created = createUserMock.mock.calls[0]?.[0] as { theme?: string };
+    expect(created.theme).toBeUndefined();
+  });
+
   it("maps characterLayoutMode to db enum on create", async () => {
     safeParseMock.mockReturnValue({
       data: {

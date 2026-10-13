@@ -221,7 +221,7 @@ export function AddCharactersToGameModal({
             type="button"
             variant="modalFooterPrimary"
             fullWidth={false}
-            className="!text-modalBackground-200"
+            className="text-modal-ink"
             onClick={() => void handleSubmit()}
             disabled={submitting}
           >

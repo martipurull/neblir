@@ -1,4 +1,5 @@
 import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toDbTheme } from "@/app/lib/theme";
 import { toDbCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { deleteUser, getUser, updateUser } from "@/app/lib/prisma/user";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -110,6 +111,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       characterSectionOrder: toDbCharacterSectionOrder(
         parsedBody.characterSectionOrder
       ),
+      theme: toDbTheme(parsedBody.theme),
     };
 
     const updatedUser = await updateUser(id, updateData);

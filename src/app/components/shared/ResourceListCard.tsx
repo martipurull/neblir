@@ -64,7 +64,8 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
     </div>
   );
 
-  const shellClassName = `rounded-md border border-black ${className}`.trim();
+  const shellClassName =
+    `theme-raised rounded-md border border-black ${className}`.trim();
   const headerLinkClassName =
     "block px-5 pt-4 transition-colors duration-500 ease-in-out md:hover:bg-paleBlue/30";
   const headerStaticClassName = "px-5 pt-4";

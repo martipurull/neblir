@@ -1,4 +1,5 @@
 import { toDbCharacterLayoutMode } from "@/app/lib/characterLayoutMode";
+import { toDbTheme } from "@/app/lib/theme";
 import { toDbCharacterSectionOrder } from "@/app/lib/constants/characterSections";
 import { createUser } from "@/app/lib/prisma/user";
 import { userCreateSchema } from "@/app/lib/types/user";
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       characterSectionOrder: toDbCharacterSectionOrder(
         parsedBody.characterSectionOrder
       ),
+      theme: toDbTheme(parsedBody.theme),
     };
 
     const user = await createUser(createData);
