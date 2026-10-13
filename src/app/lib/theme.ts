@@ -1,5 +1,45 @@
 import type { Theme as PrismaTheme } from "@prisma/client";
 import type { CSSProperties } from "react";
+import {
+  CUSTOM_SECONDARY,
+  DANGER_200,
+  DANGER_400,
+  DANGER_600,
+  DARK_CARD,
+  DARK_CARD_HOVER,
+  DARK_MODAL,
+  DARK_MODAL_400,
+  DARK_MODAL_600,
+  DARK_PAGE,
+  DARK_TEXT,
+  DARK_WARNING_200,
+  DARK_WARNING_400,
+  DARK_WARNING_600,
+  DEEP_BRAND_PURPLE,
+  LIGHT_CARD,
+  LIGHT_CARD_HOVER,
+  LIGHT_DANGER_600,
+  LIGHT_MODAL,
+  LIGHT_MODAL_400,
+  LIGHT_MODAL_600,
+  LIGHT_PAGE,
+  LIGHT_SAFE_600,
+  LIGHT_TEXT,
+  LIGHT_WARNING_600,
+  NEBLIR_MODAL_400,
+  NEBLIR_MODAL_600,
+  NEBLIR_MODAL_SHELL,
+  NEBLIR_PAGE_GRADIENT,
+  NEBLIR_PALE_BLUE,
+  NEBLIR_PALE_BLUE_HOVER,
+  NEBLIR_TEXT,
+  SAFE_200,
+  SAFE_400,
+  SAFE_600,
+  WARNING_200,
+  WARNING_400,
+  WARNING_600,
+} from "@/app/lib/themeColors";
 
 export const THEME_VALUES = ["neblir", "dark", "light"] as const;
 export type Theme = (typeof THEME_VALUES)[number];
@@ -15,11 +55,6 @@ export type ThemeTokens = {
   danger: string;
   toolbar: string;
 };
-
-const DEEP_BRAND_PURPLE = "#421161";
-const NEBLIR_PAGE_GRADIENT =
-  "radial-gradient(circle, #d227ad, #581659, #2541b2)";
-const NEBLIR_MODAL_SHELL = "#4a3d5e";
 
 type SemanticStops = {
   200: string;
@@ -43,30 +78,50 @@ type ThemePaint = {
 };
 
 const NEBLIR_SAFE: SemanticStops = {
-  200: "#bbf7d0",
-  400: "#86efac",
-  600: "#4ade80",
+  200: SAFE_200,
+  400: SAFE_400,
+  600: SAFE_600,
 };
 const NEBLIR_WARNING: SemanticStops = {
-  200: "#fde68a",
-  400: "#fcd34d",
-  600: "#eab308",
+  200: WARNING_200,
+  400: WARNING_400,
+  600: WARNING_600,
 };
 const NEBLIR_DANGER: SemanticStops = {
-  200: "#fecaca",
-  400: "#fca5a5",
-  600: "#f87171",
+  200: DANGER_200,
+  400: DANGER_400,
+  600: DANGER_600,
+};
+const DARK_WARNING: SemanticStops = {
+  200: DARK_WARNING_200,
+  400: DARK_WARNING_400,
+  600: DARK_WARNING_600,
+};
+const LIGHT_SAFE: SemanticStops = {
+  200: SAFE_200,
+  400: SAFE_600,
+  600: LIGHT_SAFE_600,
+};
+const LIGHT_WARNING: SemanticStops = {
+  200: WARNING_200,
+  400: WARNING_600,
+  600: LIGHT_WARNING_600,
+};
+const LIGHT_DANGER: SemanticStops = {
+  200: DANGER_200,
+  400: DANGER_600,
+  600: LIGHT_DANGER_600,
 };
 
 const THEME_PAINT: Record<Theme, ThemePaint> = {
   neblir: {
     page: NEBLIR_PAGE_GRADIENT,
-    card: "#dbeafe",
-    cardHover: "#bfdbfe",
+    card: NEBLIR_PALE_BLUE,
+    cardHover: NEBLIR_PALE_BLUE_HOVER,
     modal: NEBLIR_MODAL_SHELL,
-    modal400: "#6b21a8",
-    modal600: "#8b5cf6",
-    text: "#000000",
+    modal400: NEBLIR_MODAL_400,
+    modal600: NEBLIR_MODAL_600,
+    text: NEBLIR_TEXT,
     accent: DEEP_BRAND_PURPLE,
     toolbar: DEEP_BRAND_PURPLE,
     safe: NEBLIR_SAFE,
@@ -74,32 +129,32 @@ const THEME_PAINT: Record<Theme, ThemePaint> = {
     danger: NEBLIR_DANGER,
   },
   dark: {
-    page: "#16161a",
-    card: "#23232a",
-    cardHover: "#2c2c34",
-    modal: "#31313a",
-    modal400: "#3d3d48",
-    modal600: "#494954",
-    text: "#f4f4f5",
+    page: DARK_PAGE,
+    card: DARK_CARD,
+    cardHover: DARK_CARD_HOVER,
+    modal: DARK_MODAL,
+    modal400: DARK_MODAL_400,
+    modal600: DARK_MODAL_600,
+    text: DARK_TEXT,
     accent: DEEP_BRAND_PURPLE,
-    toolbar: "#16161a",
-    safe: { 200: "#bbf7d0", 400: "#86efac", 600: "#4ade80" },
-    warning: { 200: "#fef3c7", 400: "#fde047", 600: "#facc15" },
-    danger: { 200: "#fecaca", 400: "#fca5a5", 600: "#f87171" },
+    toolbar: DARK_PAGE,
+    safe: NEBLIR_SAFE,
+    warning: DARK_WARNING,
+    danger: NEBLIR_DANGER,
   },
   light: {
-    page: "#f4f3ef",
-    card: "#faf9f6",
-    cardHover: "#f3f1ec",
-    modal: "#e6e4dd",
-    modal400: "#d9d6ce",
-    modal600: "#ccc9c0",
-    text: "#1c1c1f",
+    page: LIGHT_PAGE,
+    card: LIGHT_CARD,
+    cardHover: LIGHT_CARD_HOVER,
+    modal: LIGHT_MODAL,
+    modal400: LIGHT_MODAL_400,
+    modal600: LIGHT_MODAL_600,
+    text: LIGHT_TEXT,
     accent: DEEP_BRAND_PURPLE,
-    toolbar: "#f4f3ef",
-    safe: { 200: "#bbf7d0", 400: "#4ade80", 600: "#15803d" },
-    warning: { 200: "#fde68a", 400: "#eab308", 600: "#a16207" },
-    danger: { 200: "#fecaca", 400: "#f87171", 600: "#dc2626" },
+    toolbar: LIGHT_PAGE,
+    safe: LIGHT_SAFE,
+    warning: LIGHT_WARNING,
+    danger: LIGHT_DANGER,
   },
 };
 
@@ -174,7 +229,13 @@ export function themeDocumentStyle(theme: Theme): CSSProperties {
     "--theme-modal-600-rgb": hexToRgbChannels(paint.modal600),
     "--theme-text-rgb": hexToRgbChannels(paint.text),
     "--theme-accent-rgb": hexToRgbChannels(paint.accent),
-    "--theme-on-accent": "#F8ECFF",
+    "--theme-on-accent-rgb": hexToRgbChannels(CUSTOM_SECONDARY),
+    "--theme-white-rgb":
+      theme === "neblir" ? "255 255 255" : hexToRgbChannels(paint.text),
+    "--theme-modal-ink-rgb":
+      theme === "neblir"
+        ? hexToRgbChannels(NEBLIR_MODAL_SHELL)
+        : hexToRgbChannels(paint.text),
     "--theme-safe-200-rgb": hexToRgbChannels(paint.safe[200]),
     "--theme-safe-400-rgb": hexToRgbChannels(paint.safe[400]),
     "--theme-safe-600-rgb": hexToRgbChannels(paint.safe[600]),

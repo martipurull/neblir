@@ -1,3 +1,4 @@
+import { CUSTOM_SECONDARY } from "./src/app/lib/themeColors";
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -15,8 +16,9 @@ const config: Config = {
       colors: {
         customPrimary: "rgb(var(--theme-accent-rgb) / <alpha-value>)",
         customPrimaryHover: "#6D597A",
-        customSecondary: "#F8ECFF",
+        customSecondary: CUSTOM_SECONDARY,
         customSecondaryHover: "#F5F0F9",
+        white: "rgb(var(--theme-white-rgb) / <alpha-value>)",
         neblirSafe: {
           DEFAULT: "rgb(var(--theme-safe-600-rgb) / <alpha-value>)",
           200: "rgb(var(--theme-safe-200-rgb) / <alpha-value>)",

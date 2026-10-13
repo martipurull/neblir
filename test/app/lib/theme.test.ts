@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   resolveDocumentTheme,
   resolveTheme,
+  themeDocumentStyle,
   themeTokens,
 } from "@/app/lib/theme";
 
@@ -60,6 +61,26 @@ describe("themeTokens", () => {
     expect(neblir.page).toBe(NEBLIR_PAGE_GRADIENT);
     expect(neblir.modal).toBe(NEBLIR_MODAL_SHELL);
     expect(neblir.toolbar).toBe(DEEP_BRAND_PURPLE);
+  });
+
+  it("paints text on the accent with the shared on-accent color", () => {
+    for (const theme of ["neblir", "dark", "light"] as const) {
+      const style = themeDocumentStyle(theme) as Record<string, string>;
+      expect(style["--theme-on-accent-rgb"]).toBe("248 236 255");
+    }
+  });
+
+  it("keeps Neblir white and modal ink, and reuses Dark and Light text for both", () => {
+    const neblir = themeDocumentStyle("neblir") as Record<string, string>;
+    expect(neblir["--theme-page"]).toBe(NEBLIR_PAGE_GRADIENT);
+    expect(neblir["--theme-white-rgb"]).toBe("255 255 255");
+    expect(neblir["--theme-modal-ink-rgb"]).toBe("74 61 94");
+
+    for (const theme of ["dark", "light"] as const) {
+      const style = themeDocumentStyle(theme) as Record<string, string>;
+      expect(style["--theme-white-rgb"]).toBe(style["--theme-text-rgb"]);
+      expect(style["--theme-modal-ink-rgb"]).toBe(style["--theme-text-rgb"]);
+    }
   });
 
   it("gives Dark and Light opaque steps that are not the gradient or the purple shell", () => {

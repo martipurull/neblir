@@ -93,7 +93,7 @@ export function TypeToConfirmDangerModal({
             type="button"
             variant={isModalBg ? "modalClosePale" : "modalCloseLight"}
             fullWidth={false}
-            className={isModalBg ? undefined : "!text-black"}
+            className={isModalBg ? undefined : "text-theme"}
             onClick={handleCancel}
             disabled={isSubmitting}
             aria-label="Close"

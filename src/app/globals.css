@@ -7,25 +7,6 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
-  /* Neblir fallbacks. The document overrides these from the signed-in Theme. */
-  --theme-page: radial-gradient(circle, #d227ad, #581659, #2541b2);
-  --theme-card-rgb: 219 234 254;
-  --theme-card-hover-rgb: 191 219 254;
-  --theme-modal-rgb: 74 61 94;
-  --theme-modal-400-rgb: 107 33 168;
-  --theme-modal-600-rgb: 139 92 246;
-  --theme-text-rgb: 0 0 0;
-  --theme-accent-rgb: 66 17 97;
-  --theme-on-accent: #f8ecff;
-  --theme-safe-200-rgb: 187 247 208;
-  --theme-safe-400-rgb: 134 239 172;
-  --theme-safe-600-rgb: 74 222 128;
-  --theme-warning-200-rgb: 253 230 138;
-  --theme-warning-400-rgb: 252 211 77;
-  --theme-warning-600-rgb: 234 179 8;
-  --theme-danger-200-rgb: 254 202 202;
-  --theme-danger-400-rgb: 252 165 165;
-  --theme-danger-600-rgb: 248 113 113;
 }
 
 @layer base {
@@ -223,38 +204,33 @@ html[data-theme="light"] .theme-modal {
   background-color: rgb(var(--theme-modal-rgb));
 }
 
+.text-theme {
+  color: rgb(var(--theme-text-rgb));
+}
+
+.text-modal-ink {
+  color: rgb(var(--theme-modal-ink-rgb));
+}
+
 /* Dark and Light share one text color. Neblir keeps black page text and white modal text. */
 html[data-theme="dark"] [class*="text-black/"],
-html[data-theme="dark"] [class*="text-white/"],
 html[data-theme="dark"] [class*="text-paleBlue/"],
 html[data-theme="dark"] [class*="text-modalBackground/"],
-html[data-theme="light"] [class*="text-white/"],
 html[data-theme="light"] [class*="text-paleBlue/"],
 html[data-theme="light"] [class*="text-modalBackground/"] {
-  color: color-mix(
-    in srgb,
-    rgb(var(--theme-text-rgb)) 68%,
-    transparent
-  ) !important;
+  color: color-mix(in srgb, rgb(var(--theme-text-rgb)) 68%, transparent);
 }
 
 html[data-theme="dark"] [class~="text-black"],
-html[data-theme="dark"] [class~="text-white"],
 html[data-theme="dark"] [class~="text-paleBlue"],
-html[data-theme="dark"] [class*="!text-black"],
-html[data-theme="dark"] [class*="!text-white"],
-html[data-theme="dark"] [class*="!text-paleBlue"],
 html[data-theme="dark"] [class*="text-modalBackground"],
-html[data-theme="light"] [class~="text-white"],
 html[data-theme="light"] [class~="text-paleBlue"],
-html[data-theme="light"] [class*="!text-white"],
-html[data-theme="light"] [class*="!text-paleBlue"],
 html[data-theme="light"] [class*="text-modalBackground"] {
-  color: rgb(var(--theme-text-rgb)) !important;
+  color: rgb(var(--theme-text-rgb));
 }
 
-html[data-theme="dark"] [class*="placeholder:text-"]::placeholder,
-html[data-theme="light"] [class*="placeholder:text-white"]::placeholder,
+html[data-theme="dark"] [class*="placeholder:text-black"]::placeholder,
+html[data-theme="dark"] [class*="placeholder:text-paleBlue"]::placeholder,
 html[data-theme="light"] [class*="placeholder:text-paleBlue"]::placeholder {
   color: color-mix(in srgb, rgb(var(--theme-text-rgb)) 55%, transparent);
 }
@@ -264,14 +240,14 @@ html[data-theme="dark"] [class*="border-white"],
 html[data-theme="dark"] [class*="border-paleBlue"],
 html[data-theme="light"] [class*="border-white"],
 html[data-theme="light"] [class*="border-paleBlue"] {
-  border-color: rgb(var(--theme-text-rgb) / 0.28) !important;
+  border-color: rgb(var(--theme-text-rgb) / 0.28);
 }
 
 html[data-theme="light"] [class*="ring-black"],
 html[data-theme="light"] [class*="ring-white"],
 html[data-theme="light"] [class*="ring-blue"],
 html[data-theme="light"] [class*="ring-paleBlue"] {
-  --tw-ring-color: rgb(var(--theme-accent-rgb) / 0.85) !important;
+  --tw-ring-color: rgb(var(--theme-accent-rgb) / 0.85);
 }
 
 html[data-theme="dark"] [class*="ring-black"],
@@ -279,13 +255,7 @@ html[data-theme="dark"] [class*="ring-white"],
 html[data-theme="dark"] [class*="ring-blue"],
 html[data-theme="dark"] [class*="ring-paleBlue"],
 html[data-theme="dark"] [class*="ring-customPrimary"] {
-  --tw-ring-color: rgb(var(--theme-accent-rgb)) !important;
-}
-
-html[data-theme="dark"] [class*="text-customPrimary"],
-html[data-theme="dark"] .rich-text-content a,
-html[data-theme="dark"] .reference-entry-html a {
-  color: rgb(var(--theme-accent-rgb));
+  --tw-ring-color: rgb(var(--theme-accent-rgb));
 }
 
 html[data-theme="dark"] .bg-black {
@@ -297,16 +267,10 @@ html[data-theme="dark"] button.bg-black,
 html[data-theme="light"] a.bg-black,
 html[data-theme="light"] button.bg-black {
   background-color: rgb(var(--theme-accent-rgb));
-  color: var(--theme-on-accent) !important;
+  color: rgb(var(--theme-on-accent-rgb));
 }
 
-html[data-theme="light"] [class*="bg-white/"] {
-  background-color: rgb(var(--theme-text-rgb) / 0.05);
-}
-
-html[data-theme="dark"] [class*="caret-white"],
-html[data-theme="dark"] [class*="caret-black"],
-html[data-theme="light"] [class*="caret-white"] {
+html[data-theme="dark"] [class*="caret-black"] {
   caret-color: rgb(var(--theme-text-rgb));
 }
 

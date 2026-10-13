@@ -54,7 +54,7 @@ export function CrisisRollResultModal({
             type="button"
             variant="modalCloseLight"
             fullWidth={false}
-            className="!text-black"
+            className="text-theme"
             onClick={onClose}
             aria-label="Close"
           >
