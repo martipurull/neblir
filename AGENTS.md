@@ -143,6 +143,11 @@ GitHub Actions and Vercel run on **Linux**; local dev is usually **macOS**. Tool
 - Match nearby usages for title, description, confirm/cancel labels, submitting state, and error display. Dark game modals (`modalBackground` shells) pass **`variant="modalBackground"`**.
 - Do not use `window.confirm` for those flows.
 
+## 14) Tests Must Be Able to Fail
+
+- Do not add an **absence test**: an assertion that a symbol, file, string, or branch is missing from the source. Test caller-visible behavior. A 404, a rejected payload, or an omitted field on a returned value is behavior.
+- Do not add a **vacuous test**: a test that passes for every implementation of the subject, because it has no assertion, asserts a literal against itself, or asserts a value the test just configured on a mock. A mirror test that copies a formula and can fail when only one side changes is fine.
+
 ## Agent skills
 
 ### Issue tracker
