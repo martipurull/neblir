@@ -37,10 +37,6 @@ export async function listCharacterWallet(
   return presentWalletHoldings(await loadWalletRows(characterId, prisma));
 }
 
-export async function countCurrencyHoldings(currencyId: string) {
-  return prisma.characterCurrency.count({ where: { currencyId } });
-}
-
 export async function addCharacterCurrency(
   characterId: string,
   currencyId: string,
@@ -109,9 +105,8 @@ export async function replaceCharacterWallet(
   characterId: string,
   entries: readonly ResolvedWalletHolding[]
 ): Promise<WalletHoldingView[]> {
-  const kept = entries.filter((entry) => entry.quantity > 0);
   return prisma.$transaction(async (tx) => {
-    const currencyIds = [...new Set(kept.map((entry) => entry.currencyId))];
+    const currencyIds = [...new Set(entries.map((entry) => entry.currencyId))];
     if (currencyIds.length > 0) {
       const found = await tx.currency.findMany({
         where: { id: { in: currencyIds } },
@@ -122,6 +117,7 @@ export async function replaceCharacterWallet(
       }
     }
 
+    const kept = entries.filter((entry) => entry.quantity > 0);
     await tx.characterCurrency.deleteMany({ where: { characterId } });
     if (kept.length > 0) {
       await tx.characterCurrency.createMany({

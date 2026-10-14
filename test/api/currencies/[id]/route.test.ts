@@ -14,7 +14,7 @@ const getCurrencyMock = vi.fn();
 const getCurrenciesMock = vi.fn();
 const updateCurrencyMock = vi.fn();
 const deleteCurrencyMock = vi.fn();
-const countCurrencyHoldingsMock = vi.fn();
+const countCharacterCurrencyMock = vi.fn();
 const countOfficialRowsWithCatalogueImageKeyMock = vi.fn();
 const s3SendMock = vi.fn();
 const deleteObjectCommandCtorMock = vi.fn();
@@ -39,8 +39,12 @@ vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
   touchStaffCatalogueDrift: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/app/lib/prisma/characterCurrency", () => ({
-  countCurrencyHoldings: countCurrencyHoldingsMock,
+vi.mock("@/app/lib/prisma/client", () => ({
+  prisma: {
+    characterCurrency: {
+      count: (...args: unknown[]) => countCharacterCurrencyMock(...args),
+    },
+  },
 }));
 
 vi.mock("@/app/lib/prisma/currency", () => ({
@@ -80,7 +84,7 @@ describe("/api/currencies/[id] route handlers", () => {
     getCurrencyMock.mockResolvedValue(nord);
     getCurrenciesMock.mockResolvedValue([nord, conf]);
     deleteCurrencyMock.mockResolvedValue(nord);
-    countCurrencyHoldingsMock.mockResolvedValue(0);
+    countCharacterCurrencyMock.mockResolvedValue(0);
     clearCatalogueR2();
   });
 
@@ -402,7 +406,7 @@ describe("/api/currencies/[id] route handlers", () => {
     });
 
     it("refuses to delete a currency a character holds, and the currency remains", async () => {
-      countCurrencyHoldingsMock.mockResolvedValue(2);
+      countCharacterCurrencyMock.mockResolvedValue(2);
       const { DELETE } = await import("@/app/api/currencies/[id]/route");
       const response = await invokeRoute(
         DELETE,
@@ -412,6 +416,9 @@ describe("/api/currencies/[id] route handlers", () => {
       expect(response.status).toBe(409);
       await expect(response.json()).resolves.toMatchObject({
         message: "A character holds this currency",
+      });
+      expect(countCharacterCurrencyMock).toHaveBeenCalledWith({
+        where: { currencyId: "nord" },
       });
       expect(deleteCurrencyMock).not.toHaveBeenCalled();
       expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();

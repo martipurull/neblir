@@ -267,6 +267,32 @@ describe("/api/characters/[id]/wallet", () => {
       ]);
     });
 
+    it("returns 400 for an unknown currency even when its quantity is 0", async () => {
+      memory.seedHolding({
+        characterId: "char-1",
+        currencyId: "conf",
+        quantity: 2,
+      });
+      const { PATCH } = await import("@/app/api/characters/[id]/wallet/route");
+      const response = await invokeRoute(
+        PATCH,
+        makeAuthedRequest([{ currencyId: "missing", quantity: 0 }]),
+        makeParams({ id: "char-1" })
+      );
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({
+        message: "Unknown currency",
+      });
+      await expect(readWallet()).resolves.toEqual([
+        {
+          currencyId: "conf",
+          name: "CONF",
+          imageKey: "currencies-conf.png",
+          quantity: 2,
+        },
+      ]);
+    });
+
     it("drops a quantity of 0 and stores the remaining holdings", async () => {
       memory.seedHolding({
         characterId: "char-1",

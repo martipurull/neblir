@@ -1,6 +1,6 @@
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import { deleteUnreferencedCatalogueImageIfUnused } from "@/app/lib/officialCatalogueImage";
-import { countCurrencyHoldings } from "@/app/lib/prisma/characterCurrency";
+import { prisma } from "@/app/lib/prisma/client";
 import {
   deleteCurrency,
   getCurrencies,
@@ -158,7 +158,10 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Currency not found", 404);
     }
 
-    if ((await countCurrencyHoldings(id.trim())) > 0) {
+    const held = await prisma.characterCurrency.count({
+      where: { currencyId: id.trim() },
+    });
+    if (held > 0) {
       return errorResponse("A character holds this currency", 409);
     }
 
