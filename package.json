@@ -52,7 +52,7 @@
     "@tiptap/pm": "^3.20.4",
     "@tiptap/react": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
-    "csv-parse": "^6.1.0",
+    "csv-parse": "^7.0.2",
     "dotenv": "^16.4.7",
     "fflate": "^0.8.3",
     "googleapis": "^169.0.0",
