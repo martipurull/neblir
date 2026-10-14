@@ -423,6 +423,33 @@ describe("/api/upload-image POST", () => {
     expect(putArgs.Key).toBe(data.fileKey);
   });
 
+  it("returns 201 with fileKey prefixed currencies- in the catalogue bucket", async () => {
+    setCatalogueR2();
+
+    const file = new File(["x"], "Credit.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "currencies" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^currencies-/);
+    const putArgs = putObjectCommandCtorMock.mock.calls[0][0];
+    expect(putArgs.Bucket).toBe("neblir-catalogue");
+    expect(putArgs.Key).toBe(data.fileKey);
+  });
+
+  it("returns 403 when type is currencies and user is not super admin", async () => {
+    setCatalogueR2();
+    userIsSuperAdminMock.mockResolvedValueOnce(false);
+
+    const file = new File(["x"], "credit.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "currencies" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(403);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
   it("returns 500 when type is items and catalogue credentials are missing", async () => {
     setEnvR2();
 
@@ -642,17 +669,18 @@ describe("/api/upload-image DELETE", () => {
     expect(deleteArgs.Key).toBe(key);
   });
 
-  it("returns 403 when fileKey is currencies- (not deletable via API)", async () => {
+  it("returns 204 when fileKey is currencies- prefixed and user is super admin", async () => {
     setCatalogueR2();
     userIsSuperAdminMock.mockResolvedValue(true);
 
+    const key = "currencies-conf.png";
     const { DELETE } = await import("@/app/api/upload-image/route");
-    const request = makeDeleteRequest({
-      fileKey: "currencies-conf.png",
-    });
+    const request = makeDeleteRequest({ fileKey: key });
     const response = await invokeRoute(DELETE, request);
-    expect(response.status).toBe(403);
-    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(204);
+    const deleteArgs = deleteObjectCommandCtorMock.mock.calls[0][0];
+    expect(deleteArgs.Bucket).toBe("neblir-catalogue");
+    expect(deleteArgs.Key).toBe(key);
   });
 
   it("returns 500 when R2 credentials are missing", async () => {

@@ -12,3 +12,32 @@ function currencyDelegate() {
 export function getCurrencies() {
   return currencyDelegate().findMany();
 }
+
+export function getCurrency(id: string) {
+  return currencyDelegate().findUnique({ where: { id } });
+}
+
+export function createCurrency(data: {
+  name: string;
+  exchangeValue: number;
+  imageKey: string;
+  protectedFromOfficialImport: boolean;
+}) {
+  return currencyDelegate().create({ data });
+}
+
+export function updateCurrency(
+  id: string,
+  data: {
+    name?: string;
+    exchangeValue?: number;
+    imageKey?: string;
+    protectedFromOfficialImport?: boolean;
+  }
+) {
+  return currencyDelegate().update({ where: { id }, data });
+}
+
+export function deleteCurrency(id: string) {
+  return currencyDelegate().delete({ where: { id } });
+}

@@ -163,6 +163,24 @@ const CATALOGUE_CREATED_CONFIG: Record<
     savedFallback: "this reference entry",
     recordLabelField: "title",
   },
+  currency: {
+    title: "Currency created",
+    titleWithRecord: "Currency created",
+    description:
+      "The currency is saved in the catalogue. Download JSON for seed data when you are ready to commit it to the repo.",
+    noIdDescription:
+      "This page is opened after you create a currency from the form.",
+    noIdMessage:
+      "No currency id was provided. Use the create form, or open this page from the success redirect after creating a currency.",
+    createAnotherLabel: "Create another currency",
+    createInitialLabel: "Create a currency",
+    createFormHref: "/home/super-admin/currencies",
+    apiSegment: "currencies",
+    filenamePrefix: "currency",
+    loadingText: "Loading currency…",
+    savedFallback: "this currency",
+    recordLabelField: "name",
+  },
 };
 
 function formatSavedRecordLabel(

@@ -5,7 +5,8 @@ export type SuperAdminCatalogueCreatedKind =
   | "enemy"
   | "vehicle"
   | "map"
-  | "reference";
+  | "reference"
+  | "currency";
 
 export function parseCreatedCatalogueId(body: unknown): string | null {
   if (!body || typeof body !== "object" || !("id" in body)) {
@@ -34,4 +35,5 @@ const CATALOGUE_CREATED_PAGE_SEGMENT: Record<
   vehicle: "vehicles",
   map: "maps",
   reference: "reference",
+  currency: "currencies",
 };
