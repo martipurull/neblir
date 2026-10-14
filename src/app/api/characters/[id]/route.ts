@@ -6,7 +6,9 @@ import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { logger } from "@/logger";
 import { characterEditableUpdateSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
+import { getCurrencies } from "@/app/lib/prisma/currency";
 import { getPath } from "@/app/lib/prisma/path";
+import { resolveNamedWalletHoldings } from "@/app/lib/walletHoldings";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import { prisma } from "@/app/lib/prisma/client";
 import type { PathName } from "@prisma/client";
@@ -262,14 +264,31 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...updatableCharacterData
     } = computed;
 
+    const namedWallet = (updatePayload.wallet ?? []).filter(
+      (entry) => entry.quantity > 0
+    );
+    let holdings: { currencyId: string; quantity: number }[] = [];
+    if (namedWallet.length > 0) {
+      const resolved = resolveNamedWalletHoldings(
+        namedWallet,
+        await getCurrencies()
+      );
+      if (!resolved.ok) {
+        return errorResponse(
+          `Unknown currency '${resolved.currencyName}'`,
+          400
+        );
+      }
+      holdings = resolved.holdings;
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.characterCurrency.deleteMany({ where: { characterId: id } });
-      const nextWallet = updatePayload.wallet ?? [];
-      if (nextWallet.length > 0) {
+      if (holdings.length > 0) {
         await tx.characterCurrency.createMany({
-          data: nextWallet.map((entry) => ({
+          data: holdings.map((entry) => ({
             characterId: id,
-            currencyName: entry.currencyName,
+            currencyId: entry.currencyId,
             quantity: entry.quantity,
           })),
         });

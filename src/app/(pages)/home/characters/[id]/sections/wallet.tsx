@@ -9,27 +9,32 @@ import {
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { Button } from "@/app/components/shared/Button";
 import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
-import {
-  currencyImageKey,
-  getMissingWalletCurrencies,
-  type CurrencyName,
-} from "@/app/lib/types/item";
+import { useImageUrls } from "@/hooks/use-image-urls";
 import type { KeyedMutator } from "swr";
+import useSWR from "swr";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type WalletEntry = NonNullable<CharacterDetail["wallet"]>[number];
+
+const EMPTY_WALLET: WalletEntry[] = [];
+
+type CatalogueCurrency = {
+  id: string;
+  name: string;
+  imageKey: string;
+};
 
 type WalletSectionContentProps = {
   character: CharacterDetail;
   characterId: string;
-  imageUrls: Record<string, string | null | undefined>;
   mutate?: KeyedMutator<CharacterDetail | null>;
   readOnly?: boolean;
 };
 
 type WalletCurrencyIconProps = {
-  currencyName: string;
+  name: string;
+  imageKey: string;
   imageUrl: string | null | undefined;
 };
 
@@ -43,13 +48,48 @@ type WalletHoldingsListProps = {
 
 type WalletModalState = {
   isOpen: boolean;
-  currencyName: CurrencyName;
+  currencyId: string;
+  name: string;
   currentQuantity: number;
   mode: WalletAdjustMode;
 };
 
+async function fetchCatalogueCurrencies(
+  url: string
+): Promise<CatalogueCurrency[]> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to load currencies");
+  }
+  const json: unknown = await response.json();
+  if (!Array.isArray(json)) return [];
+  const currencies: CatalogueCurrency[] = [];
+  for (const row of json) {
+    if (!row || typeof row !== "object") continue;
+    const candidate = row as {
+      id?: unknown;
+      name?: unknown;
+      imageKey?: unknown;
+    };
+    if (
+      typeof candidate.id !== "string" ||
+      typeof candidate.name !== "string" ||
+      typeof candidate.imageKey !== "string"
+    ) {
+      continue;
+    }
+    currencies.push({
+      id: candidate.id,
+      name: candidate.name,
+      imageKey: candidate.imageKey,
+    });
+  }
+  return currencies;
+}
+
 function WalletCurrencyIcon({
-  currencyName,
+  name,
+  imageKey,
   imageUrl,
 }: WalletCurrencyIconProps) {
   return (
@@ -57,7 +97,7 @@ function WalletCurrencyIcon({
       {imageUrl ? (
         <SignedRemoteImage
           src={imageUrl}
-          imageKey={currencyImageKey(currencyName)}
+          imageKey={imageKey}
           alt=""
           width={32}
           height={32}
@@ -67,7 +107,7 @@ function WalletCurrencyIcon({
         <ImageLoadingSkeleton variant="currency" />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
-          {currencyName.charAt(0)}
+          {name.charAt(0)}
         </div>
       )}
     </div>
@@ -85,18 +125,19 @@ function WalletHoldingsList({
     <ul className="divide-y divide-black rounded border border-black">
       {wallet.map((entry) => (
         <li
-          key={entry.currencyName}
+          key={entry.currencyId}
           className="flex items-center gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
         >
           <WalletCurrencyIcon
-            currencyName={entry.currencyName}
-            imageUrl={imageUrls[entry.currencyName]}
+            name={entry.name}
+            imageKey={entry.imageKey}
+            imageUrl={imageUrls[entry.currencyId]}
           />
           <span className="text-sm font-medium tabular-nums text-black">
             {entry.quantity}
           </span>
           <span className="min-w-0 truncate text-sm text-black">
-            {entry.currencyName}
+            {entry.name}
           </span>
           {!readOnly ? (
             <div className="ml-auto flex shrink-0 gap-1.5">
@@ -130,38 +171,67 @@ function WalletHoldingsList({
 function WalletSectionContent({
   character,
   characterId,
-  imageUrls,
   mutate,
   readOnly = false,
 }: WalletSectionContentProps) {
   const [modalState, setModalState] = useState<WalletModalState | null>(null);
+  const wallet = character.wallet ?? EMPTY_WALLET;
+  const { data: catalogue } = useSWR(
+    readOnly ? null : "/api/currencies",
+    fetchCatalogueCurrencies
+  );
+
+  const heldIds = useMemo(
+    () => new Set(wallet.map((entry) => entry.currencyId)),
+    [wallet]
+  );
+  const missingCurrencies = useMemo(
+    () => (catalogue ?? []).filter((currency) => !heldIds.has(currency.id)),
+    [catalogue, heldIds]
+  );
+  const imageEntries = useMemo(
+    () => [
+      ...wallet.map((entry) => ({
+        id: entry.currencyId,
+        imageKey: entry.imageKey,
+      })),
+      ...missingCurrencies.map((currency) => ({
+        id: currency.id,
+        imageKey: currency.imageKey,
+      })),
+    ],
+    [wallet, missingCurrencies]
+  );
+  const imageUrls = useImageUrls(imageEntries);
 
   const handleSubmit = async (amount: number) => {
     if (!modalState || !mutate) return;
-    const wallet =
+    const nextWallet =
       modalState.mode === "add"
-        ? await addWalletCurrency(characterId, modalState.currencyName, amount)
+        ? await addWalletCurrency(characterId, modalState.currencyId, amount)
         : await subtractWalletCurrency(
             characterId,
-            modalState.currencyName,
+            modalState.currencyId,
             amount
           );
     await mutate(
       {
         ...character,
-        wallet: wallet as CharacterDetail["wallet"],
+        wallet: nextWallet,
       },
       false
     );
   };
 
-  const wallet = character.wallet ?? [];
-  const missingCurrencies = getMissingWalletCurrencies(wallet);
-
-  const openAdd = (currencyName: CurrencyName, currentQuantity: number) => {
+  const openAdd = (
+    currencyId: string,
+    name: string,
+    currentQuantity: number
+  ) => {
     setModalState({
       isOpen: true,
-      currencyName,
+      currencyId,
+      name,
       currentQuantity,
       mode: "add",
     });
@@ -171,15 +241,15 @@ function WalletSectionContent({
     <>
       {!readOnly && missingCurrencies.length > 0 ? (
         <div className="mb-2 flex flex-wrap gap-2 pb-2">
-          {missingCurrencies.map((currencyName) => (
+          {missingCurrencies.map((currency) => (
             <Button
-              key={currencyName}
+              key={currency.id}
               type="button"
               variant="lightToolbarCompact"
               fullWidth={false}
-              onClick={() => openAdd(currencyName, 0)}
+              onClick={() => openAdd(currency.id, currency.name, 0)}
             >
-              Add {currencyName}
+              Add {currency.name}
             </Button>
           ))}
         </div>
@@ -192,11 +262,14 @@ function WalletSectionContent({
           wallet={wallet}
           imageUrls={imageUrls}
           readOnly={readOnly}
-          onAdd={(entry) => openAdd(entry.currencyName, entry.quantity)}
+          onAdd={(entry) =>
+            openAdd(entry.currencyId, entry.name, entry.quantity)
+          }
           onSubtract={(entry) =>
             setModalState({
               isOpen: true,
-              currencyName: entry.currencyName,
+              currencyId: entry.currencyId,
+              name: entry.name,
               currentQuantity: entry.quantity,
               mode: "subtract",
             })
@@ -209,7 +282,7 @@ function WalletSectionContent({
           isOpen={modalState.isOpen}
           onClose={() => setModalState(null)}
           mode={modalState.mode}
-          currencyName={modalState.currencyName}
+          currencyName={modalState.name}
           currentQuantity={modalState.currentQuantity}
           onSubmit={handleSubmit}
         />
@@ -220,7 +293,6 @@ function WalletSectionContent({
 
 export function getWalletSection(
   character: CharacterDetail,
-  imageUrls: Record<string, string | null | undefined>,
   characterId: string,
   mutate?: KeyedMutator<CharacterDetail | null>,
   readOnly?: boolean
@@ -232,7 +304,6 @@ export function getWalletSection(
       <WalletSectionContent
         character={character}
         characterId={characterId}
-        imageUrls={imageUrls}
         mutate={readOnly ? undefined : mutate}
         readOnly={readOnly}
       />

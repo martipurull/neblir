@@ -5,7 +5,7 @@ import {
   healthSchema,
   innateAttributesSchema,
 } from "@/app/lib/types/character";
-import { walletSchema } from "@/app/lib/types/item";
+import { startingWalletSchema } from "@/app/lib/types/item";
 import { specialAbilityNameSchemaValues } from "@/app/lib/specialAbility";
 import { z } from "zod";
 
@@ -49,7 +49,7 @@ export const characterCreationRequestSchema = z
         specialSkills: z.array(z.string()).max(3).optional(),
       })
       .strict(),
-    wallet: walletSchema.optional(),
+    wallet: startingWalletSchema.optional(),
     /**
      * Optional initial feature grades used to create FeatureCharacter relations.
      * This key is not part of the persisted character schema, so it should be

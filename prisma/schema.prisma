@@ -150,14 +150,6 @@ enum Status {
   DERANGED
 }
 
-enum CurrencyName {
-  CONF
-  NORD
-  NAS
-  HUMF
-  MRARK
-}
-
 enum ItemSourceType {
   GLOBAL_ITEM
   CUSTOM_ITEM
@@ -435,23 +427,26 @@ model Character {
 }
 
 model CharacterCurrency {
-  id           String       @id @default(auto()) @map("_id") @db.ObjectId
-  characterId  String       @db.ObjectId
-  currencyName CurrencyName
-  quantity     Int          @default(0)
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String @db.ObjectId
+  currencyId  String @db.ObjectId
+  quantity    Int
 
   character Character @relation(fields: [characterId], references: [id])
+  currency  Currency  @relation(fields: [currencyId], references: [id])
 
-  @@unique([characterId, currencyName])
+  @@unique([characterId, currencyId])
   @@index([characterId])
+  @@index([currencyId])
 }
 
 model Currency {
-  id                          String  @id @default(auto()) @map("_id") @db.ObjectId
+  id                          String              @id @default(auto()) @map("_id") @db.ObjectId
   name                        String
   exchangeValue               Int
   imageKey                    String
-  protectedFromOfficialImport Boolean @default(false)
+  protectedFromOfficialImport Boolean             @default(false)
+  holdings                    CharacterCurrency[]
 
   @@unique([name])
 }

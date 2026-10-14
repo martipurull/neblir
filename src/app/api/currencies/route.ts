@@ -15,6 +15,7 @@ import {
   responseIfOfficialNameTaken,
   responseIfOfficialNameUniqueConstraint,
 } from "../shared/officialNameConflict";
+import { orderConfFirstThenByName } from "@/app/lib/currencyOrder";
 import { errorResponse } from "../shared/responses";
 
 const route = "/api/currencies";
@@ -25,21 +26,6 @@ type CurrencyListRow = {
   imageKey: string;
   exchangeValue: number;
 };
-
-function orderCurrencies<T extends { name: string }>(rows: T[]): T[] {
-  const conf: T[] = [];
-  const rest: T[] = [];
-  for (const row of rows) {
-    if (row.name === "CONF") conf.push(row);
-    else rest.push(row);
-  }
-  rest.sort((a, b) => {
-    if (a.name < b.name) return -1;
-    if (a.name > b.name) return 1;
-    return 0;
-  });
-  return [...conf, ...rest];
-}
 
 function toCurrencyListItem(
   row: CurrencyListRow,
@@ -61,7 +47,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
     }
 
     const includeExchangeValue = await userIsSuperAdmin(request.auth.user.id);
-    const currencies = orderCurrencies(await getCurrencies());
+    const currencies = orderConfFirstThenByName(await getCurrencies());
     return NextResponse.json(
       currencies.map((row) => toCurrencyListItem(row, includeExchangeValue)),
       { status: 200 }

@@ -5,39 +5,21 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { subtractCharacterCurrency } from "@/app/lib/prisma/characterCurrency";
+import { refuseWithoutWalletPlayControl, responseForWalletRule } from "../http";
+
+const route = "/api/characters/[id]/wallet/subtract";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
-    if (!request.auth?.user) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/subtract",
-        message: "Unauthorised access attempt",
-      });
-      return errorResponse("Unauthorised", 401);
-    }
-
     const { id } = (await params) as { id: string };
-    if (!id || typeof id !== "string") {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/subtract",
-        message: "Invalid character ID",
-        characterId: id,
-      });
-      return errorResponse("Invalid character ID", 400);
-    }
-    if (!(await userHasPlayControl(id, request.auth.user.id))) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/subtract",
-        message: "Character does not belong to user",
-        characterId: id,
-      });
-      return errorResponse("This is not one of your characters.", 403);
-    }
+    const refused = await refuseWithoutWalletPlayControl(
+      request,
+      id,
+      "POST",
+      route
+    );
+    if (refused) return refused;
 
     const requestBody = await request.json();
     const { data: parsedBody, error } =
@@ -45,7 +27,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (error) {
       logger.error({
         method: "POST",
-        route: "/api/characters/[id]/wallet/subtract",
+        route,
         message: "Error parsing wallet subtract request",
         details: error,
       });
@@ -56,34 +38,22 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    let updatedWallet;
     try {
-      updatedWallet = await subtractCharacterCurrency(
+      const updatedWallet = await subtractCharacterCurrency(
         id,
-        parsedBody.currencyName,
+        parsedBody.currencyId,
         parsedBody.amount
       );
-    } catch (error) {
-      if (error instanceof Error && error.message === "CURRENCY_NOT_FOUND") {
-        return errorResponse(
-          `Currency '${parsedBody.currencyName}' not found in wallet`,
-          400
-        );
-      }
-      if (error instanceof Error && error.message === "INSUFFICIENT_FUNDS") {
-        return errorResponse(
-          `Insufficient funds in '${parsedBody.currencyName}'`,
-          400
-        );
-      }
-      throw error;
+      return NextResponse.json(updatedWallet, { status: 200 });
+    } catch (ruleError) {
+      const ruled = responseForWalletRule(ruleError);
+      if (ruled) return ruled;
+      throw ruleError;
     }
-
-    return NextResponse.json(updatedWallet, { status: 200 });
   } catch (error) {
     logger.error({
       method: "POST",
-      route: "/api/characters/[id]/wallet/subtract",
+      route,
       message: "Error subtracting currency",
       error,
     });

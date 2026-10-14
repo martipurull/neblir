@@ -5,7 +5,7 @@ import {
   type CharacterDetail,
   type CharacterNoteEntry,
 } from "@/app/lib/types/character";
-import { walletSchema, type Currency } from "@/app/lib/types/item";
+import { walletListSchema, type WalletHolding } from "@/app/lib/types/item";
 import type {
   CharacterCreationRequest,
   CharacterEditableUpdateRequest,
@@ -307,11 +307,11 @@ export async function updateCharacterCombatInfo(
   return parsed.data;
 }
 
-export type WalletEntry = Currency;
+export type WalletEntry = WalletHolding;
 
 export async function addWalletCurrency(
   characterId: string,
-  currencyName: string,
+  currencyId: string,
   amount: number
 ): Promise<WalletEntry[]> {
   const response = await fetch(
@@ -319,7 +319,7 @@ export async function addWalletCurrency(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currencyName, amount }),
+      body: JSON.stringify({ currencyId, amount }),
     }
   );
 
@@ -336,7 +336,7 @@ export async function addWalletCurrency(
   }
 
   const json = await response.json();
-  const parsed = walletSchema.safeParse(json);
+  const parsed = walletListSchema.safeParse(json);
   if (!parsed.success) {
     const details = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
@@ -422,7 +422,7 @@ export async function updateCharacterFavouriteWeapon(
 
 export async function subtractWalletCurrency(
   characterId: string,
-  currencyName: string,
+  currencyId: string,
   amount: number
 ): Promise<WalletEntry[]> {
   const response = await fetch(
@@ -430,7 +430,7 @@ export async function subtractWalletCurrency(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currencyName, amount }),
+      body: JSON.stringify({ currencyId, amount }),
     }
   );
 
@@ -447,7 +447,7 @@ export async function subtractWalletCurrency(
   }
 
   const json = await response.json();
-  const parsed = walletSchema.safeParse(json);
+  const parsed = walletListSchema.safeParse(json);
   if (!parsed.success) {
     const details = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)

@@ -23,7 +23,6 @@ import { useCharacterGameDetails } from "@/hooks/use-character-game-details";
 import { useUser } from "@/hooks/use-user";
 import { resolveCharacterCarouselWrap } from "@/hooks/use-carousel";
 import { applyCharacterSectionOrder } from "@/app/lib/characterSectionOrder";
-import { CURRENCY_NAMES, currencyImageKey } from "@/app/lib/types/item";
 import type { KeyedMutator } from "swr";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -179,10 +178,6 @@ export function CharacterDetailView({
         id: character.id,
         imageKey: character.generalInformation.avatarKey,
       },
-      ...CURRENCY_NAMES.map((currencyName) => ({
-        id: currencyName,
-        imageKey: currencyImageKey(currencyName),
-      })),
     ],
     [character]
   );
@@ -258,7 +253,6 @@ export function CharacterDetailView({
     list.push(
       getWalletSection(
         character,
-        imageUrls,
         character.id,
         sheetReadOnly ? undefined : mutateAction,
         sheetReadOnly
@@ -277,7 +271,6 @@ export function CharacterDetailView({
     diceSelection,
     handleDiceSelect,
     handleSingleAttributeRoll,
-    imageUrls,
     mutateAction,
     reactionTracking.clearReactions,
     reactionTracking.usedReactions,

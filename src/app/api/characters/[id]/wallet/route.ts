@@ -1,52 +1,60 @@
 import type { AuthNextRequest } from "@/app/lib/types/api";
-import type { Currency } from "@/app/lib/types/item";
-import { walletSchema } from "@/app/lib/types/item";
+import { walletReplaceSchema } from "@/app/lib/types/item";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
-import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
-import { replaceCharacterWallet } from "@/app/lib/prisma/characterCurrency";
+import {
+  listCharacterWallet,
+  replaceCharacterWallet,
+} from "@/app/lib/prisma/characterCurrency";
+import { refuseWithoutWalletPlayControl, responseForWalletRule } from "./http";
+
+const route = "/api/characters/[id]/wallet";
+
+export const GET = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    const { id } = (await params) as { id: string };
+    const refused = await refuseWithoutWalletPlayControl(
+      request,
+      id,
+      "GET",
+      route
+    );
+    if (refused) return refused;
+
+    const wallet = await listCharacterWallet(id);
+    return NextResponse.json(wallet, { status: 200 });
+  } catch (error) {
+    logger.error({
+      method: "GET",
+      route,
+      message: "Error fetching wallet",
+      error,
+    });
+    return errorResponse("Error fetching wallet", 500, serializeError(error));
+  }
+});
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
   try {
-    if (!request.auth?.user) {
-      logger.error({
-        method: "PATCH",
-        route: "/api/characters/[id]/wallet",
-        message: "Unauthorised access attempt",
-      });
-      return errorResponse("Unauthorised", 401);
-    }
-
     const { id } = (await params) as { id: string };
-    if (!id || typeof id !== "string") {
-      logger.error({
-        method: "PATCH",
-        route: "/api/characters/[id]/wallet",
-        message: "Invalid character ID",
-        characterId: id,
-      });
-      return errorResponse("Invalid character ID", 400);
-    }
-
-    if (!(await userHasPlayControl(id, request.auth.user.id))) {
-      logger.error({
-        method: "PATCH",
-        route: "/api/characters/[id]/wallet",
-        message: "Character does not belong to user",
-        characterId: id,
-      });
-      return errorResponse("This is not one of your characters.", 403);
-    }
+    const refused = await refuseWithoutWalletPlayControl(
+      request,
+      id,
+      "PATCH",
+      route
+    );
+    if (refused) return refused;
 
     const requestBody = await request.json();
-    const { data: parsedBody, error } = walletSchema.safeParse(requestBody);
+    const { data: parsedBody, error } =
+      walletReplaceSchema.safeParse(requestBody);
     if (error) {
       logger.error({
         method: "PATCH",
-        route: "/api/characters/[id]/wallet",
+        route,
         message: "Error parsing wallet update request",
         details: error,
       });
@@ -57,23 +65,18 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    if (parsedBody.some((item: Currency) => item.quantity < 0)) {
-      logger.error({
-        method: "PATCH",
-        route: "/api/characters/[id]/wallet",
-        message: "Invalid quantity for currency",
-        details: parsedBody,
-      });
-      return errorResponse("Invalid quantity for currency", 400);
+    try {
+      const updatedWallet = await replaceCharacterWallet(id, parsedBody);
+      return NextResponse.json(updatedWallet, { status: 200 });
+    } catch (ruleError) {
+      const ruled = responseForWalletRule(ruleError);
+      if (ruled) return ruled;
+      throw ruleError;
     }
-
-    const updatedWallet = await replaceCharacterWallet(id, parsedBody);
-
-    return NextResponse.json(updatedWallet, { status: 200 });
   } catch (error) {
     logger.error({
       method: "PATCH",
-      route: "/api/characters/[id]/wallet",
+      route,
       message: "Error updating wallet",
       error,
     });

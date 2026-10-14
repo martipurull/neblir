@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeCharacterRequestData } from "@/app/api/characters/parsing";
+import { resolveNamedWalletHoldings } from "@/app/lib/walletHoldings";
 import { ValidationError } from "@/app/api/shared/errors";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import type { LevelUpCharacterBody } from "@/app/api/characters/[id]/level-up/schema";
@@ -222,20 +223,30 @@ describe("computeCharacterRequestData", () => {
       expect(result.learnedSkills?.specialSkills).toBeUndefined();
     });
 
-    it("transforms wallet to Prisma create format when present", () => {
+    it("leaves wallet for the route to point at catalogue currencies", () => {
       const input = makeCharacterCreationRequest({
         wallet: [
           { currencyName: "CONF", quantity: 100 },
-          { currencyName: "NORD", quantity: 50 },
+          { currencyName: "NORD", quantity: 0 },
         ],
       });
       const result = computeCharacterRequestData(input);
-      expect(result.wallet).toEqual({
-        create: [
-          { currencyName: "CONF", quantity: 100 },
-          { currencyName: "NORD", quantity: 50 },
-        ],
+      expect(result.wallet).toBeUndefined();
+      expect(
+        resolveNamedWalletHoldings(input.wallet ?? [], [
+          { id: "conf", name: "CONF" },
+          { id: "nord", name: "NORD" },
+        ])
+      ).toEqual({
+        ok: true,
+        holdings: [{ currencyId: "conf", quantity: 100 }],
       });
+      expect(
+        resolveNamedWalletHoldings(
+          [{ currencyName: "CREDIT", quantity: 1 }],
+          [{ id: "conf", name: "CONF" }]
+        )
+      ).toEqual({ ok: false, currencyName: "CREDIT" });
     });
 
     it("sets wallet to undefined when empty or absent", () => {

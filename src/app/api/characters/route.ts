@@ -14,7 +14,9 @@ import {
   resolveGameCharacterLinkForCreate,
 } from "@/app/lib/gameCharacterLink";
 import { getAllFeaturesAvailableForPathAndRank } from "@/app/lib/prisma/feature";
+import { getCurrencies } from "@/app/lib/prisma/currency";
 import { getPath } from "@/app/lib/prisma/path";
+import { resolveNamedWalletHoldings } from "@/app/lib/walletHoldings";
 import {
   CharacterCreationTransactionError,
   serializeError,
@@ -234,8 +236,34 @@ export const POST = auth(async (request: AuthNextRequest) => {
       }
     }
 
+    const namedWallet = (parseResult.data.wallet ?? []).filter(
+      (entry) => entry.quantity > 0
+    );
+    let wallet: Prisma.CharacterCreateInput["wallet"];
+    if (namedWallet.length > 0) {
+      const resolved = resolveNamedWalletHoldings(
+        namedWallet,
+        await getCurrencies()
+      );
+      if (!resolved.ok) {
+        return errorResponse(
+          `Unknown currency '${resolved.currencyName}'`,
+          400
+        );
+      }
+      wallet = {
+        create: resolved.holdings.map((holding) => ({
+          currencyId: holding.currencyId,
+          quantity: holding.quantity,
+        })),
+      };
+    }
+
     const character = await createCharacterWithRelations({
-      data: characterCreateData,
+      data: {
+        ...characterCreateData,
+        wallet,
+      },
       userId: user.id,
       pathId,
       pathRank,
