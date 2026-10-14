@@ -6,8 +6,8 @@
  *   npx tsx prisma/scripts/upsertCurrenciesFromFile.ts prisma/data/Currency_Upload.json --dry-run
  *
  * Each row needs a name, an image key, and an exchange value that is a positive
- * whole number. CONF's exchange value is 1. NORD, NAS, HUMF, and MRARK are left
- * for the maintainer to write; import refuses a missing or invalid value.
+ * whole number of hundredths of one CONF. CONF's exchange value is 100. Import
+ * refuses a missing or invalid value.
  *
  * Env: MONGODB_URI (via dotenv / Prisma).
  */

@@ -154,7 +154,7 @@ Then export the touched domains into this folder and commit as usual, and acknow
 | Currencies       | `upsertCurrenciesFromFile.ts`       | `Currency_Upload.json`                     |
 | Reference        | `upsertReferenceEntriesFromFile.ts` | `Reference_Upload.json`                    |
 
-`Currency_Upload.json` lists CONF, NORD, NAS, HUMF, and MRARK with their existing image keys. CONF's exchange value is 1. The other four `exchangeValue` fields are null until a maintainer writes a positive whole number for each. Import refuses a currency whose exchange value is missing or not a positive whole number. Fill those four values, set `OFFICIAL_DATA_CURRENCIES_FILE`, and import before the wallet migration. Per-domain import: `npm run data:import:currencies -- prisma/data/Currency_Upload.json`.
+`Currency_Upload.json` lists CONF, NORD, NAS, HUMF, and MRARK with their existing image keys. Exchange values are hundredths of one CONF, and CONF's exchange value is 100. Import refuses a currency whose exchange value is missing or not a positive whole number. Set `OFFICIAL_DATA_CURRENCIES_FILE` and import before the wallet migration. Per-domain import: `npm run data:import:currencies -- prisma/data/Currency_Upload.json`.
 
 Per-domain import scripts are also available via `npm run data:import:items`, `data:import:enemies`, etc.
 
