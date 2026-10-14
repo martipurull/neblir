@@ -446,6 +446,16 @@ model CharacterCurrency {
   @@index([characterId])
 }
 
+model Currency {
+  id                          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name                        String
+  exchangeValue               Int
+  imageKey                    String
+  protectedFromOfficialImport Boolean @default(false)
+
+  @@unique([name])
+}
+
 model CharacterUser {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   characterId String @db.ObjectId

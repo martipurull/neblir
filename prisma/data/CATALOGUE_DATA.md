@@ -1,6 +1,6 @@
 # Catalogue Data
 
-This folder contains the canonical catalogue data for official items, enemies, paths, features, maps, and reference entries available to all players, game masters, and campaigns set in Neblir.
+This folder contains the canonical catalogue data for official items, enemies, paths, features, maps, currencies, and reference entries available to all players, game masters, and campaigns set in Neblir.
 
 The files here are the **source of truth in git**. The live database is updated immediately when a super admin creates or edits catalogue rows in the app; those changes are **not** written back to this folder automatically. A developer must copy exported JSON into the matching `*_Upload.json` files and commit, then the super admin can clear the in-app drift reminder.
 
@@ -151,7 +151,10 @@ Then export the touched domains into this folder and commit as usual, and acknow
 | Paths & features | `upsertPathsAndFeaturesFromFile.ts` | `Feature_Upload.json` + `Path_Upload.json` |
 | Enemies          | `upsertEnemiesFromFile.ts`          | `Enemy_Upload.json`                        |
 | Maps             | `upsertMapsFromFile.ts`             | `Map_Upload.json`                          |
+| Currencies       | `upsertCurrenciesFromFile.ts`       | `Currency_Upload.json`                     |
 | Reference        | `upsertReferenceEntriesFromFile.ts` | `Reference_Upload.json`                    |
+
+`Currency_Upload.json` lists CONF, NORD, NAS, HUMF, and MRARK with their existing image keys. CONF's exchange value is 1. The other four `exchangeValue` fields are null until a maintainer writes a positive whole number for each. Import refuses a currency whose exchange value is missing or not a positive whole number. Fill those four values, set `OFFICIAL_DATA_CURRENCIES_FILE`, and import before the wallet migration. Per-domain import: `npm run data:import:currencies -- prisma/data/Currency_Upload.json`.
 
 Per-domain import scripts are also available via `npm run data:import:items`, `data:import:enemies`, etc.
 

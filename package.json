@@ -32,6 +32,7 @@
     "data:import:paths-features": "tsx prisma/scripts/upsertPathsAndFeaturesFromFile.ts",
     "data:import:enemies": "tsx prisma/scripts/upsertEnemiesFromFile.ts",
     "data:import:maps": "tsx prisma/scripts/upsertMapsFromFile.ts",
+    "data:import:currencies": "tsx prisma/scripts/upsertCurrenciesFromFile.ts",
     "data:import:reference": "tsx prisma/scripts/importReferenceEntries.ts",
     "data:import:reference-json": "tsx prisma/scripts/upsertReferenceEntriesFromFile.ts",
     "data:import:items": "tsx prisma/scripts/upsertItemsFromFile.ts",
