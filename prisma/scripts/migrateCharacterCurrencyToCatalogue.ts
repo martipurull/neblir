@@ -8,12 +8,18 @@
  *
  * Env: MONGODB_URI (required; database name comes from the URI path).
  * Safe to run again: rows that already have no currencyName are left alone.
+ *
+ * The old unique index on (characterId, currencyName) treats a removed name as
+ * null. Drop it before unsetting currencyName, or the second holding for a
+ * character collides with the first.
  */
 
 import "dotenv/config";
 import { MongoClient, type ObjectId } from "mongodb";
 
 const SEEDED_CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
+const LEGACY_HOLDING_NAME_INDEX =
+  "CharacterCurrency_characterId_currencyName_key";
 
 type CurrencyDocument = {
   _id: ObjectId;
@@ -84,6 +90,12 @@ async function main() {
     }
 
     const characterCurrencies = db.collection("CharacterCurrency");
+    const indexes = await characterCurrencies.indexes();
+    if (indexes.some((index) => index.name === LEGACY_HOLDING_NAME_INDEX)) {
+      await characterCurrencies.dropIndex(LEGACY_HOLDING_NAME_INDEX);
+      console.log(`Dropped legacy index ${LEGACY_HOLDING_NAME_INDEX}.`);
+    }
+
     for (const row of planned) {
       await characterCurrencies.updateOne(
         { _id: row.id },
