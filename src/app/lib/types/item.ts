@@ -4,8 +4,6 @@ import {
   itemGeneralSkillSchema,
 } from "@/app/lib/itemModifierEnums";
 
-export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
-
 export function currencyImageKey(currencyName: string): string {
   return `currencies-${currencyName.toLowerCase()}.png`;
 }

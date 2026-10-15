@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { coerceNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
 import { NumberField } from "@/app/components/shared/NumberField";
@@ -9,12 +8,8 @@ import { NumberInput } from "@/app/components/shared/NumberInput";
 import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import { useImageUpload } from "@/hooks/use-image-upload";
-import { currencyImageKey } from "@/app/lib/types/item";
-import { CURRENCY_NAMES, RELIGIONS, RACES } from "../schemas";
-import { useImageUrls } from "@/hooks/use-image-urls";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
-import { useAutoFocusInput } from "@/hooks/use-auto-focus-input";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RELIGIONS, RACES } from "../schemas";
+import { useEffect, useMemo, useRef } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import {
@@ -24,14 +19,7 @@ import {
   HEIGHT_HELP_BY_RACE,
   WEIGHT_HELP_BY_RACE,
 } from "@/app/lib/characterGeneralInfo";
-
-const CURRENCY_LABELS: Record<(typeof CURRENCY_NAMES)[number], string> = {
-  CONF: "CONF",
-  NORD: "NORD",
-  NAS: "NAS",
-  HUMF: "HUMF",
-  MRARK: "MRARK",
-};
+import { CharacterStartingWallet } from "./CharacterStartingWallet";
 
 const religionOptions = RELIGIONS.map((r) => ({
   value: r.value,
@@ -39,55 +27,10 @@ const religionOptions = RELIGIONS.map((r) => ({
 }));
 const raceOptions = RACES.map((r) => ({ value: r.value, label: r.label }));
 
-type WalletQuantityFieldProps = {
-  currencyName: (typeof CURRENCY_NAMES)[number];
-  label: string;
-  quantity: number;
-  focusOnMount: boolean;
-  onAutoFocusDone: () => void;
-  onQuantityChange: (quantity: number) => void;
-};
-
-function WalletQuantityField({
-  currencyName,
-  label,
-  quantity,
-  focusOnMount,
-  onAutoFocusDone,
-  onQuantityChange,
-}: WalletQuantityFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useAutoFocusInput(inputRef, focusOnMount, onAutoFocusDone);
-
-  return (
-    <NumberField
-      ref={inputRef}
-      id={`wallet-qty-${currencyName}`}
-      min={0}
-      value={quantity}
-      stepperLabel={`${label} quantity`}
-      onChange={(raw) => onQuantityChange(Math.max(0, parseInt(raw, 10) || 0))}
-      className="ml-auto !w-24 shrink-0 !min-h-9"
-      inputClassName="px-2 py-1 text-right text-sm"
-    />
-  );
-}
-
 export function GeneralInfoStep() {
   const { control, setValue, watch } =
     useFormContext<CharacterCreationRequest>();
   const imageUpload = useImageUpload("characters");
-
-  const currencyImageEntries = useMemo(
-    () =>
-      CURRENCY_NAMES.map((cn) => ({
-        id: cn,
-        imageKey: currencyImageKey(cn),
-      })),
-    []
-  );
-  const currencyImageUrls = useImageUrls(currencyImageEntries);
 
   const formAvatarKey = watch("generalInformation.avatarKey") ?? "";
   const characterName = watch("generalInformation.name")?.trim() ?? "";
@@ -112,13 +55,6 @@ export function GeneralInfoStep() {
   }, [imageUpload.imageKey, setValue]);
 
   const previousRaceRef = useRef<string | undefined>(undefined);
-  const [focusWalletCurrency, setFocusWalletCurrency] = useState<
-    (typeof CURRENCY_NAMES)[number] | null
-  >(null);
-  const clearWalletCurrencyFocus = useCallback(
-    () => setFocusWalletCurrency(null),
-    []
-  );
 
   // Apply race defaults only when the user changes race — not on remount when
   // navigating back to this step (which would clobber persisted form values).
@@ -367,124 +303,7 @@ export function GeneralInfoStep() {
           )}
         />
       </div>
-      <div className="mb-6 sm:col-span-2 lg:col-span-3">
-        <p className="mb-2 block font-bold text-black">Money (wallet)</p>
-        <p className="mb-2 text-xs text-black/70">
-          Disposable income you think your character would have access to. Add
-          amounts for any currencies.
-        </p>
-        <Controller
-          name="wallet"
-          control={control}
-          defaultValue={[]}
-          render={({ field }) => {
-            const wallet = field.value ?? [];
-            const addCurrency = (
-              currencyName: (typeof CURRENCY_NAMES)[number]
-            ) => {
-              if (wallet.some((e) => e.currencyName === currencyName)) return;
-              field.onChange([...wallet, { currencyName, quantity: 0 }]);
-              setFocusWalletCurrency(currencyName);
-            };
-            const updateQuantity = (currencyName: string, quantity: number) => {
-              const next = wallet.map((e) =>
-                e.currencyName === currencyName ? { ...e, quantity } : e
-              );
-              field.onChange(next);
-            };
-            const remove = (currencyName: string) => {
-              field.onChange(
-                wallet.filter((e) => e.currencyName !== currencyName)
-              );
-            };
-            return (
-              <div className="space-y-2 rounded-md border border-black/20 bg-black/5 p-3">
-                {CURRENCY_NAMES.map((cn) => {
-                  const entry = wallet.find((e) => e.currencyName === cn);
-                  const isAdded = !!entry;
-                  const currencyImageUrl = currencyImageUrls[cn] ?? null;
-                  return (
-                    <div key={cn} className="flex flex-wrap items-center gap-2">
-                      {!isAdded ? (
-                        <Button
-                          type="button"
-                          variant="lightCurrencyAddRow"
-                          fullWidth={false}
-                          onClick={() => addCurrency(cn)}
-                        >
-                          <span className="inline-flex w-full items-center justify-between gap-2">
-                            <span className="truncate">
-                              + {CURRENCY_LABELS[cn]}
-                            </span>
-                            <span className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
-                              {currencyImageUrl ? (
-                                <SignedRemoteImage
-                                  src={currencyImageUrl}
-                                  imageKey={currencyImageKey(cn)}
-                                  alt=""
-                                  width={20}
-                                  height={20}
-                                  className="h-5 w-5 object-cover object-center"
-                                />
-                              ) : (
-                                <span className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
-                                  {cn.charAt(0)}
-                                </span>
-                              )}
-                            </span>
-                          </span>
-                        </Button>
-                      ) : (
-                        <>
-                          <span className="inline-flex w-44 items-center justify-between gap-2 rounded border border-black/30 bg-black/0 px-2 py-1">
-                            <span className="truncate text-sm font-medium">
-                              {CURRENCY_LABELS[cn]}
-                            </span>
-                            <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
-                              {currencyImageUrl ? (
-                                <SignedRemoteImage
-                                  src={currencyImageUrl}
-                                  imageKey={currencyImageKey(cn)}
-                                  alt=""
-                                  width={24}
-                                  height={24}
-                                  className="h-6 w-6 object-cover object-center"
-                                />
-                              ) : (
-                                <span className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
-                                  {cn.charAt(0)}
-                                </span>
-                              )}
-                            </span>
-                          </span>
-                          <WalletQuantityField
-                            currencyName={cn}
-                            label={CURRENCY_LABELS[cn]}
-                            quantity={entry.quantity}
-                            focusOnMount={focusWalletCurrency === cn}
-                            onAutoFocusDone={clearWalletCurrencyFocus}
-                            onQuantityChange={(quantity) =>
-                              updateQuantity(cn, quantity)
-                            }
-                          />
-                          <Button
-                            type="button"
-                            variant="lightDangerLink"
-                            fullWidth={false}
-                            onClick={() => remove(cn)}
-                          >
-                            Remove
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          }}
-        />
-      </div>
+      <CharacterStartingWallet />
     </div>
   );
 }
