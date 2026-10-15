@@ -386,7 +386,10 @@ export async function quoteWalletExchange(
   const json = await response.json();
   const parsed = currencyExchangeQuoteSchema.safeParse(json);
   if (!parsed.success) {
-    throw new Error("Exchange quote did not match expected shape");
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Exchange quote did not match expected shape: ${details}`);
   }
   return parsed.data;
 }
@@ -425,7 +428,12 @@ export async function commitWalletExchange(
   const json = await response.json();
   const parsed = currencyExchangeCommitSchema.safeParse(json);
   if (!parsed.success) {
-    throw new Error("Exchange response did not match expected shape");
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Exchange response did not match expected shape: ${details}`
+    );
   }
   return parsed.data.wallet;
 }
