@@ -1,3 +1,4 @@
+import { getCurrencies } from "@/app/lib/prisma/currency";
 import { getAllFeatures } from "@/app/lib/prisma/feature";
 import { getEnemies } from "@/app/lib/prisma/enemy";
 import { getItems } from "@/app/lib/prisma/item";
@@ -59,6 +60,12 @@ export async function buildCatalogueSeedDataExport(
   if (want.has("reference")) {
     const rows = await getReferenceEntries({ gameId: null });
     data.reference = rows.map((row) =>
+      scrubCatalogueExportMeta(jsonRoundTrip(row))
+    );
+  }
+  if (want.has("currencies")) {
+    const rows = await getCurrencies();
+    data.currencies = rows.map((row) =>
       scrubCatalogueExportMeta(jsonRoundTrip(row))
     );
   }

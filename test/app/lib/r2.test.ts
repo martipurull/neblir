@@ -70,10 +70,13 @@ describe("r2 helper", () => {
       );
     });
 
-    it("returns false for currency art and unrelated prefixes", () => {
+    it("returns true for keys starting with currencies-", () => {
+      expect(isDeletableUploadKey("currencies-conf.png")).toBe(true);
+    });
+
+    it("returns false for unrelated prefixes", () => {
       expect(isDeletableUploadKey("custom-items-old.png")).toBe(false);
       expect(isDeletableUploadKey("unique-items-old.png")).toBe(false);
-      expect(isDeletableUploadKey("currencies-conf.png")).toBe(false);
       expect(isDeletableUploadKey("currency-conf.png")).toBe(false);
     });
 
@@ -135,7 +138,6 @@ describe("r2 helper", () => {
       }
       expect(isCatalogueUploadType("custom_items")).toBe(false);
       expect(isCatalogueUploadType("custom_maps")).toBe(false);
-      expect(isCatalogueUploadType("currencies")).toBe(false);
     });
   });
 

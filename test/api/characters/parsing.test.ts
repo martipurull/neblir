@@ -222,20 +222,15 @@ describe("computeCharacterRequestData", () => {
       expect(result.learnedSkills?.specialSkills).toBeUndefined();
     });
 
-    it("transforms wallet to Prisma create format when present", () => {
+    it("leaves a named wallet for the route to point at catalogue currencies", () => {
       const input = makeCharacterCreationRequest({
         wallet: [
           { currencyName: "CONF", quantity: 100 },
-          { currencyName: "NORD", quantity: 50 },
+          { currencyName: "NORD", quantity: 0 },
         ],
       });
       const result = computeCharacterRequestData(input);
-      expect(result.wallet).toEqual({
-        create: [
-          { currencyName: "CONF", quantity: 100 },
-          { currencyName: "NORD", quantity: 50 },
-        ],
-      });
+      expect(result.wallet).toBeUndefined();
     });
 
     it("sets wallet to undefined when empty or absent", () => {

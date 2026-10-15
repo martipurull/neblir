@@ -108,7 +108,10 @@ export function toCharacterUpdateFormValues(
         character.learnedSkills.specialSkills?.[2] ?? "",
       ],
     },
-    wallet: character.wallet ?? [],
+    wallet: (character.wallet ?? []).map((entry) => ({
+      currencyName: entry.name,
+      quantity: entry.quantity,
+    })),
     paths: (character.paths ?? []).map((path) => ({
       pathId: path.id,
       rank: path.rank ?? 1,

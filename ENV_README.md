@@ -188,6 +188,11 @@ These variables are used by `npm run seed:official-data`. The command imports ca
 - **Description**: CSV or JSON file path for maps import (`upsertMapsFromFile.ts`)
 - **Example**: `~/Documents/Neblir/Game/data/Map_Upload.csv` or `~/Documents/Neblir/Game/data/maps.json`
 
+#### `OFFICIAL_DATA_CURRENCIES_FILE` (optional)
+
+- **Description**: JSON file path for catalogue currency import (`upsertCurrenciesFromFile.ts`). Exchange values are hundredths of one CONF. CONF's exchange value is 100. Import refuses a missing or non-whole value.
+- **Example**: `prisma/data/Currency_Upload.json`
+
 Legacy `*_CSV` env names are still accepted by the orchestrator for backward compatibility.
 
 #### `OFFICIAL_DATA_REFERENCE_FILE` (optional)

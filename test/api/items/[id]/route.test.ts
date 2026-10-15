@@ -260,7 +260,7 @@ describe("/api/items/[id] route handlers", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
-  it("DELETE skips currencies- catalogue keys", async () => {
+  it("DELETE removes an unused currencies- catalogue key", async () => {
     setCatalogueR2();
     getItemMock.mockResolvedValue({
       id: "item-1",
@@ -275,8 +275,10 @@ describe("/api/items/[id] route handlers", () => {
       makeParams({ id: "item-1" })
     );
     expect(response.status).toBe(204);
-    expect(s3SendMock).not.toHaveBeenCalled();
-    expect(countOfficialRowsWithCatalogueImageKeyMock).not.toHaveBeenCalled();
+    expect(deleteObjectCommandCtorMock).toHaveBeenCalledWith({
+      Bucket: "neblir-catalogue",
+      Key: "currencies-conf.png",
+    });
   });
 
   it("DELETE returns 500 when delete fails", async () => {

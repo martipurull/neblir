@@ -169,6 +169,12 @@ export function SuperAdminPageClient({
         >
           Maps
         </Link>
+        <Link
+          href="/home/super-admin/currencies/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Currencies
+        </Link>
       </div>
 
       <div className="mt-6">
@@ -217,6 +223,12 @@ export function SuperAdminPageClient({
         >
           Maps
         </Link>
+        <Link
+          href="/home/super-admin/currencies"
+          className={superAdminNavLinkClassName}
+        >
+          Currencies
+        </Link>
       </div>
 
       <SuperAdminCatalogueSyncCard
@@ -241,7 +253,8 @@ export function SuperAdminPageClient({
           <code className="rounded bg-black/5 px-1">
             /api/reference-entries
           </code>
-          , and <code className="rounded bg-black/5 px-1">/api/maps</code>{" "}
+          , <code className="rounded bg-black/5 px-1">/api/maps</code>, and{" "}
+          <code className="rounded bg-black/5 px-1">/api/currencies</code>{" "}
           (global rows omit{" "}
           <code className="rounded bg-black/5 px-1">gameId</code>
           ). Bulk JSON for seeds:{" "}

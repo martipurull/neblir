@@ -6,6 +6,7 @@ export const CATALOGUE_EXPORT_DOMAIN_ORDER = [
   "features",
   "maps",
   "reference",
+  "currencies",
 ] as const;
 
 export type CatalogueExportDomain =
@@ -19,6 +20,7 @@ export const CATALOGUE_SEED_FILENAMES: Record<CatalogueExportDomain, string> = {
   features: "Feature_Upload.json",
   maps: "Map_Upload.json",
   reference: "Reference_Upload.json",
+  currencies: "Currency_Upload.json",
 };
 
 export const CATALOGUE_SEED_ZIP_FILENAME = "catalogue-seed-files.zip";

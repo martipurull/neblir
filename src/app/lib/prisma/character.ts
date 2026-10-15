@@ -3,6 +3,7 @@ import { mapPrismaItemToApi } from "@/app/lib/itemModifierPrisma";
 import type { SoldierFavouriteWeapon } from "@/app/lib/types/path";
 import { prisma } from "./client";
 import type { Prisma } from "@prisma/client";
+import { presentWalletHoldings } from "@/app/lib/walletHoldings";
 import { hydrateItemCharacters } from "./itemCharacter";
 import {
   getHydratedVehicleCharacter,
@@ -154,7 +155,11 @@ export async function getCharacter(id: string) {
   const character = await prisma.character.findUnique({
     where: { id },
     include: {
-      wallet: true,
+      wallet: {
+        include: {
+          currency: { select: { name: true, imageKey: true } },
+        },
+      },
       inventory: true,
       vehicles: true,
       games: {
@@ -187,10 +192,7 @@ export async function getCharacter(id: string) {
 
   return {
     ...character,
-    wallet: character.wallet.map((entry) => ({
-      currencyName: entry.currencyName,
-      quantity: entry.quantity,
-    })),
+    wallet: presentWalletHoldings(character.wallet),
     inventory: hydratedInventory ?? [],
     vehicles: hydratedVehicles ?? [],
     paths: character.paths.map((pc) => ({

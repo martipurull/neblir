@@ -4,48 +4,88 @@ import {
   itemGeneralSkillSchema,
 } from "@/app/lib/itemModifierEnums";
 
-export const CURRENCY_NAMES = ["CONF", "NORD", "NAS", "HUMF", "MRARK"] as const;
-export type CurrencyName = (typeof CURRENCY_NAMES)[number];
-
-const currencyNameSchema = z.enum(CURRENCY_NAMES);
-
 export function currencyImageKey(currencyName: string): string {
   return `currencies-${currencyName.toLowerCase()}.png`;
 }
 
-export function getMissingWalletCurrencies(
-  wallet: ReadonlyArray<{ currencyName: string }> | null | undefined
-): CurrencyName[] {
-  const held = new Set((wallet ?? []).map((entry) => entry.currencyName));
-  return CURRENCY_NAMES.filter((name) => !held.has(name));
-}
+const currencyIdSchema = z.string().trim().min(1);
 
-const currencySchema = z.object({
-  currencyName: currencyNameSchema,
-  quantity: z.number().min(0),
-});
-
-export type Currency = z.infer<typeof currencySchema>;
-
-export const walletSchema = z
-  .array(currencySchema)
-  .superRefine((wallet, ctx) => {
+function rejectDuplicateCurrency(key: "currencyId" | "currencyName") {
+  return (
+    wallet: ReadonlyArray<Partial<Record<typeof key, string>>>,
+    ctx: z.RefinementCtx
+  ) => {
     const seen = new Set<string>();
     for (const entry of wallet) {
-      if (seen.has(entry.currencyName)) {
+      const value = entry[key];
+      if (!value) continue;
+      if (seen.has(value)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Duplicate currency '${entry.currencyName}' is not allowed.`,
+          message: `Duplicate currency '${value}' is not allowed.`,
         });
       }
-      seen.add(entry.currencyName);
+      seen.add(value);
     }
-  });
+  };
+}
+
+const walletHoldingSchema = z.object({
+  currencyId: z.string(),
+  name: z.string(),
+  imageKey: z.string(),
+  quantity: z.number().int().positive(),
+});
+
+export type WalletHolding = z.infer<typeof walletHoldingSchema>;
+
+export const walletListSchema = z.array(walletHoldingSchema);
+
+export const walletReplaceSchema = z
+  .array(
+    z.object({
+      currencyId: currencyIdSchema,
+      quantity: z.number().int().min(0),
+    })
+  )
+  .superRefine(rejectDuplicateCurrency("currencyId"));
 
 export const walletAdjustmentSchema = z.object({
-  currencyName: currencyNameSchema,
+  currencyId: currencyIdSchema,
   amount: z.number().int().positive(),
 });
+
+export const walletExchangeSchema = z.object({
+  sourceCurrencyId: currencyIdSchema,
+  destinationCurrencyId: currencyIdSchema,
+  amount: z.number().int().positive(),
+});
+
+export const currencyExchangeQuoteSchema = z.object({
+  sourceExchangeValue: z.number().int().positive(),
+  destinationExchangeValue: z.number().int().positive(),
+  destinationQuantity: z.number().int().positive(),
+});
+
+export type CurrencyExchangeQuote = z.infer<typeof currencyExchangeQuoteSchema>;
+
+export const currencyExchangeCommitSchema = currencyExchangeQuoteSchema.extend({
+  wallet: walletListSchema,
+});
+
+export type CurrencyExchangeCommit = z.infer<
+  typeof currencyExchangeCommitSchema
+>;
+
+/** Character creation still names currencies; the route stores the catalogue id. */
+export const startingWalletSchema = z
+  .array(
+    z.object({
+      currencyName: z.string().trim().min(1),
+      quantity: z.number().int().min(0),
+    })
+  )
+  .superRefine(rejectDuplicateCurrency("currencyName"));
 
 export const weaponAttackRollTypeSchema = z.enum([
   "RANGE",

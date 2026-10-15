@@ -52,20 +52,12 @@ export const CATALOGUE_UPLOAD_TYPES = [
   "vehicles",
   "maps",
   "enemies",
+  "currencies",
 ] as const satisfies readonly UploadKeyType[];
 
 export type CatalogueUploadType = (typeof CATALOGUE_UPLOAD_TYPES)[number];
 
-const CATALOGUE_READ_ONLY_KEY_PREFIXES = ["currencies-"] as const;
-
-const CATALOGUE_UPLOAD_KEY_PREFIXES = CATALOGUE_UPLOAD_TYPES.map(
-  (type) => `${type}-`
-);
-
-const CATALOGUE_KEY_PREFIXES = [
-  ...CATALOGUE_UPLOAD_KEY_PREFIXES,
-  ...CATALOGUE_READ_ONLY_KEY_PREFIXES,
-];
+const CATALOGUE_KEY_PREFIXES = CATALOGUE_UPLOAD_TYPES.map((type) => `${type}-`);
 
 export function isCatalogueUploadType(
   type: string
@@ -90,7 +82,7 @@ const ALLOWED_UPLOAD_PREFIXES = [
   "unique_vehicles-",
   "games-",
   "characters-",
-  ...CATALOGUE_UPLOAD_KEY_PREFIXES,
+  ...CATALOGUE_KEY_PREFIXES,
   "recaps-",
   "files-",
   "lore-",

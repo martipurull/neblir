@@ -32,7 +32,8 @@ describe("resolveCatalogueExportDomains", () => {
     expect(domains).toContain("items");
     expect(domains).toContain("vehicles");
     expect(domains).toContain("reference");
-    expect(domains.length).toBe(7);
+    expect(domains).toContain("currencies");
+    expect(domains.length).toBe(8);
   });
 
   it("filters touched domains to known set", () => {

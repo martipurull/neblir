@@ -107,6 +107,7 @@ async function main() {
     "OFFICIAL_DATA_FEATURES_CSV",
   ]);
   const mapsFile = optionalEnv("OFFICIAL_DATA_MAPS_FILE");
+  const currenciesFile = optionalEnv("OFFICIAL_DATA_CURRENCIES_FILE");
   const pathsFile = requiredEnvAny([
     "OFFICIAL_DATA_PATHS_FILE",
     "OFFICIAL_DATA_PATHS_CSV",
@@ -173,6 +174,23 @@ async function main() {
       command: "",
       status: "skipped",
       summary: "OFFICIAL_DATA_MAPS_FILE not set",
+    });
+  }
+
+  if (currenciesFile) {
+    results.push(
+      runScript("Currencies", [
+        "prisma/scripts/upsertCurrenciesFromFile.ts",
+        currenciesFile,
+        ...maybeDry,
+      ])
+    );
+  } else {
+    results.push({
+      name: "Currencies",
+      command: "",
+      status: "skipped",
+      summary: "OFFICIAL_DATA_CURRENCIES_FILE not set",
     });
   }
 

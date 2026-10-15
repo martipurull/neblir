@@ -90,7 +90,14 @@ function makeCharacterDetail(
       generalSkills: baseGeneralSkills,
       specialSkills: ["Tracking"],
     },
-    wallet: [{ currencyName: "CONF", quantity: 10 }],
+    wallet: [
+      {
+        currencyId: "conf",
+        name: "CONF",
+        imageKey: "currencies-conf.png",
+        quantity: 10,
+      },
+    ],
     paths: [],
     features: [],
     ...overrides,
