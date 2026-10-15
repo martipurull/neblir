@@ -78,6 +78,12 @@ vi.mock("@/app/lib/prisma/client", () => {
       delete: vi.fn(),
       findUnique: vi.fn(),
     },
+    currency: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    characterCurrency: { count: vi.fn() },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   };
   return { prisma };
@@ -100,6 +106,7 @@ function emptySeedData() {
     features: [],
     maps: [],
     reference: [],
+    currencies: [],
   };
 }
 
@@ -120,6 +127,7 @@ function snapshotResponse(
         "features",
         "maps",
         "reference",
+        "currencies",
       ],
       data: { ...emptySeedData(), ...overrides },
     }),
@@ -196,6 +204,7 @@ describe("/api/staff/catalogue-sync dest preview", () => {
           "features",
           "maps",
           "reference",
+          "currencies",
         ],
         data: emptySeedData(),
       }),
@@ -475,7 +484,13 @@ describe("/api/staff/catalogue-sync dest preview", () => {
       { id: "same-1", label: "Changed Official item", bucket: "updated" },
       { id: "dest-1", label: "Dest-only Official item", bucket: "dest-only" },
     ]);
-    expect(json.domains).not.toHaveProperty("currencies");
+    expect(json.domains.currencies).toEqual({
+      added: 0,
+      updated: 0,
+      destOnly: 0,
+      blocked: 0,
+      rows: [],
+    });
     expect(json.domains).not.toHaveProperty("games");
   });
 
@@ -682,6 +697,7 @@ function resetOfficialWriteMocks() {
     prisma.feature,
     prisma.map,
     prisma.referenceEntry,
+    prisma.currency,
   ];
   for (const delegate of delegates) {
     vi.mocked(delegate.create).mockReset();
@@ -722,6 +738,7 @@ function resetOfficialWriteMocks() {
     prisma.uniqueVehicle.count,
     prisma.enemyInstance.count,
     prisma.featureCharacter.count,
+    prisma.characterCurrency.count,
   ]) {
     vi.mocked(count).mockReset();
     vi.mocked(count).mockResolvedValue(0 as never);
@@ -1244,6 +1261,14 @@ describe("/api/staff/catalogue-sync dest apply", () => {
           title: "Old",
         },
       ],
+      currencies: [
+        {
+          id: "cur-1",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
     });
     const { POST } = await import("@/app/api/staff/catalogue-sync/route");
     const res = await invokeRoute(
@@ -1264,6 +1289,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
         { domain: "features", id: "feat-1", action: "delete" },
         { domain: "maps", id: "map-1", action: "delete" },
         { domain: "reference", id: "ref-1", action: "delete" },
+        { domain: "currencies", id: "cur-1", action: "delete" },
       ],
       skipped: [],
       failed: [],
@@ -1287,6 +1313,9 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     expect(prisma.referenceEntry.delete).toHaveBeenCalledWith({
       where: { id: "ref-1" },
     });
+    expect(prisma.currency.delete).toHaveBeenCalledWith({
+      where: { id: "cur-1" },
+    });
     expect(prisma.enemyInstance.deleteMany).not.toHaveBeenCalled();
     expect(prisma.featureCharacter.deleteMany).not.toHaveBeenCalled();
     expect(prisma.pathCharacter.deleteMany).not.toHaveBeenCalled();
@@ -1304,6 +1333,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       "features",
       "maps",
       "reference",
+      "currencies",
     ]);
   });
 
@@ -1541,5 +1571,206 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       { id: "unused-1", label: "Unused Official item", bucket: "dest-only" },
       { id: "held-1", label: "Held Official item", bucket: "blocked" },
     ]);
+  });
+
+  it("POST adds a missing currency and stores its image key without copying image bytes", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        currencies: [
+          {
+            id: "cur-nord",
+            name: "NORD",
+            exchangeValue: 44,
+            imageKey: "currencies-nord.png",
+          },
+        ],
+      })
+    );
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "currencies", id: "cur-nord", action: "overlay" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://dev.example.com/api/catalogue-sync/snapshot",
+      expect.objectContaining({ method: "GET" })
+    );
+    expect(prisma.currency.create).toHaveBeenCalledTimes(1);
+    expect(prisma.currency.create).toHaveBeenCalledWith({
+      data: {
+        id: "cur-nord",
+        name: "NORD",
+        exchangeValue: 44,
+        imageKey: "currencies-nord.png",
+        protectedFromOfficialImport: true,
+      },
+    });
+    expect(prisma.currency.update).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["currencies"]);
+  });
+
+  it("POST updates an existing currency when the row differs and the source wins", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        currencies: [
+          {
+            id: "cur-nord",
+            name: "NORD",
+            exchangeValue: 50,
+            imageKey: "currencies-nord-new.png",
+          },
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      currencies: [
+        {
+          id: "cur-nord",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "currencies", id: "cur-nord", action: "overlay" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.currency.update).toHaveBeenCalledWith({
+      where: { id: "cur-nord" },
+      data: {
+        name: "NORD",
+        exchangeValue: 50,
+        imageKey: "currencies-nord-new.png",
+        protectedFromOfficialImport: true,
+      },
+    });
+    expect(prisma.currency.create).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["currencies"]);
+  });
+
+  it("POST skips an Official currency name collision with a different id and does not merge it", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        currencies: [
+          {
+            id: "src-nord",
+            name: "nord",
+            exchangeValue: 99,
+            imageKey: "currencies-src.png",
+          },
+          {
+            id: "src-nas",
+            name: "NAS",
+            exchangeValue: 130,
+            imageKey: "currencies-nas.png",
+          },
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      currencies: [
+        {
+          id: "dest-nord",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "currencies", id: "src-nas", action: "overlay" }],
+      skipped: [{ domain: "currencies", id: "src-nord", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.currency.create).toHaveBeenCalledTimes(1);
+    expect(prisma.currency.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ id: "src-nas", name: "NAS" }),
+    });
+    expect(prisma.currency.update).not.toHaveBeenCalled();
+    expect(prisma.currency.delete).not.toHaveBeenCalled();
+  });
+
+  it("POST skips deleting a dest-only currency that a character holds", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      currencies: [
+        {
+          id: "held-nord",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
+    });
+    vi.mocked(prisma.characterCurrency.count).mockImplementation((async (args: {
+      where?: { currencyId?: string };
+    }) => (args?.where?.currencyId === "held-nord" ? 1 : 0)) as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [{ domain: "currencies", id: "held-nord", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.currency.delete).not.toHaveBeenCalled();
+    expect(prisma.currency.update).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST deletes a dest-only currency that nobody holds", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      currencies: [
+        {
+          id: "old-nord",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "currencies", id: "old-nord", action: "delete" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.currency.delete).toHaveBeenCalledWith({
+      where: { id: "old-nord" },
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["currencies"]);
   });
 });

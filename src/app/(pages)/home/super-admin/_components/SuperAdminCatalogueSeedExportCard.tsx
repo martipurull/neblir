@@ -36,7 +36,7 @@ export function SuperAdminCatalogueSeedExportCard({
         <strong>all current Official rows</strong> in that domain, named like
         the git seed file (for example{" "}
         <code className="rounded bg-black/5 px-1">Item_Upload.json</code>).{" "}
-        <strong>Download all domains</strong> is a zip of all seven seed files.
+        <strong>Download all domains</strong> is a zip of all eight seed files.
         Downloading does not clear the drift banner — use{" "}
         <strong>I have updated the repo seeds</strong> after git is updated.
       </p>

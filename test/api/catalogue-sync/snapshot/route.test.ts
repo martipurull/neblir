@@ -21,6 +21,14 @@ describe("/api/catalogue-sync/snapshot route", () => {
       features: [],
       maps: [],
       reference: [],
+      currencies: [
+        {
+          id: "nord",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
     });
   });
 
@@ -73,7 +81,7 @@ describe("/api/catalogue-sync/snapshot route", () => {
     expect(buildCatalogueSeedDataExportMock).not.toHaveBeenCalled();
   });
 
-  it("GET returns Official seed-export scope=all for all seven catalogue domains when the pull secret matches", async () => {
+  it("GET returns Official seed-export scope=all including currency rows when the pull secret matches", async () => {
     const { GET } = await import("@/app/api/catalogue-sync/snapshot/route");
     const res = await invokeRoute(
       GET,
@@ -90,6 +98,7 @@ describe("/api/catalogue-sync/snapshot route", () => {
       "features",
       "maps",
       "reference",
+      "currencies",
     ]);
     const json = await res.json();
     expect(json.scope).toBe("all");
@@ -101,11 +110,19 @@ describe("/api/catalogue-sync/snapshot route", () => {
       "features",
       "maps",
       "reference",
+      "currencies",
     ]);
     expect(json.data.items).toEqual([{ id: "i1", name: "Siike Gun" }]);
+    expect(json.data.currencies).toEqual([
+      {
+        id: "nord",
+        name: "NORD",
+        exchangeValue: 44,
+        imageKey: "currencies-nord.png",
+      },
+    ]);
     expect(json.data).not.toHaveProperty("games");
     expect(json.data).not.toHaveProperty("characters");
-    expect(json.data).not.toHaveProperty("currencies");
     expect(typeof json.exportedAt).toBe("string");
   });
 
