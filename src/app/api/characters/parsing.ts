@@ -131,7 +131,7 @@ export function computeCharacterRequestData(
   const {
     path: _path,
     paths: _paths,
-    wallet: rawWallet,
+    wallet: _rawWallet,
     initialFeatures: _initialFeatures,
     gameId: _gameId,
     gameLinks: _gameLinks,
@@ -166,15 +166,6 @@ export function computeCharacterRequestData(
         }
       : learnedSkills;
 
-  const wallet =
-    (rawWallet?.length ?? 0) > 0
-      ? {
-          create: (rawWallet ?? []).map((entry) => ({
-            currencyName: entry.currencyName,
-            quantity: entry.quantity,
-          })),
-        }
-      : undefined;
   const rawHealth = requestWithoutPathAndWallet.health as Record<
     string,
     unknown
@@ -257,7 +248,7 @@ export function computeCharacterRequestData(
       ),
     },
     learnedSkills: learnedSkillsForPrisma,
-    wallet,
+    wallet: undefined,
     notes: [],
     health: {
       ...requestWithoutPathAndWallet.health,

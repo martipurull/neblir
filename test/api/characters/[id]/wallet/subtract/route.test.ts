@@ -1,106 +1,176 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { prisma } from "@/app/lib/prisma/client";
 import {
   invokeRoute,
   makeAuthedRequest,
   makeParams,
+  makeUnauthedRequest,
 } from "../../../../helpers";
+import { bindWalletMemory, createWalletMemory } from "../memory";
 
-const characterBelongsToUserMock = vi.fn();
-const subtractCharacterCurrencyMock = vi.fn();
-const safeParseMock = vi.fn();
-
-vi.mock("@/app/lib/prisma/characterUser", () => ({
-  characterBelongsToUser: characterBelongsToUserMock,
-}));
+const userHasPlayControlMock = vi.fn();
+const memory = createWalletMemory();
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
-  userHasPlayControl: characterBelongsToUserMock,
+  userHasPlayControl: userHasPlayControlMock,
 }));
 
-vi.mock("@/app/lib/prisma/characterCurrency", () => ({
-  subtractCharacterCurrency: subtractCharacterCurrencyMock,
-}));
+vi.mock("@/app/lib/prisma/client", async () => {
+  const { createWalletPrismaDouble } = await import("../memory");
+  return { prisma: createWalletPrismaDouble() };
+});
 
-vi.mock("@/app/lib/types/item", () => ({
-  walletAdjustmentSchema: { safeParse: safeParseMock },
-}));
+const conf = {
+  id: "conf",
+  name: "CONF",
+  imageKey: "currencies-conf.png",
+  exchangeValue: 100,
+};
+
+const heldConf = {
+  currencyId: "conf",
+  name: "CONF",
+  imageKey: "currencies-conf.png",
+  quantity: 4,
+};
 
 describe("/api/characters/[id]/wallet/subtract POST", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    memory.reset();
+    bindWalletMemory(prisma as never, memory);
+    userHasPlayControlMock.mockResolvedValue(true);
+    memory.seedCurrency(conf);
+    memory.seedHolding({
+      characterId: "char-1",
+      currencyId: "conf",
+      quantity: 4,
+    });
   });
 
-  it("returns 400 for CURRENCY_NOT_FOUND", async () => {
-    characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({
-      data: { currencyName: "CREDIT", amount: 3 },
-      error: undefined,
-    });
-    subtractCharacterCurrencyMock.mockRejectedValue(
-      new Error("CURRENCY_NOT_FOUND")
+  async function readWallet() {
+    const { GET } = await import("@/app/api/characters/[id]/wallet/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(),
+      makeParams({ id: "char-1" })
     );
+    return response.json();
+  }
+
+  it("returns 401 when unauthenticated", async () => {
     const { POST } =
       await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({}),
+      makeUnauthedRequest({ currencyId: "conf", amount: 1 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 403 when the user does not have play control", async () => {
+    userHasPlayControlMock.mockResolvedValue(false);
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ currencyId: "conf", amount: 1 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(403);
+    userHasPlayControlMock.mockResolvedValue(true);
+    await expect(readWallet()).resolves.toEqual([heldConf]);
+  });
+
+  it("returns 400 for an unknown currency and leaves the wallet unchanged", async () => {
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ currencyId: "missing", amount: 1 }),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Unknown currency",
+    });
+    await expect(readWallet()).resolves.toEqual([heldConf]);
   });
 
-  it("returns 400 for INSUFFICIENT_FUNDS", async () => {
-    characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({
-      data: { currencyName: "CREDIT", amount: 3 },
-      error: undefined,
-    });
-    subtractCharacterCurrencyMock.mockRejectedValue(
-      new Error("INSUFFICIENT_FUNDS")
-    );
+  it("returns 400 when spending more than the holding and leaves the wallet unchanged", async () => {
     const { POST } =
       await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({}),
+      makeAuthedRequest({ currencyId: "conf", amount: 5 }),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Insufficient funds",
+    });
+    await expect(readWallet()).resolves.toEqual([heldConf]);
   });
 
-  it("returns 500 for unexpected subtract errors", async () => {
-    characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({
-      data: { currencyName: "CREDIT", amount: 3 },
-      error: undefined,
+  it("returns 400 when the character does not hold the currency and leaves the wallet unchanged", async () => {
+    memory.seedCurrency({
+      id: "nord",
+      name: "NORD",
+      imageKey: "currencies-nord.png",
+      exchangeValue: 44,
     });
-    subtractCharacterCurrencyMock.mockRejectedValue(new Error("boom"));
     const { POST } =
       await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({}),
+      makeAuthedRequest({ currencyId: "nord", amount: 1 }),
       makeParams({ id: "char-1" })
     );
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Insufficient funds",
+    });
+    await expect(readWallet()).resolves.toEqual([heldConf]);
   });
 
-  it("returns 200 on success", async () => {
-    characterBelongsToUserMock.mockResolvedValue(true);
-    safeParseMock.mockReturnValue({
-      data: { currencyName: "CREDIT", amount: 3 },
-      error: undefined,
-    });
-    subtractCharacterCurrencyMock.mockResolvedValue([
-      { currencyName: "CREDIT", quantity: 1 },
-    ]);
+  it("decreases the quantity", async () => {
     const { POST } =
       await import("@/app/api/characters/[id]/wallet/subtract/route");
     const response = await invokeRoute(
       POST,
-      makeAuthedRequest({}),
+      makeAuthedRequest({ currencyId: "conf", amount: 3 }),
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([
+      { ...heldConf, quantity: 1 },
+    ]);
+  });
+
+  it("removes the holding when the last unit is spent", async () => {
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ currencyId: "conf", amount: 4 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([]);
+  });
+
+  it("returns 500 when subtract fails unexpectedly", async () => {
+    vi.mocked(prisma.characterCurrency.findUnique).mockRejectedValue(
+      new Error("db down")
+    );
+    const { POST } =
+      await import("@/app/api/characters/[id]/wallet/subtract/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ currencyId: "conf", amount: 1 }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(500);
   });
 });

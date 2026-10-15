@@ -12,6 +12,7 @@ const deleteCharacterMock = vi.fn();
 const characterBelongsToUserMock = vi.fn();
 const getPathMock = vi.fn();
 const getFeaturesMock = vi.fn();
+const getCurrenciesMock = vi.fn();
 const pathCharacterUpdateMock = vi.fn();
 const pathCharacterDeleteMock = vi.fn();
 const pathCharacterCreateMock = vi.fn();
@@ -35,6 +36,10 @@ vi.mock("@/app/lib/prisma/path", () => ({
   getPath: getPathMock,
 }));
 
+vi.mock("@/app/lib/prisma/currency", () => ({
+  getCurrencies: getCurrenciesMock,
+}));
+
 vi.mock("@/app/lib/prisma/feature", () => ({
   getFeatures: getFeaturesMock,
 }));
@@ -43,6 +48,12 @@ vi.mock("@/app/lib/prisma/client", () => ({
   prisma: {
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({
+        currency: {
+          findMany: async (args: { where?: { id?: { in?: string[] } } }) =>
+            (args.where?.id?.in ?? []).map((currencyId) => ({
+              id: currencyId,
+            })),
+        },
         characterCurrency: {
           deleteMany: characterCurrencyDeleteManyMock,
           createMany: characterCurrencyCreateManyMock,
@@ -667,5 +678,47 @@ describe("/api/characters/[id] PATCH", () => {
     );
     expect(response.status).toBe(400);
     expect(characterUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it("points a saved wallet at catalogue currencies and drops a quantity of 0", async () => {
+    getCurrenciesMock.mockResolvedValue([
+      { id: "conf", name: "CONF" },
+      { id: "nord", name: "NORD" },
+    ]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({
+        ...makeUpdateBody(),
+        wallet: [
+          { currencyName: "CONF", quantity: 5 },
+          { currencyName: "NORD", quantity: 0 },
+        ],
+      }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(characterCurrencyCreateManyMock).toHaveBeenCalledWith({
+      data: [{ characterId: "char-1", currencyId: "conf", quantity: 5 }],
+    });
+  });
+
+  it("returns 400 when a saved wallet names an unknown currency and does not rewrite holdings", async () => {
+    getCurrenciesMock.mockResolvedValue([{ id: "conf", name: "CONF" }]);
+    const { PATCH } = await import("@/app/api/characters/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({
+        ...makeUpdateBody(),
+        wallet: [{ currencyName: "CREDIT", quantity: 3 }],
+      }),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Unknown currency 'CREDIT'",
+    });
+    expect(characterCurrencyDeleteManyMock).not.toHaveBeenCalled();
+    expect(characterCurrencyCreateManyMock).not.toHaveBeenCalled();
   });
 });

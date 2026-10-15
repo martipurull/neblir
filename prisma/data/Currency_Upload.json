@@ -1,0 +1,27 @@
+[
+  {
+    "name": "CONF",
+    "exchangeValue": 100,
+    "imageKey": "currencies-conf.png"
+  },
+  {
+    "name": "NORD",
+    "exchangeValue": 44,
+    "imageKey": "currencies-nord.png"
+  },
+  {
+    "name": "NAS",
+    "exchangeValue": 130,
+    "imageKey": "currencies-nas.png"
+  },
+  {
+    "name": "HUMF",
+    "exchangeValue": 158,
+    "imageKey": "currencies-humf.png"
+  },
+  {
+    "name": "MRARK",
+    "exchangeValue": 26,
+    "imageKey": "currencies-mrark.png"
+  }
+]

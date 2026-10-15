@@ -9,7 +9,8 @@ type SuperAdminCatalogueDomain =
   | "enemies"
   | "reference"
   | "vehicles"
-  | "maps";
+  | "maps"
+  | "currencies";
 
 const DOMAIN_BASE: Record<SuperAdminCatalogueDomain, string> = {
   items: "/home/super-admin/items",
@@ -19,6 +20,7 @@ const DOMAIN_BASE: Record<SuperAdminCatalogueDomain, string> = {
   reference: "/home/super-admin/reference",
   vehicles: "/home/super-admin/vehicles",
   maps: "/home/super-admin/maps",
+  currencies: "/home/super-admin/currencies",
 };
 
 type SuperAdminCatalogueDomainNavProps = {

@@ -3,7 +3,6 @@ import type { Race, Religion } from "@prisma/client";
 
 export { RELIGIONS } from "@/app/lib/religion";
 export { RACES } from "@/app/lib/race";
-export { CURRENCY_NAMES } from "@/app/lib/types/item";
 
 /** Default values for character creation form (matches API schema). */
 export function getDefaultCharacterCreationFormValues(): CharacterCreationRequest {

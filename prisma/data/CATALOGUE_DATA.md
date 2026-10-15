@@ -1,6 +1,6 @@
 # Catalogue Data
 
-This folder contains the canonical catalogue data for official items, enemies, paths, features, maps, and reference entries available to all players, game masters, and campaigns set in Neblir.
+This folder contains the canonical catalogue data for official items, enemies, paths, features, maps, currencies, and reference entries available to all players, game masters, and campaigns set in Neblir.
 
 The files here are the **source of truth in git**. The live database is updated immediately when a super admin creates or edits catalogue rows in the app; those changes are **not** written back to this folder automatically. A developer must copy exported JSON into the matching `*_Upload.json` files and commit, then the super admin can clear the in-app drift reminder.
 
@@ -130,9 +130,9 @@ Git seed files remain the versioned source of truth. Catalogue sync does **not**
 
 On **Super admin**, open **Catalogue sync**. Choose source and destination Catalogue environments (source defaults to this process; destination starts unselected). Preview and apply run only when this process **is** the destination: dest pulls the source Official snapshot over HTTP with a server-only secret. If dest is another environment, the modal does not load Official row payloads; apply is off and it links to dest’s super-admin with the pairing.
 
-Cookie **Bulk export for seed files** / `GET /api/staff/catalogue-seed-export` stays the human git export door. Catalogue sync uses a separate snapshot door with the same Official payload shape (`scope=all` for all seven catalogue domains). It does not copy games, Characters, Custom or Unique content, currencies, or Official image bytes (images already live in the shared catalogue bucket).
+Cookie **Bulk export for seed files** / `GET /api/staff/catalogue-seed-export` stays the human git export door. Catalogue sync uses a separate snapshot door with the same Official payload shape (`scope=all` for all eight catalogue domains, including currencies). It does not copy games, Characters, Custom or Unique content, or Official image bytes (images already live in the shared catalogue bucket). Currency rows travel with their name, exchange value, and image key; the image bytes stay in the shared bucket.
 
-On dest, **Apply** overlays unblocked adds and updates for all seven catalogue domains (source wins, and new rows keep the source id). Blocked Official-name or published-reference slug collisions are skipped. Dest-only Official rows stay unless **Delete unused dest-only Official rows** is checked. That checkbox is off by default. With it on, unused dest-only Official rows are deleted; rows still used in play (holdings, Unique rows from that template, Enemy instances, and the same usage Official delete already lists) are skipped, not deleted. Clean those up on dest’s existing Official delete flow. Confirm states how many rows will apply, how many unused dest-only rows will be deleted, how many in-use dest-only rows will be skipped, and how many other blocked rows will be skipped. Production asks you to type the destination name, including when dest-only delete is on; development and local use a light confirm. An empty overlay (nothing to add, update, or delete) does not write.
+On dest, **Apply** overlays unblocked adds and updates for all eight catalogue domains (source wins, and new rows keep the source id). Blocked Official-name or published-reference slug collisions are skipped and not merged, including two currencies that share an Official name and have different ids. Dest-only Official rows stay unless **Delete unused dest-only Official rows** is checked. That checkbox is off by default. With it on, unused dest-only Official rows are deleted; rows still used in play (holdings, a currency any character holds, Unique rows from that template, Enemy instances, and the same usage Official delete already lists) are skipped, not deleted. Clean those up on dest’s existing Official delete flow. Confirm states how many rows will apply, how many unused dest-only rows will be deleted, how many in-use dest-only rows will be skipped, and how many other blocked rows will be skipped. Production asks you to type the destination name, including when dest-only delete is on; development and local use a light confirm. An empty overlay (nothing to add, update, or delete) does not write.
 
 Apply sets `protectedFromOfficialImport` on written rows and raises the usual **Update seed data in git** banner for catalogue domains that actually changed. It does not clear that banner, and it does not change the source Catalogue environment. The result lists applied, skipped, and failed rows. A later failure does not undo earlier rows. **Diff again** on the same pairing reloads the Official diff from live dest against a fresh source pull: applied ids drop out; rows that failed and still differ show as pending work.
 
@@ -151,7 +151,10 @@ Then export the touched domains into this folder and commit as usual, and acknow
 | Paths & features | `upsertPathsAndFeaturesFromFile.ts` | `Feature_Upload.json` + `Path_Upload.json` |
 | Enemies          | `upsertEnemiesFromFile.ts`          | `Enemy_Upload.json`                        |
 | Maps             | `upsertMapsFromFile.ts`             | `Map_Upload.json`                          |
+| Currencies       | `upsertCurrenciesFromFile.ts`       | `Currency_Upload.json`                     |
 | Reference        | `upsertReferenceEntriesFromFile.ts` | `Reference_Upload.json`                    |
+
+`Currency_Upload.json` lists CONF, NORD, NAS, HUMF, and MRARK with their existing image keys. Exchange values are hundredths of one CONF, and CONF's exchange value is 100. Import refuses a currency whose exchange value is missing or not a positive whole number. Set `OFFICIAL_DATA_CURRENCIES_FILE` and import before the wallet migration. Per-domain import: `npm run data:import:currencies -- prisma/data/Currency_Upload.json`.
 
 Per-domain import scripts are also available via `npm run data:import:items`, `data:import:enemies`, etc.
 

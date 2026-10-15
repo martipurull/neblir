@@ -150,10 +150,6 @@ export type AppButtonVariant =
   | "lightChevronExpand"
   /** Wide combat toggle on character summary. */
   | "lightCombatToggle"
-  /** Fixed-width add-currency row (character create). */
-  | "lightCurrencyAddRow"
-  /** Dismiss-style text control (remove currency). */
-  | "lightDangerLink"
   | "lightPathTitleLink"
   | "lightDisclosureChevron"
   | "lightTemplateInfoIcon"
@@ -405,12 +401,6 @@ const lightChevronExpand =
 const lightCombatToggle =
   "col-span-3 flex w-full min-w-0 items-center justify-center rounded-lg border border-black bg-transparent px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-black transition hover:bg-black/10 active:bg-black/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
 
-const lightCurrencyAddRow =
-  "w-44 rounded border border-black/40 px-2 py-1 text-sm text-black transition-colors hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/25";
-
-const lightDangerLink =
-  "text-xs text-neblirDanger-600 underline transition-colors hover:text-neblirDanger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neblirDanger-400/40";
-
 const lightPathTitleLink =
   "text-left text-base font-semibold text-black underline decoration-black/35 underline-offset-2 transition-colors hover:decoration-black focus:outline-none focus-visible:ring-2 focus-visible:ring-black/30";
 
@@ -532,8 +522,6 @@ export const appButtonVariantClassName: Record<AppButtonVariant, string> = {
   solidDark,
   lightChevronExpand,
   lightCombatToggle,
-  lightCurrencyAddRow,
-  lightDangerLink,
   lightPathTitleLink,
   lightDisclosureChevron,
   lightTemplateInfoIcon,

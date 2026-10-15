@@ -10,7 +10,7 @@ import {
   itemAreaTypeSchema,
   itemSourceTypeSchema,
   itemStatusSchema,
-  walletSchema,
+  walletListSchema,
   weaponAttackRollTypeSchema,
   weaponDamageTypeSchema,
 } from "./item";
@@ -250,7 +250,7 @@ export const characterSchema = z.object({
     specialSkills: z.array(z.string()).max(3).optional().nullish(),
   }),
   wallet: z
-    .lazy(() => walletSchema)
+    .lazy(() => walletListSchema)
     .optional()
     .nullish(),
   inventory: z

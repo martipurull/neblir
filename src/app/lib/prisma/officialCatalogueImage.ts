@@ -9,11 +9,12 @@ const officialMapImageWhere = (imageKey: string): Prisma.MapWhereInput => ({
 export async function countOfficialRowsWithCatalogueImageKey(
   imageKey: string
 ): Promise<number> {
-  const [items, vehicles, enemies, maps] = await Promise.all([
+  const [items, vehicles, enemies, maps, currencies] = await Promise.all([
     prisma.item.count({ where: { imageKey } }),
     prisma.vehicle.count({ where: { imageKey } }),
     prisma.enemy.count({ where: { imageKey } }),
     prisma.map.count({ where: officialMapImageWhere(imageKey) }),
+    prisma.currency.count({ where: { imageKey } }),
   ]);
-  return items + vehicles + enemies + maps;
+  return items + vehicles + enemies + maps + currencies;
 }

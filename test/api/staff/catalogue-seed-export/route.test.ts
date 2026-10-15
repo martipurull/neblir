@@ -151,6 +151,14 @@ describe("/api/staff/catalogue-seed-export route", () => {
       features: [{ id: "f1" }],
       maps: [{ id: "m1" }],
       reference: [{ id: "r1" }],
+      currencies: [
+        {
+          id: "c1",
+          name: "NORD",
+          exchangeValue: 44,
+          imageKey: "currencies-nord.png",
+        },
+      ],
     });
     const { GET } = await import("@/app/api/staff/catalogue-seed-export/route");
     const res = await invokeRoute(
@@ -168,6 +176,7 @@ describe("/api/staff/catalogue-seed-export route", () => {
     const files = unzipSync(bytes);
     expect(Object.keys(files).sort()).toEqual(
       [
+        "Currency_Upload.json",
         "Enemy_Upload.json",
         "Feature_Upload.json",
         "Item_Upload.json",
@@ -177,6 +186,14 @@ describe("/api/staff/catalogue-seed-export route", () => {
         "Vehicle_Upload.json",
       ].sort()
     );
+    expect(JSON.parse(strFromU8(files["Currency_Upload.json"]))).toEqual([
+      {
+        id: "c1",
+        name: "NORD",
+        exchangeValue: 44,
+        imageKey: "currencies-nord.png",
+      },
+    ]);
     expect(JSON.parse(strFromU8(files["Item_Upload.json"]))).toEqual([
       { id: "i1" },
     ]);

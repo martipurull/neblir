@@ -16,6 +16,7 @@ export function SuperAdminLabeledField<T extends FieldValues>({
   step,
   min,
   max,
+  disabled = false,
 }: {
   id: string;
   label: string;
@@ -27,6 +28,7 @@ export function SuperAdminLabeledField<T extends FieldValues>({
   step?: ComponentPropsWithoutRef<"input">["step"];
   min?: ComponentPropsWithoutRef<"input">["min"];
   max?: ComponentPropsWithoutRef<"input">["max"];
+  disabled?: boolean;
 }) {
   return (
     <div className="mb-6">
@@ -35,20 +37,22 @@ export function SuperAdminLabeledField<T extends FieldValues>({
       </label>
       {rows ? (
         <TextArea
+          {...register(name)}
           id={id}
           rows={rows}
           placeholder={placeholder}
-          {...register(name)}
+          disabled={disabled}
         />
       ) : (
         <TextField
+          {...register(name)}
           id={id}
           type={type}
           placeholder={placeholder}
           step={step}
           min={min}
           max={max}
-          {...register(name)}
+          disabled={disabled}
         />
       )}
     </div>

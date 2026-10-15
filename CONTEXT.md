@@ -103,7 +103,7 @@ Published game content, not tied to one game: items, vehicles, enemies, maps, pa
 _Avoid_: seed data (when meaning the live rows), global (as a stored type)
 
 **Catalogue domain**:
-A named slice of Official content: items, vehicles, enemies, paths, features, maps, or published reference entries.
+A named slice of Official content: items, vehicles, enemies, paths, features, maps, currencies, or published reference entries.
 _Avoid_: domain (unqualified), seed type
 
 **Promotion**:
@@ -119,8 +119,8 @@ A one-way copy of Official catalogue rows from a source Catalogue environment to
 _Avoid_: sync dbs, database sync, Promotion, seed import (the git CLI path), acknowledge repo seeds
 
 **Official name**:
-The unique name of an Official item, Official vehicle, Official enemy, Official map, or Feature within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
-_Avoid_: title (published reference entries use slug), custom name
+The unique name of an Official item, Official vehicle, Official enemy, Official map, Feature, or currency within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
+_Avoid_: title (published reference entries use slug), custom name, currency code
 
 **Official item**:
 A published item template. Not game-scoped.
@@ -143,8 +143,24 @@ A global world-info or game-mechanics entry. Not game-scoped.
 _Avoid_: Lore (game-scoped campaign notes)
 
 **Currency**:
-An official wallet denomination. The set is CONF, NORD, NAS, HUMF, and MRARK.
+An Official wallet denomination. Super-admin authors it. Not game-scoped, and there is no GM-only currency. CONF, NORD, NAS, HUMF, and MRARK are currencies; the set is not closed.
 _Avoid_: money, coin, custom currency (there is none)
+
+**Exchange value**:
+How many hundredths of one CONF a unit of this currency is worth. A whole number, at least 1. CONF's exchange value is 100, and it does not change.
+_Avoid_: exchange rate, face value, value
+
+**CONF**:
+The currency exchange values are counted in, as hundredths of one CONF. Its name and exchange value do not change.
+_Avoid_: base currency, peg
+
+**Exchange**:
+A play-control conversion of some of one currency a character holds into another, crediting the whole destination units the source value covers. A fraction of a unit is discarded and not shown; if no whole unit is covered, nothing is exchanged and the player is told the smallest source amount that yields one.
+_Avoid_: trade, transfer, swap, transfer fee, exchange rate
+
+**Wallet**:
+The currencies a character holds. Each holding is one currency and a quantity of at least 1, and it keeps that currency when the currency is renamed.
+_Avoid_: money
 
 ### Inventory and vehicles
 

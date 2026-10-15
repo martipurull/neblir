@@ -11,6 +11,7 @@ export const CATALOGUE_SYNC_DOMAIN_LABELS: Record<
   features: "Features",
   maps: "Maps",
   reference: "Published reference entries",
+  currencies: "Currencies",
 };
 
 export const CATALOGUE_SYNC_BUCKET_LABELS = {

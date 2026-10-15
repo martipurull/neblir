@@ -6,6 +6,10 @@ import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { logger } from "@/logger";
 import { characterEditableUpdateSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
+import {
+  holdingsForNamedWallet,
+  writeCharacterWallet,
+} from "@/app/lib/prisma/characterCurrency";
 import { getPath } from "@/app/lib/prisma/path";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import { prisma } from "@/app/lib/prisma/client";
@@ -262,18 +266,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...updatableCharacterData
     } = computed;
 
+    const resolved = await holdingsForNamedWallet(updatePayload.wallet);
+    if (!resolved.ok) {
+      return errorResponse(`Unknown currency '${resolved.currencyName}'`, 400);
+    }
+
     await prisma.$transaction(async (tx) => {
-      await tx.characterCurrency.deleteMany({ where: { characterId: id } });
-      const nextWallet = updatePayload.wallet ?? [];
-      if (nextWallet.length > 0) {
-        await tx.characterCurrency.createMany({
-          data: nextWallet.map((entry) => ({
-            characterId: id,
-            currencyName: entry.currencyName,
-            quantity: entry.quantity,
-          })),
-        });
-      }
+      await writeCharacterWallet(tx, id, resolved.holdings);
 
       const existingPaths = existingCharacter.paths ?? [];
       const submittedPathIdSet = new Set(

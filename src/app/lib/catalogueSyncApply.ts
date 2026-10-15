@@ -120,6 +120,8 @@ function catalogueRowWriter(domain: CatalogueExportDomain): CatalogueRowWriter {
       return prisma.map as unknown as CatalogueRowWriter;
     case "reference":
       return prisma.referenceEntry as unknown as CatalogueRowWriter;
+    case "currencies":
+      return prisma.currency as unknown as CatalogueRowWriter;
   }
 }
 
@@ -202,6 +204,12 @@ async function destOnlyOfficialRowInUse(
       where: { pathId: id },
     });
     return characters > 0;
+  }
+  if (domain === "currencies") {
+    const holdings = await prisma.characterCurrency.count({
+      where: { currencyId: id },
+    });
+    return holdings > 0;
   }
   if (!isOfficialCatalogueUsageDomain(domain)) return false;
   const usage = await getOfficialCatalogueUsage(domain, id);

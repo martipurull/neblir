@@ -17,6 +17,7 @@ const computeCharacterRequestDataMock = vi.fn();
 const getPathMock = vi.fn();
 const getAllFeaturesAvailableForPathAndRankMock = vi.fn();
 const resolveGameCharacterLinkForCreateMock = vi.fn();
+const getCurrenciesMock = vi.fn();
 
 vi.mock("@/app/lib/gameCharacterLink", () => ({
   GameCharacterLinkError: class GameCharacterLinkError extends Error {
@@ -44,6 +45,10 @@ vi.mock("@/app/api/characters/schemas", () => ({
 
 vi.mock("@/app/api/characters/parsing", () => ({
   computeCharacterRequestData: computeCharacterRequestDataMock,
+}));
+
+vi.mock("@/app/lib/prisma/currency", () => ({
+  getCurrencies: getCurrenciesMock,
 }));
 
 vi.mock("@/app/lib/prisma/path", () => ({
@@ -374,6 +379,56 @@ describe("/api/characters POST", () => {
         }),
       })
     );
+  });
+
+  it("stores a starting holding against the catalogue currency and drops a quantity of 0", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        wallet: [
+          { currencyName: "CONF", quantity: 4 },
+          { currencyName: "NORD", quantity: 0 },
+        ],
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getCurrenciesMock.mockResolvedValue([
+      { id: "conf", name: "CONF" },
+      { id: "nord", name: "NORD" },
+    ]);
+    createCharacterWithRelationsMock.mockResolvedValue({ id: "char-1" });
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(201);
+    expect(createCharacterWithRelationsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          wallet: { create: [{ currencyId: "conf", quantity: 4 }] },
+        }),
+      })
+    );
+  });
+
+  it("returns 400 when a starting holding names an unknown currency", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1" });
+    safeParseMock.mockReturnValue({
+      success: true,
+      data: {
+        path: { pathId: "path-1", rank: 1 },
+        wallet: [{ currencyName: "CREDIT", quantity: 1 }],
+      },
+    });
+    computeCharacterRequestDataMock.mockReturnValue({});
+    getCurrenciesMock.mockResolvedValue([{ id: "conf", name: "CONF" }]);
+    const { POST } = await import("@/app/api/characters/route");
+    const response = await invokeRoute(POST, makeAuthedRequest({}, "user-1"));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Unknown currency 'CREDIT'",
+    });
+    expect(createCharacterWithRelationsMock).not.toHaveBeenCalled();
   });
 });
 

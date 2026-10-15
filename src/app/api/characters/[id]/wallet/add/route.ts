@@ -5,39 +5,21 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { addCharacterCurrency } from "@/app/lib/prisma/characterCurrency";
+import { refuseWithoutWalletPlayControl, responseForWalletRule } from "../http";
+
+const route = "/api/characters/[id]/wallet/add";
 
 export const POST = auth(async (request: AuthNextRequest, { params }) => {
   try {
-    if (!request.auth?.user) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/add",
-        message: "Unauthorised access attempt",
-      });
-      return errorResponse("Unauthorised", 401);
-    }
-
     const { id } = (await params) as { id: string };
-    if (!id || typeof id !== "string") {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/add",
-        message: "Invalid character ID",
-        characterId: id,
-      });
-      return errorResponse("Invalid character ID", 400);
-    }
-    if (!(await userHasPlayControl(id, request.auth.user.id))) {
-      logger.error({
-        method: "POST",
-        route: "/api/characters/[id]/wallet/add",
-        message: "Character does not belong to user",
-        characterId: id,
-      });
-      return errorResponse("This is not one of your characters.", 403);
-    }
+    const refused = await refuseWithoutWalletPlayControl(
+      request,
+      id,
+      "POST",
+      route
+    );
+    if (refused) return refused;
 
     const requestBody = await request.json();
     const { data: parsedBody, error } =
@@ -45,7 +27,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     if (error) {
       logger.error({
         method: "POST",
-        route: "/api/characters/[id]/wallet/add",
+        route,
         message: "Error parsing wallet add request",
         details: error,
       });
@@ -56,17 +38,22 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const updatedWallet = await addCharacterCurrency(
-      id,
-      parsedBody.currencyName,
-      parsedBody.amount
-    );
-
-    return NextResponse.json(updatedWallet, { status: 200 });
+    try {
+      const updatedWallet = await addCharacterCurrency(
+        id,
+        parsedBody.currencyId,
+        parsedBody.amount
+      );
+      return NextResponse.json(updatedWallet, { status: 200 });
+    } catch (ruleError) {
+      const ruled = responseForWalletRule(ruleError);
+      if (ruled) return ruled;
+      throw ruleError;
+    }
   } catch (error) {
     logger.error({
       method: "POST",
-      route: "/api/characters/[id]/wallet/add",
+      route,
       message: "Error adding currency",
       error,
     });
