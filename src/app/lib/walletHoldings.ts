@@ -1,4 +1,5 @@
 import { orderConfFirstThenByName } from "@/app/lib/currencyOrder";
+import type { WalletHolding } from "@/app/lib/types/item";
 
 export type NamedWalletEntry = {
   currencyName: string;
@@ -10,14 +11,7 @@ export type ResolvedWalletHolding = {
   quantity: number;
 };
 
-export type WalletHoldingView = {
-  currencyId: string;
-  name: string;
-  imageKey: string;
-  quantity: number;
-};
-
-type CatalogueName = {
+type CatalogueCurrency = {
   id: string;
   name: string;
 };
@@ -31,7 +25,7 @@ type StoredHolding = {
 /** Points starting holdings at catalogue rows. A quantity below 1 is dropped. */
 export function resolveNamedWalletHoldings(
   entries: readonly NamedWalletEntry[],
-  currencies: readonly CatalogueName[]
+  currencies: readonly CatalogueCurrency[]
 ):
   | { ok: true; holdings: ResolvedWalletHolding[] }
   | { ok: false; currencyName: string } {
@@ -51,8 +45,8 @@ export function resolveNamedWalletHoldings(
 /** Image, quantity, and current name. Omits exchange value and zero quantities. */
 export function presentWalletHoldings(
   rows: readonly StoredHolding[]
-): WalletHoldingView[] {
-  const visible: WalletHoldingView[] = [];
+): WalletHolding[] {
+  const visible: WalletHolding[] = [];
   for (const row of rows) {
     if (!row.currency || row.quantity < 1) continue;
     visible.push({

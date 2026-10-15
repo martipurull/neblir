@@ -405,25 +405,6 @@ describe("/api/currencies/[id] route handlers", () => {
       expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
     });
 
-    it("refuses to delete a currency a character holds, and the currency remains", async () => {
-      countCharacterCurrencyMock.mockResolvedValue(2);
-      const { DELETE } = await import("@/app/api/currencies/[id]/route");
-      const response = await invokeRoute(
-        DELETE,
-        makeAuthedRequest(),
-        makeParams({ id: "nord" })
-      );
-      expect(response.status).toBe(409);
-      await expect(response.json()).resolves.toMatchObject({
-        message: "A character holds this currency",
-      });
-      expect(countCharacterCurrencyMock).toHaveBeenCalledWith({
-        where: { currencyId: "nord" },
-      });
-      expect(deleteCurrencyMock).not.toHaveBeenCalled();
-      expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
-    });
-
     it("deletes the currency and raises currencies seed drift", async () => {
       const { DELETE } = await import("@/app/api/currencies/[id]/route");
       const response = await invokeRoute(

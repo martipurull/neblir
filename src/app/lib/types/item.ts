@@ -12,6 +12,26 @@ export function currencyImageKey(currencyName: string): string {
 
 const currencyIdSchema = z.string().trim().min(1);
 
+function rejectDuplicateCurrency(key: "currencyId" | "currencyName") {
+  return (
+    wallet: ReadonlyArray<Partial<Record<typeof key, string>>>,
+    ctx: z.RefinementCtx
+  ) => {
+    const seen = new Set<string>();
+    for (const entry of wallet) {
+      const value = entry[key];
+      if (!value) continue;
+      if (seen.has(value)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate currency '${value}' is not allowed.`,
+        });
+      }
+      seen.add(value);
+    }
+  };
+}
+
 const walletHoldingSchema = z.object({
   currencyId: z.string(),
   name: z.string(),
@@ -30,18 +50,7 @@ export const walletReplaceSchema = z
       quantity: z.number().int().min(0),
     })
   )
-  .superRefine((wallet, ctx) => {
-    const seen = new Set<string>();
-    for (const entry of wallet) {
-      if (seen.has(entry.currencyId)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Duplicate currency '${entry.currencyId}' is not allowed.`,
-        });
-      }
-      seen.add(entry.currencyId);
-    }
-  });
+  .superRefine(rejectDuplicateCurrency("currencyId"));
 
 export const walletAdjustmentSchema = z.object({
   currencyId: currencyIdSchema,
@@ -56,18 +65,7 @@ export const startingWalletSchema = z
       quantity: z.number().int().min(0),
     })
   )
-  .superRefine((wallet, ctx) => {
-    const seen = new Set<string>();
-    for (const entry of wallet) {
-      if (seen.has(entry.currencyName)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Duplicate currency '${entry.currencyName}' is not allowed.`,
-        });
-      }
-      seen.add(entry.currencyName);
-    }
-  });
+  .superRefine(rejectDuplicateCurrency("currencyName"));
 
 export const weaponAttackRollTypeSchema = z.enum([
   "RANGE",

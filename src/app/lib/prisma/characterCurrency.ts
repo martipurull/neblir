@@ -1,10 +1,15 @@
 import type { Prisma } from "@prisma/client";
+import type { WalletHolding } from "@/app/lib/types/item";
 import type {
+  NamedWalletEntry,
   ResolvedWalletHolding,
-  WalletHoldingView,
 } from "@/app/lib/walletHoldings";
-import { presentWalletHoldings } from "@/app/lib/walletHoldings";
+import {
+  presentWalletHoldings,
+  resolveNamedWalletHoldings,
+} from "@/app/lib/walletHoldings";
 import { prisma } from "./client";
+import { getCurrencies } from "./currency";
 
 export class WalletRuleError extends Error {
   readonly code: "UNKNOWN_CURRENCY" | "INSUFFICIENT_FUNDS";
@@ -31,9 +36,59 @@ async function loadWalletRows(characterId: string, db: WalletDb) {
   });
 }
 
+async function requireCatalogueCurrency(db: WalletDb, currencyId: string) {
+  const currency = await db.currency.findUnique({
+    where: { id: currencyId },
+    select: { id: true },
+  });
+  if (!currency) throw new WalletRuleError("UNKNOWN_CURRENCY");
+}
+
+/** Drops a quantity below 1, then points each remaining name at a catalogue row. */
+export async function holdingsForNamedWallet(
+  entries: readonly NamedWalletEntry[] | null | undefined
+): Promise<
+  | { ok: true; holdings: ResolvedWalletHolding[] }
+  | { ok: false; currencyName: string }
+> {
+  const named = (entries ?? []).filter((entry) => entry.quantity > 0);
+  if (named.length === 0) return { ok: true, holdings: [] };
+  return resolveNamedWalletHoldings(named, await getCurrencies());
+}
+
+/** Replaces a character's holdings inside an existing transaction. */
+export async function writeCharacterWallet(
+  db: WalletDb,
+  characterId: string,
+  entries: readonly ResolvedWalletHolding[]
+) {
+  const currencyIds = [...new Set(entries.map((entry) => entry.currencyId))];
+  if (currencyIds.length > 0) {
+    const found = await db.currency.findMany({
+      where: { id: { in: currencyIds } },
+      select: { id: true },
+    });
+    if (found.length !== currencyIds.length) {
+      throw new WalletRuleError("UNKNOWN_CURRENCY");
+    }
+  }
+
+  const kept = entries.filter((entry) => entry.quantity > 0);
+  await db.characterCurrency.deleteMany({ where: { characterId } });
+  if (kept.length > 0) {
+    await db.characterCurrency.createMany({
+      data: kept.map((entry) => ({
+        characterId,
+        currencyId: entry.currencyId,
+        quantity: entry.quantity,
+      })),
+    });
+  }
+}
+
 export async function listCharacterWallet(
   characterId: string
-): Promise<WalletHoldingView[]> {
+): Promise<WalletHolding[]> {
   return presentWalletHoldings(await loadWalletRows(characterId, prisma));
 }
 
@@ -41,13 +96,9 @@ export async function addCharacterCurrency(
   characterId: string,
   currencyId: string,
   amount: number
-): Promise<WalletHoldingView[]> {
+): Promise<WalletHolding[]> {
   return prisma.$transaction(async (tx) => {
-    const currency = await tx.currency.findUnique({
-      where: { id: currencyId },
-      select: { id: true },
-    });
-    if (!currency) throw new WalletRuleError("UNKNOWN_CURRENCY");
+    await requireCatalogueCurrency(tx, currencyId);
 
     await tx.characterCurrency.upsert({
       where: {
@@ -65,13 +116,9 @@ export async function subtractCharacterCurrency(
   characterId: string,
   currencyId: string,
   amount: number
-): Promise<WalletHoldingView[]> {
+): Promise<WalletHolding[]> {
   return prisma.$transaction(async (tx) => {
-    const currency = await tx.currency.findUnique({
-      where: { id: currencyId },
-      select: { id: true },
-    });
-    if (!currency) throw new WalletRuleError("UNKNOWN_CURRENCY");
+    await requireCatalogueCurrency(tx, currencyId);
 
     const existing = await tx.characterCurrency.findUnique({
       where: {
@@ -104,31 +151,9 @@ export async function subtractCharacterCurrency(
 export async function replaceCharacterWallet(
   characterId: string,
   entries: readonly ResolvedWalletHolding[]
-): Promise<WalletHoldingView[]> {
+): Promise<WalletHolding[]> {
   return prisma.$transaction(async (tx) => {
-    const currencyIds = [...new Set(entries.map((entry) => entry.currencyId))];
-    if (currencyIds.length > 0) {
-      const found = await tx.currency.findMany({
-        where: { id: { in: currencyIds } },
-        select: { id: true },
-      });
-      if (found.length !== currencyIds.length) {
-        throw new WalletRuleError("UNKNOWN_CURRENCY");
-      }
-    }
-
-    const kept = entries.filter((entry) => entry.quantity > 0);
-    await tx.characterCurrency.deleteMany({ where: { characterId } });
-    if (kept.length > 0) {
-      await tx.characterCurrency.createMany({
-        data: kept.map((entry) => ({
-          characterId,
-          currencyId: entry.currencyId,
-          quantity: entry.quantity,
-        })),
-      });
-    }
-
+    await writeCharacterWallet(tx, characterId, entries);
     return presentWalletHoldings(await loadWalletRows(characterId, tx));
   });
 }

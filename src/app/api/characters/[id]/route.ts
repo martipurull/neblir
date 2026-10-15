@@ -6,9 +6,11 @@ import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
 import { logger } from "@/logger";
 import { characterEditableUpdateSchema } from "../schemas";
 import { computeCharacterRequestData } from "../parsing";
-import { getCurrencies } from "@/app/lib/prisma/currency";
+import {
+  holdingsForNamedWallet,
+  writeCharacterWallet,
+} from "@/app/lib/prisma/characterCurrency";
 import { getPath } from "@/app/lib/prisma/path";
-import { resolveNamedWalletHoldings } from "@/app/lib/walletHoldings";
 import { getFeatures } from "@/app/lib/prisma/feature";
 import { prisma } from "@/app/lib/prisma/client";
 import type { PathName } from "@prisma/client";
@@ -264,35 +266,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       ...updatableCharacterData
     } = computed;
 
-    const namedWallet = (updatePayload.wallet ?? []).filter(
-      (entry) => entry.quantity > 0
-    );
-    let holdings: { currencyId: string; quantity: number }[] = [];
-    if (namedWallet.length > 0) {
-      const resolved = resolveNamedWalletHoldings(
-        namedWallet,
-        await getCurrencies()
-      );
-      if (!resolved.ok) {
-        return errorResponse(
-          `Unknown currency '${resolved.currencyName}'`,
-          400
-        );
-      }
-      holdings = resolved.holdings;
+    const resolved = await holdingsForNamedWallet(updatePayload.wallet);
+    if (!resolved.ok) {
+      return errorResponse(`Unknown currency '${resolved.currencyName}'`, 400);
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.characterCurrency.deleteMany({ where: { characterId: id } });
-      if (holdings.length > 0) {
-        await tx.characterCurrency.createMany({
-          data: holdings.map((entry) => ({
-            characterId: id,
-            currencyId: entry.currencyId,
-            quantity: entry.quantity,
-          })),
-        });
-      }
+      await writeCharacterWallet(tx, id, resolved.holdings);
 
       const existingPaths = existingCharacter.paths ?? [];
       const submittedPathIdSet = new Set(

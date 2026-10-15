@@ -48,6 +48,12 @@ vi.mock("@/app/lib/prisma/client", () => ({
   prisma: {
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({
+        currency: {
+          findMany: async (args: { where?: { id?: { in?: string[] } } }) =>
+            (args.where?.id?.in ?? []).map((currencyId) => ({
+              id: currencyId,
+            })),
+        },
         characterCurrency: {
           deleteMany: characterCurrencyDeleteManyMock,
           createMany: characterCurrencyCreateManyMock,

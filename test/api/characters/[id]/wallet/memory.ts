@@ -14,7 +14,7 @@ export type WalletHoldingRow = {
 };
 
 type WalletPrismaDouble = {
-  currency: { findUnique: Mock; findMany: Mock };
+  currency: { findUnique: Mock; findMany: Mock; delete: Mock };
   characterCurrency: {
     findMany: Mock;
     findUnique: Mock;
@@ -57,7 +57,7 @@ export function createWalletMemory(): WalletMemory {
 
 export function createWalletPrismaDouble(): WalletPrismaDouble {
   return {
-    currency: { findUnique: vi.fn(), findMany: vi.fn() },
+    currency: { findUnique: vi.fn(), findMany: vi.fn(), delete: vi.fn() },
     characterCurrency: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
@@ -93,6 +93,14 @@ export function bindWalletMemory(
   prisma.currency.findUnique.mockImplementation(
     async ({ where }: { where: { id: string } }) =>
       memory.currencies.get(where.id) ?? null
+  );
+  prisma.currency.delete.mockImplementation(
+    async ({ where }: { where: { id: string } }) => {
+      const row = memory.currencies.get(where.id);
+      if (!row) throw new Error("currency missing");
+      memory.currencies.delete(where.id);
+      return row;
+    }
   );
   prisma.currency.findMany.mockImplementation(
     async (args?: { where?: { id?: { in?: string[] } } }) => {
