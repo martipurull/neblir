@@ -1,5 +1,9 @@
 import type { Prisma } from "@prisma/client";
-import type { WalletHolding } from "@/app/lib/types/item";
+import type {
+  CurrencyExchangeCommit,
+  CurrencyExchangeQuote,
+  WalletHolding,
+} from "@/app/lib/types/item";
 import type {
   NamedWalletEntry,
   ResolvedWalletHolding,
@@ -145,6 +149,186 @@ export async function subtractCharacterCurrency(
     }
 
     return presentWalletHoldings(await loadWalletRows(characterId, tx));
+  });
+}
+
+type ExchangeRefusal =
+  | { code: "UNKNOWN_CURRENCY" }
+  | { code: "INSUFFICIENT_FUNDS" }
+  | { code: "SAME_CURRENCY" }
+  | {
+      code: "NO_WHOLE_UNIT";
+      minimumSourceAmount: number;
+      sourceName: string;
+      destinationName: string;
+    };
+
+export class ExchangeRuleError extends Error {
+  readonly refusal: ExchangeRefusal;
+
+  constructor(refusal: ExchangeRefusal) {
+    super(refusal.code);
+    this.name = "ExchangeRuleError";
+    this.refusal = refusal;
+  }
+}
+
+/** Whole destination units the source value covers. Remainder is dropped. */
+function wholeDestinationUnits(
+  sourceAmount: number,
+  sourceExchangeValue: number,
+  destinationExchangeValue: number
+): number {
+  return Number(
+    (BigInt(sourceAmount) * BigInt(sourceExchangeValue)) /
+      BigInt(destinationExchangeValue)
+  );
+}
+
+/** Smallest positive source amount that yields one destination unit. */
+function minimumSourceForOneUnit(
+  sourceExchangeValue: number,
+  destinationExchangeValue: number
+): number {
+  const source = BigInt(sourceExchangeValue);
+  const destination = BigInt(destinationExchangeValue);
+  return Number((destination + source - BigInt(1)) / source);
+}
+
+const exchangeCurrencySelect = {
+  id: true,
+  name: true,
+  exchangeValue: true,
+} as const;
+
+async function resolveCurrencyExchange(
+  db: WalletDb,
+  characterId: string,
+  sourceCurrencyId: string,
+  destinationCurrencyId: string,
+  amount: number
+): Promise<CurrencyExchangeQuote> {
+  const source = await db.currency.findUnique({
+    where: { id: sourceCurrencyId },
+    select: exchangeCurrencySelect,
+  });
+  const destination = await db.currency.findUnique({
+    where: { id: destinationCurrencyId },
+    select: exchangeCurrencySelect,
+  });
+  if (!source || !destination) {
+    throw new ExchangeRuleError({ code: "UNKNOWN_CURRENCY" });
+  }
+  if (source.id === destination.id) {
+    throw new ExchangeRuleError({ code: "SAME_CURRENCY" });
+  }
+
+  const holding = await db.characterCurrency.findUnique({
+    where: {
+      characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
+    },
+  });
+  if (!holding || holding.quantity < amount) {
+    throw new ExchangeRuleError({ code: "INSUFFICIENT_FUNDS" });
+  }
+
+  const destinationQuantity = wholeDestinationUnits(
+    amount,
+    source.exchangeValue,
+    destination.exchangeValue
+  );
+  if (destinationQuantity < 1) {
+    throw new ExchangeRuleError({
+      code: "NO_WHOLE_UNIT",
+      minimumSourceAmount: minimumSourceForOneUnit(
+        source.exchangeValue,
+        destination.exchangeValue
+      ),
+      sourceName: source.name,
+      destinationName: destination.name,
+    });
+  }
+
+  return {
+    sourceExchangeValue: source.exchangeValue,
+    destinationExchangeValue: destination.exchangeValue,
+    destinationQuantity,
+  };
+}
+
+export async function quoteCharacterCurrencyExchange(
+  characterId: string,
+  sourceCurrencyId: string,
+  destinationCurrencyId: string,
+  amount: number
+): Promise<CurrencyExchangeQuote> {
+  return resolveCurrencyExchange(
+    prisma,
+    characterId,
+    sourceCurrencyId,
+    destinationCurrencyId,
+    amount
+  );
+}
+
+export async function commitCharacterCurrencyExchange(
+  characterId: string,
+  sourceCurrencyId: string,
+  destinationCurrencyId: string,
+  amount: number
+): Promise<CurrencyExchangeCommit> {
+  return prisma.$transaction(async (tx) => {
+    const quote = await resolveCurrencyExchange(
+      tx,
+      characterId,
+      sourceCurrencyId,
+      destinationCurrencyId,
+      amount
+    );
+
+    const sourceHolding = await tx.characterCurrency.findUnique({
+      where: {
+        characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
+      },
+    });
+    if (!sourceHolding || sourceHolding.quantity < amount) {
+      throw new ExchangeRuleError({ code: "INSUFFICIENT_FUNDS" });
+    }
+
+    if (sourceHolding.quantity === amount) {
+      await tx.characterCurrency.delete({
+        where: {
+          characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
+        },
+      });
+    } else {
+      await tx.characterCurrency.update({
+        where: {
+          characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
+        },
+        data: { quantity: { decrement: amount } },
+      });
+    }
+
+    await tx.characterCurrency.upsert({
+      where: {
+        characterId_currencyId: {
+          characterId,
+          currencyId: destinationCurrencyId,
+        },
+      },
+      create: {
+        characterId,
+        currencyId: destinationCurrencyId,
+        quantity: quote.destinationQuantity,
+      },
+      update: { quantity: { increment: quote.destinationQuantity } },
+    });
+
+    return {
+      ...quote,
+      wallet: presentWalletHoldings(await loadWalletRows(characterId, tx)),
+    };
   });
 }
 

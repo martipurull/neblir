@@ -5,7 +5,13 @@ import {
   type CharacterDetail,
   type CharacterNoteEntry,
 } from "@/app/lib/types/character";
-import { walletListSchema, type WalletHolding } from "@/app/lib/types/item";
+import {
+  currencyExchangeCommitSchema,
+  currencyExchangeQuoteSchema,
+  walletListSchema,
+  type CurrencyExchangeQuote,
+  type WalletHolding,
+} from "@/app/lib/types/item";
 import type {
   CharacterCreationRequest,
   CharacterEditableUpdateRequest,
@@ -344,6 +350,84 @@ export async function addWalletCurrency(
     throw new Error(`Wallet response did not match expected shape: ${details}`);
   }
   return parsed.data;
+}
+
+export async function quoteWalletExchange(
+  characterId: string,
+  sourceCurrencyId: string,
+  destinationCurrencyId: string,
+  amount: number
+): Promise<CurrencyExchangeQuote> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/wallet/exchange/quote`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceCurrencyId,
+        destinationCurrencyId,
+        amount,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to quote exchange")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = currencyExchangeQuoteSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Exchange quote did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function commitWalletExchange(
+  characterId: string,
+  sourceCurrencyId: string,
+  destinationCurrencyId: string,
+  amount: number
+): Promise<WalletEntry[]> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/wallet/exchange/commit`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceCurrencyId,
+        destinationCurrencyId,
+        amount,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to exchange currency")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = currencyExchangeCommitSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("Exchange response did not match expected shape");
+  }
+  return parsed.data.wallet;
 }
 
 export async function updateCharacterNotes(

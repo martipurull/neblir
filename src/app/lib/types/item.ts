@@ -55,6 +55,28 @@ export const walletAdjustmentSchema = z.object({
   amount: z.number().int().positive(),
 });
 
+export const walletExchangeSchema = z.object({
+  sourceCurrencyId: currencyIdSchema,
+  destinationCurrencyId: currencyIdSchema,
+  amount: z.number().int().positive(),
+});
+
+export const currencyExchangeQuoteSchema = z.object({
+  sourceExchangeValue: z.number().int().positive(),
+  destinationExchangeValue: z.number().int().positive(),
+  destinationQuantity: z.number().int().positive(),
+});
+
+export type CurrencyExchangeQuote = z.infer<typeof currencyExchangeQuoteSchema>;
+
+export const currencyExchangeCommitSchema = currencyExchangeQuoteSchema.extend({
+  wallet: walletListSchema,
+});
+
+export type CurrencyExchangeCommit = z.infer<
+  typeof currencyExchangeCommitSchema
+>;
+
 /** Character creation still names currencies; the route stores the catalogue id. */
 export const startingWalletSchema = z
   .array(

@@ -6,24 +6,25 @@ import {
   WalletAdjustModal,
   type WalletAdjustMode,
 } from "@/app/components/character/WalletAdjustModal";
+import { WalletExchangeModal } from "@/app/components/character/WalletExchangeModal";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { Button } from "@/app/components/shared/Button";
-import { addWalletCurrency, subtractWalletCurrency } from "@/lib/api/character";
+import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import {
+  addWalletCurrency,
+  commitWalletExchange,
+  quoteWalletExchange,
+  subtractWalletCurrency,
+} from "@/lib/api/character";
+import { fetchCatalogueCurrencies } from "@/lib/api/currencies";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import type { KeyedMutator } from "swr";
 import useSWR from "swr";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { useMemo, useState } from "react";
 
 type WalletEntry = NonNullable<CharacterDetail["wallet"]>[number];
 
 const EMPTY_WALLET: WalletEntry[] = [];
-
-type CatalogueCurrency = {
-  id: string;
-  name: string;
-  imageKey: string;
-};
 
 type WalletSectionContentProps = {
   character: CharacterDetail;
@@ -32,18 +33,26 @@ type WalletSectionContentProps = {
   readOnly?: boolean;
 };
 
+type WalletHoldingsListProps = {
+  wallet: WalletEntry[];
+  imageUrls: Record<string, string | null | undefined>;
+  readOnly: boolean;
+  showExchange: (currencyId: string) => boolean;
+  onAdd: (entry: WalletEntry) => void;
+  onSubtract: (entry: WalletEntry) => void;
+  onExchange: (entry: WalletEntry) => void;
+};
+
 type WalletCurrencyIconProps = {
   name: string;
   imageKey: string;
   imageUrl: string | null | undefined;
 };
 
-type WalletHoldingsListProps = {
-  wallet: WalletEntry[];
-  imageUrls: Record<string, string | null | undefined>;
-  readOnly: boolean;
-  onAdd: (entry: WalletEntry) => void;
-  onSubtract: (entry: WalletEntry) => void;
+type ExchangeModalState = {
+  sourceCurrencyId: string;
+  sourceName: string;
+  currentQuantity: number;
 };
 
 type WalletModalState = {
@@ -53,39 +62,6 @@ type WalletModalState = {
   currentQuantity: number;
   mode: WalletAdjustMode;
 };
-
-async function fetchCatalogueCurrencies(
-  url: string
-): Promise<CatalogueCurrency[]> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Failed to load currencies");
-  }
-  const json: unknown = await response.json();
-  if (!Array.isArray(json)) return [];
-  const currencies: CatalogueCurrency[] = [];
-  for (const row of json) {
-    if (!row || typeof row !== "object") continue;
-    const candidate = row as {
-      id?: unknown;
-      name?: unknown;
-      imageKey?: unknown;
-    };
-    if (
-      typeof candidate.id !== "string" ||
-      typeof candidate.name !== "string" ||
-      typeof candidate.imageKey !== "string"
-    ) {
-      continue;
-    }
-    currencies.push({
-      id: candidate.id,
-      name: candidate.name,
-      imageKey: candidate.imageKey,
-    });
-  }
-  return currencies;
-}
 
 function WalletCurrencyIcon({
   name,
@@ -118,8 +94,10 @@ function WalletHoldingsList({
   wallet,
   imageUrls,
   readOnly,
+  showExchange,
   onAdd,
   onSubtract,
+  onExchange,
 }: WalletHoldingsListProps) {
   return (
     <ul className="divide-y divide-black rounded border border-black">
@@ -140,7 +118,7 @@ function WalletHoldingsList({
             {entry.name}
           </span>
           {!readOnly ? (
-            <div className="ml-auto flex shrink-0 gap-1.5">
+            <div className="ml-auto flex shrink-0 flex-wrap justify-end gap-1.5">
               <Button
                 type="button"
                 variant="semanticSafeOutline"
@@ -160,6 +138,17 @@ function WalletHoldingsList({
               >
                 SUBTRACT
               </Button>
+              {showExchange(entry.currencyId) ? (
+                <Button
+                  type="button"
+                  variant="lightCompactXsMuted"
+                  fullWidth={false}
+                  onClick={() => onExchange(entry)}
+                  className="!px-2 !py-0.5 !text-xs"
+                >
+                  EXCHANGE
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </li>
@@ -175,6 +164,9 @@ function WalletSectionContent({
   readOnly = false,
 }: WalletSectionContentProps) {
   const [modalState, setModalState] = useState<WalletModalState | null>(null);
+  const [exchangeState, setExchangeState] = useState<ExchangeModalState | null>(
+    null
+  );
   const wallet = character.wallet ?? EMPTY_WALLET;
   const { data: catalogue } = useSWR(
     readOnly ? null : "/api/currencies",
@@ -185,6 +177,9 @@ function WalletSectionContent({
     () => new Set(wallet.map((entry) => entry.currencyId)),
     [wallet]
   );
+  const showExchange = (currencyId: string) =>
+    !readOnly &&
+    (catalogue?.some((currency) => currency.id !== currencyId) ?? false);
   const missingCurrencies = useMemo(
     () => (catalogue ?? []).filter((currency) => !heldIds.has(currency.id)),
     [catalogue, heldIds]
@@ -262,6 +257,7 @@ function WalletSectionContent({
           wallet={wallet}
           imageUrls={imageUrls}
           readOnly={readOnly}
+          showExchange={showExchange}
           onAdd={(entry) =>
             openAdd(entry.currencyId, entry.name, entry.quantity)
           }
@@ -272,6 +268,13 @@ function WalletSectionContent({
               name: entry.name,
               currentQuantity: entry.quantity,
               mode: "subtract",
+            })
+          }
+          onExchange={(entry) =>
+            setExchangeState({
+              sourceCurrencyId: entry.currencyId,
+              sourceName: entry.name,
+              currentQuantity: entry.quantity,
             })
           }
         />
@@ -285,6 +288,43 @@ function WalletSectionContent({
           currencyName={modalState.name}
           currentQuantity={modalState.currentQuantity}
           onSubmit={handleSubmit}
+        />
+      ) : null}
+
+      {!readOnly && exchangeState ? (
+        <WalletExchangeModal
+          key={exchangeState.sourceCurrencyId}
+          isOpen
+          onClose={() => setExchangeState(null)}
+          sourceName={exchangeState.sourceName}
+          currentQuantity={exchangeState.currentQuantity}
+          destinations={(catalogue ?? []).filter(
+            (currency) => currency.id !== exchangeState.sourceCurrencyId
+          )}
+          onQuote={(destinationCurrencyId, amount) =>
+            quoteWalletExchange(
+              characterId,
+              exchangeState.sourceCurrencyId,
+              destinationCurrencyId,
+              amount
+            )
+          }
+          onCommit={async (destinationCurrencyId, amount) => {
+            if (!mutate) return;
+            const nextWallet = await commitWalletExchange(
+              characterId,
+              exchangeState.sourceCurrencyId,
+              destinationCurrencyId,
+              amount
+            );
+            await mutate(
+              {
+                ...character,
+                wallet: nextWallet,
+              },
+              false
+            );
+          }}
         />
       ) : null}
     </>
