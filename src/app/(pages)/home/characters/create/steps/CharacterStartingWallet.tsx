@@ -1,9 +1,8 @@
 "use client";
 
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { WalletCurrencyIcon } from "@/app/components/character/WalletCurrencyIcon";
 import { NumberField } from "@/app/components/shared/NumberField";
 import { coerceNumericFieldValue } from "@/app/components/shared/bumpNumericFieldValue";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import type { CharacterCreationRequest } from "@/app/api/characters/schemas";
 import { orderConfFirstThenByName } from "@/app/lib/currencyOrder";
 import { fetchCatalogueCurrencies } from "@/lib/api/currencies";
@@ -89,24 +88,12 @@ export function CharacterStartingWallet() {
                     className="flex flex-wrap items-center gap-2"
                   >
                     <span className="inline-flex min-w-0 flex-1 items-center gap-2 sm:max-w-xs">
-                      <span className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-paleBlue/60">
-                        {imageUrl ? (
-                          <SignedRemoteImage
-                            src={imageUrl}
-                            imageKey={currency.imageKey}
-                            alt=""
-                            width={24}
-                            height={24}
-                            className="h-6 w-6 object-cover object-center"
-                          />
-                        ) : imageUrl === undefined ? (
-                          <ImageLoadingSkeleton variant="currency" />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-[10px] font-medium text-black">
-                            {currency.name.charAt(0)}
-                          </span>
-                        )}
-                      </span>
+                      <WalletCurrencyIcon
+                        name={currency.name}
+                        imageKey={currency.imageKey}
+                        imageUrl={imageUrl}
+                        size="sm"
+                      />
                       <span className="truncate text-sm font-medium text-black">
                         {currency.name}
                       </span>

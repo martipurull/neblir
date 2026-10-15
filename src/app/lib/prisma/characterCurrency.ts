@@ -201,13 +201,27 @@ const exchangeCurrencySelect = {
   exchangeValue: true,
 } as const;
 
+type ResolvedCurrencyExchange = CurrencyExchangeQuote & {
+  sourceQuantity: number;
+};
+
+function exchangeQuote(
+  resolved: ResolvedCurrencyExchange
+): CurrencyExchangeQuote {
+  return {
+    sourceExchangeValue: resolved.sourceExchangeValue,
+    destinationExchangeValue: resolved.destinationExchangeValue,
+    destinationQuantity: resolved.destinationQuantity,
+  };
+}
+
 async function resolveCurrencyExchange(
   db: WalletDb,
   characterId: string,
   sourceCurrencyId: string,
   destinationCurrencyId: string,
   amount: number
-): Promise<CurrencyExchangeQuote> {
+): Promise<ResolvedCurrencyExchange> {
   const source = await db.currency.findUnique({
     where: { id: sourceCurrencyId },
     select: exchangeCurrencySelect,
@@ -253,6 +267,7 @@ async function resolveCurrencyExchange(
     sourceExchangeValue: source.exchangeValue,
     destinationExchangeValue: destination.exchangeValue,
     destinationQuantity,
+    sourceQuantity: holding.quantity,
   };
 }
 
@@ -262,12 +277,14 @@ export async function quoteCharacterCurrencyExchange(
   destinationCurrencyId: string,
   amount: number
 ): Promise<CurrencyExchangeQuote> {
-  return resolveCurrencyExchange(
-    prisma,
-    characterId,
-    sourceCurrencyId,
-    destinationCurrencyId,
-    amount
+  return exchangeQuote(
+    await resolveCurrencyExchange(
+      prisma,
+      characterId,
+      sourceCurrencyId,
+      destinationCurrencyId,
+      amount
+    )
   );
 }
 
@@ -278,7 +295,7 @@ export async function commitCharacterCurrencyExchange(
   amount: number
 ): Promise<CurrencyExchangeCommit> {
   return prisma.$transaction(async (tx) => {
-    const quote = await resolveCurrencyExchange(
+    const resolved = await resolveCurrencyExchange(
       tx,
       characterId,
       sourceCurrencyId,
@@ -286,16 +303,7 @@ export async function commitCharacterCurrencyExchange(
       amount
     );
 
-    const sourceHolding = await tx.characterCurrency.findUnique({
-      where: {
-        characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
-      },
-    });
-    if (!sourceHolding || sourceHolding.quantity < amount) {
-      throw new ExchangeRuleError({ code: "INSUFFICIENT_FUNDS" });
-    }
-
-    if (sourceHolding.quantity === amount) {
+    if (resolved.sourceQuantity === amount) {
       await tx.characterCurrency.delete({
         where: {
           characterId_currencyId: { characterId, currencyId: sourceCurrencyId },
@@ -320,13 +328,13 @@ export async function commitCharacterCurrencyExchange(
       create: {
         characterId,
         currencyId: destinationCurrencyId,
-        quantity: quote.destinationQuantity,
+        quantity: resolved.destinationQuantity,
       },
-      update: { quantity: { increment: quote.destinationQuantity } },
+      update: { quantity: { increment: resolved.destinationQuantity } },
     });
 
     return {
-      ...quote,
+      ...exchangeQuote(resolved),
       wallet: presentWalletHoldings(await loadWalletRows(characterId, tx)),
     };
   });

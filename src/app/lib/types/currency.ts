@@ -32,6 +32,17 @@ export const currencyUpdateSchema = z
   })
   .strict();
 
+/** Catalogue row a player sees: id, name, and image. Extra fields such as exchange value are omitted. */
+export const catalogueCurrencySchema = z.object({
+  id: z.string().min(1),
+  name: currencyNameSchema,
+  imageKey: currencyImageKeySchema,
+});
+
+export const catalogueCurrencyListSchema = z.array(catalogueCurrencySchema);
+
+export type CatalogueCurrency = z.infer<typeof catalogueCurrencySchema>;
+
 type ConfCurrencySnapshot = {
   name: string;
   exchangeValue: number;

@@ -1,42 +1,36 @@
-type CatalogueCurrency = {
-  id: string;
-  name: string;
-  imageKey: string;
-};
+import {
+  catalogueCurrencyListSchema,
+  type CatalogueCurrency,
+} from "@/app/lib/types/currency";
+import { getUserSafeApiError } from "@/lib/userSafeError";
 
-/** Reads id, name, and image. Drops exchange value and any other field. */
-function parseCatalogueCurrencies(json: unknown): CatalogueCurrency[] {
-  if (!Array.isArray(json)) return [];
-  const currencies: CatalogueCurrency[] = [];
-  for (const row of json) {
-    if (!row || typeof row !== "object") continue;
-    const candidate = row as {
-      id?: unknown;
-      name?: unknown;
-      imageKey?: unknown;
-    };
-    if (
-      typeof candidate.id !== "string" ||
-      typeof candidate.name !== "string" ||
-      typeof candidate.imageKey !== "string"
-    ) {
-      continue;
-    }
-    currencies.push({
-      id: candidate.id,
-      name: candidate.name,
-      imageKey: candidate.imageKey,
-    });
-  }
-  return currencies;
-}
+type ApiErrorPayload = { message?: string; details?: string };
 
 export async function fetchCatalogueCurrencies(
   url: string
 ): Promise<CatalogueCurrency[]> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("Failed to load currencies");
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to load currencies")
+    );
   }
-  return parseCatalogueCurrencies(await response.json());
+
+  const json: unknown = await response.json();
+  const parsed = catalogueCurrencyListSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Currencies response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }
