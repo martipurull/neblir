@@ -381,9 +381,9 @@ export function DedicatedDiceRollModal({
             {validationHint ? (
               <p className="text-xs text-white/75">{validationHint}</p>
             ) : null}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-white">Extra dice</span>
-              <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+              <span className="shrink-0 text-sm text-white">Extra dice</span>
+              <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
                 <Button
                   type="button"
                   variant="modalIconStepper"
@@ -392,7 +392,7 @@ export function DedicatedDiceRollModal({
                 >
                   -
                 </Button>
-                <span className="min-w-[2.5rem] text-center text-white">
+                <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-white">
                   {extraDice >= 0 ? `+${extraDice}` : extraDice}
                 </span>
                 <Button
@@ -423,8 +423,8 @@ export function DedicatedDiceRollModal({
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-sm text-white">Number of dice</span>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+                <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
                   <Button
                     type="button"
                     variant="modalIconStepper"
@@ -436,7 +436,7 @@ export function DedicatedDiceRollModal({
                   >
                     -
                   </Button>
-                  <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+                  <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
                     {damageDiceCount}
                   </span>
                   <Button
@@ -495,8 +495,8 @@ export function DedicatedDiceRollModal({
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-sm text-white">Number of dice</span>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+                <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
                   <Button
                     type="button"
                     variant="modalIconStepper"
@@ -505,7 +505,7 @@ export function DedicatedDiceRollModal({
                   >
                     -
                   </Button>
-                  <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+                  <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
                     {freeDiceCount}
                   </span>
                   <Button

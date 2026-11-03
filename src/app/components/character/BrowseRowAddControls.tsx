@@ -51,7 +51,7 @@ export function BrowseRowAddControls({
   };
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1">
       <Button
         type="button"
         variant="semanticSafeOutline"

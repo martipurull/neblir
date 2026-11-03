@@ -153,8 +153,8 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
         />
       </label>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-black/80">
+      <div className="mt-4 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <p className="shrink-0 whitespace-nowrap text-sm font-medium text-black/80">
           Rolling: {diceCount}d{diceType}
         </p>
         <Button
@@ -163,6 +163,7 @@ export function GmDiceRollerSection({ gameId }: GmDiceRollerSectionProps) {
           fullWidth={false}
           disabled={!canRoll || rolling}
           onClick={handleRoll}
+          className="ml-auto shrink-0"
         >
           Roll
         </Button>

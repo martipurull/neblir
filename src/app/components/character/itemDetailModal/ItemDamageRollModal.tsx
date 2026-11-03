@@ -94,9 +94,9 @@ export function ItemDamageRollModal({
         <p className="text-white">
           Base: {baseDamageDice}d{baseDamageType}
         </p>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-white/80">Extra dice</span>
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+          <span className="shrink-0 text-white/80">Extra dice</span>
+          <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
             <Button
               type="button"
               variant="modalIconStepperFlatSm"
@@ -105,7 +105,7 @@ export function ItemDamageRollModal({
             >
               −
             </Button>
-            <span className="min-w-[2rem] text-center text-sm font-semibold text-white">
+            <span className="min-w-[2rem] shrink-0 whitespace-nowrap text-center text-sm font-semibold text-white">
               {extraDice >= 0 ? `+${extraDice}` : extraDice}
             </span>
             <Button
