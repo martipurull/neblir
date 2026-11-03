@@ -64,6 +64,18 @@ describe("gmUtils known NPC visibility", () => {
     expect(isPublicKnownNpcInGame(game.characters![0], game)).toBe(true);
   });
 
+  it("keeps a public Archived GM-controlled character on Known NPCs", () => {
+    const gc = { ...makeNpcLink(true), npcGroup: "Archived" };
+    const game = makeGame({ characters: [gc] });
+    expect(isPublicKnownNpcInGame(gc, game)).toBe(true);
+  });
+
+  it("keeps a private Archived GM-controlled character off Known NPCs", () => {
+    const gc = { ...makeNpcLink(false), npcGroup: "Archived" };
+    const game = makeGame({ characters: [gc] });
+    expect(isPublicKnownNpcInGame(gc, game)).toBe(false);
+  });
+
   it("keeps a granted NPC as GM-controlled", () => {
     const gc = {
       ...makeNpcLink(true),
