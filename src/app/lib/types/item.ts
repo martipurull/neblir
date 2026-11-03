@@ -355,6 +355,56 @@ export type UniqueItemCreate = z.infer<typeof uniqueItemCreateSchema>;
 export const uniqueItemUpdateSchema = uniqueItemMutableBodySchema.partial();
 export type UniqueItemUpdate = z.infer<typeof uniqueItemUpdateSchema>;
 
+const uniqueItemSourceTypeSchema = z.enum([
+  "GLOBAL_ITEM",
+  "CUSTOM_ITEM",
+  "STANDALONE",
+]);
+
+/** Unique-item row returned by PATCH /api/unique-items/[id]. */
+const uniqueItemRecordResponseSchema = z.object({
+  id: z.string(),
+  ownerUserId: z.string(),
+  gameId: z.string().nullish(),
+  sourceType: uniqueItemSourceTypeSchema,
+  itemId: z.string().nullish(),
+  attackRollOverride: z.array(weaponAttackRollTypeSchema),
+  attackMeleeBonusOverride: z.number().nullish(),
+  attackRangeBonusOverride: z.number().nullish(),
+  attackThrowBonusOverride: z.number().nullish(),
+  defenceMeleeBonusOverride: z.number().nullish(),
+  defenceRangeBonusOverride: z.number().nullish(),
+  gridAttackBonusOverride: z.number().nullish(),
+  gridDefenceBonusOverride: z.number().nullish(),
+  effectiveRangeOverride: z.number().int().nullish(),
+  maxRangeOverride: z.number().int().nullish(),
+  confCostOverride: z.number().nullish(),
+  costInfoOverride: z.string().nullish(),
+  damageOverride: itemDamageResponseSchema.nullish(),
+  descriptionOverride: z.string().nullish(),
+  imageKeyOverride: z.string().nullish(),
+  nameOverride: z.string().nullish(),
+  usageOverride: z.string().nullish(),
+  weightOverride: z.number().nullish(),
+  notesOverride: z.string().nullish(),
+  specialTag: z.string().nullish(),
+  equippableOverride: z.boolean().nullish(),
+  equipSlotTypesOverride: z.array(equipSlotTypeSchema).nullish(),
+  equipSlotCostOverride: z.number().int().nullish(),
+  vehicleMountableOverride: z.boolean().nullish(),
+  maxUsesOverride: z.number().int().nullish(),
+  modifiesAttributeOverride: itemAttributePathSchema.nullish(),
+  attributeModOverride: z.number().int().nullish(),
+  modifiesSkillOverride: itemGeneralSkillSchema.nullish(),
+  skillModOverride: z.number().int().nullish(),
+  isSpeedAlteredOverride: z.boolean().nullish(),
+});
+
+export const uniqueItemUpdateResponseSchema = uniqueItemRecordResponseSchema;
+export type UniqueItemUpdateResponse = z.infer<
+  typeof uniqueItemUpdateResponseSchema
+>;
+
 // ---- Add to inventory ----
 
 export const addToInventorySchema = z.object({
@@ -440,6 +490,21 @@ export const customItemResponseSchema = z.object({
 });
 export const customItemListResponseSchema = z.array(customItemResponseSchema);
 export type CustomItemResponse = z.infer<typeof customItemResponseSchema>;
+
+const uniqueItemNestedItemSchema = z.union([
+  itemResponseSchema,
+  customItemResponseSchema,
+]);
+
+/** Unique item returned by GET /api/unique-items/[id]. */
+export const uniqueItemDetailResponseSchema =
+  uniqueItemRecordResponseSchema.extend({
+    templateItem: uniqueItemNestedItemSchema.nullable(),
+    resolvedItem: uniqueItemNestedItemSchema.nullable(),
+  });
+export type UniqueItemDetailResponse = z.infer<
+  typeof uniqueItemDetailResponseSchema
+>;
 
 /** Unique item list row returned by GET /api/games/[id]/unique-items */
 const uniqueItemListItemResponseSchema = z.object({

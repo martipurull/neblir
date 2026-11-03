@@ -14,11 +14,7 @@ import {
   type ItemBrowseDetailFields,
 } from "@/app/lib/types/itemBrowseDetail";
 import { useImageUpload } from "@/hooks/use-image-upload";
-import {
-  getUniqueItemById,
-  updateUniqueItem,
-  type UniqueItemDetailRecord,
-} from "@/lib/api/uniqueItems";
+import { getUniqueItemById, updateUniqueItem } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import {
@@ -37,9 +33,8 @@ function optionalNumStr(value: number | null | undefined): string {
   return value != null ? String(value) : "";
 }
 
-function strField(data: UniqueItemDetailRecord, key: string): string {
-  const value = data[key];
-  return typeof value === "string" ? value : "";
+function presentString(value: string | null | undefined): string {
+  return value ?? "";
 }
 
 type Args = {
@@ -545,133 +540,69 @@ export function useCreateUniqueItemModal({
           setSelectedTemplate(null);
         } else {
           const template = data.templateItem;
-          const templateName =
-            template && typeof template.name === "string"
-              ? template.name
-              : "Template";
-          setEditTemplateLabel(templateName);
+          setEditTemplateLabel(template?.name ?? "Template");
           if (data.itemId && template) {
-            const browse =
-              loadedSourceType === "GLOBAL_ITEM"
-                ? itemWithIdToBrowseDetail(template as ItemWithId)
-                : (template as ItemBrowseDetailFields);
-            setSelectedTemplate(browse);
+            setSelectedTemplate(itemWithIdToBrowseDetail(template));
           }
         }
-        setNameOverride(strField(data, "nameOverride"));
-        setDescriptionOverride(strField(data, "descriptionOverride"));
-        setNotesOverride(strField(data, "notesOverride"));
-        setUsageOverride(strField(data, "usageOverride"));
-        setCostInfoOverride(strField(data, "costInfoOverride"));
-        setConfCostOverride(
-          optionalNumStr(data.confCostOverride as number | null | undefined)
-        );
-        setWeightOverride(
-          optionalNumStr(data.weightOverride as number | null | undefined)
-        );
-        setSpecialTag(strField(data, "specialTag"));
-        const equippable = data.equippableOverride;
-        setEquippableOverride(
-          equippable === null || equippable === undefined
-            ? ""
-            : (equippable as boolean)
-        );
-        const vehicleMountable = data.vehicleMountableOverride;
-        setVehicleMountableOverride(
-          vehicleMountable === null || vehicleMountable === undefined
-            ? ""
-            : (vehicleMountable as boolean)
-        );
-        setEquipSlotTypesOverride(
-          Array.isArray(data.equipSlotTypesOverride)
-            ? (data.equipSlotTypesOverride as string[])
-            : []
-        );
-        setEquipSlotCostOverride(
-          optionalNumStr(
-            data.equipSlotCostOverride as number | null | undefined
-          )
-        );
-        setMaxUsesOverride(
-          optionalNumStr(data.maxUsesOverride as number | null | undefined)
-        );
+        setNameOverride(presentString(data.nameOverride));
+        setDescriptionOverride(presentString(data.descriptionOverride));
+        setNotesOverride(presentString(data.notesOverride));
+        setUsageOverride(presentString(data.usageOverride));
+        setCostInfoOverride(presentString(data.costInfoOverride));
+        setConfCostOverride(optionalNumStr(data.confCostOverride));
+        setWeightOverride(optionalNumStr(data.weightOverride));
+        setSpecialTag(presentString(data.specialTag));
+        setEquippableOverride(data.equippableOverride ?? "");
+        setVehicleMountableOverride(data.vehicleMountableOverride ?? "");
+        setEquipSlotTypesOverride(data.equipSlotTypesOverride ?? []);
+        setEquipSlotCostOverride(optionalNumStr(data.equipSlotCostOverride));
+        setMaxUsesOverride(optionalNumStr(data.maxUsesOverride));
         setModifiesAttributeOverride(
-          strField(data, "modifiesAttributeOverride")
+          presentString(data.modifiesAttributeOverride)
         );
-        setAttributeModOverride(
-          optionalNumStr(data.attributeModOverride as number | null | undefined)
-        );
-        setModifiesSkillOverride(strField(data, "modifiesSkillOverride"));
-        setSkillModOverride(
-          optionalNumStr(data.skillModOverride as number | null | undefined)
-        );
+        setAttributeModOverride(optionalNumStr(data.attributeModOverride));
+        setModifiesSkillOverride(presentString(data.modifiesSkillOverride));
+        setSkillModOverride(optionalNumStr(data.skillModOverride));
         const speedOverride = data.isSpeedAlteredOverride;
         if (loadedSourceType === "STANDALONE") {
           setIsSpeedAlteredStandalone(speedOverride === true);
           setIsSpeedAlteredOverride("");
         } else {
-          setIsSpeedAlteredOverride(
-            speedOverride === null || speedOverride === undefined
-              ? ""
-              : (speedOverride as boolean)
-          );
+          setIsSpeedAlteredOverride(speedOverride ?? "");
           setIsSpeedAlteredStandalone(false);
         }
-        setAttackRollOverride(
-          Array.isArray(data.attackRollOverride)
-            ? (data.attackRollOverride as string[])
-            : []
-        );
+        setAttackRollOverride(data.attackRollOverride);
         setAttackMeleeBonusOverride(
-          optionalNumStr(
-            data.attackMeleeBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.attackMeleeBonusOverride)
         );
         setAttackRangeBonusOverride(
-          optionalNumStr(
-            data.attackRangeBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.attackRangeBonusOverride)
         );
         setAttackThrowBonusOverride(
-          optionalNumStr(
-            data.attackThrowBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.attackThrowBonusOverride)
         );
         setDefenceMeleeBonusOverride(
-          optionalNumStr(
-            data.defenceMeleeBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.defenceMeleeBonusOverride)
         );
         setDefenceRangeBonusOverride(
-          optionalNumStr(
-            data.defenceRangeBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.defenceRangeBonusOverride)
         );
         setGridAttackBonusOverride(
-          optionalNumStr(
-            data.gridAttackBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.gridAttackBonusOverride)
         );
         setGridDefenceBonusOverride(
-          optionalNumStr(
-            data.gridDefenceBonusOverride as number | null | undefined
-          )
+          optionalNumStr(data.gridDefenceBonusOverride)
         );
-        setEffectiveRangeOverride(
-          optionalNumStr(
-            data.effectiveRangeOverride as number | null | undefined
-          )
-        );
-        setMaxRangeOverride(
-          optionalNumStr(data.maxRangeOverride as number | null | undefined)
-        );
-        const damage = data.damageOverride as ItemDamage | null | undefined;
+        setEffectiveRangeOverride(optionalNumStr(data.effectiveRangeOverride));
+        setMaxRangeOverride(optionalNumStr(data.maxRangeOverride));
+        const damage = data.damageOverride;
         if (damage) {
-          setDamageTypesOverride(damage.damageType ?? []);
+          setDamageTypesOverride(damage.damageType);
           setDamageDiceTypeOverride(String(damage.diceType));
           setDamageNumberOfDiceOverride(String(damage.numberOfDice));
         }
-        setImageKeyOverride(strField(data, "imageKeyOverride"));
+        setImageKeyOverride(presentString(data.imageKeyOverride));
         setRichTextSyncKey((k) => k + 1);
       } catch (e) {
         if (!cancelled) {
