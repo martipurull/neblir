@@ -100,33 +100,35 @@ function WalletHoldingsList({
   onExchange,
 }: WalletHoldingsListProps) {
   return (
-    <ul className="divide-y divide-black rounded border border-black">
+    <ul className="min-w-0 divide-y divide-black rounded border border-black">
       {wallet.map((entry) => (
         <li
           key={entry.currencyId}
-          className="flex items-center gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
+          className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5 first:pt-3 last:pb-3"
         >
           <WalletCurrencyIcon
             name={entry.name}
             imageKey={entry.imageKey}
             imageUrl={imageUrls[entry.currencyId]}
           />
-          <span className="text-sm font-medium tabular-nums text-black">
+          <span className="shrink-0 whitespace-nowrap text-sm font-medium tabular-nums text-black">
             {entry.quantity}
           </span>
-          <span className="min-w-0 truncate text-sm text-black">
+          <span className="min-w-0 flex-1 truncate text-sm text-black">
             {entry.name}
           </span>
           {!readOnly ? (
-            <div className="ml-auto flex shrink-0 flex-wrap justify-end gap-1.5">
+            <div className="ml-auto flex max-w-full shrink-0 flex-wrap justify-end gap-1.5">
               <Button
                 type="button"
                 variant="semanticSafeOutline"
                 fullWidth={false}
                 onClick={() => onAdd(entry)}
+                aria-label="Add"
+                title="Add"
                 className="!px-2 !py-0.5 !text-xs"
               >
-                ADD
+                +
               </Button>
               <Button
                 type="button"
@@ -134,9 +136,11 @@ function WalletHoldingsList({
                 fullWidth={false}
                 disabled={entry.quantity < 1}
                 onClick={() => onSubtract(entry)}
+                aria-label="Subtract"
+                title="Subtract"
                 className="!px-2 !py-0.5 !text-xs"
               >
-                SUBTRACT
+                −
               </Button>
               {showExchange(entry.currencyId) ? (
                 <Button
@@ -144,9 +148,11 @@ function WalletHoldingsList({
                   variant="lightCompactXsMuted"
                   fullWidth={false}
                   onClick={() => onExchange(entry)}
+                  aria-label="Exchange"
+                  title="Exchange"
                   className="!px-2 !py-0.5 !text-xs"
                 >
-                  EXCHANGE
+                  ⇄
                 </Button>
               ) : null}
             </div>
