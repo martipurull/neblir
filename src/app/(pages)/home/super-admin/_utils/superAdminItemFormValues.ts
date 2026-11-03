@@ -1,7 +1,8 @@
-import type {
-  EquipSlotType,
-  ItemDamage,
-  ItemResponse,
+import {
+  equipSlotTypeSchema,
+  type EquipSlotType,
+  type ItemDamage,
+  type ItemResponse,
 } from "@/app/lib/types/item";
 import type { z } from "zod";
 import type { weaponAttackRollTypeSchema } from "@/app/lib/types/item";
@@ -113,7 +114,10 @@ export function catalogueItemToFormValues(
     ...damageFields,
     equippable: item.equippable ?? false,
     vehicleMountable: item.vehicleMountable ?? false,
-    equipSlotTypes: (item.equipSlotTypes ?? []) as EquipSlotType[],
+    equipSlotTypes: (item.equipSlotTypes ?? []).flatMap((slot) => {
+      const parsed = equipSlotTypeSchema.safeParse(slot);
+      return parsed.success ? [parsed.data] : [];
+    }),
     equipSlotCost:
       item.equipSlotCost === null || item.equipSlotCost === undefined
         ? ""

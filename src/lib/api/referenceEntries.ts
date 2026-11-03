@@ -107,6 +107,42 @@ export async function getReferenceEntry(
   return parsed.data;
 }
 
+export async function getCatalogueReferenceEntry(
+  id: string,
+  signal?: AbortSignal
+): Promise<ReferenceEntry> {
+  const response = await fetch(
+    `/api/reference-entries/${encodeURIComponent(id)}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      parseApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to fetch reference entry"
+      )
+    );
+  }
+
+  const parsed = referenceEntrySchema.safeParse(await response.json());
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Reference entry response did not match expected shape: ${details}`
+    );
+  }
+
+  return parsed.data;
+}
+
 export async function createReferenceEntry(
   body: ReferenceEntryCreate
 ): Promise<ReferenceEntry> {

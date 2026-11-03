@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getEnemy } from "@/lib/api/enemies";
+import { getCatalogueEnemies, getEnemy } from "@/lib/api/enemies";
+import { getCatalogueReferenceEntry } from "@/lib/api/referenceEntries";
 import { getCatalogueFeature, getCatalogueFeatures } from "@/lib/api/features";
 import { getMap } from "@/lib/api/maps";
 import { getCataloguePath, getCataloguePaths } from "@/lib/api/paths";
@@ -92,6 +93,24 @@ const parsedGhoul = {
   actions: [],
   additionalActions: [],
 };
+
+describe("getCatalogueEnemies", () => {
+  it("returns the parsed official enemies", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse([ghoul])));
+
+    await expect(getCatalogueEnemies()).resolves.toEqual([parsedGhoul]);
+  });
+
+  it("rejects an enemy missing its name", async () => {
+    const { name: _name, ...withoutName } = ghoul;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse([withoutName]))
+    );
+
+    await expect(getCatalogueEnemies()).rejects.toThrow(/0\.name/);
+  });
+});
 
 describe("getEnemy", () => {
   it("returns the parsed official enemy", async () => {
@@ -204,6 +223,51 @@ describe("getCataloguePaths", () => {
     );
 
     await expect(getCataloguePaths()).rejects.toThrow(/0\.baseFeature/);
+  });
+});
+
+const combatEntry = {
+  id: "ref-1",
+  category: "MECHANICS",
+  slug: "combat",
+  title: "Combat",
+  createdAt: "2024-01-02T00:00:00.000Z",
+  updatedAt: "2024-01-03T00:00:00.000Z",
+};
+
+const parsedCombatEntry = {
+  id: "ref-1",
+  category: "MECHANICS",
+  slug: "combat",
+  title: "Combat",
+  access: "PLAYER",
+  tags: [],
+  sortOrder: 0,
+  createdAt: new Date("2024-01-02T00:00:00.000Z"),
+  updatedAt: new Date("2024-01-03T00:00:00.000Z"),
+  attachments: [],
+};
+
+describe("getCatalogueReferenceEntry", () => {
+  it("returns the parsed official reference entry", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse(combatEntry))
+    );
+
+    await expect(getCatalogueReferenceEntry("ref-1")).resolves.toEqual(
+      parsedCombatEntry
+    );
+  });
+
+  it("rejects an entry missing its title", async () => {
+    const { title: _title, ...withoutTitle } = combatEntry;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse(withoutTitle))
+    );
+
+    await expect(getCatalogueReferenceEntry("ref-1")).rejects.toThrow(/title/);
   });
 });
 

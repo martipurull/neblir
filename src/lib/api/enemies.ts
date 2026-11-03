@@ -28,6 +28,31 @@ export async function getEnemies(): Promise<EnemyResponse[]> {
   return parsed.data;
 }
 
+export async function getCatalogueEnemies(): Promise<EnemyResponse[]> {
+  const response = await fetch("/api/enemies", { method: "GET" });
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch enemies")
+    );
+  }
+  const parsed = enemyListResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Enemies response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
 export async function getEnemy(id: string): Promise<EnemyResponse> {
   const response = await fetch(`/api/enemies/${encodeURIComponent(id)}`, {
     method: "GET",

@@ -9,7 +9,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
-import { getEnemies } from "@/lib/api/enemies";
+import { getCatalogueEnemies } from "@/lib/api/enemies";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -22,7 +22,7 @@ import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 export function SuperAdminBrowseEnemiesClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, error, isLoading, mutate } = useSWR("/api/enemies", () =>
-    getEnemies()
+    getCatalogueEnemies()
   );
 
   const filtered = useMemo(() => {

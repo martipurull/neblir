@@ -15,7 +15,7 @@ import {
   referenceEntryUpdateSchema,
   type ReferenceCategory,
 } from "@/app/lib/types/reference";
-import { getReferenceEntry } from "@/lib/api/referenceEntries";
+import { getCatalogueReferenceEntry } from "@/lib/api/referenceEntries";
 import type { JSONContent } from "@tiptap/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,7 +48,7 @@ export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
 
   const { data, error, isLoading, mutate } = useSWR(
     entryId ? `/api/reference-entries/${entryId}` : null,
-    () => getReferenceEntry(entryId)
+    () => getCatalogueReferenceEntry(entryId)
   );
 
   const form = useForm<RefFormValues>({
