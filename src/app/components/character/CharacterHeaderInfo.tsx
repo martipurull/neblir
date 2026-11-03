@@ -2,9 +2,11 @@
 
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { PortraitCross } from "@/app/components/shared/PortraitCross";
 import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
+import type { Status } from "@prisma/client";
 import { Suspense, useState } from "react";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import {
@@ -30,6 +32,7 @@ export interface CharacterHeaderInfoProps {
   onOpenDiceRoller?: () => void;
   /** When false, hides level-up / update actions */
   showCharacterActions?: boolean;
+  status?: Status | null;
   className?: string;
 }
 
@@ -47,6 +50,7 @@ export function CharacterHeaderInfo({
   onVisibilityUpdated,
   onOpenDiceRoller,
   showCharacterActions = true,
+  status,
   className,
 }: CharacterHeaderInfoProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -68,7 +72,7 @@ export function CharacterHeaderInfo({
         </Button>
       ) : null}
 
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
+      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
         {resolvedAvatarUrl ? (
           <a
             href={resolvedAvatarUrl}
@@ -99,6 +103,7 @@ export function CharacterHeaderInfo({
             className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
           />
         )}
+        <PortraitCross status={status} />
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-2">

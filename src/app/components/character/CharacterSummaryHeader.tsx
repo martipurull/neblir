@@ -305,6 +305,7 @@ export function CharacterSummaryHeader({
           }
           onOpenDiceRoller={onOpenDiceRoller}
           showCharacterActions={characterActionsVisible}
+          status={character.health.status}
         />
 
         {statusBanner ? (

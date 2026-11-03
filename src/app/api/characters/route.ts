@@ -46,6 +46,7 @@ export const GET = auth(async (request: AuthNextRequest) => {
         level: character.generalInformation.level,
         paths: character.paths.map((pathCharacter) => pathCharacter.path.name),
         avatarKey: character.generalInformation.avatarKey,
+        healthStatus: character.health.status,
       })),
       { status: 200 }
     );

@@ -453,6 +453,7 @@ describe("/api/characters GET", () => {
           level: 2,
           avatarKey: null,
         },
+        health: { status: "DECEASED" },
         paths: [{ path: { name: "MEDIC" } }, { path: { name: "SNIPER" } }],
       },
     ]);
@@ -472,6 +473,7 @@ describe("/api/characters GET", () => {
         level: 2,
         paths: ["MEDIC", "SNIPER"],
         avatarKey: null,
+        healthStatus: "DECEASED",
       },
     ]);
   });

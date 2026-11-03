@@ -1,8 +1,10 @@
 "use client";
 
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
+import { PortraitCross } from "@/app/components/shared/PortraitCross";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
+import type { Status } from "@prisma/client";
 
 type RemoteAvatarProps = {
   imageUrl: string | null | undefined;
@@ -10,6 +12,7 @@ type RemoteAvatarProps = {
   alt?: string;
   size?: number;
   className?: string;
+  status?: Status | null;
 };
 
 const skeletonSvgClassBySize: Record<number, string> = {
@@ -26,6 +29,7 @@ export function RemoteAvatar({
   alt = "",
   size = 44,
   className,
+  status,
 }: RemoteAvatarProps) {
   const resolved = resolveRemoteImageUrl(imageKey, imageUrl);
   const skeletonClassName = [
@@ -35,7 +39,7 @@ export function RemoteAvatar({
 
   return (
     <div
-      className={`shrink-0 overflow-hidden rounded-full bg-paleBlue/20 ${className ?? ""}`.trim()}
+      className={`relative shrink-0 overflow-hidden rounded-full bg-paleBlue/20 ${className ?? ""}`.trim()}
       style={{ width: size, height: size }}
     >
       {resolved ? (
@@ -56,6 +60,7 @@ export function RemoteAvatar({
           className={skeletonClassName}
         />
       )}
+      <PortraitCross status={status} />
     </div>
   );
 }

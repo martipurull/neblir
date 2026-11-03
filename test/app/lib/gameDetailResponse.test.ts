@@ -227,7 +227,53 @@ describe("shapeGameForResponse visibility filtering", () => {
     expect(playerView?.characters?.[0]?.character.currentPhysicalHealth).toBe(
       undefined
     );
-    expect(playerView?.characters?.[0]?.character.healthStatus).toBe(undefined);
+    expect(playerView?.characters?.[0]?.character.healthStatus).toBe("ALIVE");
+  });
+
+  it("includes health status for a player viewing a known NPC and keeps hit points for the GM", () => {
+    const game = {
+      ...makeGameWithCharacters(),
+      characters: [
+        {
+          id: "gc-public",
+          gameId: "g-1",
+          characterId: "char-public",
+          isPublic: true,
+          character: {
+            id: "char-public",
+            generalInformation: {
+              name: "Known",
+              surname: "Npc",
+              level: 1,
+              avatarKey: null,
+            },
+            combatInformation: {
+              initiativeMod: 0,
+              reactionsPerRound: 1,
+              reactionsRemaining: 1,
+            },
+            health: {
+              currentPhysicalHealth: 0,
+              maxPhysicalHealth: 10,
+              status: "DECEASED",
+            },
+            users: [{ userId: "gm-1" }],
+          },
+        },
+      ],
+    };
+
+    const playerView = shapeGameForResponse(game as any, "player-1");
+    expect(playerView?.characters?.[0]?.character.healthStatus).toBe(
+      "DECEASED"
+    );
+    expect(playerView?.characters?.[0]?.character.currentPhysicalHealth).toBe(
+      undefined
+    );
+
+    const gmView = shapeGameForResponse(game as any, "gm-1");
+    expect(gmView?.characters?.[0]?.character.healthStatus).toBe("DECEASED");
+    expect(gmView?.characters?.[0]?.character.currentPhysicalHealth).toBe(0);
   });
 
   it("filters private enemy instances for non-GM and masks initiative names", () => {

@@ -33,6 +33,7 @@ describe("characterStatusMark", () => {
     expect(characterStatusMark("DECEASED")).toEqual({
       label: "Deceased",
       showPill: true,
+      showCross: true,
       fillClassName: "bg-paleBlue",
       borderClassName: "border-neblirDanger",
       textClassName: "text-neblirDanger-600",
@@ -43,6 +44,7 @@ describe("characterStatusMark", () => {
     expect(characterStatusMark("DERANGED")).toEqual({
       label: "Deranged",
       showPill: true,
+      showCross: false,
       fillClassName: "bg-paleBlue",
       borderClassName: "border-neblirWarning",
       textClassName: "text-neblirWarning-600",
@@ -53,10 +55,17 @@ describe("characterStatusMark", () => {
     expect(characterStatusMark("ALIVE")).toEqual({
       label: "Alive",
       showPill: false,
+      showCross: false,
       fillClassName: null,
       borderClassName: null,
       textClassName: null,
     });
+  });
+
+  it("shows the portrait × for Deceased and hides it for Deranged and Alive", () => {
+    expect(characterStatusMark("DECEASED").showCross).toBe(true);
+    expect(characterStatusMark("DERANGED").showCross).toBe(false);
+    expect(characterStatusMark("ALIVE").showCross).toBe(false);
   });
 });
 

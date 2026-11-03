@@ -71,6 +71,7 @@ export function GmNpcCard({
               alt={`${name} avatar`}
               size={44}
               className="h-11 w-11 shrink-0"
+              status={char.healthStatus}
             />
             <div className="min-w-0">
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">

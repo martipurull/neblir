@@ -3,6 +3,7 @@ import type { Status } from "@prisma/client";
 export type CharacterStatusMark = {
   label: "Alive" | "Deceased" | "Deranged";
   showPill: boolean;
+  showCross: boolean;
   fillClassName: string | null;
   borderClassName: string | null;
   textClassName: string | null;
@@ -16,6 +17,7 @@ export function characterStatusMark(status: Status): CharacterStatusMark {
       return {
         label: "Deceased",
         showPill: true,
+        showCross: true,
         fillClassName: PALE_BLUE_FILL,
         borderClassName: "border-neblirDanger",
         textClassName: "text-neblirDanger-600",
@@ -24,6 +26,7 @@ export function characterStatusMark(status: Status): CharacterStatusMark {
       return {
         label: "Deranged",
         showPill: true,
+        showCross: false,
         fillClassName: PALE_BLUE_FILL,
         borderClassName: "border-neblirWarning",
         textClassName: "text-neblirWarning-600",
@@ -32,6 +35,7 @@ export function characterStatusMark(status: Status): CharacterStatusMark {
       return {
         label: "Alive",
         showPill: false,
+        showCross: false,
         fillClassName: null,
         borderClassName: null,
         textClassName: null,
