@@ -31,6 +31,7 @@ async function readErrorBody(
 export type ReferenceEntryListParams = {
   category?: ReferenceCategory;
   gameId?: string;
+  scope?: "official";
 };
 
 export async function getReferenceEntries(
@@ -40,6 +41,7 @@ export async function getReferenceEntries(
   const searchParams = new URLSearchParams();
   if (params.category) searchParams.set("category", params.category);
   if (params.gameId) searchParams.set("gameId", params.gameId);
+  if (params.scope) searchParams.set("scope", params.scope);
 
   const query = searchParams.toString();
   const response = await fetch(

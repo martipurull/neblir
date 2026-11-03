@@ -2,6 +2,7 @@ import {
   type ItemResponse,
   type ItemStatus,
   itemListResponseSchema,
+  itemResponseSchema,
 } from "@/app/lib/types/item";
 import {
   itemCharacterSchema,
@@ -44,6 +45,39 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
     throw new Error(`Items response did not match expected shape: ${details}`);
   }
   return parsed.data as ItemWithId[];
+}
+
+export async function getItem(
+  id: string,
+  signal?: AbortSignal
+): Promise<ItemWithId> {
+  const response = await fetch(`/api/items/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch item")
+    );
+  }
+
+  const json: unknown = await response.json();
+  const parsed = itemResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Item response did not match expected shape: ${details}`);
+  }
+  return parsed.data;
 }
 
 export type AddToInventoryBody = {

@@ -14,8 +14,8 @@ import { EMPTY_RICH_TEXT_DOC } from "@/app/lib/tiptap/richTextJsonDoc";
 import {
   referenceEntryUpdateSchema,
   type ReferenceCategory,
-  type ReferenceEntry,
 } from "@/app/lib/types/reference";
+import { getReferenceEntry } from "@/lib/api/referenceEntries";
 import type { JSONContent } from "@tiptap/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -41,22 +41,14 @@ const categoryOptions = [
   { value: "WORLD", label: "World" },
 ];
 
-async function referenceFetcher(url: string): Promise<ReferenceEntry> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as ReferenceEntry;
-}
-
 export function SuperAdminEditReferenceForm({ entryId }: { entryId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data, error, isLoading, mutate } = useSWR<ReferenceEntry>(
+  const { data, error, isLoading, mutate } = useSWR(
     entryId ? `/api/reference-entries/${entryId}` : null,
-    referenceFetcher
+    () => getReferenceEntry(entryId)
   );
 
   const form = useForm<RefFormValues>({

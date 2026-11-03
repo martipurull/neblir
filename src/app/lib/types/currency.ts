@@ -43,6 +43,13 @@ export const catalogueCurrencyListSchema = z.array(catalogueCurrencySchema);
 
 export type CatalogueCurrency = z.infer<typeof catalogueCurrencySchema>;
 
+/** Official currency row, including exchange value, for super-admin reads. */
+export const currencyResponseSchema = catalogueCurrencySchema.extend({
+  exchangeValue: exchangeValueSchema,
+});
+export const currencyListResponseSchema = z.array(currencyResponseSchema);
+export type CurrencyResponse = z.infer<typeof currencyResponseSchema>;
+
 type ConfCurrencySnapshot = {
   name: string;
   exchangeValue: number;

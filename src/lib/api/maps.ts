@@ -1,4 +1,4 @@
-import { mapListSchema, type GameMap } from "@/app/lib/types/map";
+import { mapListSchema, mapSchema, type GameMap } from "@/app/lib/types/map";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -47,6 +47,37 @@ export async function getMaps(
       .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
       .join("; ");
     throw new Error(`Maps response did not match expected shape: ${details}`);
+  }
+
+  return parsed.data;
+}
+
+export async function getMap(
+  id: string,
+  signal?: AbortSignal
+): Promise<GameMap> {
+  const response = await fetch(`/api/maps/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to fetch map"
+      )
+    );
+  }
+
+  const parsed = mapSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Map response did not match expected shape: ${details}`);
   }
 
   return parsed.data;

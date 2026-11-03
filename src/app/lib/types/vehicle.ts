@@ -102,6 +102,36 @@ export const vehicleSchema = z.object({
 });
 export type Vehicle = z.infer<typeof vehicleSchema>;
 
+/** Official vehicle returned by GET /api/vehicles and GET /api/vehicles/[id]. */
+export const officialVehicleResponseSchema = z.object({
+  id: z.string(),
+  accessType: vehicleAccessTypeSchema,
+  name: z.string(),
+  brand: z.string().nullish(),
+  year: z.number().int().nullish(),
+  imageKey: z.string().nullish(),
+  confCost: z.number().int(),
+  costInfo: z.string().nullish(),
+  description: z.string(),
+  notes: z.string().nullish(),
+  maxHp: z.number().int(),
+  travelSpeedKmh: z.number().int(),
+  combatSpeedMetres: z.number().int(),
+  manoeuvrability: z.number().int(),
+  acceleration: z.number().int(),
+  weight: z.number().nullish(),
+  heightMetres: z.number().nullish(),
+  maxCargoWeightKg: z.number().nullish(),
+  maxMountedItems: z.number().int().nullish(),
+  maxPassengers: z.number().int(),
+  locomotionModes: z.array(vehicleLocomotionSchema),
+  vehicleSizeCategory: vehicleSizeCategorySchema,
+});
+export const officialVehicleListResponseSchema = z.array(
+  officialVehicleResponseSchema
+);
+export type OfficialVehicle = z.infer<typeof officialVehicleResponseSchema>;
+
 export const vehicleUpdateSchema = vehicleSchema.partial();
 export type VehicleUpdate = z.infer<typeof vehicleUpdateSchema>;
 
@@ -225,6 +255,20 @@ export const uniqueVehicleDetailResponseSchema =
   });
 export type UniqueVehicleDetailResponse = z.infer<
   typeof uniqueVehicleDetailResponseSchema
+>;
+
+/** Body returned by POST /api/unique-vehicles. */
+export const uniqueVehicleCreateResponseSchema = z.object({
+  id: z.string(),
+});
+export type UniqueVehicleCreateResponse = z.infer<
+  typeof uniqueVehicleCreateResponseSchema
+>;
+
+/** Body returned by PATCH /api/unique-vehicles/[id]. */
+export const uniqueVehicleUpdateResponseSchema = uniqueVehicleRecordSchema;
+export type UniqueVehicleUpdateResponse = z.infer<
+  typeof uniqueVehicleUpdateResponseSchema
 >;
 
 const uniqueVehicleListItemSchema = z.object({

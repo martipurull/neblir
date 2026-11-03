@@ -8,9 +8,9 @@ import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
-import type { Item } from "@/app/lib/types/item";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { getItems, type ItemWithId } from "@/lib/api/items";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -19,21 +19,11 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type ItemRow = Item & { id: string; imageKey?: string | null };
-
-async function itemsFetcher(url: string): Promise<ItemRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as ItemRow[];
-}
-
 export function SuperAdminBrowseItemsClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<ItemRow[]>(
+  const { data, error, isLoading, mutate } = useSWR<ItemWithId[]>(
     "/api/items",
-    itemsFetcher
+    () => getItems()
   );
 
   const filtered = useMemo(() => {

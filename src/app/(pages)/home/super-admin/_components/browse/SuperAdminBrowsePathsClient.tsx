@@ -8,25 +8,16 @@ import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
-import type { Path } from "@/app/lib/types/path";
+import { getCataloguePaths } from "@/lib/api/paths";
 import Link from "next/link";
 import useSWR from "swr";
 import { SuperAdminCatalogueDomainNav } from "../SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-async function pathsFetcher(url: string): Promise<Path[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as Path[];
-}
-
 export function SuperAdminBrowsePathsClient() {
-  const { data, error, isLoading, mutate } = useSWR<Path[]>(
-    "/api/paths",
-    pathsFetcher
+  const { data, error, isLoading, mutate } = useSWR("/api/paths", () =>
+    getCataloguePaths()
   );
 
   const paths = [...(data ?? [])].sort((a, b) =>

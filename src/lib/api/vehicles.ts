@@ -1,9 +1,12 @@
 import { z } from "zod";
 import {
+  officialVehicleListResponseSchema,
+  officialVehicleResponseSchema,
   resolvedVehicleSchema,
   vehicleCharacterSchema,
   type ActiveVehiclePatch,
   type AddVehicleToCharacter,
+  type OfficialVehicle,
   type ResolvedVehicle,
   type VehicleCharacter,
   type VehicleCharacterPatch,
@@ -55,6 +58,70 @@ export async function getOfficialVehicles(
     );
   }
 
+  return parsed.data;
+}
+
+function vehicleShapeError(label: string, error: z.ZodError): Error {
+  const details = error.issues
+    .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+    .join("; ");
+  return new Error(
+    `${label} response did not match expected shape: ${details}`
+  );
+}
+
+export async function getCatalogueVehicles(
+  signal?: AbortSignal
+): Promise<OfficialVehicle[]> {
+  const response = await fetch("/api/vehicles", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await getErrorPayload(response),
+        "Failed to load vehicles"
+      )
+    );
+  }
+
+  const parsed = officialVehicleListResponseSchema.safeParse(
+    await response.json()
+  );
+  if (!parsed.success) {
+    throw vehicleShapeError("Vehicles", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function getCatalogueVehicle(
+  id: string,
+  signal?: AbortSignal
+): Promise<OfficialVehicle> {
+  const response = await fetch(`/api/vehicles/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await getErrorPayload(response),
+        "Failed to load vehicle"
+      )
+    );
+  }
+
+  const parsed = officialVehicleResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw vehicleShapeError("Vehicle", parsed.error);
+  }
   return parsed.data;
 }
 
