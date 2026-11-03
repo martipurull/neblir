@@ -1,10 +1,20 @@
 import {
+  gameCharactersAddResultSchema,
   gameCreateResponseSchema,
   gameDetailSchema,
+  gameInviteUsersResultSchema,
   gameListSchema,
+  pendingGameInviteListSchema,
+  playGrantResponseSchema,
+  receivedGameInviteListSchema,
+  type GameCharactersAddResult,
   type GameCreateResponse,
   type GameDetail,
+  type GameInviteUsersResult,
   type GameListItem,
+  type PendingGameInvite,
+  type PlayGrantResponse,
+  type ReceivedGameInvite,
 } from "@/app/lib/types/game";
 import {
   characterDetailSchema,
@@ -21,6 +31,117 @@ import type { RollEventPayload } from "@/app/lib/types/roll-event";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
+
+export async function fetchReceivedGameInvites(): Promise<
+  ReceivedGameInvite[]
+> {
+  const response = await fetch("/api/games/invites", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to fetch game invites")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = receivedGameInviteListSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Game invites response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function fetchPendingGameInvites(
+  gameId: string
+): Promise<PendingGameInvite[]> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/invites`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        body,
+        "Failed to fetch pending invites"
+      )
+    );
+  }
+
+  const json = await response.json();
+  const parsed = pendingGameInviteListSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Pending invites response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
+export async function inviteUsersToGame(
+  gameId: string,
+  emails: string[]
+): Promise<GameInviteUsersResult> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/invites`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to send invites.")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameInviteUsersResultSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Invite users response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
 
 export async function getGameById(
   id: string,
@@ -550,6 +671,44 @@ export async function giveVehicleToCharacter(
   }
 }
 
+export async function addCharactersToGame(
+  gameId: string,
+  characters: Array<{ characterId: string; isPublic?: boolean }>
+): Promise<GameCharactersAddResult> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/characters`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ characters }),
+    }
+  );
+
+  if (!response.ok) {
+    let body: ApiErrorPayload | undefined;
+    try {
+      body = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(response.status, body, "Failed to add characters.")
+    );
+  }
+
+  const json = await response.json();
+  const parsed = gameCharactersAddResultSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Add characters response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
 export async function setGameCharacterVisibility(
   gameId: string,
   characterId: string,
@@ -643,11 +802,27 @@ export async function renameGameNpcGroup(
   }
 }
 
+async function readPlayGrantResponse(
+  response: Response
+): Promise<PlayGrantResponse> {
+  const json = await response.json();
+  const parsed = playGrantResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Play grant response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
+}
+
 export async function setGameCharacterPlayGrant(
   gameId: string,
   characterId: string,
   userId: string
-): Promise<{ playGrantUserId: string | null }> {
+): Promise<PlayGrantResponse> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}/play-grant`,
     {
@@ -673,13 +848,13 @@ export async function setGameCharacterPlayGrant(
     );
   }
 
-  return (await response.json()) as { playGrantUserId: string | null };
+  return readPlayGrantResponse(response);
 }
 
 export async function revokeGameCharacterPlayGrant(
   gameId: string,
   characterId: string
-): Promise<{ playGrantUserId: string | null }> {
+): Promise<PlayGrantResponse> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/characters/${encodeURIComponent(characterId)}/play-grant`,
     {
@@ -704,7 +879,7 @@ export async function revokeGameCharacterPlayGrant(
     );
   }
 
-  return (await response.json()) as { playGrantUserId: string | null };
+  return readPlayGrantResponse(response);
 }
 
 export async function getGameCharacterForGmView(

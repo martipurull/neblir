@@ -1,6 +1,7 @@
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { enemyActionSchema } from "@/app/lib/types/enemy";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
+import { getCustomEnemy } from "@/lib/api/customEnemies";
 import {
   getUserSafeApiError,
   getUserSafeErrorMessage,
@@ -125,16 +126,6 @@ function parseActionDrafts(
       );
     }
     out.push(parsed.data);
-  }
-  return out;
-}
-
-function parseDamageList(raw: unknown): ItemWeaponDamageType[] {
-  if (!Array.isArray(raw)) return [];
-  const out: ItemWeaponDamageType[] = [];
-  for (const x of raw) {
-    const p = weaponDamageTypeSchema.safeParse(x);
-    if (p.success) out.push(p.data);
   }
   return out;
 }
@@ -400,51 +391,28 @@ export function useCreateCustomEnemyModal({
     resetImageUpload();
     void (async () => {
       try {
-        const res = await fetch(
-          `/api/games/${encodeURIComponent(gameId)}/custom-enemies/${encodeURIComponent(editCustomEnemyId)}`,
-          { method: "GET" }
-        );
-        const data = (await res.json()) as Record<string, unknown>;
-        if (!res.ok || cancelled) {
-          if (!cancelled) {
-            setError(
-              getUserSafeApiError(
-                res.status,
-                data as { message?: string; details?: string },
-                "Failed to load enemy."
-              )
-            );
-          }
-          return;
-        }
-        setName(String(data.name ?? ""));
-        setDescription(String(data.description ?? ""));
-        setNotes(String(data.notes ?? ""));
-        setHealth(String(data.health ?? ""));
-        setSpeed(String(data.speed ?? ""));
-        setInitiativeModifier(String(data.initiativeModifier ?? ""));
-        setNumberOfReactions(String(data.numberOfReactions ?? ""));
-        setDefenceMelee(String(data.defenceMelee ?? ""));
-        setDefenceRange(String(data.defenceRange ?? ""));
-        setDefenceGrid(String(data.defenceGrid ?? ""));
-        setAttackMelee(String(data.attackMelee ?? ""));
-        setAttackRange(String(data.attackRange ?? ""));
-        setAttackThrow(String(data.attackThrow ?? ""));
-        setAttackGrid(String(data.attackGrid ?? ""));
-        setActions(
-          Array.isArray(data.actions)
-            ? (data.actions as unknown[]).map(apiActionToDraft)
-            : []
-        );
-        setAdditionalActions(
-          Array.isArray(data.additionalActions)
-            ? (data.additionalActions as unknown[]).map(apiActionToDraft)
-            : []
-        );
-        setImmunities(parseDamageList(data.immunities));
-        setResistances(parseDamageList(data.resistances));
-        setVulnerabilities(parseDamageList(data.vulnerabilities));
-        if (typeof data.imageKey === "string" && data.imageKey) {
+        const data = await getCustomEnemy(gameId, editCustomEnemyId);
+        if (cancelled) return;
+        setName(data.name);
+        setDescription(data.description ?? "");
+        setNotes(data.notes ?? "");
+        setHealth(String(data.health));
+        setSpeed(String(data.speed));
+        setInitiativeModifier(String(data.initiativeModifier));
+        setNumberOfReactions(String(data.numberOfReactions));
+        setDefenceMelee(String(data.defenceMelee));
+        setDefenceRange(String(data.defenceRange));
+        setDefenceGrid(String(data.defenceGrid));
+        setAttackMelee(String(data.attackMelee));
+        setAttackRange(String(data.attackRange));
+        setAttackThrow(String(data.attackThrow));
+        setAttackGrid(String(data.attackGrid));
+        setActions(data.actions.map(apiActionToDraft));
+        setAdditionalActions(data.additionalActions.map(apiActionToDraft));
+        setImmunities(data.immunities);
+        setResistances(data.resistances);
+        setVulnerabilities(data.vulnerabilities);
+        if (data.imageKey) {
           setImageKey(data.imageKey);
         }
         setRichTextSyncKey((k) => k + 1);

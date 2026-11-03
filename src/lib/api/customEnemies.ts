@@ -1,4 +1,9 @@
-import { enemyResponseSchema, type EnemyResponse } from "@/app/lib/types/enemy";
+import {
+  customEnemyImportResultSchema,
+  enemyResponseSchema,
+  type CustomEnemyImportResult,
+  type EnemyResponse,
+} from "@/app/lib/types/enemy";
 
 type ApiErrorPayload = { message?: string; details?: string };
 export type CustomEnemyTransferFormat = "csv" | "json";
@@ -64,11 +69,7 @@ export async function downloadCustomEnemy(
   triggerFileDownload(blob, filename);
 }
 
-export type ImportCustomEnemiesResult = {
-  created: number;
-  skipped: number;
-  rowErrors: Array<{ line: number; message: string }>;
-};
+export type ImportCustomEnemiesResult = CustomEnemyImportResult;
 
 export async function importCustomEnemiesFile(
   gameId: string,
@@ -83,13 +84,21 @@ export async function importCustomEnemiesFile(
       body: form,
     }
   );
-  const json = (await response
-    .json()
-    .catch(() => ({}))) as ImportCustomEnemiesResult & ApiErrorPayload;
+  const json: unknown = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(json.message ?? `Import failed (${response.status})`);
+    const body = json as ApiErrorPayload;
+    throw new Error(body.message ?? `Import failed (${response.status})`);
   }
-  return json;
+  const parsed = customEnemyImportResultSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Custom enemy import response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }
 
 export async function copyCustomEnemyToGame(
@@ -152,7 +161,10 @@ export async function getCustomEnemy(
   }
   const parsed = enemyResponseSchema.safeParse(json);
   if (!parsed.success) {
-    throw new Error("Enemy response did not match expected shape");
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Enemy response did not match expected shape: ${details}`);
   }
   return parsed.data;
 }
