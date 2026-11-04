@@ -303,6 +303,16 @@ describe("viewNpcList", () => {
     expect(alpha?.entries.map((row) => row.id)).toEqual(["ann"]);
   });
 
+  it("returns the same entries the caller passed, including extra fields", () => {
+    const entry = {
+      ...viewEntry({ id: "ann", name: "Ann", isPublic: true }),
+      tag: "kept",
+    };
+    const sections = viewNpcList([entry], "public");
+
+    expect(sections[0]?.entries[0]).toBe(entry);
+  });
+
   it("omits a group the filter empties, and omits empty Archived", () => {
     const sections = viewNpcList(
       [

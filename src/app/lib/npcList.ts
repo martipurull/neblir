@@ -179,14 +179,15 @@ export type NpcListViewEntry = NpcListEntry & {
 
 export type NpcListOpenState = Readonly<Record<string, boolean>>;
 
-export type NpcListViewSection = {
-  heading: string;
-  /** Key for this tab's open or closed memory. Named groups use their fold key. */
-  storageKey: string;
-  entries: NpcListViewEntry[];
-  filteredCount: number;
-  open: boolean;
-};
+export type NpcListViewSection<T extends NpcListViewEntry = NpcListViewEntry> =
+  {
+    heading: string;
+    /** Key for this tab's open or closed memory. Named groups use their fold key. */
+    storageKey: string;
+    entries: T[];
+    filteredCount: number;
+    open: boolean;
+  };
 
 /**
  * Identity for remembering open or closed: Ungrouped, Archived, or a named group's fold key.
@@ -218,11 +219,11 @@ function sectionIsOpen(heading: string, openByKey: NpcListOpenState): boolean {
  * Visibility cuts cards inside the existing groups. A group with no matches is omitted.
  * A heading with no stored value starts Archived closed and every other group open.
  */
-export function viewNpcList(
-  entries: readonly NpcListViewEntry[],
+export function viewNpcList<T extends NpcListViewEntry>(
+  entries: readonly T[],
   visibility: NpcListVisibility,
-  openByKey: NpcListOpenState
-): NpcListViewSection[] {
+  openByKey: NpcListOpenState = {}
+): NpcListViewSection<T>[] {
   const filtered = entries.filter((entry) =>
     matchesNpcListVisibility(entry, visibility)
   );

@@ -87,21 +87,16 @@ export function GmNpcsSection({
           npcGroup: gc.npcGroup,
           hasPlayGrant: gc.playGrant != null,
           isPublic: gc.isPublic,
+          row: gc,
         };
       }),
     [npcRows]
   );
 
-  const npcSections = useMemo(() => {
-    const rowById = new Map(npcRows.map((gc) => [gc.character.id, gc]));
-    return viewNpcList(npcEntries, visibility, openByKey).map((section) => ({
-      ...section,
-      rows: section.entries.flatMap((entry) => {
-        const row = rowById.get(entry.id);
-        return row ? [row] : [];
-      }),
-    }));
-  }, [npcEntries, npcRows, openByKey, visibility]);
+  const npcSections = useMemo(
+    () => viewNpcList(npcEntries, visibility, openByKey),
+    [npcEntries, visibility, openByKey]
+  );
 
   const groupNames = useMemo(
     () =>
@@ -251,7 +246,7 @@ export function GmNpcsSection({
                 />
                 {section.open ? (
                   <ul id={panelId} className="mt-2 space-y-2">
-                    {section.rows.map((gc) => {
+                    {section.entries.map(({ row: gc }) => {
                       const char = gc.character;
                       const isBusy = busyCharacterId === char.id;
                       const isRolling = isPending("CHARACTER", char.id);
