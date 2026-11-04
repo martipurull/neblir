@@ -2,6 +2,7 @@ import { RemoveCharacterFromGameButton } from "@/app/components/games/RemoveChar
 import { Button } from "@/app/components/shared/Button";
 import { gmNpcCardActionClassName } from "@/app/components/shared/buttonStyles";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import { npcCardStatusPill } from "@/app/lib/characterStatusMark";
 import { gmLinkedCharacterSheetHref } from "@/app/lib/navParent";
 import type { GameDetail } from "@/app/lib/types/game";
 import {
@@ -47,6 +48,8 @@ export function GmNpcCard({
 }: GmNpcCardProps) {
   const char = row.character;
   const name = `${char.name}${char.surname ? ` ${char.surname}` : ""}`;
+  const statusPill =
+    char.healthStatus != null ? npcCardStatusPill(char.healthStatus) : null;
   const visibilityLabel = linkVisibilityLabel(isPublic);
   const toggleLabel = isPublic ? "Make private" : "Make public";
 
@@ -68,11 +71,19 @@ export function GmNpcCard({
               alt={`${name} avatar`}
               size={44}
               className="h-11 w-11 shrink-0"
+              status={char.healthStatus}
             />
             <div className="min-w-0">
-              <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
-                {name}
-              </p>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="truncate text-base font-semibold text-black underline-offset-2 hover:underline">
+                  {name}
+                </p>
+                {statusPill ? (
+                  <span className={statusPill.className}>
+                    {statusPill.label}
+                  </span>
+                ) : null}
+              </div>
               {row.playGrant ? (
                 <span className="mt-1 inline-block rounded-full border border-black/20 bg-paleBlue/80 px-2 py-0.5 text-xs font-medium text-black">
                   {row.playGrant.name}

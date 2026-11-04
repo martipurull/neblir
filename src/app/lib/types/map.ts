@@ -7,7 +7,7 @@ const mapMutableSchema = z.object({
   gameId: z.string().nullable().optional(),
 });
 
-const mapSchema = mapMutableSchema.extend({
+export const mapSchema = mapMutableSchema.extend({
   id: z.string(),
   createdAt: z.coerce.date().nullable().optional(),
   updatedAt: z.coerce.date().nullable().optional(),

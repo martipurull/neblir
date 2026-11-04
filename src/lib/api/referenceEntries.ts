@@ -6,6 +6,7 @@ import {
   type ReferenceEntryCreate,
   type ReferenceEntryUpdate,
 } from "@/app/lib/types/reference";
+import { responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -31,6 +32,7 @@ async function readErrorBody(
 export type ReferenceEntryListParams = {
   category?: ReferenceCategory;
   gameId?: string;
+  scope?: "official";
 };
 
 export async function getReferenceEntries(
@@ -40,6 +42,7 @@ export async function getReferenceEntries(
   const searchParams = new URLSearchParams();
   if (params.category) searchParams.set("category", params.category);
   if (params.gameId) searchParams.set("gameId", params.gameId);
+  if (params.scope) searchParams.set("scope", params.scope);
 
   const query = searchParams.toString();
   const response = await fetch(
@@ -63,12 +66,7 @@ export async function getReferenceEntries(
 
   const parsed = referenceEntryListSchema.safeParse(await response.json());
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(
-      `Reference entries response did not match expected shape: ${details}`
-    );
+    throw responseShapeError("Reference entries", parsed.error);
   }
 
   return parsed.data;
@@ -100,6 +98,37 @@ export async function getReferenceEntry(
   const parsed = referenceEntrySchema.safeParse(await response.json());
   if (!parsed.success) {
     throw new Error("Reference entry response did not match expected shape");
+  }
+
+  return parsed.data;
+}
+
+export async function getCatalogueReferenceEntry(
+  id: string,
+  signal?: AbortSignal
+): Promise<ReferenceEntry> {
+  const response = await fetch(
+    `/api/reference-entries/${encodeURIComponent(id)}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      parseApiError(
+        response.status,
+        await readErrorBody(response),
+        "Failed to fetch reference entry"
+      )
+    );
+  }
+
+  const parsed = referenceEntrySchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Reference entry", parsed.error);
   }
 
   return parsed.data;

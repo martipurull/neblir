@@ -1,14 +1,8 @@
-type EnemyAction = {
-  name: string;
-  description?: string;
-  numberOfDiceToHit?: number;
-  numberOfDamageDice?: number;
-  damageDiceType?: number;
-  damageType?: string;
-  notes?: string;
-};
+import { z } from "zod";
+import { enemyActionSchema } from "@/app/lib/types/enemy";
+import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 
-type EnemyInstanceStatus = "ACTIVE" | "DEFEATED" | "DEAD";
+const enemyInstanceStatusSchema = z.enum(["ACTIVE", "DEFEATED", "DEAD"]);
 
 export type EnemyInstancePatch = {
   name?: string;
@@ -22,42 +16,46 @@ export type EnemyInstancePatch = {
   initiativeModifier?: number;
   reactionsPerRound?: number;
   reactionsRemaining?: number;
-  status?: EnemyInstanceStatus;
+  status?: z.infer<typeof enemyInstanceStatusSchema>;
 };
 
-export type EnemyInstanceDetailResponse = {
-  id: string;
-  gameId: string;
-  name: string;
-  instanceNumber?: number | null;
-  sourceName?: string | null;
-  renamed?: boolean;
-  numberVisible?: boolean;
-  instanceLabel?: string;
-  isPublic?: boolean;
-  imageKey?: string | null;
-  currentHealth: number;
-  maxHealth: number;
-  reactionsRemaining: number;
-  reactionsPerRound: number;
-  status: EnemyInstanceStatus;
-  speed: number;
-  initiativeModifier: number;
-  description?: string | null;
-  notes?: string | null;
-  defenceMelee: number;
-  defenceRange: number;
-  defenceGrid: number;
-  attackMelee: number;
-  attackRange: number;
-  attackThrow: number;
-  attackGrid: number;
-  immunities: string[];
-  resistances: string[];
-  vulnerabilities: string[];
-  actions: EnemyAction[];
-  additionalActions: EnemyAction[];
-};
+export const enemyInstanceDetailResponseSchema = z.object({
+  id: z.string(),
+  gameId: z.string(),
+  name: z.string(),
+  instanceNumber: z.number().int().nullable().optional(),
+  sourceName: z.string().nullable().optional(),
+  renamed: z.boolean().optional(),
+  numberVisible: z.boolean().optional(),
+  instanceLabel: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  imageKey: z.string().nullable().optional(),
+  currentHealth: z.number(),
+  maxHealth: z.number(),
+  reactionsRemaining: z.number(),
+  reactionsPerRound: z.number(),
+  status: enemyInstanceStatusSchema,
+  speed: z.number(),
+  initiativeModifier: z.number(),
+  description: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  defenceMelee: z.number(),
+  defenceRange: z.number(),
+  defenceGrid: z.number(),
+  attackMelee: z.number(),
+  attackRange: z.number(),
+  attackThrow: z.number(),
+  attackGrid: z.number(),
+  immunities: z.array(weaponDamageTypeSchema),
+  resistances: z.array(weaponDamageTypeSchema),
+  vulnerabilities: z.array(weaponDamageTypeSchema),
+  actions: z.array(enemyActionSchema),
+  additionalActions: z.array(enemyActionSchema),
+});
+
+export type EnemyInstanceDetailResponse = z.infer<
+  typeof enemyInstanceDetailResponseSchema
+>;
 
 export type SpawnEnemyInstancesBody =
   | {

@@ -124,6 +124,21 @@ export const customEnemyFromOfficialBodySchema = z.object({
   enemyId: z.string().min(1),
 });
 
+/** POST /api/games/[id]/custom-enemies/import — success body. */
+export const customEnemyImportResultSchema = z.object({
+  created: z.number(),
+  skipped: z.number(),
+  rowErrors: z.array(
+    z.object({
+      line: z.number(),
+      message: z.string(),
+    })
+  ),
+});
+export type CustomEnemyImportResult = z.infer<
+  typeof customEnemyImportResultSchema
+>;
+
 /** POST /api/games/[id]/enemy-instances */
 export const enemyInstanceSpawnBodySchema = z
   .object({

@@ -303,6 +303,7 @@ const characterListItemSchema = z.object({
   level: z.number(),
   paths: z.array(z.string()),
   avatarKey: z.string().nullable().optional(),
+  healthStatus: z.nativeEnum(Status),
 });
 
 export const characterListSchema = z.array(characterListItemSchema);

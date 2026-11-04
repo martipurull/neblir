@@ -74,6 +74,7 @@ export function GmCombatTrackerRow({
           name={displayName}
           imageKey={imageKey}
           imageUrl={imageUrl}
+          status={characterStatus}
         />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">

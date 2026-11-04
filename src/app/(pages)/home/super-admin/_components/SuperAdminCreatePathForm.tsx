@@ -6,8 +6,8 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { RichTextField } from "@/app/components/shared/RichTextField";
-import type { Path } from "@/app/lib/types/path";
 import { pathCreateSchema, type PathCreate } from "@/app/lib/types/path";
+import { getCataloguePaths } from "@/lib/api/paths";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import type { PathName } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -22,14 +22,6 @@ import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEdi
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { buildAvailablePathNameSelectOptions } from "./pathNameSelectOptions";
-
-async function pathsFetcher(url: string): Promise<Path[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as Path[];
-}
 
 function optionalRichHtml(html: string): string | undefined {
   const t = html.trim();
@@ -48,7 +40,7 @@ export function SuperAdminCreatePathForm() {
     error: pathsError,
     isLoading: pathsLoading,
     mutate: refreshPaths,
-  } = useSWR<Path[]>("/api/paths", pathsFetcher);
+  } = useSWR("/api/paths", () => getCataloguePaths());
 
   const usedNames = useMemo(
     () => new Set((existingPaths ?? []).map((p) => p.name as PathName)),

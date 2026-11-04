@@ -31,3 +31,20 @@ export type FeatureCatalogueCreate = z.infer<
 export type FeatureCatalogueUpdate = z.infer<
   typeof featureCatalogueUpdateSchema
 >;
+
+/** Feature returned by GET /api/features and GET /api/features/[id]. */
+export const featureCatalogueResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  minPathRank: z.number().int(),
+  maxGrade: z.number().int(),
+  examples: z.array(z.string()).optional(),
+  applicablePaths: z.array(pathName),
+});
+export const featureCatalogueListResponseSchema = z.array(
+  featureCatalogueResponseSchema
+);
+export type FeatureCatalogueResponse = z.infer<
+  typeof featureCatalogueResponseSchema
+>;

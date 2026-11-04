@@ -75,6 +75,7 @@ const CharactersPage: React.FC = () => {
                   imageUrl={imageUrl}
                   imageKey={character.avatarKey}
                   imageAlt={`${character.name} avatar`}
+                  status={character.healthStatus}
                 />
               );
             })}

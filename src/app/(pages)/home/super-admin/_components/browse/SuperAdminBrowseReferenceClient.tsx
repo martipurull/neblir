@@ -8,7 +8,7 @@ import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
-import type { ReferenceCategory } from "@/app/lib/types/reference";
+import { getReferenceEntries } from "@/lib/api/referenceEntries";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -17,27 +17,11 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type ReferenceRow = {
-  id: string;
-  title: string;
-  slug: string;
-  category: ReferenceCategory;
-  summary?: string | null;
-};
-
-async function referenceFetcher(url: string): Promise<ReferenceRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as ReferenceRow[];
-}
-
 export function SuperAdminBrowseReferenceClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<ReferenceRow[]>(
+  const { data, error, isLoading, mutate } = useSWR(
     "/api/reference-entries?scope=official",
-    referenceFetcher
+    () => getReferenceEntries({ scope: "official" })
   );
 
   const filtered = useMemo(() => {

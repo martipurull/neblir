@@ -1,21 +1,12 @@
 "use client";
 
+import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Button } from "@/app/components/shared/Button";
 import { TextField } from "@/app/components/shared/TextField";
-import { ModalShell } from "@/app/components/shared/ModalShell";
-import {
-  getUserSafeApiError,
-  getUserSafeErrorMessage,
-} from "@/lib/userSafeError";
+import type { GameInviteUsersResult } from "@/app/lib/types/game";
+import { inviteUsersToGame } from "@/lib/api/game";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import React, { useState } from "react";
-
-type InviteResult = {
-  invitedEmails: string[];
-  notFound: string[];
-  alreadyInGame: string[];
-  alreadyInvited: string[];
-  isSelf: string[];
-};
 
 type InviteUsersModalProps = {
   isOpen: boolean;
@@ -42,7 +33,7 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
   const [emails, setEmails] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<InviteResult | null>(null);
+  const [result, setResult] = useState<GameInviteUsersResult | null>(null);
 
   const addEmail = () => {
     const trimmed = emailInput.trim().toLowerCase();
@@ -74,33 +65,15 @@ const InviteUsersModal: React.FC<InviteUsersModalProps> = ({
     setSubmitting(true);
     setResult(null);
     try {
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/invites`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ emails }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setError(
-          getUserSafeApiError(
-            res.status,
-            data as { message?: string; details?: string },
-            "Failed to send invites."
-          )
-        );
-        return;
-      }
-      setResult(data as InviteResult);
-      if (data.invitedEmails?.length > 0) {
+      const data = await inviteUsersToGame(gameId, emails);
+      setResult(data);
+      if (data.invitedEmails.length > 0) {
         setEmails((prev) =>
           prev.filter((e) => !data.invitedEmails.includes(e))
         );
         onSuccess?.();
       }
-      if (data.invitedEmails?.length === emails.length && emails.length > 0) {
+      if (data.invitedEmails.length === emails.length && emails.length > 0) {
         setTimeout(() => {
           onClose();
         }, 2500);

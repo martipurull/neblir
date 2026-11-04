@@ -1,10 +1,14 @@
 import {
+  uniqueVehicleCreateResponseSchema,
   uniqueVehicleDetailResponseSchema,
   uniqueVehicleListResponseSchema,
+  uniqueVehicleUpdateResponseSchema,
   type UniqueVehicleCreate,
+  type UniqueVehicleCreateResponse,
   type UniqueVehicleDetailResponse,
   type UniqueVehicleListItem,
   type UniqueVehicleUpdate,
+  type UniqueVehicleUpdateResponse,
 } from "@/app/lib/types/vehicle";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
@@ -98,7 +102,7 @@ export async function getUniqueVehicleById(
 
 export async function createUniqueVehicle(
   body: UniqueVehicleCreate
-): Promise<{ id: string }> {
+): Promise<UniqueVehicleCreateResponse> {
   const response = await fetch("/api/unique-vehicles", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -121,17 +125,23 @@ export async function createUniqueVehicle(
     );
   }
 
-  const json = (await response.json()) as { id?: string };
-  if (!json.id) {
-    throw new Error("Unique vehicle create response did not include an id");
+  const json: unknown = await response.json();
+  const parsed = uniqueVehicleCreateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Unique vehicle create response did not match expected shape: ${details}`
+    );
   }
-  return { id: json.id };
+  return parsed.data;
 }
 
 export async function updateUniqueVehicle(
   uniqueVehicleId: string,
   body: UniqueVehicleUpdate
-): Promise<Record<string, unknown>> {
+): Promise<UniqueVehicleUpdateResponse> {
   const response = await fetch(
     `/api/unique-vehicles/${encodeURIComponent(uniqueVehicleId)}`,
     {
@@ -157,5 +167,15 @@ export async function updateUniqueVehicle(
     );
   }
 
-  return (await response.json()) as Record<string, unknown>;
+  const json: unknown = await response.json();
+  const parsed = uniqueVehicleUpdateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Unique vehicle update response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }

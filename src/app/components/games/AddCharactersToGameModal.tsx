@@ -6,20 +6,11 @@ import { TextField } from "@/app/components/shared/TextField";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import type { GameCharactersAddResult } from "@/app/lib/types/game";
 import { useCharacters } from "@/hooks/use-characters";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import {
-  getUserSafeApiError,
-  getUserSafeErrorMessage,
-} from "@/lib/userSafeError";
-
-type AddCharactersResponse = {
-  success: boolean;
-  linkedCount: number;
-  linkedIds: string[];
-  alreadyLinkedIds: string[];
-  failed: Array<{ characterId: string; reason: string }>;
-};
+import { addCharactersToGame } from "@/lib/api/game";
+import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 
 type SelectedCharacterConfig = {
   isPublic: boolean;
@@ -65,7 +56,7 @@ export function AddCharactersToGameModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] =
-    useState<AddCharactersResponse | null>(null);
+    useState<GameCharactersAddResult | null>(null);
 
   const alreadyLinked = useMemo(
     () => new Set(alreadyLinkedCharacterIds),
@@ -143,26 +134,7 @@ export function AddCharactersToGameModal({
     setSubmitResult(null);
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `/api/games/${encodeURIComponent(gameId)}/characters`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ characters: rows }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(
-          getUserSafeApiError(
-            res.status,
-            data as { message?: string; details?: string },
-            "Failed to add characters."
-          )
-        );
-        return;
-      }
-      const payload = data as AddCharactersResponse;
+      const payload = await addCharactersToGame(gameId, rows);
       setSubmitResult(payload);
 
       if (payload.linkedCount > 0 || payload.alreadyLinkedIds.length > 0) {

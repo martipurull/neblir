@@ -1,17 +1,11 @@
 import { Button } from "@/app/components/shared/Button";
 import { InfoCard } from "@/app/components/shared/InfoCard";
+import type { PendingGameInvite } from "@/app/lib/types/game";
 import { GmSectionTitle } from "./GmSectionTitle";
-
-type PendingInvite = {
-  invitedUserId: string;
-  invitedUserName: string;
-  invitedUserEmail: string;
-  createdAt: string;
-};
 
 type GmInvitesSectionProps = {
   onInviteUsers: () => void;
-  pendingInvites: PendingInvite[];
+  pendingInvites: PendingGameInvite[];
 };
 
 export function GmInvitesSection({

@@ -10,6 +10,8 @@ import {
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
+import type { GameMap } from "@/app/lib/types/map";
+import { getMaps } from "@/lib/api/maps";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -18,26 +20,11 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type MapRow = {
-  id: string;
-  name: string;
-  imageKey: string;
-  description?: string | null;
-};
-
-async function mapsFetcher(url: string): Promise<MapRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as MapRow[];
-}
-
 export function SuperAdminBrowseMapsClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<MapRow[]>(
+  const { data, error, isLoading, mutate } = useSWR<GameMap[]>(
     "/api/maps",
-    mapsFetcher
+    () => getMaps()
   );
 
   const filtered = useMemo(() => {

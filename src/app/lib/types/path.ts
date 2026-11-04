@@ -75,3 +75,5 @@ export const pathSchema = z.object({
 export const pathCatalogueUpdateSchema = pathCreateSchema.partial().strict();
 
 export type Path = z.infer<typeof pathSchema>;
+
+export const pathListSchema = z.array(pathSchema);

@@ -159,29 +159,33 @@ export function CombatDamageRollModal({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/80">Extra dice (GM)</span>
-          <Button
-            type="button"
-            variant="modalIconStepperSmall"
-            fullWidth={false}
-            onClick={() => setExtraDice((count) => count - 1)}
-            aria-label="Decrease extra damage dice"
-          >
-            −
-          </Button>
-          <span className="min-w-[2rem] text-center text-sm font-bold text-white">
-            {extraDice >= 0 ? `+${extraDice}` : extraDice}
+        <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="shrink-0 text-xs text-white/80">
+            Extra dice (GM)
           </span>
-          <Button
-            type="button"
-            variant="modalIconStepperSmall"
-            fullWidth={false}
-            onClick={() => setExtraDice((count) => count + 1)}
-            aria-label="Increase extra damage dice"
-          >
-            +
-          </Button>
+          <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="modalIconStepperSmall"
+              fullWidth={false}
+              onClick={() => setExtraDice((count) => count - 1)}
+              aria-label="Decrease extra damage dice"
+            >
+              −
+            </Button>
+            <span className="min-w-[2rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
+              {extraDice >= 0 ? `+${extraDice}` : extraDice}
+            </span>
+            <Button
+              type="button"
+              variant="modalIconStepperSmall"
+              fullWidth={false}
+              onClick={() => setExtraDice((count) => count + 1)}
+              aria-label="Increase extra damage dice"
+            >
+              +
+            </Button>
+          </div>
         </div>
 
         {selected ? (

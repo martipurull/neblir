@@ -1,8 +1,7 @@
 import Link from "next/link";
 import React from "react";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
+import type { Status } from "@prisma/client";
 
 interface ResourceListCardProps {
   title: string;
@@ -14,6 +13,7 @@ interface ResourceListCardProps {
   href?: string;
   rightAccessory?: React.ReactNode;
   body?: React.ReactNode;
+  status?: Status | null;
 }
 
 const ResourceListCard: React.FC<ResourceListCardProps> = ({
@@ -26,36 +26,18 @@ const ResourceListCard: React.FC<ResourceListCardProps> = ({
   href,
   rightAccessory,
   body,
+  status,
 }) => {
-  const resolvedImageUrl = resolveRemoteImageUrl(imageKey, imageUrl);
-  const showImage =
-    resolvedImageUrl &&
-    typeof resolvedImageUrl === "string" &&
-    resolvedImageUrl.length > 0;
-  const showLoading = resolvedImageUrl === undefined;
-
   const headerRow = (
     <div className="flex items-center gap-3">
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-        {showImage ? (
-          <SignedRemoteImage
-            src={resolvedImageUrl}
-            imageKey={imageKey ?? undefined}
-            alt={imageAlt}
-            width={48}
-            height={48}
-            className="h-12 w-12 object-cover object-top"
-          />
-        ) : showLoading ? (
-          <ImageLoadingSkeleton variant="avatar" />
-        ) : (
-          <ImageLoadingSkeleton
-            variant="avatar"
-            animated={false}
-            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
-          />
-        )}
-      </div>
+      <RemoteAvatar
+        imageUrl={imageUrl}
+        imageKey={imageKey}
+        alt={imageAlt}
+        size={48}
+        className="h-12 w-12"
+        status={status}
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-black">{title}</p>
         <p className="truncate text-xs text-black">{subtitle}</p>

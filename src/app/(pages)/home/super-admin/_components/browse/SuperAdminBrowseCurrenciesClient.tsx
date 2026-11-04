@@ -9,6 +9,7 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { getCurrencies } from "@/lib/api/currencies";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -17,26 +18,10 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type CurrencyRow = {
-  id: string;
-  name: string;
-  imageKey: string;
-  exchangeValue?: number;
-};
-
-async function currenciesFetcher(url: string): Promise<CurrencyRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as CurrencyRow[];
-}
-
 export function SuperAdminBrowseCurrenciesClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<CurrencyRow[]>(
-    "/api/currencies",
-    currenciesFetcher
+  const { data, error, isLoading, mutate } = useSWR("/api/currencies", () =>
+    getCurrencies()
   );
 
   const filtered = useMemo(() => {

@@ -58,6 +58,36 @@ export const gameCreateResponseSchema = z.object({
 });
 export type GameCreateResponse = z.infer<typeof gameCreateResponseSchema>;
 
+/** GET /api/games/invites — invites the current user has received. */
+const receivedGameInviteSchema = z.object({
+  gameId: z.string(),
+  gameName: z.string(),
+  invitedByName: z.string(),
+  createdAt: z.string(),
+});
+export const receivedGameInviteListSchema = z.array(receivedGameInviteSchema);
+export type ReceivedGameInvite = z.infer<typeof receivedGameInviteSchema>;
+
+/** GET /api/games/[id]/invites — pending invites for the game master. */
+const pendingGameInviteSchema = z.object({
+  invitedUserId: z.string(),
+  invitedUserName: z.string(),
+  invitedUserEmail: z.string(),
+  createdAt: z.string(),
+});
+export const pendingGameInviteListSchema = z.array(pendingGameInviteSchema);
+export type PendingGameInvite = z.infer<typeof pendingGameInviteSchema>;
+
+/** POST /api/games/[id]/invites — result of inviting users by email. */
+export const gameInviteUsersResultSchema = z.object({
+  invitedEmails: z.array(z.string()),
+  notFound: z.array(z.string()),
+  alreadyInGame: z.array(z.string()),
+  alreadyInvited: z.array(z.string()),
+  isSelf: z.array(z.string()),
+});
+export type GameInviteUsersResult = z.infer<typeof gameInviteUsersResultSchema>;
+
 const gameCharacterSchema = z.object({
   id: z.string(),
   gameId: z.string(),
@@ -99,6 +129,23 @@ export const gameCharactersAddSchema = z
     }
   });
 
+/** POST /api/games/[id]/characters — result of linking characters. */
+export const gameCharactersAddResultSchema = z.object({
+  success: z.boolean(),
+  linkedCount: z.number(),
+  linkedIds: z.array(z.string()),
+  alreadyLinkedIds: z.array(z.string()),
+  failed: z.array(
+    z.object({
+      characterId: z.string(),
+      reason: z.string(),
+    })
+  ),
+});
+export type GameCharactersAddResult = z.infer<
+  typeof gameCharactersAddResultSchema
+>;
+
 /** DELETE /api/games/[id]/characters — unlink a character. */
 export const gameCharacterRemoveSchema = z.object({
   characterId: z.string().min(1),
@@ -131,6 +178,12 @@ export const playGrantUpsertSchema = z
     userId: z.string().min(1),
   })
   .strict();
+
+/** PUT and DELETE play-grant success body. */
+export const playGrantResponseSchema = z.object({
+  playGrantUserId: z.string().nullable(),
+});
+export type PlayGrantResponse = z.infer<typeof playGrantResponseSchema>;
 
 /** GameCharacter as returned from GET /api/characters/[id] (includes game name). */
 export const gameCharacterWithGameSchema = gameCharacterSchema.extend({

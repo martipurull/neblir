@@ -1,4 +1,9 @@
-import type { EquipSlotType, Item, ItemDamage } from "@/app/lib/types/item";
+import {
+  equipSlotTypeSchema,
+  type EquipSlotType,
+  type ItemDamage,
+  type ItemResponse,
+} from "@/app/lib/types/item";
 import type { z } from "zod";
 import type { weaponAttackRollTypeSchema } from "@/app/lib/types/item";
 
@@ -43,7 +48,12 @@ function numOrUndefined(n: number | null | undefined): number | undefined {
   return n ?? undefined;
 }
 
-function damageToForm(damage: ItemDamage | null | undefined) {
+function damageToForm(
+  damage:
+    | Pick<ItemDamage, "damageType" | "diceType" | "numberOfDice">
+    | null
+    | undefined
+) {
   if (!damage) {
     return {
       damageTypes: [] as string[],
@@ -60,7 +70,7 @@ function damageToForm(damage: ItemDamage | null | undefined) {
 
 /** Map a catalogue item from GET /api/items/[id] into super-admin form state. */
 export function catalogueItemToFormValues(
-  item: Item & { imageKey?: string | null }
+  item: ItemResponse
 ): SuperAdminItemFormValues {
   const isWeapon = item.type === "WEAPON";
   const damageFields = isWeapon
@@ -102,9 +112,12 @@ export function catalogueItemToFormValues(
     effectiveRange: numOrUndefined(isWeapon ? item.effectiveRange : undefined),
     maxRange: numOrUndefined(isWeapon ? item.maxRange : undefined),
     ...damageFields,
-    equippable: item.equippable,
+    equippable: item.equippable ?? false,
     vehicleMountable: item.vehicleMountable ?? false,
-    equipSlotTypes: item.equipSlotTypes ?? [],
+    equipSlotTypes: (item.equipSlotTypes ?? []).flatMap((slot) => {
+      const parsed = equipSlotTypeSchema.safeParse(slot);
+      return parsed.success ? [parsed.data] : [];
+    }),
     equipSlotCost:
       item.equipSlotCost === null || item.equipSlotCost === undefined
         ? ""
@@ -118,8 +131,6 @@ export function catalogueItemToFormValues(
   };
 }
 
-export function catalogueItemImageKey(
-  item: Item & { imageKey?: string | null }
-): string {
+export function catalogueItemImageKey(item: ItemResponse): string {
   return item.imageKey?.trim() ?? "";
 }

@@ -333,9 +333,11 @@ function OpenAttackRollModal({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-medium text-white">Extra dice</span>
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+          <span className="shrink-0 text-sm font-medium text-white">
+            Extra dice
+          </span>
+          <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
             <Button
               type="button"
               variant="modalIconStepper"
@@ -352,7 +354,7 @@ function OpenAttackRollModal({
             >
               −
             </Button>
-            <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+            <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
               {shown.extraToHitDice >= 0
                 ? `+${shown.extraToHitDice}`
                 : shown.extraToHitDice}
@@ -418,43 +420,49 @@ function OpenAttackRollModal({
                 {damageHint}
               </p>
             )}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/80">Extra dice (GM)</span>
-              <Button
-                type="button"
-                variant="modalIconStepperSmall"
-                fullWidth={false}
-                onClick={() =>
-                  setSession((current) =>
-                    applyAttackRollSession(current, {
-                      type: "changeExtraDamageDice",
-                      extraDamageDice: current.extraDamageDice - 1,
-                    })
-                  )
-                }
-                aria-label="Decrease extra damage dice"
-              >
-                −
-              </Button>
-              <span className="min-w-[2rem] text-center text-sm font-bold text-white">
-                {damageExtraDice >= 0 ? `+${damageExtraDice}` : damageExtraDice}
+            <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
+              <span className="shrink-0 text-xs text-white/80">
+                Extra dice (GM)
               </span>
-              <Button
-                type="button"
-                variant="modalIconStepperSmall"
-                fullWidth={false}
-                onClick={() =>
-                  setSession((current) =>
-                    applyAttackRollSession(current, {
-                      type: "changeExtraDamageDice",
-                      extraDamageDice: current.extraDamageDice + 1,
-                    })
-                  )
-                }
-                aria-label="Increase extra damage dice"
-              >
-                +
-              </Button>
+              <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
+                  onClick={() =>
+                    setSession((current) =>
+                      applyAttackRollSession(current, {
+                        type: "changeExtraDamageDice",
+                        extraDamageDice: current.extraDamageDice - 1,
+                      })
+                    )
+                  }
+                  aria-label="Decrease extra damage dice"
+                >
+                  −
+                </Button>
+                <span className="min-w-[2rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
+                  {damageExtraDice >= 0
+                    ? `+${damageExtraDice}`
+                    : damageExtraDice}
+                </span>
+                <Button
+                  type="button"
+                  variant="modalIconStepperSmall"
+                  fullWidth={false}
+                  onClick={() =>
+                    setSession((current) =>
+                      applyAttackRollSession(current, {
+                        type: "changeExtraDamageDice",
+                        extraDamageDice: current.extraDamageDice + 1,
+                      })
+                    )
+                  }
+                  aria-label="Increase extra damage dice"
+                >
+                  +
+                </Button>
+              </div>
             </div>
             <p className="text-md text-white">
               {damageDice

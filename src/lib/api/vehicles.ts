@@ -1,14 +1,18 @@
 import { z } from "zod";
 import {
+  officialVehicleListResponseSchema,
+  officialVehicleResponseSchema,
   resolvedVehicleSchema,
   vehicleCharacterSchema,
   type ActiveVehiclePatch,
   type AddVehicleToCharacter,
+  type OfficialVehicle,
   type ResolvedVehicle,
   type VehicleCharacter,
   type VehicleCharacterPatch,
   type VehicleTransfer,
 } from "@/app/lib/types/vehicle";
+import { responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -47,14 +51,64 @@ export async function getOfficialVehicles(
   const json = await response.json();
   const parsed = resolvedVehicleListSchema.safeParse(json);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
+    throw responseShapeError("Vehicle list", parsed.error);
+  }
+
+  return parsed.data;
+}
+
+export async function getCatalogueVehicles(
+  signal?: AbortSignal
+): Promise<OfficialVehicle[]> {
+  const response = await fetch("/api/vehicles", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
     throw new Error(
-      `Vehicle list response did not match expected shape: ${details}`
+      getUserSafeApiError(
+        response.status,
+        await getErrorPayload(response),
+        "Failed to load vehicles"
+      )
     );
   }
 
+  const parsed = officialVehicleListResponseSchema.safeParse(
+    await response.json()
+  );
+  if (!parsed.success) {
+    throw responseShapeError("Vehicles", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function getCatalogueVehicle(
+  id: string,
+  signal?: AbortSignal
+): Promise<OfficialVehicle> {
+  const response = await fetch(`/api/vehicles/${encodeURIComponent(id)}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await getErrorPayload(response),
+        "Failed to load vehicle"
+      )
+    );
+  }
+
+  const parsed = officialVehicleResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Vehicle", parsed.error);
+  }
   return parsed.data;
 }
 

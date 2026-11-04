@@ -1,9 +1,13 @@
 import {
   uniqueItemCreateResponseSchema,
+  uniqueItemDetailResponseSchema,
   uniqueItemListResponseSchema,
+  uniqueItemUpdateResponseSchema,
   type UniqueItemCreate,
   type UniqueItemCreateResponse,
+  type UniqueItemDetailResponse,
   type UniqueItemUpdate,
+  type UniqueItemUpdateResponse,
 } from "@/app/lib/types/item";
 import type { z } from "zod";
 import { getUserSafeApiError } from "@/lib/userSafeError";
@@ -13,15 +17,6 @@ type ApiErrorPayload = { message?: string; details?: string };
 export type UniqueItemListItem = z.infer<
   typeof uniqueItemListResponseSchema
 >[number];
-
-export type UniqueItemDetailRecord = Record<string, unknown> & {
-  id: string;
-  ownerUserId: string;
-  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "STANDALONE";
-  itemId?: string | null;
-  templateItem?: Record<string, unknown> | null;
-  resolvedItem?: Record<string, unknown> | null;
-};
 
 export async function getGameUniqueItems(
   gameId: string,
@@ -64,7 +59,7 @@ export async function getGameUniqueItems(
 export async function getUniqueItemById(
   uniqueItemId: string,
   signal?: AbortSignal
-): Promise<UniqueItemDetailRecord> {
+): Promise<UniqueItemDetailResponse> {
   const response = await fetch(
     `/api/unique-items/${encodeURIComponent(uniqueItemId)}`,
     {
@@ -86,17 +81,23 @@ export async function getUniqueItemById(
     );
   }
 
-  const json = (await response.json()) as UniqueItemDetailRecord;
-  if (!json?.id || typeof json.id !== "string") {
-    throw new Error("Unique item response did not include an id.");
+  const json: unknown = await response.json();
+  const parsed = uniqueItemDetailResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Unique item response did not match expected shape: ${details}`
+    );
   }
-  return json;
+  return parsed.data;
 }
 
 export async function updateUniqueItem(
   uniqueItemId: string,
   body: UniqueItemUpdate
-): Promise<Record<string, unknown>> {
+): Promise<UniqueItemUpdateResponse> {
   const response = await fetch(
     `/api/unique-items/${encodeURIComponent(uniqueItemId)}`,
     {
@@ -122,7 +123,17 @@ export async function updateUniqueItem(
     );
   }
 
-  return (await response.json()) as Record<string, unknown>;
+  const json: unknown = await response.json();
+  const parsed = uniqueItemUpdateResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Unique item update response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }
 
 export async function createUniqueItem(

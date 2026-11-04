@@ -58,6 +58,18 @@ _Avoid_: deleted character, unlinked character, archive flag
 A character linked to a game with at least one Owner among that game's users who is not the GM.
 _Avoid_: PC (as a stored type)
 
+**Public**:
+A character's game link that other players may see.
+_Avoid_: known to players
+
+**Private**:
+A character's game link that other players may not see. The owner, the GM, and a play-grant grantee still see it.
+_Avoid_: hidden character, secret NPC
+
+**Known NPCs**:
+The GM-controlled characters on a game whose link is public. NPC group does not change who is on it.
+_Avoid_: public NPC list
+
 ### Character health
 
 **Status**:

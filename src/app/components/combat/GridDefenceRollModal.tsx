@@ -135,9 +135,11 @@ export function GridDefenceRollModal({
         {modifierHint && (
           <p className="text-xs text-white/75">{modifierHint}</p>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-medium text-white">Extra dice</span>
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+          <span className="shrink-0 text-sm font-medium text-white">
+            Extra dice
+          </span>
+          <div className="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2">
             <Button
               type="button"
               variant="modalIconStepper"
@@ -147,7 +149,7 @@ export function GridDefenceRollModal({
             >
               −
             </Button>
-            <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+            <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
               {extraDice >= 0 ? `+${extraDice}` : extraDice}
             </span>
             <Button
