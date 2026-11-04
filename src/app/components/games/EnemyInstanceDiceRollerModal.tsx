@@ -187,7 +187,7 @@ export function EnemyInstanceDiceRollerModal({
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-sm text-white">Number of dice</span>
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
                 <Button
                   type="button"
                   variant="modalIconStepper"
@@ -199,7 +199,7 @@ export function EnemyInstanceDiceRollerModal({
                 >
                   -
                 </Button>
-                <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+                <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
                   {damageDiceCount}
                 </span>
                 <Button
@@ -264,7 +264,7 @@ export function EnemyInstanceDiceRollerModal({
           <div className="space-y-4">
             <div className="space-y-2">
               <span className="text-sm text-white">Number of dice</span>
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5">
                 <Button
                   type="button"
                   variant="modalIconStepper"
@@ -273,7 +273,7 @@ export function EnemyInstanceDiceRollerModal({
                 >
                   -
                 </Button>
-                <span className="min-w-[2.5rem] text-center text-sm font-bold text-white">
+                <span className="min-w-[2.5rem] shrink-0 whitespace-nowrap text-center text-sm font-bold text-white">
                   {freeDiceCount}
                 </span>
                 <Button

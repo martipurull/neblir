@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
-import { resolveRemoteImageUrl } from "@/app/lib/remoteImageUrl";
-import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import { RemoteAvatar } from "@/app/components/shared/RemoteAvatar";
 import { UpArrowIcon } from "@/app/components/shared/UpArrowIcon";
+import type { Status } from "@prisma/client";
 import { Suspense, useState } from "react";
 import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import {
@@ -30,6 +29,7 @@ export interface CharacterHeaderInfoProps {
   onOpenDiceRoller?: () => void;
   /** When false, hides level-up / update actions */
   showCharacterActions?: boolean;
+  status?: Status | null;
   className?: string;
 }
 
@@ -47,10 +47,10 @@ export function CharacterHeaderInfo({
   onVisibilityUpdated,
   onOpenDiceRoller,
   showCharacterActions = true,
+  status,
   className,
 }: CharacterHeaderInfoProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
-  const resolvedAvatarUrl = resolveRemoteImageUrl(avatarKey, avatarUrl);
 
   return (
     <div className={`flex items-center gap-4 pb-2 ${className ?? ""}`}>
@@ -68,38 +68,15 @@ export function CharacterHeaderInfo({
         </Button>
       ) : null}
 
-      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-paleBlue/20">
-        {resolvedAvatarUrl ? (
-          <a
-            href={resolvedAvatarUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
-            aria-label={`Open ${name} avatar image`}
-            title="Open full avatar image"
-          >
-            <SignedRemoteImage
-              src={resolvedAvatarUrl}
-              imageKey={avatarKey ?? undefined}
-              alt={`${name} avatar`}
-              width={48}
-              height={48}
-              className="h-12 w-12 object-cover object-top"
-            />
-          </a>
-        ) : resolvedAvatarUrl === undefined ? (
-          <ImageLoadingSkeleton
-            variant="avatar"
-            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
-          />
-        ) : (
-          <ImageLoadingSkeleton
-            variant="avatar"
-            animated={false}
-            className="h-full w-full [&_svg]:h-12 [&_svg]:w-12"
-          />
-        )}
-      </div>
+      <RemoteAvatar
+        imageUrl={avatarUrl}
+        imageKey={avatarKey}
+        alt={`${name} avatar`}
+        size={48}
+        className="h-12 w-12"
+        status={status}
+        openFullImageLabel={`Open ${name} avatar image`}
+      />
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <div className="min-w-0 flex-1 text-center sm:text-left">

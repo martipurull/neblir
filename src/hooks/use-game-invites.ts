@@ -1,11 +1,8 @@
+import type { ReceivedGameInvite } from "@/app/lib/types/game";
+import { fetchReceivedGameInvites } from "@/lib/api/game";
 import useSWR from "swr";
 
-export type GameInviteItem = {
-  gameId: string;
-  gameName: string;
-  invitedByName: string;
-  createdAt: string;
-};
+export type GameInviteItem = ReceivedGameInvite;
 
 type UseGameInvitesResult = {
   invites: GameInviteItem[];
@@ -16,8 +13,10 @@ type UseGameInvitesResult = {
 };
 
 export function useGameInvites(): UseGameInvitesResult {
-  const { data, error, isLoading, mutate } =
-    useSWR<GameInviteItem[]>("/api/games/invites");
+  const { data, error, isLoading, mutate } = useSWR<GameInviteItem[]>(
+    "/api/games/invites",
+    () => fetchReceivedGameInvites()
+  );
 
   const refetch = async () => {
     await mutate();

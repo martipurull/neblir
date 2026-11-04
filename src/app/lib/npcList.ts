@@ -10,9 +10,9 @@ export type NpcListEntry = {
   hasPlayGrant: boolean;
 };
 
-export type NpcListSection = {
+export type NpcListSection<T extends NpcListEntry = NpcListEntry> = {
   heading: string;
-  entries: NpcListEntry[];
+  entries: T[];
 };
 
 const ungroupedKey = normalizeOfficialName(UNGROUPED_NPC_HEADING);
@@ -99,7 +99,9 @@ export function resolveNpcGroupRename(
   };
 }
 
-function sortNpcListEntries(entries: readonly NpcListEntry[]): NpcListEntry[] {
+function sortNpcListEntries<T extends NpcListEntry>(
+  entries: readonly T[]
+): T[] {
   return [...entries].sort((a, b) => {
     if (a.hasPlayGrant !== b.hasPlayGrant) {
       return a.hasPlayGrant ? -1 : 1;
@@ -109,12 +111,12 @@ function sortNpcListEntries(entries: readonly NpcListEntry[]): NpcListEntry[] {
 }
 
 /** Sections for the game master page NPC list. Empty sections are omitted. */
-export function groupNpcList(
-  entries: readonly NpcListEntry[]
-): NpcListSection[] {
-  const ungrouped: NpcListEntry[] = [];
-  const archived: NpcListEntry[] = [];
-  const named = new Map<string, { heading: string; entries: NpcListEntry[] }>();
+export function groupNpcList<T extends NpcListEntry>(
+  entries: readonly T[]
+): NpcListSection<T>[] {
+  const ungrouped: T[] = [];
+  const archived: T[] = [];
+  const named = new Map<string, { heading: string; entries: T[] }>();
 
   for (const entry of entries) {
     const trimmed = entry.npcGroup?.trim() ?? "";
@@ -144,7 +146,7 @@ export function groupNpcList(
       entries: sortNpcListEntries(bucket.entries),
     }));
 
-  const sections: NpcListSection[] = [];
+  const sections: NpcListSection<T>[] = [];
   if (ungrouped.length > 0) {
     sections.push({
       heading: UNGROUPED_NPC_HEADING,
@@ -166,4 +168,71 @@ export function npcRollPickerCandidates<T extends { npcGroup?: string | null }>(
   entries: readonly T[]
 ): T[] {
   return entries.filter((entry) => !isArchivedNpcGroup(entry.npcGroup));
+}
+
+export type NpcListVisibility = "all" | "public" | "private";
+
+/** A list entry plus the game link's visibility. Omitted counts as Public. */
+export type NpcListViewEntry = NpcListEntry & {
+  isPublic?: boolean | null;
+};
+
+export type NpcListOpenState = Readonly<Record<string, boolean>>;
+
+export type NpcListViewSection<T extends NpcListViewEntry = NpcListViewEntry> =
+  {
+    heading: string;
+    /** Key for this tab's open or closed memory. Named groups use their fold key. */
+    storageKey: string;
+    entries: T[];
+    filteredCount: number;
+    open: boolean;
+  };
+
+/**
+ * Identity for remembering open or closed: Ungrouped, Archived, or a named group's fold key.
+ * A new spelling of a named group does not match the previous key, so it starts open.
+ */
+export function npcListSectionStorageKey(heading: string): string {
+  if (isArchivedNpcGroup(heading)) return ARCHIVED_NPC_GROUP;
+  const key = npcGroupFoldKey(heading);
+  if (key === "") return UNGROUPED_NPC_HEADING;
+  return key;
+}
+
+function matchesNpcListVisibility(
+  entry: NpcListViewEntry,
+  visibility: NpcListVisibility
+): boolean {
+  if (visibility === "all") return true;
+  const isPublic = entry.isPublic !== false;
+  return visibility === "public" ? isPublic : !isPublic;
+}
+
+function sectionIsOpen(heading: string, openByKey: NpcListOpenState): boolean {
+  const storageKey = npcListSectionStorageKey(heading);
+  return openByKey[storageKey] ?? storageKey !== ARCHIVED_NPC_GROUP;
+}
+
+/**
+ * Sections for the Game master page NPC list.
+ * Visibility cuts cards inside the existing groups. A group with no matches is omitted.
+ * A heading with no stored value starts Archived closed and every other group open.
+ */
+export function viewNpcList<T extends NpcListViewEntry>(
+  entries: readonly T[],
+  visibility: NpcListVisibility,
+  openByKey: NpcListOpenState = {}
+): NpcListViewSection<T>[] {
+  const filtered = entries.filter((entry) =>
+    matchesNpcListVisibility(entry, visibility)
+  );
+
+  return groupNpcList(filtered).map((section) => ({
+    heading: section.heading,
+    storageKey: npcListSectionStorageKey(section.heading),
+    entries: section.entries,
+    filteredCount: section.entries.length,
+    open: sectionIsOpen(section.heading, openByKey),
+  }));
 }

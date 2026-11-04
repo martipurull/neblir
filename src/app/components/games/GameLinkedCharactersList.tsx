@@ -125,6 +125,7 @@ export function GameLinkedCharactersList({
             imageUrl={imageUrl}
             imageKey={char.avatarKey}
             imageAlt={`${char.name} avatar`}
+            status={char.healthStatus}
             className={
               char.isOwnedByCurrentUser ? "!border-neblirSafe-400" : ""
             }

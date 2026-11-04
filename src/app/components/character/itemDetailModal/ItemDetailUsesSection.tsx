@@ -20,7 +20,7 @@ export function ItemDetailUsesSection({
       <span className="block text-xs font-medium uppercase tracking-wider text-white/70">
         Uses
       </span>
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-3 gap-y-1.5">
         <Button
           type="button"
           variant="modalIconStepperLg"
@@ -31,7 +31,7 @@ export function ItemDetailUsesSection({
         >
           −
         </Button>
-        <span className="min-w-[4rem] text-center text-lg font-semibold tabular-nums text-white">
+        <span className="min-w-[4rem] shrink-0 whitespace-nowrap text-center text-lg font-semibold tabular-nums text-white">
           {displayUses} / {maxUses}
         </span>
         <Button

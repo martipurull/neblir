@@ -8,6 +8,7 @@ import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { RichTextField } from "@/app/components/shared/RichTextField";
 import { featureCatalogueUpdateSchema } from "@/app/lib/types/featureCatalogue";
+import { getCatalogueFeature } from "@/lib/api/features";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { useRouter } from "next/navigation";
@@ -20,16 +21,6 @@ import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSecti
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 import { PATH_NAME_SELECT_OPTIONS } from "./pathNameSelectOptions";
-
-type FeatureRow = {
-  id: string;
-  name: string;
-  description: string;
-  minPathRank: number;
-  maxGrade: number;
-  examples?: string[] | null;
-  applicablePaths: PathName[];
-};
 
 type FeatureFormValues = {
   name: string;
@@ -51,14 +42,6 @@ function examplesFromRichHtml(html: string): string[] {
   return persisted ? [persisted] : [];
 }
 
-async function featureFetcher(url: string): Promise<FeatureRow> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as FeatureRow;
-}
-
 export function SuperAdminEditFeatureForm({
   featureId,
 }: {
@@ -71,9 +54,9 @@ export function SuperAdminEditFeatureForm({
     () => new Set()
   );
 
-  const { data, error, isLoading, mutate } = useSWR<FeatureRow>(
+  const { data, error, isLoading, mutate } = useSWR(
     featureId ? `/api/features/${featureId}` : null,
-    featureFetcher
+    () => getCatalogueFeature(featureId)
   );
 
   const pathValues = useMemo(

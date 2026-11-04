@@ -8,7 +8,12 @@ import {
   TypeToConfirmDangerModal,
   getDeleteOfficialCatalogueConfirmationPhrase,
 } from "@/app/components/shared/TypeToConfirmDangerModal";
-import { currencyUpdateSchema, isConfCurrency } from "@/app/lib/types/currency";
+import {
+  currencyUpdateSchema,
+  isConfCurrency,
+  type CurrencyResponse,
+} from "@/app/lib/types/currency";
+import { getCurrency } from "@/lib/api/currencies";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -26,22 +31,7 @@ import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 
 const exchangeHint = "Whole number of hundredths of one CONF, at least 1.";
 
-type CurrencyRow = {
-  id: string;
-  name: string;
-  imageKey: string;
-  exchangeValue: number;
-};
-
-async function currencyFetcher(url: string): Promise<CurrencyRow> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as CurrencyRow;
-}
-
-function CurrencyEditFields({ currency }: { currency: CurrencyRow }) {
+function CurrencyEditFields({ currency }: { currency: CurrencyResponse }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -185,9 +175,9 @@ export function SuperAdminEditCurrencyForm({
 }: {
   currencyId: string;
 }) {
-  const { data, error, isLoading, mutate } = useSWR<CurrencyRow>(
+  const { data, error, isLoading, mutate } = useSWR(
     currencyId ? `/api/currencies/${currencyId}` : null,
-    currencyFetcher
+    () => getCurrency(currencyId)
   );
 
   return (

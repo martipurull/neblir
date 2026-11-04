@@ -5,7 +5,8 @@ import { Button } from "@/app/components/shared/Button";
 import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
-import { mapUpdateSchema } from "@/app/lib/types/map";
+import { mapUpdateSchema, type GameMap } from "@/app/lib/types/map";
+import { getMap } from "@/lib/api/maps";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -18,35 +19,20 @@ import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSecti
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
-type MapRow = {
-  id: string;
-  name: string;
-  imageKey: string;
-  description?: string | null;
-};
-
 type MapFormValues = {
   name: string;
   imageKey: string;
   description: string;
 };
 
-async function mapFetcher(url: string): Promise<MapRow> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as MapRow;
-}
-
 export function SuperAdminEditMapForm({ mapId }: { mapId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data, error, isLoading, mutate } = useSWR<MapRow>(
+  const { data, error, isLoading, mutate } = useSWR<GameMap>(
     mapId ? `/api/maps/${mapId}` : null,
-    mapFetcher
+    () => getMap(mapId)
   );
 
   const form = useForm<MapFormValues>({

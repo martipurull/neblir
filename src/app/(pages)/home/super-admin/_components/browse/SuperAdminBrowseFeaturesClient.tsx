@@ -11,6 +11,7 @@ import {
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
+import { getCatalogueFeatures } from "@/lib/api/features";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
@@ -20,31 +21,13 @@ import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { PATH_NAME_SELECT_OPTIONS } from "../pathNameSelectOptions";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type FeatureRow = {
-  id: string;
-  name: string;
-  description: string;
-  minPathRank: number;
-  maxGrade: number;
-  applicablePaths: PathName[];
-};
-
 const allPathsOption = { value: "", label: "All paths" };
-
-async function featuresFetcher(url: string): Promise<FeatureRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as FeatureRow[];
-}
 
 export function SuperAdminBrowseFeaturesClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pathFilter, setPathFilter] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<FeatureRow[]>(
-    "/api/features",
-    featuresFetcher
+  const { data, error, isLoading, mutate } = useSWR("/api/features", () =>
+    getCatalogueFeatures()
   );
 
   const pathFilterOptions = useMemo(

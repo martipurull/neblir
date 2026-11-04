@@ -48,6 +48,11 @@ export async function getCharactersByUserId(userId: string) {
           avatarKey: true,
         },
       },
+      health: {
+        select: {
+          status: true,
+        },
+      },
       paths: {
         select: {
           path: {

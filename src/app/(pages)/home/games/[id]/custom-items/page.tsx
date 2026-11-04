@@ -25,9 +25,10 @@ import {
 } from "@/lib/api/uniqueItems";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import {
-  normalizeItemBrowseDamage,
+  itemWithIdToBrowseDetail,
   type ItemBrowseDetailFields,
 } from "@/app/lib/types/itemBrowseDetail";
+import type { UniqueItemDetailResponse } from "@/app/lib/types/item";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -39,56 +40,15 @@ function formatItemType(t: string): string {
   return t;
 }
 
+type ResolvedUniqueItem = NonNullable<UniqueItemDetailResponse["resolvedItem"]>;
+
 function resolvedUniqueToBrowseDetail(
   uniqueItemId: string,
-  resolved: Record<string, unknown>
+  resolved: ResolvedUniqueItem
 ): ItemBrowseDetailFields {
   return {
+    ...itemWithIdToBrowseDetail(resolved),
     id: uniqueItemId,
-    name: String(resolved.name ?? "Unknown item"),
-    type: resolved.type === "WEAPON" ? "WEAPON" : "GENERAL_ITEM",
-    imageKey: (resolved.imageKey as string | null | undefined) ?? null,
-    description: (resolved.description as string | null | undefined) ?? null,
-    weight: typeof resolved.weight === "number" ? resolved.weight : null,
-    confCost: typeof resolved.confCost === "number" ? resolved.confCost : null,
-    costInfo: (resolved.costInfo as string | null | undefined) ?? null,
-    maxUses: (resolved.maxUses as number | null | undefined) ?? null,
-    equippable: (resolved.equippable as boolean | null | undefined) ?? null,
-    equipSlotTypes:
-      (resolved.equipSlotTypes as string[] | null | undefined) ?? null,
-    equipSlotCost:
-      (resolved.equipSlotCost as number | null | undefined) ?? null,
-    attackRoll: (resolved.attackRoll as string[] | null | undefined) ?? null,
-    attackMeleeBonus:
-      (resolved.attackMeleeBonus as number | null | undefined) ?? null,
-    attackRangeBonus:
-      (resolved.attackRangeBonus as number | null | undefined) ?? null,
-    attackThrowBonus:
-      (resolved.attackThrowBonus as number | null | undefined) ?? null,
-    defenceMeleeBonus:
-      (resolved.defenceMeleeBonus as number | null | undefined) ?? null,
-    defenceRangeBonus:
-      (resolved.defenceRangeBonus as number | null | undefined) ?? null,
-    gridAttackBonus:
-      (resolved.gridAttackBonus as number | null | undefined) ?? null,
-    gridDefenceBonus:
-      (resolved.gridDefenceBonus as number | null | undefined) ?? null,
-    effectiveRange:
-      (resolved.effectiveRange as number | null | undefined) ?? null,
-    maxRange: (resolved.maxRange as number | null | undefined) ?? null,
-    damage: normalizeItemBrowseDamage(
-      resolved.damage as ItemBrowseDetailFields["damage"]
-    ),
-    usage: (resolved.usage as string | null | undefined) ?? null,
-    notes: (resolved.notes as string | null | undefined) ?? null,
-    modifiesAttribute:
-      (resolved.modifiesAttribute as ItemBrowseDetailFields["modifiesAttribute"]) ??
-      null,
-    attributeMod: (resolved.attributeMod as number | null | undefined) ?? null,
-    modifiesSkill:
-      (resolved.modifiesSkill as ItemBrowseDetailFields["modifiesSkill"]) ??
-      null,
-    skillMod: (resolved.skillMod as number | null | undefined) ?? null,
   };
 }
 
@@ -186,15 +146,10 @@ export default function GameCustomItemsPage() {
     try {
       const record = await getUniqueItemById(uniqueItemId);
       const resolved = record.resolvedItem;
-      if (!resolved || typeof resolved !== "object") {
+      if (!resolved) {
         throw new Error("Unique item details are unavailable.");
       }
-      setDetailItem(
-        resolvedUniqueToBrowseDetail(
-          uniqueItemId,
-          resolved as Record<string, unknown>
-        )
-      );
+      setDetailItem(resolvedUniqueToBrowseDetail(uniqueItemId, resolved));
       setDetailKind("unique");
       setDetailModalOpen(true);
     } catch (e) {

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   groupNpcList,
+  npcListSectionStorageKey,
   npcRollPickerCandidates,
+  viewNpcList,
   type NpcListEntry,
+  type NpcListViewEntry,
 } from "@/app/lib/npcList";
 
 function entry(
@@ -163,6 +166,178 @@ describe("groupNpcList", () => {
       "Archived",
     ]);
     expect(sections[0]?.entries.map((row) => row.id)).toEqual(["back"]);
+  });
+});
+
+function viewEntry(
+  partial: Partial<NpcListViewEntry> & Pick<NpcListViewEntry, "id" | "name">
+): NpcListViewEntry {
+  return {
+    hasPlayGrant: false,
+    npcGroup: null,
+    ...partial,
+  };
+}
+
+describe("viewNpcList", () => {
+  const roster = [
+    viewEntry({ id: "uma", name: "Uma", isPublic: true }),
+    viewEntry({ id: "ann", name: "Ann", npcGroup: "alpha", isPublic: true }),
+    viewEntry({
+      id: "bea",
+      name: "Bea",
+      npcGroup: "alpha",
+      isPublic: false,
+      hasPlayGrant: true,
+    }),
+    viewEntry({ id: "zed", name: "Zed", npcGroup: "Zeta", isPublic: false }),
+    viewEntry({
+      id: "ada",
+      name: "Ada",
+      npcGroup: "Archived",
+      isPublic: true,
+    }),
+    viewEntry({ id: "cy", name: "Cy", npcGroup: "Archived", isPublic: false }),
+  ];
+
+  it("keeps section order for All and includes a private play grant and a public Archived character", () => {
+    const sections = viewNpcList(roster, "all", {});
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "alpha",
+      "Zeta",
+      "Archived",
+    ]);
+    expect(
+      sections.map((section) => section.entries.map((row) => row.id))
+    ).toEqual([["uma"], ["bea", "ann"], ["zed"], ["ada", "cy"]]);
+  });
+
+  it("filters to Public and treats a missing visibility as Public", () => {
+    const sections = viewNpcList(
+      [...roster, viewEntry({ id: "missing", name: "Mia", npcGroup: "alpha" })],
+      "public",
+      {}
+    );
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "alpha",
+      "Archived",
+    ]);
+    expect(
+      sections.map((section) => section.entries.map((row) => row.id))
+    ).toEqual([["uma"], ["ann", "missing"], ["ada"]]);
+  });
+
+  it("keeps a private play-grant character under Private and omits a public Archived character", () => {
+    const sections = viewNpcList(roster, "private", {});
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "alpha",
+      "Zeta",
+      "Archived",
+    ]);
+    expect(
+      sections.map((section) => section.entries.map((row) => row.id))
+    ).toEqual([["bea"], ["zed"], ["cy"]]);
+  });
+
+  it("starts Archived closed and every other group open", () => {
+    const sections = viewNpcList(roster, "all", {});
+
+    expect(sections.map((section) => [section.heading, section.open])).toEqual([
+      ["Ungrouped", true],
+      ["alpha", true],
+      ["Zeta", true],
+      ["Archived", false],
+    ]);
+  });
+
+  it("uses a stored open or closed value, matched on the group's fold key", () => {
+    const sections = viewNpcList(
+      [
+        viewEntry({ id: "ann", name: "Ann", npcGroup: "Crimson Claws" }),
+        viewEntry({ id: "uma", name: "Uma" }),
+        viewEntry({
+          id: "ada",
+          name: "Ada",
+          npcGroup: "Archived",
+          isPublic: true,
+        }),
+      ],
+      "all",
+      {
+        [npcListSectionStorageKey("Ungrouped")]: false,
+        [npcListSectionStorageKey("  crimson   claws ")]: false,
+        [npcListSectionStorageKey("archived")]: true,
+      }
+    );
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "Crimson Claws",
+      "Archived",
+    ]);
+    expect(sections.map((section) => section.open)).toEqual([
+      false,
+      false,
+      true,
+    ]);
+    expect(sections.map((section) => section.storageKey)).toEqual([
+      npcListSectionStorageKey("Ungrouped"),
+      npcListSectionStorageKey("Crimson Claws"),
+      npcListSectionStorageKey("Archived"),
+    ]);
+  });
+
+  it("reports the filtered count while a section is closed", () => {
+    const sections = viewNpcList(roster, "public", {
+      [npcListSectionStorageKey("alpha")]: false,
+    });
+    const alpha = sections.find((section) => section.heading === "alpha");
+
+    expect(alpha?.open).toBe(false);
+    expect(alpha?.filteredCount).toBe(1);
+    expect(alpha?.entries.map((row) => row.id)).toEqual(["ann"]);
+  });
+
+  it("returns the same entries the caller passed, including extra fields", () => {
+    const entry = {
+      ...viewEntry({ id: "ann", name: "Ann", isPublic: true }),
+      tag: "kept",
+    };
+    const sections = viewNpcList([entry], "public");
+
+    expect(sections[0]?.entries[0]).toBe(entry);
+  });
+
+  it("omits a group the filter empties, and omits empty Archived", () => {
+    const sections = viewNpcList(
+      [
+        viewEntry({ id: "uma", name: "Uma", isPublic: true }),
+        viewEntry({
+          id: "ann",
+          name: "Ann",
+          npcGroup: "alpha",
+          isPublic: true,
+        }),
+        viewEntry({
+          id: "zed",
+          name: "Zed",
+          npcGroup: "Zeta",
+          isPublic: false,
+        }),
+      ],
+      "public",
+      {}
+    );
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Ungrouped",
+      "alpha",
+    ]);
   });
 });
 

@@ -8,6 +8,7 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { enemyCatalogueUpdateSchema } from "@/app/lib/types/enemy";
 import type { EnemyResponse } from "@/app/lib/types/enemy";
+import { getEnemy } from "@/lib/api/enemies";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -31,14 +32,6 @@ type EnemyFormValues = {
   notes: string;
 };
 
-async function enemyFetcher(url: string): Promise<EnemyResponse> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as EnemyResponse;
-}
-
 export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,7 +39,7 @@ export function SuperAdminEditEnemyForm({ enemyId }: { enemyId: string }) {
 
   const { data, error, isLoading, mutate } = useSWR<EnemyResponse>(
     enemyId ? `/api/enemies/${enemyId}` : null,
-    enemyFetcher
+    () => getEnemy(enemyId)
   );
 
   const form = useForm<EnemyFormValues>({

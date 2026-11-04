@@ -8,8 +8,8 @@ import {
   ResourceBrowseGrid,
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
-import type { EnemyResponse } from "@/app/lib/types/enemy";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
+import { getCatalogueEnemies } from "@/lib/api/enemies";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -19,19 +19,10 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-async function enemiesFetcher(url: string): Promise<EnemyResponse[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as EnemyResponse[];
-}
-
 export function SuperAdminBrowseEnemiesClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<EnemyResponse[]>(
-    "/api/enemies",
-    enemiesFetcher
+  const { data, error, isLoading, mutate } = useSWR("/api/enemies", () =>
+    getCatalogueEnemies()
   );
 
   const filtered = useMemo(() => {

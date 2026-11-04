@@ -9,6 +9,7 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { PageSection } from "@/app/components/shared/PageSection";
 import { PageTitle } from "@/app/components/shared/PageTitle";
+import type { PendingGameInvite } from "@/app/lib/types/game";
 import type { GameFile } from "@/app/lib/types/gameFile";
 import type { GameRecap } from "@/app/lib/types/recap";
 import type { ReferenceEntry } from "@/app/lib/types/reference";
@@ -16,6 +17,7 @@ import { useGame } from "@/hooks/use-game";
 import { useGameFiles } from "@/hooks/use-game-files";
 import { useGameRecaps } from "@/hooks/use-game-recaps";
 import { useReferenceEntries } from "@/hooks/use-reference-entries";
+import { fetchPendingGameInvites } from "@/lib/api/game";
 import { deleteGameFile, getGameFileUrl } from "@/lib/api/gameFiles";
 import { deleteGameRecap, getRecapDownloadUrl } from "@/lib/api/recaps";
 import { deleteReferenceEntry } from "@/lib/api/referenceEntries";
@@ -34,13 +36,6 @@ import {
   GmPremiseSection,
   GmRecapsSection,
 } from "../sections";
-
-type PendingInvite = {
-  invitedUserId: string;
-  invitedUserName: string;
-  invitedUserEmail: string;
-  createdAt: string;
-};
 
 type PendingTableDelete = {
   kind: "lore" | "recap" | "file";
@@ -99,11 +94,12 @@ export function GameMasterTableSettingsPageClient() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: pendingInvites = [], mutate: mutatePendingInvites } = useSWR<
-    PendingInvite[]
+    PendingGameInvite[]
   >(
     game?.isGameMaster && id
       ? `/api/games/${encodeURIComponent(id)}/invites`
-      : null
+      : null,
+    () => fetchPendingGameInvites(id ?? "")
   );
   const {
     entries: loreEntries,

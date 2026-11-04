@@ -114,7 +114,7 @@ export function shapeGameForResponse(
           reactionsRemaining: isGameMaster
             ? combat?.reactionsRemaining
             : undefined,
-          healthStatus: isGameMaster ? health?.status : undefined,
+          healthStatus: health?.status,
         },
       };
     });

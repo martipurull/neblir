@@ -1,7 +1,10 @@
 import {
   enemyListResponseSchema,
+  enemyResponseSchema,
   type EnemyResponse,
 } from "@/app/lib/types/enemy";
+import { readApiErrorBody, responseShapeError } from "@/lib/api/responseShape";
+import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
 
@@ -22,6 +25,44 @@ export async function getEnemies(): Promise<EnemyResponse[]> {
   const parsed = enemyListResponseSchema.safeParse(json);
   if (!parsed.success) {
     throw new Error("Enemies response did not match expected shape");
+  }
+  return parsed.data;
+}
+
+export async function getCatalogueEnemies(): Promise<EnemyResponse[]> {
+  const response = await fetch("/api/enemies", { method: "GET" });
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch enemies"
+      )
+    );
+  }
+  const parsed = enemyListResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Enemies", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function getEnemy(id: string): Promise<EnemyResponse> {
+  const response = await fetch(`/api/enemies/${encodeURIComponent(id)}`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch enemy"
+      )
+    );
+  }
+  const parsed = enemyResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Enemy", parsed.error);
   }
   return parsed.data;
 }

@@ -1,7 +1,8 @@
-import type {
-  EnemyInstanceDetailResponse,
-  EnemyInstancePatch,
-  SpawnEnemyInstancesBody,
+import {
+  enemyInstanceDetailResponseSchema,
+  type EnemyInstanceDetailResponse,
+  type EnemyInstancePatch,
+  type SpawnEnemyInstancesBody,
 } from "@/app/lib/types/enemyInstance";
 export type {
   EnemyInstanceDetailResponse,
@@ -106,5 +107,15 @@ export async function getEnemyInstance(
     }
     throw new Error(getMessage(payload, response.status, "Fetch failed"));
   }
-  return response.json() as Promise<EnemyInstanceDetailResponse>;
+  const json: unknown = await response.json();
+  const parsed = enemyInstanceDetailResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Enemy instance response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data;
 }

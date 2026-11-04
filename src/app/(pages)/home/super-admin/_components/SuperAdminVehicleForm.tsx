@@ -18,14 +18,15 @@ import {
 } from "../_utils/superAdminCatalogueCreated";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
-import type { Vehicle } from "@/app/lib/types/vehicle";
 import {
   vehicleSchema,
   vehicleUpdateSchema,
+  type OfficialVehicle,
   type VehicleAccessType,
   type VehicleLocomotion,
   type VehicleSizeCategory,
 } from "@/app/lib/types/vehicle";
+import { getCatalogueVehicle } from "@/lib/api/vehicles";
 import {
   VEHICLE_ACCELERATION_LABEL,
   VEHICLE_COMBAT_SPEED_HELP,
@@ -43,8 +44,6 @@ import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminOfficialDeleteSection } from "./SuperAdminOfficialDeleteSection";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
-
-type VehicleRow = Vehicle & { id: string; imageKey?: string | null };
 
 type VehicleFormValues = OfficialVehicleCreateDefaults;
 
@@ -74,7 +73,7 @@ function optionalTrimmedText(value: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function vehicleToFormValues(vehicle: VehicleRow): VehicleFormValues {
+function vehicleToFormValues(vehicle: OfficialVehicle): VehicleFormValues {
   return {
     accessType: vehicle.accessType,
     name: vehicle.name,
@@ -100,23 +99,15 @@ function vehicleToFormValues(vehicle: VehicleRow): VehicleFormValues {
   };
 }
 
-async function vehicleFetcher(url: string): Promise<VehicleRow> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as VehicleRow;
-}
-
 export function SuperAdminVehicleForm({
   editVehicleId,
 }: {
   editVehicleId?: string;
 } = {}) {
   const isEdit = Boolean(editVehicleId?.trim());
-  const { data, error, isLoading } = useSWR<VehicleRow>(
+  const { data, error, isLoading } = useSWR<OfficialVehicle>(
     isEdit && editVehicleId ? `/api/vehicles/${editVehicleId}` : null,
-    vehicleFetcher
+    () => getCatalogueVehicle(editVehicleId ?? "")
   );
 
   if (isEdit && isLoading) {
@@ -149,7 +140,7 @@ function SuperAdminVehicleFormFields({
   loadError: error,
 }: {
   editVehicleId?: string;
-  data: VehicleRow | null;
+  data: OfficialVehicle | null;
   loadError: unknown;
 }) {
   const router = useRouter();

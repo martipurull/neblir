@@ -288,6 +288,7 @@ export function GameMasterPageClient() {
         />
 
         <GmNpcsSection
+          key={game.id}
           game={game}
           onSetVisibility={async (characterId, isPublic) => {
             await setGameCharacterVisibility(game.id, characterId, isPublic);

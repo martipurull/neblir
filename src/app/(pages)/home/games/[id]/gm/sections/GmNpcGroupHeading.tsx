@@ -4,13 +4,21 @@ import { useState } from "react";
 
 type GmNpcGroupHeadingProps = {
   heading: string;
+  open: boolean;
+  filteredCount: number;
+  panelId: string;
   disabled: boolean;
+  onToggleOpen: () => void;
   onRename?: (from: string, npcGroup: string) => void;
 };
 
 export function GmNpcGroupHeading({
   heading,
+  open,
+  filteredCount,
+  panelId,
   disabled,
+  onToggleOpen,
   onRename,
 }: GmNpcGroupHeadingProps) {
   const [editing, setEditing] = useState(false);
@@ -18,10 +26,34 @@ export function GmNpcGroupHeading({
   const next = draft.trim();
   const canSave = next !== "" && next !== heading;
 
+  const toggle = (
+    <Button
+      type="button"
+      variant="lightChevronExpand"
+      fullWidth={false}
+      aria-expanded={open}
+      aria-controls={panelId}
+      aria-label={
+        open ? `Collapse ${heading}` : `Expand ${heading}, ${filteredCount}`
+      }
+      onClick={onToggleOpen}
+    >
+      <span aria-hidden="true">{open ? "▾" : "▸"}</span>
+    </Button>
+  );
+
   if (!onRename || !editing) {
     return (
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-black">{heading}</h3>
+        {toggle}
+        <h3 className="text-sm font-semibold text-black">
+          {heading}
+          {open ? null : (
+            <span className="ml-2 font-medium text-black/60">
+              {filteredCount}
+            </span>
+          )}
+        </h3>
         {onRename ? (
           <Button
             type="button"
@@ -49,6 +81,7 @@ export function GmNpcGroupHeading({
         onRename(heading, draft);
       }}
     >
+      {toggle}
       <TextField
         value={draft}
         density="compact"

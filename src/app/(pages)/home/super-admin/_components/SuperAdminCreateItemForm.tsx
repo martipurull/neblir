@@ -23,6 +23,7 @@ import type {
   Item,
   ItemDamage,
 } from "@/app/lib/types/item";
+import { getItem, type ItemWithId } from "@/lib/api/items";
 import {
   equipSlotCostSchema,
   itemDamageSchema,
@@ -143,14 +144,6 @@ function buildWeaponNumericExtras(
   return out;
 }
 
-async function itemByIdFetcher(url: string): Promise<Item & { id: string }> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as Item & { id: string };
-}
-
 export function SuperAdminCreateItemForm({
   editItemId,
 }: {
@@ -175,9 +168,9 @@ export function SuperAdminCreateItemForm({
     data: existingItem,
     error: loadError,
     isLoading: loadLoading,
-  } = useSWR<Item & { id: string }>(
+  } = useSWR<ItemWithId>(
     isEdit && editItemId ? `/api/items/${editItemId}` : null,
-    itemByIdFetcher
+    () => getItem(editItemId ?? "")
   );
 
   const form = useForm<ItemFormValues>({

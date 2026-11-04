@@ -9,8 +9,9 @@ import {
   ResourceBrowseGridItem,
 } from "@/app/components/shared/ResourceBrowseGrid";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import type { Vehicle } from "@/app/lib/types/vehicle";
 import { richTextToPlainTextPreview } from "@/app/lib/tiptap/richTextPlainTextPreview";
+import type { OfficialVehicle } from "@/app/lib/types/vehicle";
+import { getCatalogueVehicles } from "@/lib/api/vehicles";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -19,21 +20,11 @@ import { SuperAdminCatalogueSearchInput } from "../SuperAdminCatalogueSearchInpu
 import { SuperAdminSectionShell } from "../SuperAdminSectionShell";
 import { superAdminNavLinkClassName } from "../superAdminNavLinkClass";
 
-type VehicleRow = Vehicle & { id: string; imageKey?: string | null };
-
-async function vehiclesFetcher(url: string): Promise<VehicleRow[]> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as VehicleRow[];
-}
-
 export function SuperAdminBrowseVehiclesClient() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, error, isLoading, mutate } = useSWR<VehicleRow[]>(
+  const { data, error, isLoading, mutate } = useSWR<OfficialVehicle[]>(
     "/api/vehicles",
-    vehiclesFetcher
+    () => getCatalogueVehicles()
   );
 
   const filtered = useMemo(() => {

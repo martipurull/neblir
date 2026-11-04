@@ -19,6 +19,7 @@ import {
   VEHICLE_COMBAT_SPEED_HELP,
   VEHICLE_TRAVEL_SPEED_HELP,
 } from "@/app/lib/constants/vehicleFields";
+import { sheetStatusBanner } from "@/app/lib/characterStatusMark";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { useArmourStyles } from "@/hooks/use-armour-styles";
@@ -274,6 +275,7 @@ export function CharacterSummaryHeader({
     activeVehicle?.customName ??
     activeVehicle?.vehicle?.name ??
     "Unknown vehicle";
+  const statusBanner = sheetStatusBanner(character.health.status);
 
   return (
     <header
@@ -303,25 +305,12 @@ export function CharacterSummaryHeader({
           }
           onOpenDiceRoller={onOpenDiceRoller}
           showCharacterActions={characterActionsVisible}
+          status={character.health.status}
         />
 
-        {character.health.status === "DECEASED" ? (
-          <div
-            className="mt-2 w-full rounded-md border border-neblirDanger bg-paleBlue px-3 py-2 text-center"
-            role="status"
-          >
-            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirDanger-600">
-              Deceased
-            </p>
-          </div>
-        ) : character.health.status === "DERANGED" ? (
-          <div
-            className="mt-2 w-full rounded-md border border-neblirWarning bg-paleBlue px-3 py-2 text-center"
-            role="status"
-          >
-            <p className="font-sarpanch text-sm font-bold uppercase tracking-[0.2em] text-neblirWarning-600">
-              Deranged
-            </p>
+        {statusBanner ? (
+          <div className={statusBanner.shellClassName} role="status">
+            <p className={statusBanner.labelClassName}>{statusBanner.label}</p>
           </div>
         ) : null}
 

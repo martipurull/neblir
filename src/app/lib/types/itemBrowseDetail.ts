@@ -2,6 +2,7 @@ import type {
   LevelUpAttributePath,
   LevelUpGeneralSkill,
 } from "@/app/lib/levelUpPaths";
+import type { CustomItemResponse } from "@/app/lib/types/item";
 import type { ItemWithId } from "@/lib/api/items";
 
 export type ItemBrowseDamage = {
@@ -119,18 +120,18 @@ export type ItemBrowseDetailFields = {
   isSpeedAltered?: boolean | null;
 };
 
-/** Map global catalog item to browse shape (e.g. unique-item template preview). */
+/** Map a parsed catalogue item to browse shape (global, custom, or resolved unique). */
 export function itemWithIdToBrowseDetail(
-  item: ItemWithId
+  item: ItemWithId | CustomItemResponse
 ): ItemBrowseDetailFields {
   return {
     id: item.id,
     name: item.name,
     type: item.type,
     imageKey: item.imageKey ?? null,
-    description: item.description,
+    description: item.description ?? null,
     weight: item.weight,
-    confCost: item.confCost,
+    confCost: item.confCost ?? null,
     costInfo: item.costInfo ?? null,
     maxUses: item.maxUses ?? null,
     equippable: item.equippable ?? null,

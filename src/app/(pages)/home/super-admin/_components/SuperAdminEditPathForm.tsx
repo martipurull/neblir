@@ -5,11 +5,11 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { RichTextField } from "@/app/components/shared/RichTextField";
-import type { Path } from "@/app/lib/types/path";
 import {
   pathCatalogueUpdateSchema,
   type PathCreate,
 } from "@/app/lib/types/path";
+import { getCataloguePath } from "@/lib/api/paths";
 import { serializeEditorToStoredHtml } from "@/app/lib/tiptap/richText";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,14 +18,6 @@ import useSWR from "swr";
 import { superAdminRichEditorScrollClass } from "../_utils/superAdminRichTextEditor";
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
-
-async function pathFetcher(url: string): Promise<Path> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
-  }
-  return (await res.json()) as Path;
-}
 
 function optionalRichHtml(html: string): string | undefined {
   const t = html.trim();
@@ -39,9 +31,9 @@ export function SuperAdminEditPathForm({ pathId }: { pathId: string }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data, error, isLoading, mutate } = useSWR<Path>(
+  const { data, error, isLoading, mutate } = useSWR(
     pathId ? `/api/paths/${pathId}` : null,
-    pathFetcher
+    () => getCataloguePath(pathId)
   );
 
   const form = useForm<PathCreate>({
