@@ -6,6 +6,7 @@ import {
   type ReferenceEntryCreate,
   type ReferenceEntryUpdate,
 } from "@/app/lib/types/reference";
+import { responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -65,12 +66,7 @@ export async function getReferenceEntries(
 
   const parsed = referenceEntryListSchema.safeParse(await response.json());
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(
-      `Reference entries response did not match expected shape: ${details}`
-    );
+    throw responseShapeError("Reference entries", parsed.error);
   }
 
   return parsed.data;
@@ -132,12 +128,7 @@ export async function getCatalogueReferenceEntry(
 
   const parsed = referenceEntrySchema.safeParse(await response.json());
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(
-      `Reference entry response did not match expected shape: ${details}`
-    );
+    throw responseShapeError("Reference entry", parsed.error);
   }
 
   return parsed.data;

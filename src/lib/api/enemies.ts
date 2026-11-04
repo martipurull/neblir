@@ -3,6 +3,7 @@ import {
   enemyResponseSchema,
   type EnemyResponse,
 } from "@/app/lib/types/enemy";
+import { readApiErrorBody, responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -31,24 +32,17 @@ export async function getEnemies(): Promise<EnemyResponse[]> {
 export async function getCatalogueEnemies(): Promise<EnemyResponse[]> {
   const response = await fetch("/api/enemies", { method: "GET" });
   if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
-    try {
-      body = (await response.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
-    }
     throw new Error(
-      getUserSafeApiError(response.status, body, "Failed to fetch enemies")
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch enemies"
+      )
     );
   }
   const parsed = enemyListResponseSchema.safeParse(await response.json());
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(
-      `Enemies response did not match expected shape: ${details}`
-    );
+    throw responseShapeError("Enemies", parsed.error);
   }
   return parsed.data;
 }
@@ -58,22 +52,17 @@ export async function getEnemy(id: string): Promise<EnemyResponse> {
     method: "GET",
   });
   if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
-    try {
-      body = (await response.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
-    }
     throw new Error(
-      getUserSafeApiError(response.status, body, "Failed to fetch enemy")
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch enemy"
+      )
     );
   }
   const parsed = enemyResponseSchema.safeParse(await response.json());
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(`Enemy response did not match expected shape: ${details}`);
+    throw responseShapeError("Enemy", parsed.error);
   }
   return parsed.data;
 }

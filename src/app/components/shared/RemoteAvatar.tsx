@@ -13,6 +13,8 @@ type RemoteAvatarProps = {
   size?: number;
   className?: string;
   status?: Status | null;
+  /** When set, a resolved image opens in a new tab under this accessible name. */
+  openFullImageLabel?: string;
 };
 
 const skeletonSvgClassBySize: Record<number, string> = {
@@ -30,6 +32,7 @@ export function RemoteAvatar({
   size = 44,
   className,
   status,
+  openFullImageLabel,
 }: RemoteAvatarProps) {
   const resolved = resolveRemoteImageUrl(imageKey, imageUrl);
   const skeletonClassName = [
@@ -37,28 +40,43 @@ export function RemoteAvatar({
     skeletonSvgClassBySize[size] ?? "[&_svg]:h-11 [&_svg]:w-11",
   ].join(" ");
 
+  const portrait = resolved ? (
+    <SignedRemoteImage
+      src={resolved}
+      imageKey={imageKey ?? undefined}
+      alt={alt}
+      width={size}
+      height={size}
+      className="h-full w-full object-cover object-top"
+    />
+  ) : resolved === undefined ? (
+    <ImageLoadingSkeleton variant="avatar" className={skeletonClassName} />
+  ) : (
+    <ImageLoadingSkeleton
+      variant="avatar"
+      animated={false}
+      className={skeletonClassName}
+    />
+  );
+
   return (
     <div
       className={`relative shrink-0 overflow-hidden rounded-full bg-paleBlue/20 ${className ?? ""}`.trim()}
       style={{ width: size, height: size }}
     >
-      {resolved ? (
-        <SignedRemoteImage
-          src={resolved}
-          imageKey={imageKey ?? undefined}
-          alt={alt}
-          width={size}
-          height={size}
-          className="h-full w-full object-cover object-top"
-        />
-      ) : resolved === undefined ? (
-        <ImageLoadingSkeleton variant="avatar" className={skeletonClassName} />
+      {resolved && openFullImageLabel ? (
+        <a
+          href={resolved}
+          target="_blank"
+          rel="noreferrer"
+          className="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+          aria-label={openFullImageLabel}
+          title="Open full avatar image"
+        >
+          {portrait}
+        </a>
       ) : (
-        <ImageLoadingSkeleton
-          variant="avatar"
-          animated={false}
-          className={skeletonClassName}
-        />
+        portrait
       )}
       <PortraitCross status={status} />
     </div>

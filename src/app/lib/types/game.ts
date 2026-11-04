@@ -59,7 +59,7 @@ export const gameCreateResponseSchema = z.object({
 export type GameCreateResponse = z.infer<typeof gameCreateResponseSchema>;
 
 /** GET /api/games/invites — invites the current user has received. */
-export const receivedGameInviteSchema = z.object({
+const receivedGameInviteSchema = z.object({
   gameId: z.string(),
   gameName: z.string(),
   invitedByName: z.string(),
@@ -69,7 +69,7 @@ export const receivedGameInviteListSchema = z.array(receivedGameInviteSchema);
 export type ReceivedGameInvite = z.infer<typeof receivedGameInviteSchema>;
 
 /** GET /api/games/[id]/invites — pending invites for the game master. */
-export const pendingGameInviteSchema = z.object({
+const pendingGameInviteSchema = z.object({
   invitedUserId: z.string(),
   invitedUserName: z.string(),
   invitedUserEmail: z.string(),

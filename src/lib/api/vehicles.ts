@@ -12,6 +12,7 @@ import {
   type VehicleCharacterPatch,
   type VehicleTransfer,
 } from "@/app/lib/types/vehicle";
+import { responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 type ApiErrorPayload = { message?: string; details?: string };
@@ -50,24 +51,10 @@ export async function getOfficialVehicles(
   const json = await response.json();
   const parsed = resolvedVehicleListSchema.safeParse(json);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(
-      `Vehicle list response did not match expected shape: ${details}`
-    );
+    throw responseShapeError("Vehicle list", parsed.error);
   }
 
   return parsed.data;
-}
-
-function vehicleShapeError(label: string, error: z.ZodError): Error {
-  const details = error.issues
-    .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-    .join("; ");
-  return new Error(
-    `${label} response did not match expected shape: ${details}`
-  );
 }
 
 export async function getCatalogueVehicles(
@@ -93,7 +80,7 @@ export async function getCatalogueVehicles(
     await response.json()
   );
   if (!parsed.success) {
-    throw vehicleShapeError("Vehicles", parsed.error);
+    throw responseShapeError("Vehicles", parsed.error);
   }
   return parsed.data;
 }
@@ -120,7 +107,7 @@ export async function getCatalogueVehicle(
 
   const parsed = officialVehicleResponseSchema.safeParse(await response.json());
   if (!parsed.success) {
-    throw vehicleShapeError("Vehicle", parsed.error);
+    throw responseShapeError("Vehicle", parsed.error);
   }
   return parsed.data;
 }

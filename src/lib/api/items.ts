@@ -8,14 +8,17 @@ import {
   itemCharacterSchema,
   type ItemCharacter,
 } from "@/app/lib/types/character";
+import {
+  readApiErrorBody,
+  responseShapeError,
+  type ApiErrorPayload,
+} from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
 
 /** Item as returned from GET /api/items (includes id) */
 export type ItemWithId = ItemResponse;
 
 export type InventoryEntry = ItemCharacter;
-
-type ApiErrorPayload = { message?: string; details?: string };
 
 export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   const response = await fetch("/api/items", {
@@ -25,24 +28,19 @@ export async function getItems(signal?: AbortSignal): Promise<ItemWithId[]> {
   });
 
   if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
-    try {
-      body = (await response.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
-    }
     throw new Error(
-      getUserSafeApiError(response.status, body, "Failed to fetch items")
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch items"
+      )
     );
   }
 
   const json = await response.json();
   const parsed = itemListResponseSchema.safeParse(json);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
-    throw new Error(`Items response did not match expected shape: ${details}`);
+    throw responseShapeError("Items", parsed.error);
   }
   return parsed.data as ItemWithId[];
 }
@@ -58,24 +56,19 @@ export async function getItem(
   });
 
   if (!response.ok) {
-    let body: ApiErrorPayload | undefined;
-    try {
-      body = (await response.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
-    }
     throw new Error(
-      getUserSafeApiError(response.status, body, "Failed to fetch item")
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to fetch item"
+      )
     );
   }
 
   const json: unknown = await response.json();
   const parsed = itemResponseSchema.safeParse(json);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-      .join("; ");
-    throw new Error(`Item response did not match expected shape: ${details}`);
+    throw responseShapeError("Item", parsed.error);
   }
   return parsed.data;
 }

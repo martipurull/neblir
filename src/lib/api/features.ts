@@ -3,31 +3,8 @@ import {
   featureCatalogueResponseSchema,
   type FeatureCatalogueResponse,
 } from "@/app/lib/types/featureCatalogue";
+import { readApiErrorBody, responseShapeError } from "@/lib/api/responseShape";
 import { getUserSafeApiError } from "@/lib/userSafeError";
-
-type ApiErrorPayload = { message?: string; details?: string };
-
-async function readErrorBody(
-  response: Response
-): Promise<ApiErrorPayload | undefined> {
-  try {
-    return (await response.json()) as ApiErrorPayload;
-  } catch {
-    return undefined;
-  }
-}
-
-function shapeError(
-  label: string,
-  issues: { path: PropertyKey[]; message: string }[]
-) {
-  const details = issues
-    .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-    .join("; ");
-  return new Error(
-    `${label} response did not match expected shape: ${details}`
-  );
-}
 
 export async function getCatalogueFeatures(): Promise<
   FeatureCatalogueResponse[]
@@ -37,7 +14,7 @@ export async function getCatalogueFeatures(): Promise<
     throw new Error(
       getUserSafeApiError(
         response.status,
-        await readErrorBody(response),
+        await readApiErrorBody(response),
         "Failed to fetch features"
       )
     );
@@ -47,7 +24,7 @@ export async function getCatalogueFeatures(): Promise<
     await response.json()
   );
   if (!parsed.success) {
-    throw shapeError("Features", parsed.error.issues);
+    throw responseShapeError("Features", parsed.error);
   }
   return parsed.data;
 }
@@ -62,7 +39,7 @@ export async function getCatalogueFeature(
     throw new Error(
       getUserSafeApiError(
         response.status,
-        await readErrorBody(response),
+        await readApiErrorBody(response),
         "Failed to fetch feature"
       )
     );
@@ -72,7 +49,7 @@ export async function getCatalogueFeature(
     await response.json()
   );
   if (!parsed.success) {
-    throw shapeError("Feature", parsed.error.issues);
+    throw responseShapeError("Feature", parsed.error);
   }
   return parsed.data;
 }
