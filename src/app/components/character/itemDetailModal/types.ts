@@ -39,6 +39,4 @@ export interface ItemDetailModalProps {
   vehicleNamesById?: Readonly<Record<string, string>>;
   /** Place names loaded for the inventory section. Opening an item does not reload them. */
   placeNames?: readonly string[];
-  /** Called after a leave or take so the section can reload place names. */
-  onStashPlacesChanged?: () => void;
 }

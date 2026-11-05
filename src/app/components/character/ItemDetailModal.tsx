@@ -50,7 +50,6 @@ export function ItemDetailModal({
   onEditUniqueItem,
   vehicleNamesById,
   placeNames = [],
-  onStashPlacesChanged,
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -154,7 +153,6 @@ export function ItemDetailModal({
       await updateCharacterInventoryEntry(characterId, entry.id, body);
       await mutate();
       setLeaveLocationInput("");
-      onStashPlacesChanged?.();
     } catch (e) {
       setLocationError(getUserSafeErrorMessage(e, failureMessage));
     } finally {

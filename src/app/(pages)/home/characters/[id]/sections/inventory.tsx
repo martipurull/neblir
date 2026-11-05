@@ -113,7 +113,6 @@ function InventorySectionContent({
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
   const [placeNames, setPlaceNames] = useState<string[]>([]);
-  const [placeListNonce, setPlaceListNonce] = useState(0);
   const placeScopeKey = `${character.id}\0${activeGameId ?? ""}`;
   const [shownPlaceScope, setShownPlaceScope] = useState(placeScopeKey);
   if (shownPlaceScope !== placeScopeKey) {
@@ -121,11 +120,18 @@ function InventorySectionContent({
     setPlaceNames([]);
   }
   const { openByKey, setDrawerOpen } = useStoredDrawerOpenState(character.id);
+  const stashPlaceHoldingsKey = useMemo(
+    () =>
+      (character.inventory ?? [])
+        .map(
+          (row) =>
+            `${row.id}\0${row.itemLocation ?? ""}\0${row.stashGameId ?? ""}`
+        )
+        .join("\n"),
+    [character.inventory]
+  );
 
   const canLoadPlaces = !readOnly && mutate !== undefined;
-  const reloadStashPlaceNames = useCallback(() => {
-    setPlaceListNonce((nonce) => nonce + 1);
-  }, []);
 
   useEffect(() => {
     if (!canLoadPlaces) return;
@@ -138,7 +144,7 @@ function InventorySectionContent({
         if (!controller.signal.aborted) setPlaceNames([]);
       });
     return () => controller.abort();
-  }, [character.id, activeGameId, canLoadPlaces, placeListNonce]);
+  }, [character.id, activeGameId, canLoadPlaces, stashPlaceHoldingsKey]);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -397,7 +403,6 @@ function InventorySectionContent({
           gameId={activeGameId}
           mutate={mutate}
           placeNames={placeNames}
-          onStashPlacesChanged={reloadStashPlaceNames}
           resolveGiveRecipients={resolveGiveRecipients}
           equipControl={{
             carriedInventory,
