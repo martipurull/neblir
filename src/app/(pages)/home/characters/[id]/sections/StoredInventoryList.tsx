@@ -157,7 +157,7 @@ function StoredDrawerHeading({
   const [draft, setDraft] = useState(heading);
   const [saving, setSaving] = useState(false);
   const next = draft.trim();
-  const canSave = next !== "" && next !== heading;
+  const canSave = next !== heading;
 
   const toggle = (
     <Button
