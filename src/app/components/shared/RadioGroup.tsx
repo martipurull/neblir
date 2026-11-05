@@ -80,7 +80,7 @@ export function RadioGroup({
           return (
             <label
               key={option.value}
-              className={`${
+              className={`theme-radio-option ${checked ? "theme-radio-option-selected" : ""} ${
                 optionLayout === "equal"
                   ? `flex w-full ${labelMinHeightClass} items-center justify-center text-center`
                   : "inline-flex items-center"
