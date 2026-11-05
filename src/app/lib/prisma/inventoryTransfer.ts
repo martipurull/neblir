@@ -1,6 +1,6 @@
 import type { ItemSourceType, Prisma } from "@prisma/client";
 import {
-  ITEM_LOCATION_CARRIED,
+  carriedHoldingWrite,
   parseVehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
@@ -246,9 +246,7 @@ async function transferWithinClient(
         equipSlots: newGiverEquip,
         isEquipped: newGiverEquip.length > 0,
         currentUses: giverUses,
-        ...(wasMounted
-          ? { itemLocation: ITEM_LOCATION_CARRIED, stashGameId: null }
-          : {}),
+        ...(wasMounted ? carriedHoldingWrite() : {}),
       },
     });
   }
@@ -274,8 +272,7 @@ async function transferWithinClient(
       data: {
         quantity: { increment: quantity },
         currentUses: mergedUses,
-        itemLocation: ITEM_LOCATION_CARRIED,
-        stashGameId: null,
+        ...carriedHoldingWrite(),
       },
     });
   } else {
@@ -288,8 +285,7 @@ async function transferWithinClient(
         currentUses: transferredUses,
         customName: row.customName,
         status: row.status,
-        itemLocation: ITEM_LOCATION_CARRIED,
-        stashGameId: null,
+        ...carriedHoldingWrite(),
         equipSlots: [],
         isEquipped: false,
       },

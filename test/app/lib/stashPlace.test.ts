@@ -139,8 +139,7 @@ describe("resolveStashRename", () => {
           renameHolding("armoury", "Armoury", "game-1"),
         ],
         "game-1",
-        "Indira's Flat",
-        "Amber loft"
+        { from: "Indira's Flat", placeName: "Amber loft" }
       )
     ).toEqual({
       ok: true,
@@ -159,8 +158,7 @@ describe("resolveStashRename", () => {
           renameHolding("other-game", "indira flat", "game-2"),
         ],
         "game-1",
-        "Locker",
-        "indira flat"
+        { from: "Locker", placeName: "indira flat" }
       )
     ).toEqual({
       ok: true,
@@ -177,8 +175,7 @@ describe("resolveStashRename", () => {
           renameHolding("flat-folded", "indira flat", "game-1"),
         ],
         "game-1",
-        "Indira's Flat",
-        "Indira's flat"
+        { from: "Indira's Flat", placeName: "Indira's flat" }
       )
     ).toEqual({
       ok: true,
@@ -192,8 +189,7 @@ describe("resolveStashRename", () => {
       resolveStashRename(
         [renameHolding("locker", "Locker", "game-1")],
         "game-1",
-        "Locker",
-        "   "
+        { from: "Locker", placeName: "   " }
       )
     ).toEqual({
       ok: false,
@@ -207,8 +203,7 @@ describe("resolveStashRename", () => {
       resolveStashRename(
         [renameHolding("locker", "Locker", "game-1")],
         "game-1",
-        "Locker",
-        "Carried"
+        { from: "Locker", placeName: "Carried" }
       )
     ).toEqual({
       ok: false,
@@ -221,7 +216,10 @@ describe("resolveStashRename", () => {
   it("rejects a vehicle cargo or mounted location", () => {
     const locker = [renameHolding("locker", "Locker", "game-1")];
     expect(
-      resolveStashRename(locker, "game-1", "Locker", "vehicle:rover")
+      resolveStashRename(locker, "game-1", {
+        from: "Locker",
+        placeName: "vehicle:rover",
+      })
     ).toEqual({
       ok: false,
       reason: "invalid",
@@ -229,7 +227,10 @@ describe("resolveStashRename", () => {
         "That name is reserved for items in or on a vehicle. Use the vehicle's cargo or mount controls, or choose a place name.",
     });
     expect(
-      resolveStashRename(locker, "game-1", "Locker", "vehicle-mounted:bike")
+      resolveStashRename(locker, "game-1", {
+        from: "Locker",
+        placeName: "vehicle-mounted:bike",
+      })
     ).toEqual({
       ok: false,
       reason: "invalid",
@@ -246,8 +247,7 @@ describe("resolveStashRename", () => {
           renameHolding("unshared", "Locker", null),
         ],
         "game-1",
-        "Locker",
-        "Amber loft"
+        { from: "Locker", placeName: "Amber loft" }
       )
     ).toEqual({ ok: false, reason: "missing" });
   });

@@ -20,17 +20,20 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
+import type { StashRename } from "@/app/lib/stashPlace";
 import { getGameById, renameGameStash } from "@/lib/api/game";
-import { getStashPlaceNames } from "@/lib/api/stashPlaces";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useStoredDrawerOpenState } from "@/hooks/use-stored-drawer-open-state";
+import { useStashDrawerOpenState } from "@/hooks/use-stash-drawer-open-state";
+import { useStashPlaceNames } from "@/hooks/use-stash-place-names";
 import {
   InventoryColumnHeader,
   InventoryHoldingRow,
+  type CarriedHoldingRow,
+  type HoldingRowShared,
 } from "./InventoryHoldingRow";
 import { StoredInventoryList } from "./StoredInventoryList";
 
@@ -38,28 +41,14 @@ type InventoryEntry = ItemCharacter;
 
 function InventoryList({
   title,
-  entries,
-  variant,
-  onSelectDetail,
-  onSelectEquip,
-  onUnequip,
-  unequippingId,
-  equippingId,
-  readOnly = false,
-  vehicleNamesById,
+  holdings,
+  row,
 }: {
   title: string;
-  entries: InventoryEntry[];
-  variant: "carried" | "stored";
-  onSelectDetail: (entry: InventoryEntry) => void;
-  onSelectEquip: ((entry: InventoryEntry) => void) | null;
-  onUnequip: (entry: InventoryEntry) => void;
-  unequippingId: string | null;
-  equippingId: string | null;
-  readOnly?: boolean;
-  vehicleNamesById?: Readonly<Record<string, string>>;
+  holdings: InventoryEntry[];
+  row: CarriedHoldingRow;
 }) {
-  if (entries.length === 0) return null;
+  if (holdings.length === 0) return null;
   return (
     <div className="mb-6">
       <div className="border-b border-gray-200 pb-1 mt-2 mb-4">
@@ -67,20 +56,14 @@ function InventoryList({
           {title}
         </h3>
       </div>
-      <InventoryColumnHeader variant={variant} />
+      <InventoryColumnHeader variant="carried" />
       <ul className="divide-y divide-black">
-        {entries.map((entry) => (
+        {holdings.map((holding) => (
           <InventoryHoldingRow
-            key={entry.id}
-            entry={entry}
-            variant={variant}
-            onSelectDetail={onSelectDetail}
-            onSelectEquip={onSelectEquip}
-            onUnequip={onUnequip}
-            unequippingId={unequippingId}
-            equippingId={equippingId}
-            readOnly={readOnly}
-            vehicleNamesById={vehicleNamesById}
+            key={holding.id}
+            holding={holding}
+            variant="carried"
+            row={row}
           />
         ))}
       </ul>
@@ -113,40 +96,17 @@ function InventorySectionContent({
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
   const [stashRenameError, setStashRenameError] = useState<string | null>(null);
-  const [renamingStash, setRenamingStash] = useState<string | null>(null);
-  const [placeNames, setPlaceNames] = useState<string[]>([]);
-  const placeScopeKey = `${character.id}\0${activeGameId ?? ""}`;
-  const [shownPlaceScope, setShownPlaceScope] = useState(placeScopeKey);
-  if (shownPlaceScope !== placeScopeKey) {
-    setShownPlaceScope(placeScopeKey);
-    setPlaceNames([]);
-  }
-  const { openByKey, setDrawerOpen } = useStoredDrawerOpenState(character.id);
-  const stashPlaceHoldingsKey = useMemo(
-    () =>
-      (character.inventory ?? [])
-        .map(
-          (row) =>
-            `${row.id}\0${row.itemLocation ?? ""}\0${row.stashGameId ?? ""}`
-        )
-        .join("\n"),
-    [character.inventory]
-  );
-
+  const [stashRenameInFlight, setStashRenameInFlight] = useState(false);
   const canLoadPlaces = !readOnly && mutate !== undefined;
-
-  useEffect(() => {
-    if (!canLoadPlaces) return;
-    const controller = new AbortController();
-    void getStashPlaceNames(character.id, activeGameId, controller.signal)
-      .then((names) => {
-        if (!controller.signal.aborted) setPlaceNames(names);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setPlaceNames([]);
-      });
-    return () => controller.abort();
-  }, [character.id, activeGameId, canLoadPlaces, stashPlaceHoldingsKey]);
+  const placeNames = useStashPlaceNames(
+    character.id,
+    activeGameId,
+    character.inventory ?? [],
+    canLoadPlaces
+  );
+  const { openByKey, setStashDrawerOpen } = useStashDrawerOpenState(
+    character.id
+  );
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -221,23 +181,6 @@ function InventorySectionContent({
     }
   };
 
-  const renameStash = async (from: string, placeName: string) => {
-    if (activeGameId == null || mutate == null) return;
-    setStashRenameError(null);
-    setRenamingStash(from);
-    try {
-      await renameGameStash(activeGameId, from, placeName);
-      await mutate();
-    } catch (error) {
-      setStashRenameError(
-        getUserSafeErrorMessage(error, "Could not rename this stash.")
-      );
-      throw error;
-    } finally {
-      setRenamingStash(null);
-    }
-  };
-
   const openCreateUnique = () => {
     setCreateUniqueOpen(true);
   };
@@ -294,6 +237,43 @@ function InventorySectionContent({
     [character.id, character.games]
   );
 
+  const canRenameStash = !readOnly && activeGameId != null && mutate != null;
+  const renameStash = async (rename: StashRename) => {
+    if (activeGameId == null || mutate == null) return;
+    setStashRenameError(null);
+    setStashRenameInFlight(true);
+    try {
+      await renameGameStash(activeGameId, rename);
+      await mutate();
+    } catch (error) {
+      setStashRenameError(
+        getUserSafeErrorMessage(error, "Could not rename this stash.")
+      );
+      throw error;
+    } finally {
+      setStashRenameInFlight(false);
+    }
+  };
+
+  const storedRow: HoldingRowShared = {
+    onSelectDetail: setDetailEntry,
+    readOnly,
+    vehicleNamesById,
+  };
+  const carriedRow: CarriedHoldingRow = {
+    ...storedRow,
+    onSelectEquip: readOnly
+      ? null
+      : (holding) => {
+          void handleAutoEquip(holding);
+        },
+    onUnequip: (holding) => {
+      void handleUnequip(holding);
+    },
+    unequippingId,
+    equippingId,
+  };
+
   return (
     <div className="space-y-0">
       {!readOnly && (
@@ -333,44 +313,18 @@ function InventorySectionContent({
         <>
           <InventoryList
             title="On hand"
-            variant="carried"
-            entries={carriedInventory}
-            vehicleNamesById={vehicleNamesById}
-            onSelectDetail={setDetailEntry}
-            onSelectEquip={
-              readOnly
-                ? null
-                : (e) => {
-                    void handleAutoEquip(e);
-                  }
-            }
-            onUnequip={(entry) => {
-              void handleUnequip(entry);
-            }}
-            unequippingId={unequippingId}
-            equippingId={equippingId}
-            readOnly={readOnly}
+            holdings={carriedInventory}
+            row={carriedRow}
           />
           <StoredInventoryList
             characterId={character.id}
             holdings={inventory}
             openByKey={openByKey}
-            onToggleDrawer={setDrawerOpen}
-            vehicleNamesById={vehicleNamesById}
-            onSelectDetail={setDetailEntry}
-            onUnequip={(entry) => {
-              void handleUnequip(entry);
-            }}
-            unequippingId={unequippingId}
-            equippingId={equippingId}
-            readOnly={readOnly}
-            onRenameStash={
-              !readOnly && activeGameId != null && mutate != null
-                ? renameStash
-                : undefined
-            }
-            renameDisabled={renamingStash !== null}
+            onToggleStashDrawer={setStashDrawerOpen}
+            onRenameStash={canRenameStash ? renameStash : undefined}
+            renameDisabled={stashRenameInFlight}
             renameError={stashRenameError}
+            row={storedRow}
           />
         </>
       )}

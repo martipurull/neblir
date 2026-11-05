@@ -3,7 +3,11 @@ import {
   characterIsInGame,
   userHasPlayControl,
 } from "@/app/lib/prisma/gameCharacter";
-import { stashPlaceNames, type StashPlaceHolding } from "@/app/lib/stashPlace";
+import {
+  stashPlaceHoldingsWhere,
+  stashPlaceNames,
+  type StashPlaceHolding,
+} from "@/app/lib/stashPlace";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
 import { logger } from "@/logger";
@@ -18,12 +22,7 @@ async function loadStashPlaceHoldings(
   gameId: string | null
 ): Promise<StashPlaceHolding[]> {
   const rows = await prisma.itemCharacter.findMany({
-    where:
-      gameId == null
-        ? { characterId, stashGameId: null }
-        : {
-            OR: [{ stashGameId: gameId }, { characterId, stashGameId: null }],
-          },
+    where: stashPlaceHoldingsWhere(characterId, gameId),
     select: {
       characterId: true,
       itemLocation: true,

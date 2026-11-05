@@ -13,21 +13,53 @@ const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
 const STORED_GRID =
   "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_minmax(5.5rem,11rem)] gap-3";
 
-type InventoryHoldingRowProps = {
-  entry: ItemCharacter;
-  variant: "carried" | "stored";
-  onSelectDetail: (entry: ItemCharacter) => void;
-  onSelectEquip: ((entry: ItemCharacter) => void) | null;
-  onUnequip: (entry: ItemCharacter) => void;
-  unequippingId: string | null;
-  equippingId: string | null;
+/** What every inventory row needs: open the holding, and how to show it. */
+export type HoldingRowShared = {
+  onSelectDetail: (holding: ItemCharacter) => void;
   readOnly?: boolean;
   vehicleNamesById?: Readonly<Record<string, string>>;
-  locationLabel?: string | null;
 };
+
+/** Equip controls for an On hand row. A stored row does not take these. */
+export type CarriedHoldingRow = HoldingRowShared & {
+  onSelectEquip: ((holding: ItemCharacter) => void) | null;
+  onUnequip: (holding: ItemCharacter) => void;
+  unequippingId: string | null;
+  equippingId: string | null;
+};
+
+type InventoryHoldingRowProps = {
+  holding: ItemCharacter;
+  locationLabel?: string | null;
+} & (
+  | { variant: "carried"; row: CarriedHoldingRow }
+  | { variant: "stored"; row: HoldingRowShared }
+);
 
 function inventoryGridClass(variant: "carried" | "stored"): string {
   return variant === "stored" ? STORED_GRID : CARRIED_GRID;
+}
+
+function HoldingName({
+  name,
+  equipSlots,
+  nameClassName,
+}: {
+  name: string;
+  equipSlots?: readonly string[];
+  nameClassName?: string;
+}) {
+  const slots = equipSlots ?? [];
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+      <span className={nameClassName}>{name}</span>
+      {slots.length > 0 ? (
+        <span className="shrink-0 text-xs text-black">
+          ({slots.map((slot) => slot.toLowerCase()).join(", ")})
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 export function InventoryColumnHeader({
@@ -51,78 +83,49 @@ export function InventoryColumnHeader({
   );
 }
 
-export function InventoryHoldingRow({
-  entry,
-  variant,
-  onSelectDetail,
-  onSelectEquip,
-  onUnequip,
-  unequippingId,
-  equippingId,
-  readOnly = false,
-  vehicleNamesById,
-  locationLabel,
-}: InventoryHoldingRowProps) {
-  const name = entry.customName ?? entry.item?.name ?? "Unknown item";
-  const weight = entry.item?.weight;
-  const equippable = entry.item?.equippable === true;
-  const operational = isItemInventoryOperational(entry.status);
-  const hasEquippedSlots = (entry.equipSlots?.length ?? 0) > 0;
-  const showUnequip = variant === "carried" && hasEquippedSlots;
-  const showEquipButton =
-    variant === "carried" &&
-    onSelectEquip != null &&
-    equippable &&
-    operational &&
-    !hasEquippedSlots;
+export function InventoryHoldingRow(props: InventoryHoldingRowProps) {
+  const { holding, locationLabel } = props;
+  const { onSelectDetail, vehicleNamesById } = props.row;
+  const readOnly = props.row.readOnly === true;
+  const name = holding.customName ?? holding.item?.name ?? "Unknown item";
+  const weight = holding.item?.weight;
+  const equippable = holding.item?.equippable === true;
+  const operational = isItemInventoryOperational(holding.status);
+  const hasEquippedSlots = (holding.equipSlots?.length ?? 0) > 0;
   const location =
-    variant === "stored"
+    props.variant === "stored"
       ? (locationLabel ??
-        formatItemLocationLabel(entry.itemLocation, { vehicleNamesById }))
+        formatItemLocationLabel(holding.itemLocation, { vehicleNamesById }))
       : null;
-  const gridClass = inventoryGridClass(variant);
+  const gridClass = inventoryGridClass(props.variant);
 
   return (
     <li className={`${gridClass} items-start py-2.5`}>
       {readOnly ? (
         <div className="min-w-0 break-words text-sm text-black">
-          <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-            <span>{name}</span>
-            {(entry.equipSlots?.length ?? 0) > 0 && (
-              <span className="shrink-0 text-xs text-black">
-                (
-                {entry.equipSlots!.map((slot) => slot.toLowerCase()).join(", ")}
-                )
-              </span>
-            )}
-          </div>
+          <HoldingName name={name} equipSlots={holding.equipSlots} />
         </div>
       ) : (
         <Button
           type="button"
           variant="lightRowHit"
           fullWidth={false}
-          onClick={() => onSelectDetail(entry)}
+          onClick={() => onSelectDetail(holding)}
         >
-          <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-            <span className="break-words text-sm text-black">{name}</span>
-            {(entry.equipSlots?.length ?? 0) > 0 && (
-              <span className="shrink-0 text-xs text-black">
-                (
-                {entry.equipSlots!.map((slot) => slot.toLowerCase()).join(", ")}
-                )
-              </span>
-            )}
-          </div>
+          <HoldingName
+            name={name}
+            equipSlots={holding.equipSlots}
+            nameClassName="break-words text-sm text-black"
+          />
         </Button>
       )}
       <span className="text-right text-sm tabular-nums text-black">
-        {entry.quantity ?? 1}
+        {holding.quantity ?? 1}
       </span>
       <span className="text-right text-sm tabular-nums text-black">
         {weight != null ? `${formatWeightKgForDisplay(weight)} kg` : "—"}
       </span>
-      {variant === "stored" ? (
+      {props.variant === "stored" ? (
         <span
           className="min-w-0 truncate text-right text-sm text-black"
           title={location ?? undefined}
@@ -133,43 +136,48 @@ export function InventoryHoldingRow({
         <div className="flex justify-end">
           {readOnly ? (
             <span className="text-xs text-black/50">—</span>
-          ) : showUnequip ? (
+          ) : hasEquippedSlots ? (
             <Button
               type="button"
               variant="lightPillAction"
               fullWidth={false}
               onClick={(event) => {
                 event.stopPropagation();
-                void onUnequip(entry);
+                void props.row.onUnequip(holding);
               }}
-              disabled={unequippingId === entry.id || equippingId === entry.id}
+              disabled={
+                props.row.unequippingId === holding.id ||
+                props.row.equippingId === holding.id
+              }
             >
-              {unequippingId === entry.id ? "Unequipping…" : "Unequip"}
+              {props.row.unequippingId === holding.id
+                ? "Unequipping…"
+                : "Unequip"}
             </Button>
-          ) : showEquipButton ? (
+          ) : props.row.onSelectEquip != null && equippable && operational ? (
             <Button
               type="button"
               variant="lightPillAction"
               fullWidth={false}
-              disabled={equippingId === entry.id}
+              disabled={props.row.equippingId === holding.id}
               onClick={(event) => {
                 event.stopPropagation();
-                onSelectEquip(entry);
+                props.row.onSelectEquip?.(holding);
               }}
             >
-              {equippingId === entry.id ? "Equipping…" : "Equip"}
+              {props.row.equippingId === holding.id ? "Equipping…" : "Equip"}
             </Button>
           ) : equippable && !operational ? (
             <div className="flex w-full justify-end">
               <div className="flex flex-col p-1 text-right text-[10px] font-medium leading-tight text-neblirDanger-600">
-                {entry.status === "BEYOND_REPAIR" ? (
+                {holding.status === "BEYOND_REPAIR" ? (
                   <>
                     <span>beyond</span>
                     <span>repair</span>
                   </>
                 ) : (
                   <span>
-                    {itemStatusEquipColumnDamageLabel(entry.status) ?? "—"}
+                    {itemStatusEquipColumnDamageLabel(holding.status) ?? "—"}
                   </span>
                 )}
               </div>

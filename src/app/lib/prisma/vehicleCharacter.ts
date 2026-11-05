@@ -8,7 +8,7 @@ import type {
   VehicleSourceType,
 } from "@/app/lib/types/vehicle";
 import {
-  ITEM_LOCATION_CARRIED,
+  carriedHoldingWrite,
   vehicleCargoItemLocation,
   vehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
@@ -233,10 +233,9 @@ export async function deleteVehicleCharacter(id: string) {
         ],
       },
       data: {
-        itemLocation: ITEM_LOCATION_CARRIED,
+        ...carriedHoldingWrite(),
         isEquipped: false,
         equipSlots: [],
-        stashGameId: null,
       },
     });
 

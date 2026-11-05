@@ -1,3 +1,4 @@
+import type { StashRename } from "@/app/lib/stashPlace";
 import { Race, Religion } from "@prisma/client";
 import { z } from "zod";
 import { discordIntegrationSchema } from "./discord";
@@ -173,7 +174,7 @@ export const npcGroupRenameSchema = z
   .strict();
 
 /** PATCH /api/games/[id]/stashes */
-export const stashRenameSchema = z
+export const stashRenameSchema: z.ZodType<StashRename> = z
   .object({
     from: z.string(),
     placeName: z.string(),

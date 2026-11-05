@@ -5,9 +5,9 @@ import {
 } from "@/app/lib/constants/inventory";
 import {
   projectStoredInventory,
-  readStoredDrawerOpen,
-  writeStoredDrawerOpen,
-  type StoredDrawerOpenStorage,
+  readStashDrawerOpen,
+  writeStashDrawerOpen,
+  type StashDrawerOpenStorage,
   type StoredInventoryHolding,
 } from "@/app/lib/storedInventory";
 
@@ -20,7 +20,7 @@ function holding(
   return { id, customName: name, itemLocation, stashGameId };
 }
 
-function memoryStorage(): StoredDrawerOpenStorage {
+function memoryStorage(): StashDrawerOpenStorage {
   const data = new Map<string, string>();
   return {
     getItem: (key) => data.get(key) ?? null,
@@ -51,9 +51,9 @@ describe("projectStoredInventory", () => {
       { id: "bolt", locationLabel: "Bike (mounted)" },
       { id: "rope", locationLabel: "Rover" },
     ]);
-    expect(layout.drawers.map((drawer) => drawer.heading)).toEqual([
-      "Amber loft",
-    ]);
+    expect(
+      layout.stashDrawers.map((stashDrawer) => stashDrawer.heading)
+    ).toEqual(["Amber loft"]);
   });
 
   it("puts spellings that differ by case, spacing, punctuation, or a possessive 's in one drawer", () => {
@@ -63,14 +63,14 @@ describe("projectStoredInventory", () => {
       holding("lamp", "Lamp", "Indira's flat"),
     ]);
 
-    expect(layout.drawers).toEqual([
+    expect(layout.stashDrawers).toEqual([
       expect.objectContaining({
         heading: "Indira flat",
         holdingCount: 3,
         open: true,
       }),
     ]);
-    expect(layout.drawers[0]?.holdings.map((row) => row.id)).toEqual([
+    expect(layout.stashDrawers[0]?.holdings.map((row) => row.id)).toEqual([
       "key",
       "lamp",
       "map",
@@ -83,8 +83,8 @@ describe("projectStoredInventory", () => {
     const spaced = projectStoredInventory([
       holding("key", "Key", "indira flat"),
     ]);
-    expect(possessive.drawers[0]?.storageKey).toBe(
-      spaced.drawers[0]?.storageKey
+    expect(possessive.stashDrawers[0]?.stashKey).toBe(
+      spaced.stashDrawers[0]?.stashKey
     );
   });
 
@@ -99,10 +99,10 @@ describe("projectStoredInventory", () => {
     const layout = projectStoredInventory(holdings);
 
     expect(
-      layout.drawers.map((drawer) => ({
-        heading: drawer.heading,
-        holdingCount: drawer.holdingCount,
-        ids: drawer.holdings.map((row) => row.id),
+      layout.stashDrawers.map((stashDrawer) => ({
+        heading: stashDrawer.heading,
+        holdingCount: stashDrawer.holdingCount,
+        ids: stashDrawer.holdings.map((row) => row.id),
       }))
     ).toEqual([
       {
@@ -117,9 +117,9 @@ describe("projectStoredInventory", () => {
       openByKey: { "": false },
     });
     expect(
-      closed.drawers.map((drawer) => ({
-        heading: drawer.heading,
-        open: drawer.open,
+      closed.stashDrawers.map((stashDrawer) => ({
+        heading: stashDrawer.heading,
+        open: stashDrawer.open,
       }))
     ).toEqual([
       { heading: "", open: false },
@@ -133,11 +133,12 @@ describe("projectStoredInventory", () => {
       holding("pistol", "Pistol", "Gun"),
     ]);
 
-    expect(layout.drawers.map((drawer) => drawer.heading)).toEqual([
-      "Gun",
-      "Guns",
-    ]);
-    expect(layout.drawers.map((drawer) => drawer.holdingCount)).toEqual([1, 1]);
+    expect(
+      layout.stashDrawers.map((stashDrawer) => stashDrawer.heading)
+    ).toEqual(["Gun", "Guns"]);
+    expect(
+      layout.stashDrawers.map((stashDrawer) => stashDrawer.holdingCount)
+    ).toEqual([1, 1]);
   });
 
   it("keeps a single holding as a drawer and sorts drawers and rows alphabetically", () => {
@@ -148,10 +149,10 @@ describe("projectStoredInventory", () => {
     ]);
 
     expect(
-      layout.drawers.map((drawer) => ({
-        heading: drawer.heading,
-        holdingCount: drawer.holdingCount,
-        ids: drawer.holdings.map((row) => row.id),
+      layout.stashDrawers.map((stashDrawer) => ({
+        heading: stashDrawer.heading,
+        holdingCount: stashDrawer.holdingCount,
+        ids: stashDrawer.holdings.map((row) => row.id),
       }))
     ).toEqual([
       { heading: "Amber loft", holdingCount: 1, ids: ["solo"] },
@@ -165,10 +166,10 @@ describe("projectStoredInventory", () => {
       holding("key", "Key", "Locker", "game-2"),
     ]);
 
-    expect(layout.drawers).toHaveLength(1);
-    expect(layout.drawers[0]?.heading).toBe("Locker");
-    expect(layout.drawers[0]?.holdingCount).toBe(2);
-    expect(layout.drawers[0]?.holdings.map((row) => row.id)).toEqual([
+    expect(layout.stashDrawers).toHaveLength(1);
+    expect(layout.stashDrawers[0]?.heading).toBe("Locker");
+    expect(layout.stashDrawers[0]?.holdingCount).toBe(2);
+    expect(layout.stashDrawers[0]?.holdings.map((row) => row.id)).toEqual([
       "key",
       "map",
     ]);
@@ -180,14 +181,14 @@ describe("projectStoredInventory", () => {
       holding("key", "Key", "Attic"),
     ];
     const open = projectStoredInventory(holdings);
-    const lockerKey = open.drawers.find(
-      (drawer) => drawer.heading === "Locker"
-    )?.storageKey;
+    const lockerKey = open.stashDrawers.find(
+      (stashDrawer) => stashDrawer.heading === "Locker"
+    )?.stashKey;
 
     expect(
-      open.drawers.map((drawer) => ({
-        heading: drawer.heading,
-        open: drawer.open,
+      open.stashDrawers.map((stashDrawer) => ({
+        heading: stashDrawer.heading,
+        open: stashDrawer.open,
       }))
     ).toEqual([
       { heading: "Attic", open: true },
@@ -199,10 +200,10 @@ describe("projectStoredInventory", () => {
     });
 
     expect(
-      closed.drawers.map((drawer) => ({
-        heading: drawer.heading,
-        open: drawer.open,
-        holdingCount: drawer.holdingCount,
+      closed.stashDrawers.map((stashDrawer) => ({
+        heading: stashDrawer.heading,
+        open: stashDrawer.open,
+        holdingCount: stashDrawer.holdingCount,
       }))
     ).toEqual([
       { heading: "Attic", open: true, holdingCount: 1 },
@@ -214,21 +215,21 @@ describe("projectStoredInventory", () => {
 describe("stored drawer memory", () => {
   it("remembers a closed drawer for this character and not for another", () => {
     const storage = memoryStorage();
-    const placeKey =
-      projectStoredInventory([holding("map", "Map", "Locker")]).drawers[0]
-        ?.storageKey ?? "";
+    const stashKey =
+      projectStoredInventory([holding("map", "Map", "Locker")]).stashDrawers[0]
+        ?.stashKey ?? "";
 
     const atticKey =
-      projectStoredInventory([holding("key", "Key", "Attic")]).drawers[0]
-        ?.storageKey ?? "";
+      projectStoredInventory([holding("key", "Key", "Attic")]).stashDrawers[0]
+        ?.stashKey ?? "";
 
-    writeStoredDrawerOpen(storage, "ada", placeKey, false);
-    writeStoredDrawerOpen(storage, "ada", atticKey, false);
+    writeStashDrawerOpen(storage, "ada", stashKey, false);
+    writeStashDrawerOpen(storage, "ada", atticKey, false);
 
-    expect(readStoredDrawerOpen(storage, "ada")).toEqual({
-      [placeKey]: false,
+    expect(readStashDrawerOpen(storage, "ada")).toEqual({
+      [stashKey]: false,
       [atticKey]: false,
     });
-    expect(readStoredDrawerOpen(storage, "bea")).toEqual({});
+    expect(readStashDrawerOpen(storage, "bea")).toEqual({});
   });
 });

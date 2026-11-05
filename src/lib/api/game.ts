@@ -1,3 +1,4 @@
+import type { StashRename } from "@/app/lib/stashPlace";
 import {
   gameCharactersAddResultSchema,
   gameCreateResponseSchema,
@@ -805,15 +806,14 @@ export async function renameGameNpcGroup(
 
 export async function renameGameStash(
   gameId: string,
-  from: string,
-  placeName: string
+  rename: StashRename
 ): Promise<string> {
   const response = await fetch(
     `/api/games/${encodeURIComponent(gameId)}/stashes`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ from, placeName }),
+      body: JSON.stringify(rename),
     }
   );
 

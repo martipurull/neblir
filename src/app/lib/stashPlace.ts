@@ -1,7 +1,6 @@
 import {
   ITEM_LOCATION_CARRIED,
-  parseVehicleCargoItemLocation,
-  parseVehicleMountedItemLocation,
+  isVehicleItemLocation,
 } from "@/app/lib/constants/inventory";
 import {
   foldSharedName,
@@ -13,6 +12,72 @@ const CARRIED_RESERVED =
   "That word is reserved for items the character is carrying. Choose a place name.";
 const VEHICLE_RESERVED =
   "That name is reserved for items in or on a vehicle. Use the vehicle's cargo or mount controls, or choose a place name.";
+const CARRIED_FOLD = foldSharedName(ITEM_LOCATION_CARRIED);
+
+type PlaceName =
+  | { ok: true; trimmed: string; key: string }
+  | { ok: false; message: string };
+
+/** A typed or stored whereabouts, or why it cannot be a place name. */
+function readPlaceName(candidate: string): PlaceName {
+  const trimmed = candidate.trim();
+  if (isVehicleItemLocation(trimmed)) {
+    return { ok: false, message: VEHICLE_RESERVED };
+  }
+  const key = foldSharedName(trimmed);
+  if (key === "") return { ok: false, message: PLACE_NAME_REQUIRED };
+  if (key === CARRIED_FOLD) return { ok: false, message: CARRIED_RESERVED };
+  return { ok: true, trimmed, key };
+}
+
+type PlaceListClause = {
+  characterId?: string;
+  stashGameId: string | null;
+};
+
+/** Shared places for the active game, and this character's places with no game. */
+function placeListClauses(
+  characterId: string,
+  gameId: string | null
+): { shared: PlaceListClause | null; unshared: PlaceListClause } {
+  return {
+    shared: gameId == null ? null : { stashGameId: gameId },
+    unshared: { characterId, stashGameId: null },
+  };
+}
+
+function holdingMatchesClause(
+  holding: StashPlaceHolding,
+  clause: PlaceListClause
+): boolean {
+  if (clause.stashGameId != null) {
+    return holding.stashGameId === clause.stashGameId;
+  }
+  return (
+    holding.stashGameId == null && holding.characterId === clause.characterId
+  );
+}
+
+function placeListRole(
+  holding: StashPlaceHolding,
+  characterId: string,
+  gameId: string | null
+): "shared" | "unshared" | null {
+  const { shared, unshared } = placeListClauses(characterId, gameId);
+  if (shared != null && holdingMatchesClause(holding, shared)) return "shared";
+  if (holdingMatchesClause(holding, unshared)) return "unshared";
+  return null;
+}
+
+/** Query for the holdings `stashPlaceNames` will consider. */
+export function stashPlaceHoldingsWhere(
+  characterId: string,
+  gameId: string | null
+): PlaceListClause | { OR: PlaceListClause[] } {
+  const { shared, unshared } = placeListClauses(characterId, gameId);
+  if (shared == null) return unshared;
+  return { OR: [shared, unshared] };
+}
 
 export type ResolvedStashPlaceName =
   | { ok: true; placeName: string }
@@ -25,13 +90,6 @@ export type StashPlaceHolding = {
   stashGameId: string | null;
 };
 
-function isVehicleItemLocation(value: string): boolean {
-  return (
-    parseVehicleCargoItemLocation(value) != null ||
-    parseVehicleMountedItemLocation(value) != null
-  );
-}
-
 /**
  * Place name to store. Spellings that share a fold keep the one already stored,
  * or the one that sorts first when several are stored. A new place keeps the
@@ -41,32 +99,16 @@ export function resolveStashPlaceName(
   candidate: string,
   existingSpellings: readonly string[]
 ): ResolvedStashPlaceName {
-  const trimmed = candidate.trim();
-  if (isVehicleItemLocation(trimmed)) {
-    return { ok: false, message: VEHICLE_RESERVED };
-  }
-  const key = foldSharedName(trimmed);
-  if (key === "") {
-    return { ok: false, message: PLACE_NAME_REQUIRED };
-  }
-  if (key === foldSharedName(ITEM_LOCATION_CARRIED)) {
-    return { ok: false, message: CARRIED_RESERVED };
-  }
+  const place = readPlaceName(candidate);
+  if (!place.ok) return place;
 
   const matches = existingSpellings.flatMap((spelling) => {
-    const stored = spelling.trim();
-    if (stored === "" || isVehicleItemLocation(stored)) return [];
-    return foldSharedName(stored) === key ? [stored] : [];
+    const stored = readPlaceName(spelling);
+    if (!stored.ok || stored.key !== place.key) return [];
+    return [stored.trimmed];
   });
-  if (matches.length === 0) return { ok: true, placeName: trimmed };
+  if (matches.length === 0) return { ok: true, placeName: place.trimmed };
   return { ok: true, placeName: spellingThatSortsFirst(matches) };
-}
-
-function isOfferedPlace(itemLocation: string): boolean {
-  const trimmed = itemLocation.trim();
-  if (trimmed === "" || isVehicleItemLocation(trimmed)) return false;
-  const key = foldSharedName(trimmed);
-  return key !== "" && key !== foldSharedName(ITEM_LOCATION_CARRIED);
 }
 
 function comparePlaceNames(left: string, right: string): number {
@@ -74,19 +116,21 @@ function comparePlaceNames(left: string, right: string): number {
   return spellingThatSortsFirst([left, right]) === left ? -1 : 1;
 }
 
-function spellingsByFold(
+function spellingsByRole(
   holdings: readonly StashPlaceHolding[],
-  include: (holding: StashPlaceHolding) => boolean
+  characterId: string,
+  gameId: string | null,
+  role: "shared" | "unshared"
 ): Map<string, string[]> {
   const byFold = new Map<string, string[]>();
   for (const holding of holdings) {
-    const location = holding.itemLocation.trim();
-    if (!isOfferedPlace(location)) continue;
-    const key = foldSharedName(location);
-    if (!include(holding)) continue;
-    const spellings = byFold.get(key) ?? [];
-    spellings.push(location);
-    byFold.set(key, spellings);
+    const place = readPlaceName(holding.itemLocation);
+    if (!place.ok || placeListRole(holding, characterId, gameId) !== role) {
+      continue;
+    }
+    const spellings = byFold.get(place.key) ?? [];
+    spellings.push(place.trimmed);
+    byFold.set(place.key, spellings);
   }
   return byFold;
 }
@@ -102,15 +146,8 @@ export function stashPlaceNames(
   characterId: string,
   gameId: string | null
 ): string[] {
-  const shared =
-    gameId == null
-      ? new Map<string, string[]>()
-      : spellingsByFold(holdings, (holding) => holding.stashGameId === gameId);
-  const unshared = spellingsByFold(
-    holdings,
-    (holding) =>
-      holding.stashGameId == null && holding.characterId === characterId
-  );
+  const shared = spellingsByRole(holdings, characterId, gameId, "shared");
+  const unshared = spellingsByRole(holdings, characterId, gameId, "unshared");
 
   const names: string[] = [];
   const folds = new Set([...shared.keys(), ...unshared.keys()]);
@@ -127,6 +164,12 @@ export function stashPlaceNames(
   }
   return names.sort(comparePlaceNames);
 }
+
+/** The spelling already shown, and the spelling to store. */
+export type StashRename = {
+  from: string;
+  placeName: string;
+};
 
 export type StashRenameHolding = {
   id: string;
@@ -159,13 +202,14 @@ function acceptedPlace(
 export function resolveStashRename(
   holdings: readonly StashRenameHolding[],
   gameId: string,
-  from: string,
-  to: string
+  rename: StashRename
 ): ResolvedStashRename {
-  const next = acceptedPlace(to);
-  if (!next.ok) return { ok: false, reason: "invalid", message: next.message };
+  const destination = acceptedPlace(rename.placeName);
+  if (!destination.ok) {
+    return { ok: false, reason: "invalid", message: destination.message };
+  }
 
-  const source = acceptedPlace(from);
+  const source = acceptedPlace(rename.from);
   if (!source.ok) return { ok: false, reason: "missing" };
 
   const matching: StashRenameHolding[] = [];
@@ -182,7 +226,7 @@ export function resolveStashRename(
   }
   if (matching.length === 0) return { ok: false, reason: "missing" };
 
-  const resolved = resolveStashPlaceName(next.trimmed, otherSpellings);
+  const resolved = resolveStashPlaceName(destination.trimmed, otherSpellings);
   if (!resolved.ok) {
     return { ok: false, reason: "invalid", message: resolved.message };
   }

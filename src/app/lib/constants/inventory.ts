@@ -56,6 +56,16 @@ export function parseVehicleMountedItemLocation(
   return id.length > 0 ? id : null;
 }
 
+/** True when the whereabouts is vehicle cargo or a mounted item. */
+export function isVehicleItemLocation(
+  itemLocation: string | null | undefined
+): boolean {
+  return (
+    parseVehicleCargoItemLocation(itemLocation) != null ||
+    parseVehicleMountedItemLocation(itemLocation) != null
+  );
+}
+
 export function isItemInVehicleCargo(
   entry: { itemLocation?: string | null },
   vehicleCharacterId: string

@@ -1,8 +1,7 @@
 import {
   formatItemLocationLabel,
   isItemCarried,
-  parseVehicleCargoItemLocation,
-  parseVehicleMountedItemLocation,
+  isVehicleItemLocation,
   sortInventoryEntriesAlphabetically,
   type FormatItemLocationLabelOptions,
 } from "@/app/lib/constants/inventory";
@@ -18,15 +17,15 @@ export type StoredInventoryHolding = {
   item?: { name?: string | null } | null;
 };
 
-export type StoredVehicleRow<T> = {
+type StoredVehicleRow<T> = {
   holding: T;
   locationLabel: string;
 };
 
-export type StoredDrawer<T> = {
+type StashDrawer<T> = {
   heading: string;
-  /** Fold of the place. Open or closed memory for this character uses this key. */
-  storageKey: string;
+  /** Fold of this stash. This character's open or closed memory uses this key. */
+  stashKey: string;
   holdings: T[];
   holdingCount: number;
   open: boolean;
@@ -34,45 +33,39 @@ export type StoredDrawer<T> = {
 
 export type StoredInventoryLayout<T> = {
   vehicleRows: StoredVehicleRow<T>[];
-  drawers: StoredDrawer<T>[];
+  stashDrawers: StashDrawer<T>[];
 };
 
-export type StoredDrawerOpenState = Readonly<Record<string, boolean>>;
+export type StashDrawerOpenState = Readonly<Record<string, boolean>>;
 
-export type StoredDrawerOpenStorage = {
+export type StashDrawerOpenStorage = {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
 };
 
-const SESSION_PREFIX = "neblir:stored-drawer-open:v1:";
+const SESSION_PREFIX = "neblir:stash-drawer-open:v1:";
 
-function storedDrawerSessionKey(characterId: string): string {
+function stashDrawerSessionKey(characterId: string): string {
   return `${SESSION_PREFIX}${characterId}`;
-}
-
-function isVehicleItemLocation(itemLocation: string): boolean {
-  return (
-    parseVehicleCargoItemLocation(itemLocation) != null ||
-    parseVehicleMountedItemLocation(itemLocation) != null
-  );
 }
 
 /**
  * Stored section for one character: vehicle cargo and mounted rows, then one
- * drawer per place. Spellings that share a fold are one drawer. The same
- * spelling in two games is one drawer. A drawer with no stored choice is open.
+ * stash drawer per stash. Spellings that share a fold are one stash drawer.
+ * The same spelling in two games is one stash drawer. A stash drawer with no
+ * stored choice is open.
  */
 export function projectStoredInventory<T extends StoredInventoryHolding>(
   holdings: readonly T[],
   options?: {
     vehicleNamesById?: FormatItemLocationLabelOptions["vehicleNamesById"];
-    openByKey?: StoredDrawerOpenState;
+    openByKey?: StashDrawerOpenState;
   }
 ): StoredInventoryLayout<T> {
   const openByKey = options?.openByKey ?? {};
   const labelOptions = { vehicleNamesById: options?.vehicleNamesById };
   const vehicleHoldings: T[] = [];
-  const places = new Map<string, { spellings: string[]; holdings: T[] }>();
+  const stashes = new Map<string, { spellings: string[]; holdings: T[] }>();
 
   for (const holding of holdings) {
     if (isItemCarried(holding)) continue;
@@ -81,13 +74,13 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
       vehicleHoldings.push(holding);
       continue;
     }
-    const storageKey = foldSharedName(trimmed);
-    const bucket = places.get(storageKey);
+    const stashKey = foldSharedName(trimmed);
+    const bucket = stashes.get(stashKey);
     if (bucket) {
       bucket.holdings.push(holding);
       bucket.spellings.push(trimmed);
     } else {
-      places.set(storageKey, { spellings: [trimmed], holdings: [holding] });
+      stashes.set(stashKey, { spellings: [trimmed], holdings: [holding] });
     }
   }
 
@@ -100,15 +93,15 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
     })
   );
 
-  const drawers = [...places.entries()]
-    .map(([storageKey, bucket]) => {
+  const stashDrawers = [...stashes.entries()]
+    .map(([stashKey, bucket]) => {
       const rows = sortInventoryEntriesAlphabetically(bucket.holdings);
       return {
         heading: spellingThatSortsFirst(bucket.spellings),
-        storageKey,
+        stashKey,
         holdings: rows,
         holdingCount: rows.length,
-        open: openByKey[storageKey] ?? true,
+        open: openByKey[stashKey] ?? true,
       };
     })
     .sort((left, right) =>
@@ -117,14 +110,14 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
       })
     );
 
-  return { vehicleRows, drawers };
+  return { vehicleRows, stashDrawers };
 }
 
 function trimmedLocation(holding: StoredInventoryHolding): string {
   return holding.itemLocation?.trim() ?? "";
 }
 
-export function parseStoredDrawerOpen(raw: string): Record<string, boolean> {
+export function parseStashDrawerOpen(raw: string): Record<string, boolean> {
   if (raw === "") return {};
   try {
     const value: unknown = JSON.parse(raw);
@@ -132,8 +125,8 @@ export function parseStoredDrawerOpen(raw: string): Record<string, boolean> {
       return {};
     }
     const parsed: Record<string, boolean> = {};
-    for (const [key, entry] of Object.entries(value)) {
-      if (typeof entry === "boolean") parsed[key] = entry;
+    for (const [stashKey, open] of Object.entries(value)) {
+      if (typeof open === "boolean") parsed[stashKey] = open;
     }
     return parsed;
   } catch {
@@ -141,33 +134,33 @@ export function parseStoredDrawerOpen(raw: string): Record<string, boolean> {
   }
 }
 
-/** Open or closed places remembered for this character. Another character is empty. */
-export function readStoredDrawerOpen(
-  storage: StoredDrawerOpenStorage,
+/** Open or closed stash drawers remembered for this character. Another character is empty. */
+export function readStashDrawerOpen(
+  storage: StashDrawerOpenStorage,
   characterId: string
 ): Record<string, boolean> {
-  return parseStoredDrawerOpen(
-    storage.getItem(storedDrawerSessionKey(characterId)) ?? ""
+  return parseStashDrawerOpen(
+    storage.getItem(stashDrawerSessionKey(characterId)) ?? ""
   );
 }
 
-export function readStoredDrawerOpenRaw(
-  storage: StoredDrawerOpenStorage,
+export function readStashDrawerOpenRaw(
+  storage: StashDrawerOpenStorage,
   characterId: string
 ): string {
-  return storage.getItem(storedDrawerSessionKey(characterId)) ?? "";
+  return storage.getItem(stashDrawerSessionKey(characterId)) ?? "";
 }
 
-/** Remember one place on this character. Other places already stored stay. */
-export function writeStoredDrawerOpen(
-  storage: StoredDrawerOpenStorage,
+/** Remember one stash on this character. Other stashes already stored stay. */
+export function writeStashDrawerOpen(
+  storage: StashDrawerOpenStorage,
   characterId: string,
-  placeKey: string,
+  stashKey: string,
   open: boolean
 ): void {
   const next = {
-    ...readStoredDrawerOpen(storage, characterId),
-    [placeKey]: open,
+    ...readStashDrawerOpen(storage, characterId),
+    [stashKey]: open,
   };
-  storage.setItem(storedDrawerSessionKey(characterId), JSON.stringify(next));
+  storage.setItem(stashDrawerSessionKey(characterId), JSON.stringify(next));
 }

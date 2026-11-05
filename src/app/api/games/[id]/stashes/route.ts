@@ -1,4 +1,4 @@
-import { renameStash } from "@/app/lib/prisma/stash";
+import { renameStash, type RenameStashResult } from "@/app/lib/prisma/stash";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { stashRenameSchema } from "@/app/lib/types/game";
 import { auth } from "@/auth";
@@ -8,11 +8,7 @@ import { serializeError } from "../../../shared/errors";
 import { errorResponse } from "../../../shared/responses";
 
 function renameStashErrorResponse(
-  result:
-    | { reason: "unauthorised" }
-    | { reason: "not_found" }
-    | { reason: "missing" }
-    | { reason: "invalid"; message: string }
+  result: Extract<RenameStashResult, { ok: false }>
 ) {
   switch (result.reason) {
     case "unauthorised":
@@ -50,12 +46,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const result = await renameStash(
-      gameId,
-      requesterId,
-      parsed.data.from,
-      parsed.data.placeName
-    );
+    const result = await renameStash(gameId, requesterId, parsed.data);
     if (!result.ok) {
       return renameStashErrorResponse(result);
     }

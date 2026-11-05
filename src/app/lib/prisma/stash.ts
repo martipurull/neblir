@@ -1,7 +1,7 @@
-import { resolveStashRename } from "@/app/lib/stashPlace";
+import { resolveStashRename, type StashRename } from "@/app/lib/stashPlace";
 import { prisma } from "./client";
 
-type RenameStashResult =
+export type RenameStashResult =
   | { ok: true; placeName: string }
   | { ok: false; reason: "unauthorised" }
   | { ok: false; reason: "not_found" }
@@ -42,8 +42,7 @@ async function callerHasPlayControlInGame(
 export async function renameStash(
   gameId: string,
   requesterId: string,
-  from: string,
-  placeName: string
+  rename: StashRename
 ): Promise<RenameStashResult> {
   const game = await prisma.game.findUnique({
     where: { id: gameId },
@@ -63,7 +62,7 @@ export async function renameStash(
     select: { id: true, itemLocation: true, stashGameId: true },
     orderBy: { id: "asc" },
   });
-  const resolved = resolveStashRename(holdings, gameId, from, placeName);
+  const resolved = resolveStashRename(holdings, gameId, rename);
   if (!resolved.ok) {
     if (resolved.reason === "missing") return { ok: false, reason: "missing" };
     return { ok: false, reason: "invalid", message: resolved.message };
