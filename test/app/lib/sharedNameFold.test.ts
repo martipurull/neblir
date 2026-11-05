@@ -14,6 +14,11 @@ describe("foldSharedName", () => {
     expect(foldSharedName("Gun")).toBe("gun");
   });
 
+  it("keeps an s that follows an apostrophe inside a name", () => {
+    expect(foldSharedName("D'souza")).toBe("dsouza");
+    expect(foldSharedName("the 'ship")).toBe("the ship");
+  });
+
   it("drops remaining punctuation and collapses the spaces that leaves", () => {
     expect(foldSharedName("Archived!")).toBe("archived");
     expect(foldSharedName("archived's")).toBe("archived");

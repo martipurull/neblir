@@ -36,6 +36,12 @@ function compareNpcGroupSpellings(left: string, right: string): number {
   return 0;
 }
 
+function spellingThatSortsFirst(spellings: readonly string[]): string {
+  return spellings.reduce((best, spelling) =>
+    compareNpcGroupSpellings(spelling, best) < 0 ? spelling : best
+  );
+}
+
 /** Any spelling that folds to the reserved Archived group. */
 export function isArchivedNpcGroup(name: string | null | undefined): boolean {
   return npcGroupFoldKey(name) === archivedKey;
@@ -59,9 +65,7 @@ export function npcGroupNameToStore(
     return npcGroupFoldKey(stored) === key ? [stored] : [];
   });
   if (matches.length === 0) return trimmed;
-  return matches.reduce((best, spelling) =>
-    compareNpcGroupSpellings(spelling, best) < 0 ? spelling : best
-  );
+  return spellingThatSortsFirst(matches);
 }
 
 export type NpcGroupRenameLink = {
@@ -129,7 +133,7 @@ export function groupNpcList<T extends NpcListEntry>(
 ): NpcListSection<T>[] {
   const ungrouped: T[] = [];
   const archived: T[] = [];
-  const named = new Map<string, { heading: string; entries: T[] }>();
+  const named = new Map<string, { spellings: string[]; entries: T[] }>();
 
   for (const entry of entries) {
     const trimmed = entry.npcGroup?.trim() ?? "";
@@ -145,22 +149,20 @@ export function groupNpcList<T extends NpcListEntry>(
     const bucket = named.get(key);
     if (bucket) {
       bucket.entries.push(entry);
-      if (compareNpcGroupSpellings(trimmed, bucket.heading) < 0) {
-        bucket.heading = trimmed;
-      }
+      bucket.spellings.push(trimmed);
     } else {
-      named.set(key, { heading: trimmed, entries: [entry] });
+      named.set(key, { spellings: [trimmed], entries: [entry] });
     }
   }
 
   const namedSections = [...named.values()]
+    .map((bucket) => ({
+      heading: spellingThatSortsFirst(bucket.spellings),
+      entries: sortNpcListEntries(bucket.entries),
+    }))
     .sort((a, b) =>
       a.heading.localeCompare(b.heading, undefined, { sensitivity: "base" })
-    )
-    .map((bucket) => ({
-      heading: bucket.heading,
-      entries: sortNpcListEntries(bucket.entries),
-    }));
+    );
 
   const sections: NpcListSection<T>[] = [];
   if (ungrouped.length > 0) {
