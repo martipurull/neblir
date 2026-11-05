@@ -200,7 +200,7 @@ describe("PATCH /api/games/[id]/characters/[characterId]/npc-group", () => {
     });
   });
 
-  it("saves a later spelling as the first spelling already used", async () => {
+  it("saves a later spelling as the spelling already stored", async () => {
     mockGmControlledLink();
     prismaMock.gameCharacter.findFirst.mockResolvedValue({
       id: "gc-2",
@@ -226,6 +226,97 @@ describe("PATCH /api/games/[id]/characters/[characterId]/npc-group", () => {
     expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
       where: { id: "gc-2" },
       data: { npcGroup: "Crimson Claws" },
+    });
+  });
+
+  it("keeps the spelling already stored when the new name only differs by the fold", async () => {
+    mockGmControlledLink();
+    prismaMock.gameCharacter.findMany.mockResolvedValue([
+      { npcGroup: "Indira's Crew" },
+    ]);
+    prismaMock.gameCharacter.update.mockResolvedValue({
+      id: "gc-1",
+      npcGroup: "Indira's Crew",
+    });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/characters/[characterId]/npc-group/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ npcGroup: "Indira Crew" }, "gm-1"),
+      makeParams({ id: "g-1", characterId: "c-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ npcGroup: "Indira's Crew" });
+    expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
+      where: { id: "gc-1" },
+      data: { npcGroup: "Indira's Crew" },
+    });
+  });
+
+  it("does not store a punctuated spelling that folds to Ungrouped", async () => {
+    mockGmControlledLink();
+    prismaMock.gameCharacter.update.mockResolvedValue({
+      id: "gc-1",
+      npcGroup: null,
+    });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/characters/[characterId]/npc-group/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ npcGroup: "Ungrouped!" }, "gm-1"),
+      makeParams({ id: "g-1", characterId: "c-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ npcGroup: null });
+    expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
+      where: { id: "gc-1" },
+      data: { npcGroup: null },
+    });
+  });
+
+  it("stores archived's as Archived", async () => {
+    mockGmControlledLink();
+    prismaMock.gameCharacter.update.mockResolvedValue({
+      id: "gc-1",
+      npcGroup: "Archived",
+    });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/characters/[characterId]/npc-group/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ npcGroup: "archived's" }, "gm-1"),
+      makeParams({ id: "g-1", characterId: "c-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ npcGroup: "Archived" });
+    expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
+      where: { id: "gc-1" },
+      data: { npcGroup: "Archived" },
+    });
+  });
+
+  it("stores the matching spelling that sorts first when several are already stored", async () => {
+    mockGmControlledLink();
+    prismaMock.gameCharacter.findMany.mockResolvedValue([
+      { npcGroup: "Indira's Crew" },
+      { npcGroup: "Indira Crew" },
+    ]);
+    prismaMock.gameCharacter.update.mockResolvedValue({
+      id: "gc-1",
+      npcGroup: "Indira Crew",
+    });
+    const { PATCH } =
+      await import("@/app/api/games/[id]/characters/[characterId]/npc-group/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ npcGroup: "indira's crew" }, "gm-1"),
+      makeParams({ id: "g-1", characterId: "c-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ npcGroup: "Indira Crew" });
+    expect(prismaMock.gameCharacter.update).toHaveBeenCalledWith({
+      where: { id: "gc-1" },
+      data: { npcGroup: "Indira Crew" },
     });
   });
 

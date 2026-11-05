@@ -1,4 +1,4 @@
-import { normalizeOfficialName } from "@/app/lib/officialName";
+import { foldSharedName } from "@/app/lib/sharedNameFold";
 
 export const UNGROUPED_NPC_HEADING = "Ungrouped";
 export const ARCHIVED_NPC_GROUP = "Archived";
@@ -15,27 +15,36 @@ export type NpcListSection<T extends NpcListEntry = NpcListEntry> = {
   entries: T[];
 };
 
-const ungroupedKey = normalizeOfficialName(UNGROUPED_NPC_HEADING);
-const archivedKey = normalizeOfficialName(ARCHIVED_NPC_GROUP);
+const ungroupedKey = foldSharedName(UNGROUPED_NPC_HEADING);
+const archivedKey = foldSharedName(ARCHIVED_NPC_GROUP);
 
-/** Fold key for an NPC group. Blank and the word Ungrouped are Ungrouped. */
+/** Fold key for an NPC group. Blank, and anything that folds to Ungrouped, are Ungrouped. */
 function npcGroupFoldKey(name: string | null | undefined): string {
   const trimmed = name?.trim() ?? "";
   if (trimmed === "") return "";
-  const key = normalizeOfficialName(trimmed);
+  const key = foldSharedName(trimmed);
   if (key === "" || key === ungroupedKey) return "";
   return key;
 }
 
-/** Any capitalisation or spacing of the reserved Archived group. */
+/** Same order as the NPC list, then code-unit order when that sort ties. */
+function compareNpcGroupSpellings(left: string, right: string): number {
+  const byBase = left.localeCompare(right, undefined, { sensitivity: "base" });
+  if (byBase !== 0) return byBase;
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+/** Any spelling that folds to the reserved Archived group. */
 export function isArchivedNpcGroup(name: string | null | undefined): boolean {
   return npcGroupFoldKey(name) === archivedKey;
 }
 
 /**
  * Name to store on the game link. Blank and Ungrouped store nothing.
- * A later spelling of an existing group keeps the first spelling.
- * Archived, in any capitalisation, is stored as Archived.
+ * A later spelling of an existing group keeps the spelling that sorts first.
+ * Archived, after the shared fold, is stored as Archived.
  */
 export function npcGroupNameToStore(
   candidate: string | null,
@@ -45,10 +54,14 @@ export function npcGroupNameToStore(
   const key = npcGroupFoldKey(trimmed);
   if (key === "") return null;
   if (key === archivedKey) return ARCHIVED_NPC_GROUP;
-  const existing = existingSpellings.find(
-    (spelling) => npcGroupFoldKey(spelling) === key
+  const matches = existingSpellings.flatMap((spelling) => {
+    const stored = spelling.trim();
+    return npcGroupFoldKey(stored) === key ? [stored] : [];
+  });
+  if (matches.length === 0) return trimmed;
+  return matches.reduce((best, spelling) =>
+    compareNpcGroupSpellings(spelling, best) < 0 ? spelling : best
   );
-  return existing ?? trimmed;
 }
 
 export type NpcGroupRenameLink = {
@@ -65,7 +78,7 @@ export type ResolvedNpcGroupRename =
 
 /**
  * Links whose group matches `from`, and the name to store.
- * A new spelling of this group is kept as typed. Joining another group keeps that group's spelling.
+ * A new spelling of this group is kept as typed. Joining another group keeps the spelling that sorts first.
  */
 export function resolveNpcGroupRename(
   links: readonly NpcGroupRenameLink[],
@@ -132,6 +145,9 @@ export function groupNpcList<T extends NpcListEntry>(
     const bucket = named.get(key);
     if (bucket) {
       bucket.entries.push(entry);
+      if (compareNpcGroupSpellings(trimmed, bucket.heading) < 0) {
+        bucket.heading = trimmed;
+      }
     } else {
       named.set(key, { heading: trimmed, entries: [entry] });
     }
@@ -191,7 +207,7 @@ export type NpcListViewSection<T extends NpcListViewEntry = NpcListViewEntry> =
 
 /**
  * Identity for remembering open or closed: Ungrouped, Archived, or a named group's fold key.
- * A new spelling of a named group does not match the previous key, so it starts open.
+ * A group whose fold changes does not match the previous key, so it starts open.
  */
 export function npcListSectionStorageKey(heading: string): string {
   if (isArchivedNpcGroup(heading)) return ARCHIVED_NPC_GROUP;
