@@ -236,6 +236,7 @@ export async function deleteVehicleCharacter(id: string) {
         itemLocation: ITEM_LOCATION_CARRIED,
         isEquipped: false,
         equipSlots: [],
+        stashGameId: null,
       },
     });
 

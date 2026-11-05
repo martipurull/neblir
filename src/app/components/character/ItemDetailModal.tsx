@@ -141,18 +141,19 @@ export function ItemDetailModal({
     []
   );
 
-  const handleSetLocation = async (itemLocation: string) => {
+  const handleSetLocation = async (
+    body:
+      | { action: "leave"; placeName: string; gameId: string | null }
+      | { action: "setLocation"; itemLocation: typeof ITEM_LOCATION_CARRIED }
+  ) => {
     setLocationError(null);
     setIsSettingLocation(true);
     try {
-      await updateCharacterInventoryEntry(characterId, entry.id, {
-        action: "setLocation",
-        itemLocation,
-      });
+      await updateCharacterInventoryEntry(characterId, entry.id, body);
       await mutate();
       setLeaveLocationInput("");
     } catch (e) {
-      setLocationError(getUserSafeErrorMessage(e, "Failed to update location"));
+      setLocationError(getUserSafeErrorMessage(e, "Could not move this item."));
     } finally {
       setIsSettingLocation(false);
     }
@@ -329,9 +330,20 @@ export function ItemDetailModal({
             onLeaveInputChange={setLeaveLocationInput}
             onLeaveSomewhere={() => {
               const loc = leaveLocationInput.trim();
-              if (loc) void handleSetLocation(loc);
+              if (loc) {
+                void handleSetLocation({
+                  action: "leave",
+                  placeName: loc,
+                  gameId: gameId ?? null,
+                });
+              }
             }}
-            onTakeWithYou={() => void handleSetLocation(ITEM_LOCATION_CARRIED)}
+            onTakeWithYou={() =>
+              void handleSetLocation({
+                action: "setLocation",
+                itemLocation: ITEM_LOCATION_CARRIED,
+              })
+            }
             isSettingLocation={isSettingLocation}
             locationError={locationError}
           />

@@ -27,7 +27,11 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
+import {
+  characterIsInGame,
+  userHasPlayControl,
+} from "@/app/lib/prisma/gameCharacter";
+import { resolveStashPlaceName } from "@/app/lib/stashPlace";
 import {
   isItemInventoryOperational,
   itemStatusSchema,
@@ -45,6 +49,12 @@ const patchBodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("setLocation"),
     itemLocation: z.string().min(1, "Location is required"),
+    gameId: z.string().min(1).nullish(),
+  }),
+  z.object({
+    action: z.literal("leave"),
+    placeName: z.string(),
+    gameId: z.string().min(1).nullish(),
   }),
   z.object({
     action: z.literal("setCurrentUses"),
@@ -76,6 +86,34 @@ type InventoryEntry = {
   } | null;
   itemLocation?: string | null;
 };
+
+async function placeNamesRecordedForGame(gameId: string): Promise<string[]> {
+  const rows = await prisma.itemCharacter.findMany({
+    where: { stashGameId: gameId },
+    select: { itemLocation: true },
+  });
+  return rows.map((row) => row.itemLocation);
+}
+
+async function saveHoldingPlace(
+  itemCharacterId: string,
+  data: {
+    itemLocation: string;
+    stashGameId: string | null;
+    equipSlots?: string[];
+    isEquipped?: boolean;
+  }
+) {
+  await prisma.$transaction(async (tx) => {
+    await tx.vehicleMountedItem.deleteMany({
+      where: { itemCharacterId },
+    });
+    await tx.itemCharacter.update({
+      where: { id: itemCharacterId },
+      data,
+    });
+  });
+}
 
 function slotAllowsItem(
   slot: string,
@@ -254,32 +292,44 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         equipSlots: updatedSlots,
         isEquipped: updatedSlots.length > 0,
       });
-    } else if (action === "setLocation") {
-      const { itemLocation } = parsed.data;
-      const updateData: {
-        itemLocation: string;
-        equipSlots?: string[];
-        isEquipped?: boolean;
-      } = {
-        itemLocation,
-      };
-      if (
-        itemLocation !== ITEM_LOCATION_CARRIED &&
-        (equipSlots?.length ?? 0) > 0
-      ) {
-        updateData.equipSlots = [];
-        updateData.isEquipped = false;
+    } else if (action === "setLocation" || action === "leave") {
+      const gameId = parsed.data.gameId ?? null;
+      const takingWithYou =
+        action === "setLocation" &&
+        parsed.data.itemLocation === ITEM_LOCATION_CARRIED &&
+        gameId == null;
+      if (takingWithYou) {
+        await saveHoldingPlace(itemCharacterId, {
+          itemLocation: ITEM_LOCATION_CARRIED,
+          stashGameId: null,
+        });
+      } else {
+        const placeName =
+          action === "leave" ? parsed.data.placeName : parsed.data.itemLocation;
+        if (gameId != null && !(await characterIsInGame(gameId, id))) {
+          return errorResponse(
+            "Character is not linked to the supplied game.",
+            400
+          );
+        }
+        const existingSpellings =
+          gameId == null
+            ? inventory.flatMap((row) =>
+                row.itemLocation ? [row.itemLocation] : []
+              )
+            : await placeNamesRecordedForGame(gameId);
+        const resolved = resolveStashPlaceName(placeName, existingSpellings);
+        if (!resolved.ok) {
+          return errorResponse(resolved.message, 400);
+        }
+        await saveHoldingPlace(itemCharacterId, {
+          itemLocation: resolved.placeName,
+          stashGameId: gameId,
+          ...(equipSlots.length > 0
+            ? { equipSlots: [], isEquipped: false }
+            : {}),
+        });
       }
-      // Location changes clear vehicle mounts (Take with you / Leave somewhere).
-      await prisma.$transaction(async (tx) => {
-        await tx.vehicleMountedItem.deleteMany({
-          where: { itemCharacterId },
-        });
-        await tx.itemCharacter.update({
-          where: { id: itemCharacterId },
-          data: updateData,
-        });
-      });
     } else if (action === "setCurrentUses") {
       const { currentUses } = parsed.data;
       if (!isItemInventoryOperational(entry.status) && currentUses > 0) {

@@ -185,6 +185,7 @@ export async function attachItemToVehicle(args: {
         itemLocation: mountedLocation,
         isEquipped: false,
         equipSlots: [],
+        stashGameId: null,
       },
     });
 
@@ -233,7 +234,7 @@ export async function detachItemFromVehicle(args: {
     await tx.vehicleMountedItem.delete({ where: { id: row.id } });
     await tx.itemCharacter.update({
       where: { id: row.itemCharacterId },
-      data: { itemLocation: ITEM_LOCATION_CARRIED },
+      data: { itemLocation: ITEM_LOCATION_CARRIED, stashGameId: null },
     });
   });
 }

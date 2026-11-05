@@ -1,4 +1,7 @@
-import { foldSharedName } from "@/app/lib/sharedNameFold";
+import {
+  foldSharedName,
+  spellingThatSortsFirst,
+} from "@/app/lib/sharedNameFold";
 
 export const UNGROUPED_NPC_HEADING = "Ungrouped";
 export const ARCHIVED_NPC_GROUP = "Archived";
@@ -25,21 +28,6 @@ function npcGroupFoldKey(name: string | null | undefined): string {
   const key = foldSharedName(trimmed);
   if (key === "" || key === ungroupedKey) return "";
   return key;
-}
-
-/** Same order as the NPC list, then code-unit order when that sort ties. */
-function compareNpcGroupSpellings(left: string, right: string): number {
-  const byBase = left.localeCompare(right, undefined, { sensitivity: "base" });
-  if (byBase !== 0) return byBase;
-  if (left < right) return -1;
-  if (left > right) return 1;
-  return 0;
-}
-
-function spellingThatSortsFirst(spellings: readonly string[]): string {
-  return spellings.reduce((best, spelling) =>
-    compareNpcGroupSpellings(spelling, best) < 0 ? spelling : best
-  );
 }
 
 /** Any spelling that folds to the reserved Archived group. */

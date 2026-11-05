@@ -246,7 +246,9 @@ async function transferWithinClient(
         equipSlots: newGiverEquip,
         isEquipped: newGiverEquip.length > 0,
         currentUses: giverUses,
-        ...(wasMounted ? { itemLocation: ITEM_LOCATION_CARRIED } : {}),
+        ...(wasMounted
+          ? { itemLocation: ITEM_LOCATION_CARRIED, stashGameId: null }
+          : {}),
       },
     });
   }
@@ -264,11 +266,16 @@ async function transferWithinClient(
       (existingRecipient.currentUses ?? 0) + transferredUses,
       maxUses
     );
+    await db.vehicleMountedItem.deleteMany({
+      where: { itemCharacterId: existingRecipient.id },
+    });
     await db.itemCharacter.update({
       where: { id: existingRecipient.id },
       data: {
         quantity: { increment: quantity },
         currentUses: mergedUses,
+        itemLocation: ITEM_LOCATION_CARRIED,
+        stashGameId: null,
       },
     });
   } else {
@@ -282,6 +289,7 @@ async function transferWithinClient(
         customName: row.customName,
         status: row.status,
         itemLocation: ITEM_LOCATION_CARRIED,
+        stashGameId: null,
         equipSlots: [],
         isEquipped: false,
       },

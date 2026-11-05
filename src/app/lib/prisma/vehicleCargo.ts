@@ -150,6 +150,7 @@ export async function stowItemAsVehicleCargo(args: {
       itemLocation: targetLocation,
       isEquipped: false,
       equipSlots: [],
+      stashGameId: null,
     },
   });
 
@@ -199,6 +200,6 @@ export async function retrieveItemFromVehicleCargo(args: {
 
   await prisma.itemCharacter.update({
     where: { id: item.id },
-    data: { itemLocation: ITEM_LOCATION_CARRIED },
+    data: { itemLocation: ITEM_LOCATION_CARRIED, stashGameId: null },
   });
 }
