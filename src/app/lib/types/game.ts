@@ -172,6 +172,19 @@ export const npcGroupRenameSchema = z
   })
   .strict();
 
+/** PATCH /api/games/[id]/stashes */
+export const stashRenameSchema = z
+  .object({
+    from: z.string(),
+    placeName: z.string(),
+  })
+  .strict();
+
+/** Spelling saved by PATCH /api/games/[id]/stashes */
+export const stashRenameResponseSchema = z.object({
+  placeName: z.string(),
+});
+
 /** PUT /api/games/[id]/characters/[characterId]/play-grant */
 export const playGrantUpsertSchema = z
   .object({

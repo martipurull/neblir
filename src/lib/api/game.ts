@@ -7,6 +7,7 @@ import {
   pendingGameInviteListSchema,
   playGrantResponseSchema,
   receivedGameInviteListSchema,
+  stashRenameResponseSchema,
   type GameCharactersAddResult,
   type GameCreateResponse,
   type GameDetail,
@@ -800,6 +801,48 @@ export async function renameGameNpcGroup(
       )
     );
   }
+}
+
+export async function renameGameStash(
+  gameId: string,
+  from: string,
+  placeName: string
+): Promise<string> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/stashes`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from, placeName }),
+    }
+  );
+
+  if (!response.ok) {
+    let bodyPayload: ApiErrorPayload | undefined;
+    try {
+      bodyPayload = (await response.json()) as ApiErrorPayload;
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        bodyPayload,
+        "Failed to rename stash"
+      )
+    );
+  }
+
+  const parsed = stashRenameResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(
+      `Stash rename response did not match expected shape: ${details}`
+    );
+  }
+  return parsed.data.placeName;
 }
 
 async function readPlayGrantResponse(

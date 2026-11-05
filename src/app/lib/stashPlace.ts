@@ -127,3 +127,68 @@ export function stashPlaceNames(
   }
   return names.sort(comparePlaceNames);
 }
+
+export type StashRenameHolding = {
+  id: string;
+  itemLocation: string;
+  stashGameId: string | null;
+};
+
+type ResolvedStashRename =
+  | { ok: true; placeName: string; holdingIds: string[] }
+  | { ok: false; reason: "missing" }
+  | { ok: false; reason: "invalid"; message: string };
+
+function acceptedPlace(
+  candidate: string
+): { ok: true; trimmed: string; key: string } | { ok: false; message: string } {
+  const resolved = resolveStashPlaceName(candidate, []);
+  if (!resolved.ok) return resolved;
+  return {
+    ok: true,
+    trimmed: resolved.placeName,
+    key: foldSharedName(resolved.placeName),
+  };
+}
+
+/**
+ * Holdings recorded for this game whose place matches `from`, and the spelling to store.
+ * A new spelling of this stash is kept as typed. Joining another stash in this game
+ * keeps the spelling already saved there. Other games and places with no game are left out.
+ */
+export function resolveStashRename(
+  holdings: readonly StashRenameHolding[],
+  gameId: string,
+  from: string,
+  to: string
+): ResolvedStashRename {
+  const next = acceptedPlace(to);
+  if (!next.ok) return { ok: false, reason: "invalid", message: next.message };
+
+  const source = acceptedPlace(from);
+  if (!source.ok) return { ok: false, reason: "missing" };
+
+  const matching: StashRenameHolding[] = [];
+  const otherSpellings: string[] = [];
+  for (const holding of holdings) {
+    if (holding.stashGameId !== gameId) continue;
+    const place = acceptedPlace(holding.itemLocation);
+    if (!place.ok) continue;
+    if (place.key === source.key) {
+      matching.push(holding);
+    } else {
+      otherSpellings.push(place.trimmed);
+    }
+  }
+  if (matching.length === 0) return { ok: false, reason: "missing" };
+
+  const resolved = resolveStashPlaceName(next.trimmed, otherSpellings);
+  if (!resolved.ok) {
+    return { ok: false, reason: "invalid", message: resolved.message };
+  }
+  return {
+    ok: true,
+    placeName: resolved.placeName,
+    holdingIds: matching.map((holding) => holding.id),
+  };
+}

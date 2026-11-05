@@ -20,7 +20,7 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
-import { getGameById } from "@/lib/api/game";
+import { getGameById, renameGameStash } from "@/lib/api/game";
 import { getStashPlaceNames } from "@/lib/api/stashPlaces";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
@@ -112,6 +112,8 @@ function InventorySectionContent({
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
+  const [stashRenameError, setStashRenameError] = useState<string | null>(null);
+  const [renamingStash, setRenamingStash] = useState<string | null>(null);
   const [placeNames, setPlaceNames] = useState<string[]>([]);
   const placeScopeKey = `${character.id}\0${activeGameId ?? ""}`;
   const [shownPlaceScope, setShownPlaceScope] = useState(placeScopeKey);
@@ -216,6 +218,23 @@ function InventorySectionContent({
       );
     } finally {
       setUnequippingId(null);
+    }
+  };
+
+  const renameStash = async (from: string, placeName: string) => {
+    if (activeGameId == null || mutate == null) return;
+    setStashRenameError(null);
+    setRenamingStash(from);
+    try {
+      await renameGameStash(activeGameId, from, placeName);
+      await mutate();
+    } catch (error) {
+      setStashRenameError(
+        getUserSafeErrorMessage(error, "Could not rename this stash.")
+      );
+      throw error;
+    } finally {
+      setRenamingStash(null);
     }
   };
 
@@ -345,6 +364,13 @@ function InventorySectionContent({
             unequippingId={unequippingId}
             equippingId={equippingId}
             readOnly={readOnly}
+            onRenameStash={
+              !readOnly && activeGameId != null && mutate != null
+                ? renameStash
+                : undefined
+            }
+            renameDisabled={renamingStash !== null}
+            renameError={stashRenameError}
           />
         </>
       )}
