@@ -8,8 +8,6 @@ import { Button } from "@/app/components/shared/Button";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
-  ITEM_LOCATION_CARRIED,
-  formatItemLocationLabel,
   sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
@@ -22,22 +20,20 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
-import {
-  isItemInventoryOperational,
-  itemStatusEquipColumnDamageLabel,
-} from "@/app/lib/types/item";
 import { getGameById } from "@/lib/api/game";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useStoredDrawerOpenState } from "@/hooks/use-stored-drawer-open-state";
+import {
+  InventoryColumnHeader,
+  InventoryHoldingRow,
+} from "./InventoryHoldingRow";
+import { StoredInventoryList } from "./StoredInventoryList";
 
 type InventoryEntry = ItemCharacter;
-
-const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
-const STORED_GRID =
-  "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_minmax(5.5rem,11rem)] gap-3";
 
 function InventoryList({
   title,
@@ -63,8 +59,6 @@ function InventoryList({
   vehicleNamesById?: Readonly<Record<string, string>>;
 }) {
   if (entries.length === 0) return null;
-  const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
-  const lastColumnLabel = variant === "stored" ? "Location" : "Equip";
   return (
     <div className="mb-6">
       <div className="border-b border-gray-200 pb-1 mt-2 mb-4">
@@ -72,148 +66,22 @@ function InventoryList({
           {title}
         </h3>
       </div>
-      <div
-        className={`${gridClass} mt-2 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black`}
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="h-3 w-px shrink-0 bg-black" aria-hidden />
-          Item
-        </span>
-        <span className="text-right">Qty</span>
-        <span className="text-right">Weight</span>
-        <span className="text-right">{lastColumnLabel}</span>
-      </div>
+      <InventoryColumnHeader variant={variant} />
       <ul className="divide-y divide-black">
-        {entries.map((entry) => {
-          const name = entry.customName ?? entry.item?.name ?? "Unknown item";
-          const weight = entry.item?.weight;
-          const equippable = entry.item?.equippable === true;
-          const operational = isItemInventoryOperational(entry.status);
-          const hasEquippedSlots = (entry.equipSlots?.length ?? 0) > 0;
-          const showUnequip = variant === "carried" && hasEquippedSlots;
-          const showEquipButton =
-            variant === "carried" &&
-            onSelectEquip != null &&
-            equippable &&
-            operational &&
-            !hasEquippedSlots;
-          const location =
-            variant === "stored"
-              ? formatItemLocationLabel(entry.itemLocation, {
-                  vehicleNamesById,
-                })
-              : null;
-          return (
-            <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
-              {readOnly ? (
-                <div className="min-w-0 break-words text-sm text-black">
-                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                    <span>{name}</span>
-                    {(entry.equipSlots?.length ?? 0) > 0 && (
-                      <span className="shrink-0 text-xs text-black">
-                        (
-                        {entry
-                          .equipSlots!.map((s) => s.toLowerCase())
-                          .join(", ")}
-                        )
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="lightRowHit"
-                  fullWidth={false}
-                  onClick={() => onSelectDetail(entry)}
-                >
-                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                    <span className="break-words text-sm text-black">
-                      {name}
-                    </span>
-                    {(entry.equipSlots?.length ?? 0) > 0 && (
-                      <span className="shrink-0 text-xs text-black">
-                        (
-                        {entry
-                          .equipSlots!.map((s) => s.toLowerCase())
-                          .join(", ")}
-                        )
-                      </span>
-                    )}
-                  </div>
-                </Button>
-              )}
-              <span className="text-right text-sm tabular-nums text-black">
-                {entry.quantity ?? 1}
-              </span>
-              <span className="text-right text-sm tabular-nums text-black">
-                {weight != null
-                  ? `${formatWeightKgForDisplay(weight)} kg`
-                  : "—"}
-              </span>
-              {variant === "stored" ? (
-                <span
-                  className="min-w-0 truncate text-right text-sm text-black"
-                  title={location ?? undefined}
-                >
-                  {location ?? "—"}
-                </span>
-              ) : (
-                <div className="flex justify-end">
-                  {readOnly ? (
-                    <span className="text-xs text-black/50">—</span>
-                  ) : showUnequip ? (
-                    <Button
-                      type="button"
-                      variant="lightPillAction"
-                      fullWidth={false}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void onUnequip(entry);
-                      }}
-                      disabled={
-                        unequippingId === entry.id || equippingId === entry.id
-                      }
-                    >
-                      {unequippingId === entry.id ? "Unequipping…" : "Unequip"}
-                    </Button>
-                  ) : showEquipButton ? (
-                    <Button
-                      type="button"
-                      variant="lightPillAction"
-                      fullWidth={false}
-                      disabled={equippingId === entry.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectEquip(entry);
-                      }}
-                    >
-                      {equippingId === entry.id ? "Equipping…" : "Equip"}
-                    </Button>
-                  ) : equippable && !operational ? (
-                    <div className="flex w-full justify-end">
-                      <div className="flex flex-col p-1 text-right text-[10px] font-medium leading-tight text-neblirDanger-600">
-                        {entry.status === "BEYOND_REPAIR" ? (
-                          <>
-                            <span>beyond</span>
-                            <span>repair</span>
-                          </>
-                        ) : (
-                          <span>
-                            {itemStatusEquipColumnDamageLabel(entry.status) ??
-                              "—"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-black/50">—</span>
-                  )}
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {entries.map((entry) => (
+          <InventoryHoldingRow
+            key={entry.id}
+            entry={entry}
+            variant={variant}
+            onSelectDetail={onSelectDetail}
+            onSelectEquip={onSelectEquip}
+            onUnequip={onUnequip}
+            unequippingId={unequippingId}
+            equippingId={equippingId}
+            readOnly={readOnly}
+            vehicleNamesById={vehicleNamesById}
+          />
+        ))}
       </ul>
     </div>
   );
@@ -243,6 +111,7 @@ function InventorySectionContent({
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
+  const { openByKey, setDrawerOpen } = useStoredDrawerOpenState(character.id);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -270,18 +139,6 @@ function InventorySectionContent({
   );
   const carriedInventory = useMemo(
     () => sortInventoryEntriesAlphabetically(getCarriedInventory(inventory)),
-    [inventory]
-  );
-  const storedInventory = useMemo(
-    () =>
-      sortInventoryEntriesAlphabetically(
-        inventory.filter(
-          (e) =>
-            e.itemLocation !== undefined &&
-            e.itemLocation !== null &&
-            e.itemLocation !== ITEM_LOCATION_CARRIED
-        )
-      ),
     [inventory]
   );
 
@@ -442,13 +299,13 @@ function InventorySectionContent({
             equippingId={equippingId}
             readOnly={readOnly}
           />
-          <InventoryList
-            title="Stored"
-            variant="stored"
-            entries={storedInventory}
+          <StoredInventoryList
+            characterId={character.id}
+            holdings={inventory}
+            openByKey={openByKey}
+            onToggleDrawer={setDrawerOpen}
             vehicleNamesById={vehicleNamesById}
             onSelectDetail={setDetailEntry}
-            onSelectEquip={null}
             onUnequip={(entry) => {
               void handleUnequip(entry);
             }}
