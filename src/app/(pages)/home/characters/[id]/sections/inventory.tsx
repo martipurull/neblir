@@ -21,6 +21,7 @@ import {
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { getGameById } from "@/lib/api/game";
+import { getStashPlaceNames } from "@/lib/api/stashPlaces";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -111,7 +112,33 @@ function InventorySectionContent({
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
+  const [placeNames, setPlaceNames] = useState<string[]>([]);
+  const [placeListNonce, setPlaceListNonce] = useState(0);
+  const placeScopeKey = `${character.id}\0${activeGameId ?? ""}`;
+  const [shownPlaceScope, setShownPlaceScope] = useState(placeScopeKey);
+  if (shownPlaceScope !== placeScopeKey) {
+    setShownPlaceScope(placeScopeKey);
+    setPlaceNames([]);
+  }
   const { openByKey, setDrawerOpen } = useStoredDrawerOpenState(character.id);
+
+  const canLoadPlaces = !readOnly && mutate !== undefined;
+  const reloadStashPlaceNames = useCallback(() => {
+    setPlaceListNonce((nonce) => nonce + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!canLoadPlaces) return;
+    const controller = new AbortController();
+    void getStashPlaceNames(character.id, activeGameId, controller.signal)
+      .then((names) => {
+        if (!controller.signal.aborted) setPlaceNames(names);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setPlaceNames([]);
+      });
+    return () => controller.abort();
+  }, [character.id, activeGameId, canLoadPlaces, placeListNonce]);
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -369,6 +396,8 @@ function InventorySectionContent({
           characterId={character.id}
           gameId={activeGameId}
           mutate={mutate}
+          placeNames={placeNames}
+          onStashPlacesChanged={reloadStashPlaceNames}
           resolveGiveRecipients={resolveGiveRecipients}
           equipControl={{
             carriedInventory,

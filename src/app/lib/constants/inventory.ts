@@ -1,6 +1,25 @@
 /** Value for itemLocation when the character has the item on them */
 export const ITEM_LOCATION_CARRIED = "carried" as const;
 
+/** Stored whereabouts column plus the game recorded for a Stash. */
+export type HoldingPlaceWrite = {
+  itemLocation: string;
+  stashGameId: string | null;
+};
+
+/** The pair written whenever a holding changes place. */
+export function holdingPlaceWrite(
+  place: string,
+  stashGameId: string | null
+): HoldingPlaceWrite {
+  return { itemLocation: place, stashGameId };
+}
+
+/** On hand, with no recorded game. */
+export function carriedHoldingWrite(): HoldingPlaceWrite {
+  return holdingPlaceWrite(ITEM_LOCATION_CARRIED, null);
+}
+
 /** In-place stack quantity ceiling on a holding (browse-add may use a lower cap). */
 export const MAX_STACK_QUANTITY = 999;
 

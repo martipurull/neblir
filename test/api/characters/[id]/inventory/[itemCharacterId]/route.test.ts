@@ -138,7 +138,7 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       PATCH,
-      makeUnauthedRequest({ action: "setLocation", itemLocation: "locker" }),
+      makeUnauthedRequest({ action: "leave", placeName: "locker" }),
       makeParams({ id: "char-1", itemCharacterId: "ic-1" })
     );
     expect(response.status).toBe(401);
@@ -150,13 +150,16 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       PATCH,
-      makeAuthedRequest({ action: "setLocation" }, "user-1"),
+      makeAuthedRequest(
+        { action: "setLocation", itemLocation: "locker" },
+        "user-1"
+      ),
       makeParams({ id: "char-1", itemCharacterId: "ic-1" })
     );
     expect(response.status).toBe(400);
   });
 
-  it("clears vehicle mounts when changing item location", async () => {
+  it("clears vehicle mounts when an item is left", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
     vehicleMountedItemDeleteManyMock.mockResolvedValue({ count: 1 });
     itemCharacterUpdateMock.mockResolvedValue({});
@@ -164,10 +167,7 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
     const response = await invokeRoute(
       PATCH,
-      makeAuthedRequest(
-        { action: "setLocation", itemLocation: "locker" },
-        "user-1"
-      ),
+      makeAuthedRequest({ action: "leave", placeName: "locker" }, "user-1"),
       makeParams({ id: "char-1", itemCharacterId: "ic-1" })
     );
     expect(response.status).toBe(200);
@@ -307,6 +307,34 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
     expect(vehicleMountedItemDeleteManyMock).not.toHaveBeenCalled();
   }
 
+  it("records the active game on the item being left and leaves other items at that spelling unshared", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    vehicleMountedItemDeleteManyMock.mockResolvedValue({ count: 0 });
+    itemCharacterUpdateMock.mockResolvedValue({});
+    getCharacterInventoryMock.mockReset();
+    getCharacterInventoryMock.mockResolvedValue([
+      { id: "ic-1", equipSlots: [], itemLocation: "carried" },
+      {
+        id: "ic-2",
+        equipSlots: [],
+        itemLocation: "Locker",
+        stashGameId: null,
+      },
+    ]);
+    itemCharacterFindManyMock.mockResolvedValue([]);
+    const response = await patchInventory({
+      action: "leave",
+      placeName: "Locker",
+      gameId: "game-1",
+    });
+    expect(response.status).toBe(200);
+    expect(itemCharacterUpdateMock).toHaveBeenCalledTimes(1);
+    expect(itemCharacterUpdateMock).toHaveBeenCalledWith({
+      where: { id: "ic-1" },
+      data: { itemLocation: "Locker", stashGameId: "game-1" },
+    });
+  });
+
   it("records the active game and keeps the spelling already stored", async () => {
     mockHolding();
     itemCharacterFindManyMock.mockResolvedValue([
@@ -406,10 +434,7 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       itemLocation: "Indira's Flat",
       stashGameId: "game-1",
     });
-    const response = await patchInventory({
-      action: "setLocation",
-      itemLocation: "carried",
-    });
+    const response = await patchInventory({ action: "take" });
     expect(response.status).toBe(200);
     expect(itemCharacterUpdateMock).toHaveBeenCalledWith({
       where: { id: "ic-1" },

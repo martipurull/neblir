@@ -1,6 +1,8 @@
 import {
   ITEM_LOCATION_CARRIED,
   MAX_STACK_QUANTITY,
+  carriedHoldingWrite,
+  holdingPlaceWrite,
 } from "@/app/lib/constants/inventory";
 import {
   getAutoEquipSlotAdds,
@@ -46,11 +48,7 @@ const patchBodySchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("unequip"), slot: equipSlotSchema }),
   z.object({ action: z.literal("unequipAll") }),
-  z.object({
-    action: z.literal("setLocation"),
-    itemLocation: z.string().min(1, "Location is required"),
-    gameId: z.string().min(1).nullish(),
-  }),
+  z.object({ action: z.literal("take") }),
   z.object({
     action: z.literal("leave"),
     placeName: z.string(),
@@ -292,44 +290,31 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
         equipSlots: updatedSlots,
         isEquipped: updatedSlots.length > 0,
       });
-    } else if (action === "setLocation" || action === "leave") {
+    } else if (action === "take") {
+      await saveHoldingPlace(itemCharacterId, carriedHoldingWrite());
+    } else if (action === "leave") {
       const gameId = parsed.data.gameId ?? null;
-      const takingWithYou =
-        action === "setLocation" &&
-        parsed.data.itemLocation === ITEM_LOCATION_CARRIED &&
-        gameId == null;
-      if (takingWithYou) {
-        await saveHoldingPlace(itemCharacterId, {
-          itemLocation: ITEM_LOCATION_CARRIED,
-          stashGameId: null,
-        });
-      } else {
-        const placeName =
-          action === "leave" ? parsed.data.placeName : parsed.data.itemLocation;
-        if (gameId != null && !(await characterIsInGame(gameId, id))) {
-          return errorResponse(
-            "Character is not linked to the supplied game.",
-            400
-          );
-        }
-        const existingSpellings =
-          gameId == null
-            ? inventory.flatMap((row) =>
-                row.itemLocation ? [row.itemLocation] : []
-              )
-            : await placeNamesRecordedForGame(gameId);
-        const resolved = resolveStashPlaceName(placeName, existingSpellings);
-        if (!resolved.ok) {
-          return errorResponse(resolved.message, 400);
-        }
-        await saveHoldingPlace(itemCharacterId, {
-          itemLocation: resolved.placeName,
-          stashGameId: gameId,
-          ...(equipSlots.length > 0
-            ? { equipSlots: [], isEquipped: false }
-            : {}),
-        });
+      const placeName = parsed.data.placeName;
+      if (gameId != null && !(await characterIsInGame(gameId, id))) {
+        return errorResponse(
+          "Character is not linked to the supplied game.",
+          400
+        );
       }
+      const existingSpellings =
+        gameId == null
+          ? inventory.flatMap((row) =>
+              row.itemLocation ? [row.itemLocation] : []
+            )
+          : await placeNamesRecordedForGame(gameId);
+      const resolved = resolveStashPlaceName(placeName, existingSpellings);
+      if (!resolved.ok) {
+        return errorResponse(resolved.message, 400);
+      }
+      await saveHoldingPlace(itemCharacterId, {
+        ...holdingPlaceWrite(resolved.placeName, gameId),
+        ...(equipSlots.length > 0 ? { equipSlots: [], isEquipped: false } : {}),
+      });
     } else if (action === "setCurrentUses") {
       const { currentUses } = parsed.data;
       if (!isItemInventoryOperational(entry.status) && currentUses > 0) {

@@ -98,6 +98,9 @@ export const itemCharacterSchema = z.object({
 export type ResolvedItem = z.infer<typeof resolvedItemSchema>;
 export type ItemCharacter = z.infer<typeof itemCharacterSchema>;
 
+/** Place names offered when leaving an item. Names only, no holdings. */
+export const stashPlaceNamesResponseSchema = z.array(z.string());
+
 export const generalInformationSchema = z.object({
   name: z.string(),
   surname: z.string(),

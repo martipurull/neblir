@@ -18,6 +18,13 @@ export type ResolvedStashPlaceName =
   | { ok: true; placeName: string }
   | { ok: false; message: string };
 
+/** One holding the picker can consider. Item identity is not part of the offer. */
+export type StashPlaceHolding = {
+  characterId: string;
+  itemLocation: string;
+  stashGameId: string | null;
+};
+
 function isVehicleItemLocation(value: string): boolean {
   return (
     parseVehicleCargoItemLocation(value) != null ||
@@ -53,4 +60,70 @@ export function resolveStashPlaceName(
   });
   if (matches.length === 0) return { ok: true, placeName: trimmed };
   return { ok: true, placeName: spellingThatSortsFirst(matches) };
+}
+
+function isOfferedPlace(itemLocation: string): boolean {
+  const trimmed = itemLocation.trim();
+  if (trimmed === "" || isVehicleItemLocation(trimmed)) return false;
+  const key = foldSharedName(trimmed);
+  return key !== "" && key !== foldSharedName(ITEM_LOCATION_CARRIED);
+}
+
+function comparePlaceNames(left: string, right: string): number {
+  if (left === right) return 0;
+  return spellingThatSortsFirst([left, right]) === left ? -1 : 1;
+}
+
+function spellingsByFold(
+  holdings: readonly StashPlaceHolding[],
+  include: (holding: StashPlaceHolding) => boolean
+): Map<string, string[]> {
+  const byFold = new Map<string, string[]>();
+  for (const holding of holdings) {
+    const location = holding.itemLocation.trim();
+    if (!isOfferedPlace(location)) continue;
+    const key = foldSharedName(location);
+    if (!include(holding)) continue;
+    const spellings = byFold.get(key) ?? [];
+    spellings.push(location);
+    byFold.set(key, spellings);
+  }
+  return byFold;
+}
+
+/**
+ * Place names a character can pick while leaving an item.
+ * Shared names are holdings recorded for the active game. Unshared names are
+ * this character's places with no game. A fold that exists on the game is
+ * shown under that game's spelling, once.
+ */
+export function stashPlaceNames(
+  holdings: readonly StashPlaceHolding[],
+  characterId: string,
+  gameId: string | null
+): string[] {
+  const shared =
+    gameId == null
+      ? new Map<string, string[]>()
+      : spellingsByFold(holdings, (holding) => holding.stashGameId === gameId);
+  const unshared = spellingsByFold(
+    holdings,
+    (holding) =>
+      holding.stashGameId == null && holding.characterId === characterId
+  );
+
+  const names: string[] = [];
+  const folds = new Set([...shared.keys(), ...unshared.keys()]);
+  for (const key of folds) {
+    const sharedSpellings = shared.get(key);
+    if (sharedSpellings != null && sharedSpellings.length > 0) {
+      names.push(spellingThatSortsFirst(sharedSpellings));
+      continue;
+    }
+    const ownSpellings = unshared.get(key);
+    if (ownSpellings != null && ownSpellings.length > 0) {
+      names.push(spellingThatSortsFirst(ownSpellings));
+    }
+  }
+  return names.sort(comparePlaceNames);
 }
