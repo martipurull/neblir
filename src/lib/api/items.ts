@@ -115,7 +115,8 @@ export type UpdateInventoryEntryBody =
   | { action: "equip"; slot?: EquipSlot }
   | { action: "unequip"; slot: EquipSlot }
   | { action: "unequipAll" }
-  | { action: "setLocation"; itemLocation: string }
+  | { action: "take" }
+  | { action: "leave"; placeName: string; gameId?: string | null }
   | { action: "setCurrentUses"; currentUses: number }
   | { action: "decrementUse" }
   | { action: "setStatus"; status: ItemStatus }

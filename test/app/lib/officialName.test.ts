@@ -27,6 +27,21 @@ describe("officialNameConflicts", () => {
     expect(officialNameConflicts(existing, "SiikeGun")).toBe(false);
   });
 
+  it("does not treat punctuation or a possessive as the same Official name", () => {
+    expect(
+      officialNameConflicts(
+        [{ id: "item-1", name: "Indira's Gun" }],
+        "Indira Gun"
+      )
+    ).toBe(false);
+    expect(
+      officialNameConflicts(
+        [{ id: "item-1", name: "Indira Gun!" }],
+        "Indira Gun"
+      )
+    ).toBe(false);
+  });
+
   it("does not report a conflict when the only match is the excluded id", () => {
     expect(officialNameConflicts(existing, "Siike Gun", "item-1")).toBe(false);
     expect(officialNameConflicts(existing, "siike gun", "item-1")).toBe(false);

@@ -480,10 +480,13 @@ model ItemCharacter {
   customName   String?
   status       ItemStatus @default(FUNCTIONAL)
   itemLocation String     @default("carried")
+  /** Game that was active when this holding was left at a place. Empty when carried, in a vehicle, or left with no active game. */
+  stashGameId  String?    @db.ObjectId
 
   @@unique([characterId, sourceType, itemId])
   @@index([characterId])
   @@index([sourceType, itemId])
+  @@index([stashGameId])
 }
 
 model Vehicle {

@@ -116,4 +116,33 @@ describe("themeTokens", () => {
       );
     }
   });
+
+  it("fills a selected radio off-white in Dark and near-black in Light, and keeps Neblir radio colors", () => {
+    const dark = themeTokens("dark");
+    const light = themeTokens("light");
+    const neblir = themeTokens("neblir");
+
+    expect(dark.radioSelected).toBe("#f4f4f5");
+    expect(dark.radioLabel).toBe("#16161a");
+    expect(dark.text).toBe("#f4f4f5");
+
+    expect(light.radioSelected).toBe("#1c1c1f");
+    expect(light.radioLabel).toBe("#f4f3ef");
+    expect(light.text).toBe("#1c1c1f");
+
+    expect(neblir.radioSelected).toBe(DEEP_BRAND_PURPLE);
+    expect(neblir.radioLabel).toBe("#F8ECFF");
+
+    const darkStyle = themeDocumentStyle("dark") as Record<string, string>;
+    expect(darkStyle["--theme-radio-selected-rgb"]).toBe("244 244 245");
+    expect(darkStyle["--theme-radio-label-rgb"]).toBe("22 22 26");
+
+    const lightStyle = themeDocumentStyle("light") as Record<string, string>;
+    expect(lightStyle["--theme-radio-selected-rgb"]).toBe("28 28 31");
+    expect(lightStyle["--theme-radio-label-rgb"]).toBe("244 243 239");
+
+    const neblirStyle = themeDocumentStyle("neblir") as Record<string, string>;
+    expect(neblirStyle["--theme-radio-selected-rgb"]).toBe("66 17 97");
+    expect(neblirStyle["--theme-radio-label-rgb"]).toBe("248 236 255");
+  });
 });

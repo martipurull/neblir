@@ -1,6 +1,6 @@
 import type { ItemSourceType, Prisma } from "@prisma/client";
 import {
-  ITEM_LOCATION_CARRIED,
+  carriedHoldingWrite,
   parseVehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
 import { prisma } from "./client";
@@ -246,7 +246,7 @@ async function transferWithinClient(
         equipSlots: newGiverEquip,
         isEquipped: newGiverEquip.length > 0,
         currentUses: giverUses,
-        ...(wasMounted ? { itemLocation: ITEM_LOCATION_CARRIED } : {}),
+        ...(wasMounted ? carriedHoldingWrite() : {}),
       },
     });
   }
@@ -264,11 +264,15 @@ async function transferWithinClient(
       (existingRecipient.currentUses ?? 0) + transferredUses,
       maxUses
     );
+    await db.vehicleMountedItem.deleteMany({
+      where: { itemCharacterId: existingRecipient.id },
+    });
     await db.itemCharacter.update({
       where: { id: existingRecipient.id },
       data: {
         quantity: { increment: quantity },
         currentUses: mergedUses,
+        ...carriedHoldingWrite(),
       },
     });
   } else {
@@ -281,7 +285,7 @@ async function transferWithinClient(
         currentUses: transferredUses,
         customName: row.customName,
         status: row.status,
-        itemLocation: ITEM_LOCATION_CARRIED,
+        ...carriedHoldingWrite(),
         equipSlots: [],
         isEquipped: false,
       },
