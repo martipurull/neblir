@@ -3,8 +3,16 @@
 type FieldLabelProps = {
   id: string;
   label: string;
-  /** If true, show red * and treat as required. If false, show (optional). Dark variant only. */
+  /**
+   * Dark variant only, and only when `showRequirement` is true. A red * when
+   * required, otherwise "(optional)".
+   */
   required?: boolean;
+  /**
+   * Dark variant only. When false, the label is the text alone: no red * and
+   * no "(optional)".
+   */
+  showRequirement?: boolean;
   /**
    * When false, renders a non-interactive heading (use when the control is opened
    * programmatically, e.g. hidden file inputs).
@@ -17,6 +25,7 @@ export function FieldLabel({
   id,
   label,
   required = false,
+  showRequirement = true,
   associateControl = true,
   variant = "dark",
 }: FieldLabelProps) {
@@ -25,20 +34,21 @@ export function FieldLabel({
     ? "mb-1 block text-sm font-bold text-black"
     : "mb-1 block text-sm font-medium text-white";
 
-  const content = isLight ? (
-    label
-  ) : (
-    <>
-      {label}
-      {required ? (
-        <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
-          *
-        </span>
-      ) : (
-        <span className="ml-1 text-white/50">(optional)</span>
-      )}
-    </>
-  );
+  const content =
+    isLight || !showRequirement ? (
+      label
+    ) : (
+      <>
+        {label}
+        {required ? (
+          <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
+            *
+          </span>
+        ) : (
+          <span className="ml-1 text-white/50">(optional)</span>
+        )}
+      </>
+    );
 
   if (associateControl) {
     return (

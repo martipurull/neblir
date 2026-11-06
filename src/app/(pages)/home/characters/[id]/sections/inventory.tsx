@@ -8,8 +8,6 @@ import { Button } from "@/app/components/shared/Button";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
 import {
   getCarriedInventory,
-  ITEM_LOCATION_CARRIED,
-  formatItemLocationLabel,
   sortInventoryEntriesAlphabetically,
 } from "@/app/lib/constants/inventory";
 import {
@@ -22,49 +20,35 @@ import {
 } from "@/app/lib/carryWeightUtils";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
-import {
-  isItemInventoryOperational,
-  itemStatusEquipColumnDamageLabel,
-} from "@/app/lib/types/item";
-import { getGameById } from "@/lib/api/game";
+import type { StashRename } from "@/app/lib/stashPlace";
+import { getGameById, renameGameStash } from "@/lib/api/game";
 import { EquipErrorModal } from "@/app/components/character/EquipErrorModal";
 import { patchCharacterInventoryEntryAndMutate } from "@/lib/api/characterInventoryMutate";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import type { KeyedMutator } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useStashDrawerOpenState } from "@/hooks/use-stash-drawer-open-state";
+import { useStashPlaceNames } from "@/hooks/use-stash-place-names";
+import {
+  InventoryColumnHeader,
+  InventoryHoldingRow,
+  type CarriedHoldingRow,
+  type HoldingRowShared,
+} from "./InventoryHoldingRow";
+import { StoredInventoryList } from "./StoredInventoryList";
 
 type InventoryEntry = ItemCharacter;
 
-const CARRIED_GRID = "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_4.5rem] gap-3";
-const STORED_GRID =
-  "grid grid-cols-[minmax(0,1fr)_2.5rem_3rem_minmax(5.5rem,11rem)] gap-3";
-
 function InventoryList({
   title,
-  entries,
-  variant,
-  onSelectDetail,
-  onSelectEquip,
-  onUnequip,
-  unequippingId,
-  equippingId,
-  readOnly = false,
-  vehicleNamesById,
+  holdings,
+  row,
 }: {
   title: string;
-  entries: InventoryEntry[];
-  variant: "carried" | "stored";
-  onSelectDetail: (entry: InventoryEntry) => void;
-  onSelectEquip: ((entry: InventoryEntry) => void) | null;
-  onUnequip: (entry: InventoryEntry) => void;
-  unequippingId: string | null;
-  equippingId: string | null;
-  readOnly?: boolean;
-  vehicleNamesById?: Readonly<Record<string, string>>;
+  holdings: InventoryEntry[];
+  row: CarriedHoldingRow;
 }) {
-  if (entries.length === 0) return null;
-  const gridClass = variant === "stored" ? STORED_GRID : CARRIED_GRID;
-  const lastColumnLabel = variant === "stored" ? "Location" : "Equip";
+  if (holdings.length === 0) return null;
   return (
     <div className="mb-6">
       <div className="border-b border-gray-200 pb-1 mt-2 mb-4">
@@ -72,148 +56,16 @@ function InventoryList({
           {title}
         </h3>
       </div>
-      <div
-        className={`${gridClass} mt-2 border-b border-black pb-2 text-xs font-medium uppercase tracking-widest text-black`}
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="h-3 w-px shrink-0 bg-black" aria-hidden />
-          Item
-        </span>
-        <span className="text-right">Qty</span>
-        <span className="text-right">Weight</span>
-        <span className="text-right">{lastColumnLabel}</span>
-      </div>
+      <InventoryColumnHeader variant="carried" />
       <ul className="divide-y divide-black">
-        {entries.map((entry) => {
-          const name = entry.customName ?? entry.item?.name ?? "Unknown item";
-          const weight = entry.item?.weight;
-          const equippable = entry.item?.equippable === true;
-          const operational = isItemInventoryOperational(entry.status);
-          const hasEquippedSlots = (entry.equipSlots?.length ?? 0) > 0;
-          const showUnequip = variant === "carried" && hasEquippedSlots;
-          const showEquipButton =
-            variant === "carried" &&
-            onSelectEquip != null &&
-            equippable &&
-            operational &&
-            !hasEquippedSlots;
-          const location =
-            variant === "stored"
-              ? formatItemLocationLabel(entry.itemLocation, {
-                  vehicleNamesById,
-                })
-              : null;
-          return (
-            <li key={entry.id} className={`${gridClass} items-start py-2.5`}>
-              {readOnly ? (
-                <div className="min-w-0 break-words text-sm text-black">
-                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                    <span>{name}</span>
-                    {(entry.equipSlots?.length ?? 0) > 0 && (
-                      <span className="shrink-0 text-xs text-black">
-                        (
-                        {entry
-                          .equipSlots!.map((s) => s.toLowerCase())
-                          .join(", ")}
-                        )
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="lightRowHit"
-                  fullWidth={false}
-                  onClick={() => onSelectDetail(entry)}
-                >
-                  <div className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                    <span className="break-words text-sm text-black">
-                      {name}
-                    </span>
-                    {(entry.equipSlots?.length ?? 0) > 0 && (
-                      <span className="shrink-0 text-xs text-black">
-                        (
-                        {entry
-                          .equipSlots!.map((s) => s.toLowerCase())
-                          .join(", ")}
-                        )
-                      </span>
-                    )}
-                  </div>
-                </Button>
-              )}
-              <span className="text-right text-sm tabular-nums text-black">
-                {entry.quantity ?? 1}
-              </span>
-              <span className="text-right text-sm tabular-nums text-black">
-                {weight != null
-                  ? `${formatWeightKgForDisplay(weight)} kg`
-                  : "—"}
-              </span>
-              {variant === "stored" ? (
-                <span
-                  className="min-w-0 truncate text-right text-sm text-black"
-                  title={location ?? undefined}
-                >
-                  {location ?? "—"}
-                </span>
-              ) : (
-                <div className="flex justify-end">
-                  {readOnly ? (
-                    <span className="text-xs text-black/50">—</span>
-                  ) : showUnequip ? (
-                    <Button
-                      type="button"
-                      variant="lightPillAction"
-                      fullWidth={false}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void onUnequip(entry);
-                      }}
-                      disabled={
-                        unequippingId === entry.id || equippingId === entry.id
-                      }
-                    >
-                      {unequippingId === entry.id ? "Unequipping…" : "Unequip"}
-                    </Button>
-                  ) : showEquipButton ? (
-                    <Button
-                      type="button"
-                      variant="lightPillAction"
-                      fullWidth={false}
-                      disabled={equippingId === entry.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectEquip(entry);
-                      }}
-                    >
-                      {equippingId === entry.id ? "Equipping…" : "Equip"}
-                    </Button>
-                  ) : equippable && !operational ? (
-                    <div className="flex w-full justify-end">
-                      <div className="flex flex-col p-1 text-right text-[10px] font-medium leading-tight text-neblirDanger-600">
-                        {entry.status === "BEYOND_REPAIR" ? (
-                          <>
-                            <span>beyond</span>
-                            <span>repair</span>
-                          </>
-                        ) : (
-                          <span>
-                            {itemStatusEquipColumnDamageLabel(entry.status) ??
-                              "—"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-black/50">—</span>
-                  )}
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {holdings.map((holding) => (
+          <InventoryHoldingRow
+            key={holding.id}
+            holding={holding}
+            variant="carried"
+            row={row}
+          />
+        ))}
       </ul>
     </div>
   );
@@ -243,6 +95,18 @@ function InventorySectionContent({
   const [unequippingId, setUnequippingId] = useState<string | null>(null);
   const [equippingId, setEquippingId] = useState<string | null>(null);
   const [equipError, setEquipError] = useState<string | null>(null);
+  const [stashRenameError, setStashRenameError] = useState<string | null>(null);
+  const [stashRenameInFlight, setStashRenameInFlight] = useState(false);
+  const canLoadPlaces = !readOnly && mutate !== undefined;
+  const stashNames = useStashPlaceNames(
+    character.id,
+    activeGameId,
+    character.inventory ?? [],
+    canLoadPlaces
+  );
+  const { openByKey, setStashDrawerOpen } = useStashDrawerOpenState(
+    character.id
+  );
 
   useEffect(() => {
     if (!detailEntry || !character.inventory?.length) return;
@@ -270,18 +134,6 @@ function InventorySectionContent({
   );
   const carriedInventory = useMemo(
     () => sortInventoryEntriesAlphabetically(getCarriedInventory(inventory)),
-    [inventory]
-  );
-  const storedInventory = useMemo(
-    () =>
-      sortInventoryEntriesAlphabetically(
-        inventory.filter(
-          (e) =>
-            e.itemLocation !== undefined &&
-            e.itemLocation !== null &&
-            e.itemLocation !== ITEM_LOCATION_CARRIED
-        )
-      ),
     [inventory]
   );
 
@@ -385,6 +237,43 @@ function InventorySectionContent({
     [character.id, character.games]
   );
 
+  const canRenameStash = !readOnly && activeGameId != null && mutate != null;
+  const renameStash = async (rename: StashRename) => {
+    if (activeGameId == null || mutate == null) return;
+    setStashRenameError(null);
+    setStashRenameInFlight(true);
+    try {
+      await renameGameStash(activeGameId, rename);
+      await mutate();
+    } catch (error) {
+      setStashRenameError(
+        getUserSafeErrorMessage(error, "Could not rename this stash.")
+      );
+      throw error;
+    } finally {
+      setStashRenameInFlight(false);
+    }
+  };
+
+  const storedRow: HoldingRowShared = {
+    onSelectDetail: setDetailEntry,
+    readOnly,
+    vehicleNamesById,
+  };
+  const carriedRow: CarriedHoldingRow = {
+    ...storedRow,
+    onSelectEquip: readOnly
+      ? null
+      : (holding) => {
+          void handleAutoEquip(holding);
+        },
+    onUnequip: (holding) => {
+      void handleUnequip(holding);
+    },
+    unequippingId,
+    equippingId,
+  };
+
   return (
     <div className="space-y-0">
       {!readOnly && (
@@ -424,37 +313,18 @@ function InventorySectionContent({
         <>
           <InventoryList
             title="On hand"
-            variant="carried"
-            entries={carriedInventory}
-            vehicleNamesById={vehicleNamesById}
-            onSelectDetail={setDetailEntry}
-            onSelectEquip={
-              readOnly
-                ? null
-                : (e) => {
-                    void handleAutoEquip(e);
-                  }
-            }
-            onUnequip={(entry) => {
-              void handleUnequip(entry);
-            }}
-            unequippingId={unequippingId}
-            equippingId={equippingId}
-            readOnly={readOnly}
+            holdings={carriedInventory}
+            row={carriedRow}
           />
-          <InventoryList
-            title="Stored"
-            variant="stored"
-            entries={storedInventory}
-            vehicleNamesById={vehicleNamesById}
-            onSelectDetail={setDetailEntry}
-            onSelectEquip={null}
-            onUnequip={(entry) => {
-              void handleUnequip(entry);
-            }}
-            unequippingId={unequippingId}
-            equippingId={equippingId}
-            readOnly={readOnly}
+          <StoredInventoryList
+            characterId={character.id}
+            holdings={inventory}
+            openByKey={openByKey}
+            onToggleStashDrawer={setStashDrawerOpen}
+            onRenameStash={canRenameStash ? renameStash : undefined}
+            renameDisabled={stashRenameInFlight}
+            renameError={stashRenameError}
+            row={storedRow}
           />
         </>
       )}
@@ -512,6 +382,7 @@ function InventorySectionContent({
           characterId={character.id}
           gameId={activeGameId}
           mutate={mutate}
+          stashNames={stashNames}
           resolveGiveRecipients={resolveGiveRecipients}
           equipControl={{
             carriedInventory,

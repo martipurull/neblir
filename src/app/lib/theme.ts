@@ -54,6 +54,10 @@ export type ThemeTokens = {
   warning: string;
   danger: string;
   toolbar: string;
+  /** Selected radio fill. Neblir stays the brand purple; Dark and Light invert the text color. */
+  radioSelected: string;
+  /** Text on a selected radio. Neblir stays the on-accent color; Dark and Light use the page surface. */
+  radioLabel: string;
 };
 
 type SemanticStops = {
@@ -75,6 +79,8 @@ type ThemePaint = {
   safe: SemanticStops;
   warning: SemanticStops;
   danger: SemanticStops;
+  radioSelected: string;
+  radioLabel: string;
 };
 
 const NEBLIR_SAFE: SemanticStops = {
@@ -127,6 +133,8 @@ const THEME_PAINT: Record<Theme, ThemePaint> = {
     safe: NEBLIR_SAFE,
     warning: NEBLIR_WARNING,
     danger: NEBLIR_DANGER,
+    radioSelected: DEEP_BRAND_PURPLE,
+    radioLabel: CUSTOM_SECONDARY,
   },
   dark: {
     page: DARK_PAGE,
@@ -141,6 +149,8 @@ const THEME_PAINT: Record<Theme, ThemePaint> = {
     safe: NEBLIR_SAFE,
     warning: DARK_WARNING,
     danger: NEBLIR_DANGER,
+    radioSelected: DARK_TEXT,
+    radioLabel: DARK_PAGE,
   },
   light: {
     page: LIGHT_PAGE,
@@ -155,6 +165,8 @@ const THEME_PAINT: Record<Theme, ThemePaint> = {
     safe: LIGHT_SAFE,
     warning: LIGHT_WARNING,
     danger: LIGHT_DANGER,
+    radioSelected: LIGHT_TEXT,
+    radioLabel: LIGHT_PAGE,
   },
 };
 
@@ -197,6 +209,8 @@ export function themeTokens(theme: Theme): ThemeTokens {
     warning: paint.warning[600],
     danger: paint.danger[600],
     toolbar: paint.toolbar,
+    radioSelected: paint.radioSelected,
+    radioLabel: paint.radioLabel,
   };
 }
 
@@ -245,5 +259,7 @@ export function themeDocumentStyle(theme: Theme): CSSProperties {
     "--theme-danger-200-rgb": hexToRgbChannels(paint.danger[200]),
     "--theme-danger-400-rgb": hexToRgbChannels(paint.danger[400]),
     "--theme-danger-600-rgb": hexToRgbChannels(paint.danger[600]),
+    "--theme-radio-selected-rgb": hexToRgbChannels(paint.radioSelected),
+    "--theme-radio-label-rgb": hexToRgbChannels(paint.radioLabel),
   } as CSSProperties;
 }

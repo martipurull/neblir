@@ -43,7 +43,7 @@ A character linked to a game whose Owners among that game's users are none or on
 _Avoid_: NPC (as a stored type), co-controlled (when meaning a play grant)
 
 **NPC group**:
-The name that places a GM-controlled character with others on one game. Each such character has at most one. The same character can have a different group on another game. Only the GM sees it.
+The name that places a GM-controlled character with others on one game. Each such character has at most one per game, only the GM sees it, the same character can have a different group on another game, and spellings that differ only by case, spacing, punctuation, or a possessive 's are the same group, shown under the spelling that sorts first when several are already stored.
 _Avoid_: faction, tag, folder, NPC type
 
 **Ungrouped**:
@@ -179,6 +179,10 @@ _Avoid_: money
 **Stack quantity**:
 How many of an item a character holds in one inventory entry. Adjustable in place; quantity 0 means the entry is gone.
 _Avoid_: remove (when meaning partial discard), uses (item charge/ammo-of-a-different-kind)
+
+**Stash**:
+A name on one game where characters leave items they are not carrying while that game is active. The game shares that name until no item left in that game remains there, a rename updates that game only, spellings that differ only by case, spacing, punctuation, or a possessive 's are the same stash, shown under the first spelling saved, and one left with no active game is that character's alone.
+_Avoid_: location, place, group, folder, parked location, vehicle cargo
 
 **Nickname**:
 A per-holding display name on an inventory or vehicle row (`customName`). Optional; when empty, the sheet shows the unique override or template name. Editable for every holding, not only unique items or vehicles.

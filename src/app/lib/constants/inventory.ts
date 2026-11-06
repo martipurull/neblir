@@ -1,6 +1,25 @@
 /** Value for itemLocation when the character has the item on them */
 export const ITEM_LOCATION_CARRIED = "carried" as const;
 
+/** Stored whereabouts column plus the game recorded for a Stash. */
+export type HoldingPlaceWrite = {
+  itemLocation: string;
+  stashGameId: string | null;
+};
+
+/** The pair written whenever a holding changes place. */
+export function holdingPlaceWrite(
+  place: string,
+  stashGameId: string | null
+): HoldingPlaceWrite {
+  return { itemLocation: place, stashGameId };
+}
+
+/** On hand, with no recorded game. */
+export function carriedHoldingWrite(): HoldingPlaceWrite {
+  return holdingPlaceWrite(ITEM_LOCATION_CARRIED, null);
+}
+
 /** In-place stack quantity ceiling on a holding (browse-add may use a lower cap). */
 export const MAX_STACK_QUANTITY = 999;
 
@@ -35,6 +54,16 @@ export function parseVehicleMountedItemLocation(
   if (!itemLocation?.startsWith(VEHICLE_MOUNTED_LOCATION_PREFIX)) return null;
   const id = itemLocation.slice(VEHICLE_MOUNTED_LOCATION_PREFIX.length).trim();
   return id.length > 0 ? id : null;
+}
+
+/** True when the whereabouts is vehicle cargo or a mounted item. */
+export function isVehicleItemLocation(
+  itemLocation: string | null | undefined
+): boolean {
+  return (
+    parseVehicleCargoItemLocation(itemLocation) != null ||
+    parseVehicleMountedItemLocation(itemLocation) != null
+  );
 }
 
 export function isItemInVehicleCargo(

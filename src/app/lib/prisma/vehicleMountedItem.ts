@@ -1,7 +1,8 @@
 import { isItemInventoryOperational } from "@/app/lib/types/item";
 import type { VehicleMountedItem } from "@/app/lib/types/vehicle";
 import {
-  ITEM_LOCATION_CARRIED,
+  carriedHoldingWrite,
+  holdingPlaceWrite,
   isItemCarried,
   vehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
@@ -182,7 +183,7 @@ export async function attachItemToVehicle(args: {
     await tx.itemCharacter.update({
       where: { id: itemCharacter.id },
       data: {
-        itemLocation: mountedLocation,
+        ...holdingPlaceWrite(mountedLocation, null),
         isEquipped: false,
         equipSlots: [],
       },
@@ -233,7 +234,7 @@ export async function detachItemFromVehicle(args: {
     await tx.vehicleMountedItem.delete({ where: { id: row.id } });
     await tx.itemCharacter.update({
       where: { id: row.itemCharacterId },
-      data: { itemLocation: ITEM_LOCATION_CARRIED },
+      data: carriedHoldingWrite(),
     });
   });
 }

@@ -91,10 +91,15 @@ export const itemCharacterSchema = z.object({
   customName: z.string().optional().nullable(),
   status: itemStatusSchema,
   itemLocation: z.string().optional(),
+  /** Game recorded when this holding was left at a place. Empty when carried, in a vehicle, or left with no active game. */
+  stashGameId: z.string().nullish(),
   item: resolvedItemSchema.nullable(),
 });
 export type ResolvedItem = z.infer<typeof resolvedItemSchema>;
 export type ItemCharacter = z.infer<typeof itemCharacterSchema>;
+
+/** Place names offered when leaving an item. Names only, no holdings. */
+export const stashPlaceNamesResponseSchema = z.array(z.string());
 
 export const generalInformationSchema = z.object({
   name: z.string(),

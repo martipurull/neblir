@@ -279,3 +279,39 @@ html[data-theme="light"] select option {
   background-color: rgb(var(--theme-modal-rgb));
   color: rgb(var(--theme-text-rgb));
 }
+
+/* Dark and Light share one radio treatment. Neblir keeps the component classes. */
+html[data-theme="dark"] .theme-radio-option,
+html[data-theme="light"] .theme-radio-option {
+  border-color: rgb(var(--theme-text-rgb));
+  background-color: transparent;
+  color: rgb(var(--theme-text-rgb));
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .theme-radio-option-selected,
+html[data-theme="light"] .theme-radio-option-selected {
+  border-color: rgb(var(--theme-radio-selected-rgb));
+  background-color: rgb(var(--theme-radio-selected-rgb));
+  color: rgb(var(--theme-radio-label-rgb));
+}
+
+html[data-theme="dark"] .theme-radio-option input[type="radio"]:not(.sr-only),
+html[data-theme="light"] .theme-radio-option input[type="radio"]:not(.sr-only) {
+  appearance: none;
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--theme-text-rgb));
+  background-color: transparent;
+}
+
+html[data-theme="dark"]
+  .theme-radio-option-selected
+  input[type="radio"]:not(.sr-only),
+html[data-theme="light"]
+  .theme-radio-option-selected
+  input[type="radio"]:not(.sr-only) {
+  border-color: rgb(var(--theme-radio-selected-rgb));
+  background-color: rgb(var(--theme-radio-selected-rgb));
+}

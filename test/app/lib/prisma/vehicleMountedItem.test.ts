@@ -4,8 +4,10 @@ const vehicleCharacterFindFirst = vi.fn();
 const itemCharacterFindFirst = vi.fn();
 const itemCharacterFindMany = vi.fn();
 const vehicleMountedItemFindUnique = vi.fn();
+const vehicleMountedItemFindFirst = vi.fn();
 const vehicleMountedItemCount = vi.fn();
 const vehicleMountedItemCreate = vi.fn();
+const vehicleMountedItemDelete = vi.fn();
 const itemCharacterUpdate = vi.fn();
 const hydrateItemCharacters = vi.fn();
 
@@ -21,6 +23,7 @@ vi.mock("@/app/lib/prisma/client", () => ({
     },
     vehicleMountedItem: {
       findUnique: (...args: unknown[]) => vehicleMountedItemFindUnique(...args),
+      findFirst: (...args: unknown[]) => vehicleMountedItemFindFirst(...args),
       findMany: vi.fn().mockResolvedValue([]),
       count: (...args: unknown[]) => vehicleMountedItemCount(...args),
       create: (...args: unknown[]) => vehicleMountedItemCreate(...args),
@@ -32,6 +35,7 @@ vi.mock("@/app/lib/prisma/client", () => ({
         },
         vehicleMountedItem: {
           create: (...args: unknown[]) => vehicleMountedItemCreate(...args),
+          delete: (...args: unknown[]) => vehicleMountedItemDelete(...args),
         },
       }),
   },
@@ -146,8 +150,31 @@ describe("attachItemToVehicle vehicleMountable", () => {
         itemLocation: "vehicle-mounted:vc-1",
         isEquipped: false,
         equipSlots: [],
+        stashGameId: null,
       },
     });
     expect(vehicleMountedItemCreate).toHaveBeenCalled();
+  });
+
+  it("clears the recorded game when a mounted item is detached", async () => {
+    vehicleMountedItemFindFirst.mockResolvedValue({
+      id: "mount-1",
+      vehicleCharacterId: "vc-1",
+      itemCharacterId: "ic-1",
+    });
+    vehicleMountedItemDelete.mockResolvedValue({});
+    const { detachItemFromVehicle } =
+      await import("@/app/lib/prisma/vehicleMountedItem");
+
+    await detachItemFromVehicle({
+      characterId: "char-1",
+      vehicleCharacterId: "vc-1",
+      mountedItemId: "mount-1",
+    });
+
+    expect(itemCharacterUpdate).toHaveBeenCalledWith({
+      where: { id: "ic-1" },
+      data: { itemLocation: "carried", stashGameId: null },
+    });
   });
 });

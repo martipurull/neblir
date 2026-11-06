@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { RadioGroup } from "@/app/components/shared/RadioGroup";
 import { createCharacterHref } from "@/app/lib/navParent";
-import { Checkbox } from "@/app/components/shared/Checkbox";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
@@ -12,7 +12,7 @@ type GmCreateNpcModalProps = {
   returnTo: string;
   /** Shown after "you will return to". Defaults to the GM screen wording. */
   returnDestinationLabel?: string;
-  /** Initial value for the known-to-players checkbox. */
+  /** Yes starts the game link as Public. Defaults to No (Private). */
   defaultKnownToPlayers?: boolean;
   onClose: () => void;
 };
@@ -63,13 +63,20 @@ export function GmCreateNpcModal({
           {returnDestinationLabel}.
         </p>
         <div className="mt-4">
-          <Checkbox
-            checked={knownToPlayers}
-            onChange={setKnownToPlayers}
+          <RadioGroup
+            name="npc-known-to-players"
             label="Is NPC known to players?"
+            value={knownToPlayers ? "yes" : "no"}
+            variant="chip"
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+            onChange={(value) => setKnownToPlayers(value === "yes")}
           />
-          <p className="mt-1 text-xs text-black/65">
-            Leave unchecked to keep the NPC private to you (GM only).
+          <p className="mt-2 text-xs text-black/65">
+            Yes lets other players see this NPC. No keeps it private, and the
+            owner, the GM, and a play-grant grantee still see it.
           </p>
         </div>
         <div className="mt-5 flex flex-wrap justify-end gap-2">

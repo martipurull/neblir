@@ -90,7 +90,20 @@ describe("groupNpcList", () => {
     ]);
   });
 
-  it("groups names that differ only by case or spaces under the first spelling", () => {
+  it("shows Indira's Crew and Indira Crew as one group under the spelling that sorts first", () => {
+    const sections = groupNpcList([
+      entry({ id: "possessive", name: "Ann", npcGroup: "Indira's Crew" }),
+      entry({ id: "plain", name: "Bea", npcGroup: "Indira Crew" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual(["Indira Crew"]);
+    expect(sections[0]?.entries.map((row) => row.id)).toEqual([
+      "possessive",
+      "plain",
+    ]);
+  });
+
+  it("groups names that differ only by case or spaces under the spelling that sorts first", () => {
     const sections = groupNpcList([
       entry({ id: "first", name: "Ann", npcGroup: "Crimson Claws" }),
       entry({ id: "second", name: "Bea", npcGroup: "  crimson   claws " }),
@@ -98,7 +111,7 @@ describe("groupNpcList", () => {
     ]);
 
     expect(sections.map((section) => section.heading)).toEqual([
-      "Crimson Claws",
+      "crimson   claws",
       "Vestyd",
     ]);
     expect(sections[0]?.entries.map((row) => row.id)).toEqual([
@@ -152,6 +165,61 @@ describe("groupNpcList", () => {
     expect(sections[1]?.entries.map((row) => row.id)).toEqual([
       "lower",
       "spaced",
+    ]);
+  });
+
+  it("uses the same heading when case ties, whichever spelling is listed first", () => {
+    const lowerFirst = groupNpcList([
+      entry({ id: "lower", name: "Ann", npcGroup: "alpha" }),
+      entry({ id: "upper", name: "Bea", npcGroup: "Alpha" }),
+    ]);
+    const upperFirst = groupNpcList([
+      entry({ id: "upper", name: "Bea", npcGroup: "Alpha" }),
+      entry({ id: "lower", name: "Ann", npcGroup: "alpha" }),
+    ]);
+
+    expect(lowerFirst.map((section) => section.heading)).toEqual(["Alpha"]);
+    expect(upperFirst.map((section) => section.heading)).toEqual(["Alpha"]);
+  });
+
+  it("keeps Guns and Gun as two groups", () => {
+    const sections = groupNpcList([
+      entry({ id: "guns", name: "Ann", npcGroup: "Guns" }),
+      entry({ id: "gun", name: "Bea", npcGroup: "Gun" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual(["Gun", "Guns"]);
+  });
+
+  it("places Archived! and archived's in Archived", () => {
+    const sections = groupNpcList([
+      entry({ id: "bang", name: "Ann", npcGroup: "Archived!" }),
+      entry({ id: "possessive", name: "Bea", npcGroup: "archived's" }),
+      entry({ id: "named", name: "Cy", npcGroup: "alpha" }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "alpha",
+      "Archived",
+    ]);
+    expect(sections[1]?.entries.map((row) => row.id)).toEqual([
+      "bang",
+      "possessive",
+    ]);
+  });
+
+  it("places a punctuated Ungrouped spelling in Ungrouped", () => {
+    const sections = groupNpcList([
+      entry({ id: "bang", name: "Ann", npcGroup: "Ungrouped!" }),
+      entry({ id: "possessive", name: "Bea", npcGroup: "ungrouped's" }),
+      entry({ id: "plain", name: "Cy", npcGroup: null }),
+    ]);
+
+    expect(sections.map((section) => section.heading)).toEqual(["Ungrouped"]);
+    expect(sections[0]?.entries.map((row) => row.id)).toEqual([
+      "bang",
+      "possessive",
+      "plain",
     ]);
   });
 
@@ -292,6 +360,22 @@ describe("viewNpcList", () => {
     ]);
   });
 
+  it("remembers open or closed for a possessive spelling on the same fold", () => {
+    const sections = viewNpcList(
+      [viewEntry({ id: "ann", name: "Ann", npcGroup: "Indira's Crew" })],
+      "all",
+      { [npcListSectionStorageKey("Indira Crew")]: false }
+    );
+
+    expect(sections.map((section) => section.heading)).toEqual([
+      "Indira's Crew",
+    ]);
+    expect(sections[0]?.open).toBe(false);
+    expect(sections[0]?.storageKey).toBe(
+      npcListSectionStorageKey("Indira Crew")
+    );
+  });
+
   it("reports the filtered count while a section is closed", () => {
     const sections = viewNpcList(roster, "public", {
       [npcListSectionStorageKey("alpha")]: false,
@@ -351,5 +435,15 @@ describe("npcRollPickerCandidates", () => {
     ]);
 
     expect(candidates.map((row) => row.id)).toEqual(["first", "second"]);
+  });
+
+  it("omits Archived! and archived's", () => {
+    const candidates = npcRollPickerCandidates([
+      entry({ id: "bang", name: "Ann", npcGroup: "Archived!" }),
+      entry({ id: "possessive", name: "Bea", npcGroup: "archived's" }),
+      entry({ id: "named", name: "Cy", npcGroup: "alpha" }),
+    ]);
+
+    expect(candidates.map((row) => row.id)).toEqual(["named"]);
   });
 });

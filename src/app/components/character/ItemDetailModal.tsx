@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ITEM_LOCATION_CARRIED,
   formatItemLocationLabel,
   isItemCarried,
 } from "@/app/lib/constants/inventory";
@@ -50,6 +49,7 @@ export function ItemDetailModal({
   rollPrivacy,
   onEditUniqueItem,
   vehicleNamesById,
+  stashNames = [],
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -66,7 +66,6 @@ export function ItemDetailModal({
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [isSettingLocation, setIsSettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [leaveLocationInput, setLeaveLocationInput] = useState("");
   const [damageRollOpen, setDamageRollOpen] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -141,22 +140,32 @@ export function ItemDetailModal({
     []
   );
 
-  const handleSetLocation = async (itemLocation: string) => {
+  const submitPlaceChange = async (
+    body:
+      | { action: "leave"; placeName: string; gameId: string | null }
+      | { action: "take" },
+    failureMessage: string
+  ) => {
     setLocationError(null);
     setIsSettingLocation(true);
     try {
-      await updateCharacterInventoryEntry(characterId, entry.id, {
-        action: "setLocation",
-        itemLocation,
-      });
+      await updateCharacterInventoryEntry(characterId, entry.id, body);
       await mutate();
-      setLeaveLocationInput("");
     } catch (e) {
-      setLocationError(getUserSafeErrorMessage(e, "Failed to update location"));
+      setLocationError(getUserSafeErrorMessage(e, failureMessage));
     } finally {
       setIsSettingLocation(false);
     }
   };
+
+  const handleLeave = (stashName: string) =>
+    submitPlaceChange(
+      { action: "leave", placeName: stashName, gameId: gameId ?? null },
+      "Could not leave this item."
+    );
+
+  const handleTakeWithYou = () =>
+    submitPlaceChange({ action: "take" }, "Could not take this item with you.");
 
   const handleRemove = async () => {
     setRemoveError(null);
@@ -324,14 +333,13 @@ export function ItemDetailModal({
           )}
 
           <ItemDetailLocationSection
+            key={`leave-${entry.id}`}
             carried={carried}
-            leaveLocationInput={leaveLocationInput}
-            onLeaveInputChange={setLeaveLocationInput}
-            onLeaveSomewhere={() => {
-              const loc = leaveLocationInput.trim();
-              if (loc) void handleSetLocation(loc);
+            stashNames={stashNames}
+            onLeave={(stashName) => {
+              void handleLeave(stashName);
             }}
-            onTakeWithYou={() => void handleSetLocation(ITEM_LOCATION_CARRIED)}
+            onTakeWithYou={() => void handleTakeWithYou()}
             isSettingLocation={isSettingLocation}
             locationError={locationError}
           />

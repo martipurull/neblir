@@ -1,5 +1,6 @@
 import {
-  ITEM_LOCATION_CARRIED,
+  carriedHoldingWrite,
+  holdingPlaceWrite,
   vehicleCargoItemLocation,
 } from "@/app/lib/constants/inventory";
 import { getInventoryEntryCarriedWeight } from "@/app/lib/carryWeightUtils";
@@ -147,7 +148,7 @@ export async function stowItemAsVehicleCargo(args: {
   await prisma.itemCharacter.update({
     where: { id: item.id },
     data: {
-      itemLocation: targetLocation,
+      ...holdingPlaceWrite(targetLocation, null),
       isEquipped: false,
       equipSlots: [],
     },
@@ -199,6 +200,6 @@ export async function retrieveItemFromVehicleCargo(args: {
 
   await prisma.itemCharacter.update({
     where: { id: item.id },
-    data: { itemLocation: ITEM_LOCATION_CARRIED },
+    data: carriedHoldingWrite(),
   });
 }

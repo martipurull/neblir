@@ -55,7 +55,7 @@ export async function setNpcGroup(
   return { ok: true, npcGroup: stored };
 }
 
-/** Blank and the word Ungrouped store no name. A match keeps the first spelling. */
+/** Blank and Ungrouped store no name. A match keeps the spelling that sorts first. */
 async function storedNpcGroupName(
   gameId: string,
   candidate: string | null
