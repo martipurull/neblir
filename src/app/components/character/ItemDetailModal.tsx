@@ -49,7 +49,7 @@ export function ItemDetailModal({
   rollPrivacy,
   onEditUniqueItem,
   vehicleNamesById,
-  placeNames = [],
+  stashNames = [],
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -158,9 +158,9 @@ export function ItemDetailModal({
     }
   };
 
-  const handleLeave = (placeName: string) =>
+  const handleLeave = (stashName: string) =>
     submitPlaceChange(
-      { action: "leave", placeName, gameId: gameId ?? null },
+      { action: "leave", placeName: stashName, gameId: gameId ?? null },
       "Could not leave this item."
     );
 
@@ -335,9 +335,9 @@ export function ItemDetailModal({
           <ItemDetailLocationSection
             key={`leave-${entry.id}`}
             carried={carried}
-            placeNames={placeNames}
-            onLeave={(placeName) => {
-              void handleLeave(placeName);
+            stashNames={stashNames}
+            onLeave={(stashName) => {
+              void handleLeave(stashName);
             }}
             onTakeWithYou={() => void handleTakeWithYou()}
             isSettingLocation={isSettingLocation}

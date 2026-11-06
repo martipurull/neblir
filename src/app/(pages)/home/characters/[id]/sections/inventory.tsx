@@ -98,7 +98,7 @@ function InventorySectionContent({
   const [stashRenameError, setStashRenameError] = useState<string | null>(null);
   const [stashRenameInFlight, setStashRenameInFlight] = useState(false);
   const canLoadPlaces = !readOnly && mutate !== undefined;
-  const placeNames = useStashPlaceNames(
+  const stashNames = useStashPlaceNames(
     character.id,
     activeGameId,
     character.inventory ?? [],
@@ -382,7 +382,7 @@ function InventorySectionContent({
           characterId={character.id}
           gameId={activeGameId}
           mutate={mutate}
-          placeNames={placeNames}
+          stashNames={stashNames}
           resolveGiveRecipients={resolveGiveRecipients}
           equipControl={{
             carriedInventory,

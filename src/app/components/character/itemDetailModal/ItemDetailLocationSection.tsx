@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
 import { useId, useMemo, useState } from "react";
@@ -9,8 +10,8 @@ const NEW_STASH_VALUE = "\u241fnew";
 
 type ItemDetailLocationSectionProps = {
   carried: boolean;
-  placeNames: readonly string[];
-  onLeave: (placeName: string) => void;
+  stashNames: readonly string[];
+  onLeave: (stashName: string) => void;
   onTakeWithYou: () => void;
   isSettingLocation: boolean;
   locationError: string | null;
@@ -18,7 +19,7 @@ type ItemDetailLocationSectionProps = {
 
 export function ItemDetailLocationSection({
   carried,
-  placeNames,
+  stashNames,
   onLeave,
   onTakeWithYou,
   isSettingLocation,
@@ -30,34 +31,37 @@ export function ItemDetailLocationSection({
   const [menuOpen, setMenuOpen] = useState(false);
   const [handledError, setHandledError] = useState(locationError);
   const [prevCarried, setPrevCarried] = useState(carried);
-  const hasStashes = placeNames.length > 0;
+  const hasStashes = stashNames.length > 0;
   const trimmedDraft = draft.trim();
   const canLeave = trimmedDraft !== "";
   const stashOptions = useMemo(
     () => [
       { value: "", label: "Choose a stash" },
-      ...placeNames.map((placeName) => ({
-        value: placeName,
-        label: placeName,
+      ...stashNames.map((stashName) => ({
+        value: stashName,
+        label: stashName,
       })),
       { value: NEW_STASH_VALUE, label: "New stash…" },
     ],
-    [placeNames]
+    [stashNames]
   );
+
+  const clearStashDraft = () => {
+    setCreating(false);
+    setDraft("");
+  };
 
   if (locationError !== handledError) {
     setHandledError(locationError);
     if (locationError && hasStashes) {
-      setCreating(false);
-      setDraft("");
+      clearStashDraft();
     }
   }
 
   if (carried !== prevCarried) {
     setPrevCarried(carried);
     if (carried) {
-      setCreating(false);
-      setDraft("");
+      clearStashDraft();
     }
   }
 
@@ -77,10 +81,16 @@ export function ItemDetailLocationSection({
         <div className="flex flex-col gap-2">
           {hasStashes ? (
             <div className={menuOpen ? "min-h-[19rem]" : undefined}>
+              <FieldLabel
+                id={stashFieldId}
+                label="Stash"
+                variant="dark"
+                showRequirement={false}
+              />
               <SelectDropdown
                 id={stashFieldId}
                 label="Stash"
-                labelVariant="dark"
+                showLabel={false}
                 placeholder="Choose a stash"
                 value={creating ? NEW_STASH_VALUE : ""}
                 options={stashOptions}
@@ -92,8 +102,7 @@ export function ItemDetailLocationSection({
                     setCreating(true);
                     return;
                   }
-                  setCreating(false);
-                  setDraft("");
+                  clearStashDraft();
                   if (value === "") return;
                   onLeave(value);
                 }}

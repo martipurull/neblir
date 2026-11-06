@@ -52,11 +52,6 @@ export type SelectDropdownProps = {
   sortOptions?: boolean;
   /** Fires when the paleBlue list opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /**
-   * Light pages use bold black text. Dark modals use the same white label as
-   * `FieldLabel`, without that caption's optional or required marker.
-   */
-  labelVariant?: "light" | "dark";
 };
 
 export function SelectDropdown({
@@ -73,7 +68,6 @@ export function SelectDropdown({
   menuMaxHeightClass = "max-h-44",
   sortOptions = true,
   onOpenChange,
-  labelVariant = "light",
 }: SelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
@@ -221,16 +215,14 @@ export function SelectDropdown({
   };
 
   const closeMenu = () => updateOpen(false);
-  const visibleLabelClassName =
-    labelVariant === "dark"
-      ? "mb-1 block text-sm font-medium text-white"
-      : "mb-1 block text-sm font-bold text-black";
 
   return (
     <div ref={containerRef} className="relative">
       <label
         htmlFor={id}
-        className={showLabel ? visibleLabelClassName : "sr-only"}
+        className={
+          showLabel ? "mb-1 block text-sm font-bold text-black" : "sr-only"
+        }
       >
         {label}
       </label>
