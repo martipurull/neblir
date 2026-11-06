@@ -66,7 +66,6 @@ export function ItemDetailModal({
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [isSettingLocation, setIsSettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [leaveLocationInput, setLeaveLocationInput] = useState("");
   const [damageRollOpen, setDamageRollOpen] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -152,7 +151,6 @@ export function ItemDetailModal({
     try {
       await updateCharacterInventoryEntry(characterId, entry.id, body);
       await mutate();
-      setLeaveLocationInput("");
     } catch (e) {
       setLocationError(getUserSafeErrorMessage(e, failureMessage));
     } finally {
@@ -335,15 +333,14 @@ export function ItemDetailModal({
           )}
 
           <ItemDetailLocationSection
+            key={`leave-${entry.id}`}
             carried={carried}
             placeNames={placeNames}
-            leaveLocationInput={leaveLocationInput}
-            onLeaveInputChange={setLeaveLocationInput}
             onPickPlace={(placeName) => {
               void handleLeave(placeName);
             }}
-            onLeaveSomewhere={() => {
-              void handleLeave(leaveLocationInput.trim());
+            onLeaveSomewhere={(placeName) => {
+              void handleLeave(placeName);
             }}
             onTakeWithYou={() => void handleTakeWithYou()}
             isSettingLocation={isSettingLocation}
