@@ -49,7 +49,7 @@ export function ItemDetailModal({
   rollPrivacy,
   onEditUniqueItem,
   vehicleNamesById,
-  placeNames = [],
+  stashNames = [],
 }: ItemDetailModalProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -66,7 +66,6 @@ export function ItemDetailModal({
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [isSettingLocation, setIsSettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [leaveLocationInput, setLeaveLocationInput] = useState("");
   const [damageRollOpen, setDamageRollOpen] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -152,7 +151,6 @@ export function ItemDetailModal({
     try {
       await updateCharacterInventoryEntry(characterId, entry.id, body);
       await mutate();
-      setLeaveLocationInput("");
     } catch (e) {
       setLocationError(getUserSafeErrorMessage(e, failureMessage));
     } finally {
@@ -160,9 +158,9 @@ export function ItemDetailModal({
     }
   };
 
-  const handleLeave = (placeName: string) =>
+  const handleLeave = (stashName: string) =>
     submitPlaceChange(
-      { action: "leave", placeName, gameId: gameId ?? null },
+      { action: "leave", placeName: stashName, gameId: gameId ?? null },
       "Could not leave this item."
     );
 
@@ -335,15 +333,11 @@ export function ItemDetailModal({
           )}
 
           <ItemDetailLocationSection
+            key={`leave-${entry.id}`}
             carried={carried}
-            placeNames={placeNames}
-            leaveLocationInput={leaveLocationInput}
-            onLeaveInputChange={setLeaveLocationInput}
-            onPickPlace={(placeName) => {
-              void handleLeave(placeName);
-            }}
-            onLeaveSomewhere={() => {
-              void handleLeave(leaveLocationInput.trim());
+            stashNames={stashNames}
+            onLeave={(stashName) => {
+              void handleLeave(stashName);
             }}
             onTakeWithYou={() => void handleTakeWithYou()}
             isSettingLocation={isSettingLocation}

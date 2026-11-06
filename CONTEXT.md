@@ -181,8 +181,8 @@ How many of an item a character holds in one inventory entry. Adjustable in plac
 _Avoid_: remove (when meaning partial discard), uses (item charge/ammo-of-a-different-kind)
 
 **Stash**:
-A named place on one game where characters leave items they are not carrying while that game is active. The game shares that name until no item left in that game remains there, a rename updates that game only, spellings that differ only by case, spacing, punctuation, or a possessive 's are the same stash, shown under the first spelling saved, and a place left with no active game is that character's alone.
-_Avoid_: location, group, folder, parked location, vehicle cargo
+A name on one game where characters leave items they are not carrying while that game is active. The game shares that name until no item left in that game remains there, a rename updates that game only, spellings that differ only by case, spacing, punctuation, or a possessive 's are the same stash, shown under the first spelling saved, and one left with no active game is that character's alone.
+_Avoid_: location, place, group, folder, parked location, vehicle cargo
 
 **Nickname**:
 A per-holding display name on an inventory or vehicle row (`customName`). Optional; when empty, the sheet shows the unique override or template name. Editable for every holding, not only unique items or vehicles.

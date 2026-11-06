@@ -37,6 +37,6 @@ export interface ItemDetailModalProps {
   onEditUniqueItem?: () => void;
   /** VehicleCharacter id → name for cargo/mount location labels. */
   vehicleNamesById?: Readonly<Record<string, string>>;
-  /** Place names loaded for the inventory section. Opening an item does not reload them. */
-  placeNames?: readonly string[];
+  /** Stash names loaded for the inventory section. Opening an item does not reload them. */
+  stashNames?: readonly string[];
 }
