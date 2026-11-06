@@ -336,10 +336,7 @@ export function ItemDetailModal({
             key={`leave-${entry.id}`}
             carried={carried}
             placeNames={placeNames}
-            onPickPlace={(placeName) => {
-              void handleLeave(placeName);
-            }}
-            onLeaveSomewhere={(placeName) => {
+            onLeave={(placeName) => {
               void handleLeave(placeName);
             }}
             onTakeWithYou={() => void handleTakeWithYou()}

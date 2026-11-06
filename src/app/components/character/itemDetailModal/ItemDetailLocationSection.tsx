@@ -3,15 +3,14 @@
 import { Button } from "@/app/components/shared/Button";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 const NEW_STASH_VALUE = "\u241fnew";
 
 type ItemDetailLocationSectionProps = {
   carried: boolean;
   placeNames: readonly string[];
-  onPickPlace: (placeName: string) => void;
-  onLeaveSomewhere: (placeName: string) => void;
+  onLeave: (placeName: string) => void;
   onTakeWithYou: () => void;
   isSettingLocation: boolean;
   locationError: string | null;
@@ -20,8 +19,7 @@ type ItemDetailLocationSectionProps = {
 export function ItemDetailLocationSection({
   carried,
   placeNames,
-  onPickPlace,
-  onLeaveSomewhere,
+  onLeave,
   onTakeWithYou,
   isSettingLocation,
   locationError,
@@ -35,6 +33,17 @@ export function ItemDetailLocationSection({
   const hasStashes = placeNames.length > 0;
   const trimmedDraft = draft.trim();
   const canLeave = trimmedDraft !== "";
+  const stashOptions = useMemo(
+    () => [
+      { value: "", label: "Choose a stash" },
+      ...placeNames.map((placeName) => ({
+        value: placeName,
+        label: placeName,
+      })),
+      { value: NEW_STASH_VALUE, label: "New stash…" },
+    ],
+    [placeNames]
+  );
 
   if (locationError !== handledError) {
     setHandledError(locationError);
@@ -56,7 +65,7 @@ export function ItemDetailLocationSection({
 
   const leaveNewStash = () => {
     if (!canLeave || isSettingLocation) return;
-    onLeaveSomewhere(trimmedDraft);
+    onLeave(trimmedDraft);
   };
 
   return (
@@ -68,26 +77,13 @@ export function ItemDetailLocationSection({
         <div className="flex flex-col gap-2">
           {hasStashes ? (
             <div className={menuOpen ? "min-h-[19rem]" : undefined}>
-              <span
-                className="mb-1 block text-sm font-medium text-white"
-                aria-hidden="true"
-              >
-                Stash
-              </span>
               <SelectDropdown
                 id={stashFieldId}
                 label="Stash"
-                showLabel={false}
+                labelVariant="dark"
                 placeholder="Choose a stash"
                 value={creating ? NEW_STASH_VALUE : ""}
-                options={[
-                  { value: "", label: "Choose a stash" },
-                  ...placeNames.map((placeName) => ({
-                    value: placeName,
-                    label: placeName,
-                  })),
-                  { value: NEW_STASH_VALUE, label: "New stash…" },
-                ]}
+                options={stashOptions}
                 disabled={isSettingLocation}
                 sortOptions={false}
                 onOpenChange={setMenuOpen}
@@ -99,7 +95,7 @@ export function ItemDetailLocationSection({
                   setCreating(false);
                   setDraft("");
                   if (value === "") return;
-                  onPickPlace(value);
+                  onLeave(value);
                 }}
               />
             </div>
