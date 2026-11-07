@@ -87,6 +87,7 @@ const uniqueItemDetail = {
     modifiesSkill: null,
     skillMod: null,
     isSpeedAltered: false,
+    botActions: [],
   },
 };
 
@@ -122,6 +123,7 @@ describe("getUniqueItemById", () => {
         weight: 1,
         type: "GENERAL_ITEM" as const,
         attackRoll: [],
+        botActions: [],
       },
       resolvedItem: {
         id: "ci-1",
@@ -130,6 +132,7 @@ describe("getUniqueItemById", () => {
         weight: 1,
         type: "GENERAL_ITEM" as const,
         attackRoll: [],
+        botActions: [],
       },
     };
     vi.stubGlobal(

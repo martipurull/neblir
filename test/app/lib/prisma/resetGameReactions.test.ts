@@ -4,6 +4,11 @@ const characterFindMany = vi.fn();
 const characterUpdate = vi.fn();
 const enemyInstanceFindMany = vi.fn();
 const enemyInstanceUpdate = vi.fn();
+const botCharacterFindMany = vi.fn();
+const botCharacterUpdate = vi.fn();
+const botFindUnique = vi.fn();
+const customBotFindUnique = vi.fn();
+const uniqueBotFindUnique = vi.fn();
 
 const tx = {
   character: {
@@ -13,6 +18,19 @@ const tx = {
   enemyInstance: {
     findMany: (...args: unknown[]) => enemyInstanceFindMany(...args),
     update: (...args: unknown[]) => enemyInstanceUpdate(...args),
+  },
+  botCharacter: {
+    findMany: (...args: unknown[]) => botCharacterFindMany(...args),
+    update: (...args: unknown[]) => botCharacterUpdate(...args),
+  },
+  bot: {
+    findUnique: (...args: unknown[]) => botFindUnique(...args),
+  },
+  customBot: {
+    findUnique: (...args: unknown[]) => customBotFindUnique(...args),
+  },
+  uniqueBot: {
+    findUnique: (...args: unknown[]) => uniqueBotFindUnique(...args),
   },
 };
 
@@ -49,6 +67,11 @@ describe("resetReactionsForGame", () => {
     vi.clearAllMocks();
     characterUpdate.mockResolvedValue({});
     enemyInstanceUpdate.mockResolvedValue({});
+    botCharacterFindMany.mockResolvedValue([]);
+    botCharacterUpdate.mockResolvedValue({});
+    botFindUnique.mockResolvedValue(null);
+    customBotFindUnique.mockResolvedValue(null);
+    uniqueBotFindUnique.mockResolvedValue(null);
   });
 
   it("restores remaining reactions for every character and enemy instance in the game", async () => {
@@ -99,6 +122,51 @@ describe("resetReactionsForGame", () => {
     expect(enemyInstanceUpdate).toHaveBeenCalledWith({
       where: { id: "ei-spent" },
       data: { reactionsRemaining: 3 },
+    });
+    expect(botCharacterFindMany).toHaveBeenCalledWith({
+      where: { character: { games: { some: { gameId: "g-1" } } } },
+      select: {
+        id: true,
+        botId: true,
+        sourceType: true,
+        reactionsRemaining: true,
+      },
+    });
+  });
+
+  it("restores a bot holding to its Reaction cap", async () => {
+    characterFindMany.mockResolvedValue([]);
+    enemyInstanceFindMany.mockResolvedValue([]);
+    botCharacterFindMany.mockResolvedValue([
+      {
+        id: "hold-spent",
+        botId: "bot-1",
+        sourceType: "OFFICIAL",
+        reactionsRemaining: 0,
+      },
+      {
+        id: "hold-full",
+        botId: "bot-2",
+        sourceType: "OFFICIAL",
+        reactionsRemaining: 4,
+      },
+    ]);
+    botFindUnique.mockImplementation(
+      async (args: { where: { id: string } }) => {
+        if (args.where.id === "bot-1") return { numberOfReactions: 2 };
+        if (args.where.id === "bot-2") return { numberOfReactions: 4 };
+        return null;
+      }
+    );
+
+    const { resetReactionsForGame } =
+      await import("@/app/lib/prisma/resetGameReactions");
+    await resetReactionsForGame("g-1");
+
+    expect(botCharacterUpdate).toHaveBeenCalledTimes(1);
+    expect(botCharacterUpdate).toHaveBeenCalledWith({
+      where: { id: "hold-spent" },
+      data: { reactionsRemaining: 2 },
     });
   });
 });

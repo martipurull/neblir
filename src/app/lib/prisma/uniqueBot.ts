@@ -1,4 +1,13 @@
+import { readBotActionList, readBotActionOverride } from "@/app/lib/botActions";
 import type { BotTemplateView } from "@/app/lib/botHoldingView";
+import {
+  pickDefinedCombatOverrides,
+  readBotCombatOverrides,
+  readBotCombatStats,
+  resolveBotCombatStats,
+  type BotCombatOverrides,
+  type BotCombatStats,
+} from "@/app/lib/botCombat";
 import {
   pickDefinedTrackOverrides,
   readBotTrackOverrides,
@@ -37,7 +46,10 @@ type UniqueBotRow = {
   maxCarryWeightOverride?: number | null;
   heightMetresOverride?: number | null;
   weightOverride?: number | null;
-} & Partial<BotTrackOverrides>;
+  actionsOverride?: unknown;
+  additionalActionsOverride?: unknown;
+} & Partial<BotTrackOverrides> &
+  Partial<BotCombatOverrides>;
 
 type UniqueBotWriteData = Omit<UniqueBotRow, "id">;
 
@@ -56,7 +68,10 @@ type TemplateStats = {
   maxCarryWeight?: number | null;
   heightMetres?: number | null;
   weight?: number | null;
-} & Partial<BotTrackStats>;
+  actions?: unknown;
+  additionalActions?: unknown;
+} & Partial<BotTrackStats> &
+  Partial<BotCombatStats>;
 
 const uniqueBotPrisma = prisma as typeof prisma & {
   uniqueBot: {
@@ -119,6 +134,11 @@ function mapRecord(
     heightMetresOverride: row.heightMetresOverride ?? null,
     weightOverride: row.weightOverride ?? null,
     ...readBotTrackOverrides(row),
+    ...readBotCombatOverrides(row),
+    actionsOverride: readBotActionOverride(row.actionsOverride),
+    additionalActionsOverride: readBotActionOverride(
+      row.additionalActionsOverride
+    ),
     templateName,
   };
 }
@@ -144,18 +164,23 @@ export function uniqueBotCreateDataFromParsed(
     heightMetresOverride: parsed.heightMetresOverride ?? null,
     weightOverride: parsed.weightOverride ?? null,
     ...readBotTrackOverrides(parsed),
+    ...readBotCombatOverrides(parsed),
   };
   if (parsed.sourceType === "STANDALONE") {
     return {
       ...shared,
       sourceType: "STANDALONE",
       botId: null,
+      actionsOverride: parsed.actionsOverride ?? [],
+      additionalActionsOverride: parsed.additionalActionsOverride ?? [],
     };
   }
   return {
     ...shared,
     sourceType: parsed.sourceType,
     botId: parsed.botId,
+    actionsOverride: parsed.actionsOverride ?? null,
+    additionalActionsOverride: parsed.additionalActionsOverride ?? null,
   };
 }
 
@@ -203,6 +228,13 @@ function updateData(parsed: UniqueBotUpdate): Partial<UniqueBotWriteData> {
       ? { weightOverride: parsed.weightOverride ?? null }
       : {}),
     ...pickDefinedTrackOverrides(parsed),
+    ...pickDefinedCombatOverrides(parsed),
+    ...(parsed.actionsOverride !== undefined
+      ? { actionsOverride: parsed.actionsOverride }
+      : {}),
+    ...(parsed.additionalActionsOverride !== undefined
+      ? { additionalActionsOverride: parsed.additionalActionsOverride }
+      : {}),
   };
 }
 
@@ -224,7 +256,10 @@ export function resolveUniqueBotStats(
     maxCarryWeightOverride?: number | null;
     heightMetresOverride?: number | null;
     weightOverride?: number | null;
-  } & Partial<BotTrackOverrides>,
+    actionsOverride?: unknown;
+    additionalActionsOverride?: unknown;
+  } & Partial<BotTrackOverrides> &
+    Partial<BotCombatOverrides>,
   template: TemplateStats | null
 ): BotTemplateView {
   const resolvedName = firstNonBlank(row.nameOverride, template?.name);
@@ -246,6 +281,13 @@ export function resolveUniqueBotStats(
     heightMetres: row.heightMetresOverride ?? template?.heightMetres ?? null,
     weight: row.weightOverride ?? template?.weight ?? null,
     ...resolveBotTrackStats(row, template),
+    ...resolveBotCombatStats(row, template),
+    actions:
+      readBotActionOverride(row.actionsOverride) ??
+      readBotActionList(template?.actions),
+    additionalActions:
+      readBotActionOverride(row.additionalActionsOverride) ??
+      readBotActionList(template?.additionalActions),
     gameId: row.gameId,
     ownerUserId: row.ownerUserId,
   };
@@ -273,6 +315,9 @@ async function templateForRow(
       heightMetres: official.heightMetres ?? null,
       weight: official.weight ?? null,
       ...readBotTrackStats(official),
+      ...readBotCombatStats(official),
+      actions: official.actions,
+      additionalActions: official.additionalActions,
     };
   }
   if (row.sourceType === "CUSTOM" && row.botId) {
@@ -293,6 +338,9 @@ async function templateForRow(
           heightMetres: custom.heightMetres,
           weight: custom.weight,
           ...readBotTrackStats(custom),
+          ...readBotCombatStats(custom),
+          actions: custom.actions,
+          additionalActions: custom.additionalActions,
         }
       : null;
   }

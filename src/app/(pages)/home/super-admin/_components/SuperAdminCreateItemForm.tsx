@@ -1,5 +1,6 @@
 "use client";
 
+import { BotActionListEditor } from "@/app/components/character/BotActionListEditor";
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { CheckboxRow } from "@/app/components/shared/CheckboxRow";
@@ -191,6 +192,7 @@ export function SuperAdminCreateItemForm({
       equippable: false,
       vehicleMountable: false,
       botInstallable: false,
+      botActions: [],
       equipSlotTypes: [],
       equipSlotCost: "",
       modifiesAttribute: "",
@@ -220,6 +222,11 @@ export function SuperAdminCreateItemForm({
 
   const itemType = useWatch({ control: form.control, name: "itemType" });
   const equippable = useWatch({ control: form.control, name: "equippable" });
+  const botInstallable = useWatch({
+    control: form.control,
+    name: "botInstallable",
+  });
+  const botActions = useWatch({ control: form.control, name: "botActions" });
 
   const onSubmit = form.handleSubmit(async (values) => {
     setStatus(null);
@@ -342,6 +349,7 @@ export function SuperAdminCreateItemForm({
       equippable: values.equippable,
       vehicleMountable: values.vehicleMountable,
       botInstallable: values.botInstallable,
+      botActions: values.botInstallable ? values.botActions : [],
       equipSlotTypes: values.equippable ? values.equipSlotTypes : [],
       ...(values.equippable && equipSlotCostParsed !== undefined
         ? { equipSlotCost: equipSlotCostParsed }
@@ -686,6 +694,19 @@ export function SuperAdminCreateItemForm({
               )}
             />
           </CheckboxRow>
+          {botInstallable ? (
+            <BotActionListEditor
+              idPrefix="official-item-bot-actions"
+              title="Item bot actions"
+              hint="These actions show on a bot only while this item is installed."
+              variant="light"
+              value={botActions}
+              disabled={submitting}
+              onChange={(next) =>
+                form.setValue("botActions", next, { shouldDirty: true })
+              }
+            />
+          ) : null}
 
           {equippable ? (
             <div className="mb-6 rounded-md border border-black/15 bg-paleBlue/25 p-4">

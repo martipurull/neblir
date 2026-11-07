@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  BotActionListEditor,
+  BotActionOverrideEditor,
+} from "@/app/components/character/BotActionListEditor";
+import { DarkBotCombatFields } from "@/app/components/games/DarkBotCombatFields";
 import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
@@ -10,6 +15,11 @@ import { SelectField } from "@/app/components/shared/SelectField";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import {
+  combatFieldTextFromOverrides,
+  combatOverridesFromFieldText,
+  emptyCombatFieldText,
+} from "@/app/lib/botCombat";
+import {
   emptyTrackFieldText,
   trackFieldTextFromOverrides,
   trackOverridesFromFieldText,
@@ -19,6 +29,7 @@ import {
   uniqueBotUpdateSchema,
   type BotTemplateSourceType,
 } from "@/app/lib/types/bot";
+import type { BotAction } from "@/app/lib/types/botAction";
 import { fetchGameCustomBots } from "@/lib/api/customBots";
 import { getGameOfficialBots } from "@/lib/api/bots";
 import {
@@ -101,7 +112,12 @@ function CreateUniqueBotModalBody({
   const [description, setDescription] = useState("");
   const [usage, setUsage] = useState("");
   const [notes, setNotes] = useState("");
+  const [actions, setActions] = useState<BotAction[] | null>([]);
+  const [additionalActions, setAdditionalActions] = useState<
+    BotAction[] | null
+  >([]);
   const [tracks, setTracks] = useState(emptyTrackFieldText);
+  const [combat, setCombat] = useState(emptyCombatFieldText);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -159,7 +175,18 @@ function CreateUniqueBotModalBody({
         setDescription(bot.descriptionOverride ?? "");
         setUsage(bot.usageOverride ?? "");
         setNotes(bot.notesOverride ?? "");
+        setActions(
+          bot.sourceType === "STANDALONE"
+            ? (bot.actionsOverride ?? [])
+            : (bot.actionsOverride ?? null)
+        );
+        setAdditionalActions(
+          bot.sourceType === "STANDALONE"
+            ? (bot.additionalActionsOverride ?? [])
+            : (bot.additionalActionsOverride ?? null)
+        );
         setTracks(trackFieldTextFromOverrides(bot));
+        setCombat(combatFieldTextFromOverrides(bot));
         if (bot.imageKeyOverride) {
           setImageKey(bot.imageKeyOverride);
         }
@@ -200,6 +227,11 @@ function CreateUniqueBotModalBody({
       heightMetresOverride: optionalNumber(heightMetres),
       weightOverride: optionalNumber(weight),
       ...trackOverridesFromFieldText(tracks),
+      ...combatOverridesFromFieldText(combat),
+      actionsOverride: isStandalone ? (actions ?? []) : actions,
+      additionalActionsOverride: isStandalone
+        ? (additionalActions ?? [])
+        : additionalActions,
     };
 
     if (isEdit && editUniqueBotId) {
@@ -289,6 +321,13 @@ function CreateUniqueBotModalBody({
             onChange={(value) => {
               setSourceType(value);
               setBotId("");
+              if (value === "STANDALONE") {
+                setActions((current) => current ?? []);
+                setAdditionalActions((current) => current ?? []);
+              } else {
+                setActions(null);
+                setAdditionalActions(null);
+              }
             }}
           />
         </div>
@@ -403,9 +442,44 @@ function CreateUniqueBotModalBody({
       />
       <p className="text-xs text-white/65">
         {isStandalone
-          ? "Blank bases use 0. Blank battery capacity uses 1."
-          : "Leave a track blank to keep the template value."}
+          ? "Blank bases use 0. Blank battery capacity uses 1. Blank attacks and defences use 1. Blank Reactions use 2."
+          : "Leave a value blank to keep the template value."}
       </p>
+      {isStandalone ? (
+        <>
+          <BotActionListEditor
+            idPrefix="unique-bot-actions"
+            title="Bot actions"
+            value={actions ?? []}
+            disabled={busy}
+            onChange={setActions}
+          />
+          <BotActionListEditor
+            idPrefix="unique-bot-additional-actions"
+            title="Bot additional actions"
+            value={additionalActions ?? []}
+            disabled={busy}
+            onChange={setAdditionalActions}
+          />
+        </>
+      ) : (
+        <>
+          <BotActionOverrideEditor
+            idPrefix="unique-bot-actions"
+            title="bot actions"
+            value={actions}
+            disabled={busy}
+            onChange={setActions}
+          />
+          <BotActionOverrideEditor
+            idPrefix="unique-bot-additional-actions"
+            title="bot additional actions"
+            value={additionalActions}
+            disabled={busy}
+            onChange={setAdditionalActions}
+          />
+        </>
+      )}
       <DarkBotTrackFields
         idPrefix="unique-bot"
         values={tracks}
@@ -414,6 +488,16 @@ function CreateUniqueBotModalBody({
         labelFor={(label) => (isStandalone ? label : `${label} override`)}
         onChange={(key, value) =>
           setTracks((current) => ({ ...current, [key]: value }))
+        }
+      />
+      <DarkBotCombatFields
+        idPrefix="unique-bot"
+        values={combat}
+        disabled={busy}
+        required={false}
+        labelFor={(label) => (isStandalone ? label : `${label} override`)}
+        onChange={(key, value) =>
+          setCombat((current) => ({ ...current, [key]: value }))
         }
       />
       <div>

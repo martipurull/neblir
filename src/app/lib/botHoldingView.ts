@@ -1,44 +1,55 @@
+import { presentBotActionRolls, readBotActionList } from "@/app/lib/botActions";
 import { BOT_DAMAGE_PROFILE } from "@/app/lib/botDamageProfile";
 import { botEffectiveMaxCarry, botSpeedFromLoad } from "@/app/lib/botCarry";
+import {
+  readBotCombatStats,
+  reactionsRemainingForCap,
+  type BotCombatStats,
+} from "@/app/lib/botCombat";
 import {
   presentBotTracks,
   type BotHoldingTrackState,
   type BotTrackStats,
 } from "@/app/lib/botTracks";
+import type { BotAction } from "@/app/lib/types/botAction";
 import type {
   BotHolding,
   BotPlacementSummary,
+  BotPlacedItem,
   OfficialBot,
 } from "@/app/lib/types/bot";
 
 /** Template fields a holding displays. Official bots also carry an access type. */
-export type BotTemplateView = BotTrackStats & {
-  id: string;
-  name: string;
-  imageKey?: string | null;
-  description?: string | null;
-  confCost?: number | null;
-  usage?: string | null;
-  notes?: string | null;
-  maxHp: number;
-  accessType?: OfficialBot["accessType"] | null;
-  /** Unset means cargo is not capped. */
-  maxCargoWeightKg?: number | null;
-  /** Unset means installed hardware is not capped. */
-  maxInstalledItems?: number | null;
-  /** Movement speed in metres, before carry load. */
-  speed?: number | null;
-  /** Base max carry weight in kilograms. */
-  maxCarryWeight?: number | null;
-  /** Descriptive height in metres. */
-  heightMetres?: number | null;
-  /** Descriptive weight in kilograms. Does not encumber the holding character. */
-  weight?: number | null;
-  /** Unique bot's game. Absent on Official and Custom templates. */
-  gameId?: string | null;
-  /** User who minted a Unique bot. */
-  ownerUserId?: string | null;
-};
+export type BotTemplateView = BotTrackStats &
+  BotCombatStats & {
+    id: string;
+    name: string;
+    imageKey?: string | null;
+    description?: string | null;
+    confCost?: number | null;
+    usage?: string | null;
+    notes?: string | null;
+    maxHp: number;
+    accessType?: OfficialBot["accessType"] | null;
+    /** Unset means cargo is not capped. */
+    maxCargoWeightKg?: number | null;
+    /** Unset means installed hardware is not capped. */
+    maxInstalledItems?: number | null;
+    /** Movement speed in metres, before carry load. */
+    speed?: number | null;
+    /** Base max carry weight in kilograms. */
+    maxCarryWeight?: number | null;
+    /** Descriptive height in metres. */
+    heightMetres?: number | null;
+    /** Descriptive weight in kilograms. Does not encumber the holding character. */
+    weight?: number | null;
+    /** Unique bot's game. Absent on Official and Custom templates. */
+    gameId?: string | null;
+    /** User who minted a Unique bot. */
+    ownerUserId?: string | null;
+    actions?: unknown;
+    additionalActions?: unknown;
+  };
 
 export const BOT_HP_OUT_OF_RANGE_MESSAGE =
   "Current HP must stay from 0 through the effective max.";
@@ -56,6 +67,7 @@ export type BotHoldingRow = {
   currentHp: number;
   maxHpBonus: number;
   notes: string | null;
+  reactionsRemaining?: number;
 } & Partial<BotHoldingTrackState>;
 
 export type BotHoldingSource = "OFFICIAL" | "CUSTOM" | "UNIQUE";
@@ -140,6 +152,14 @@ export function presentBotHolding(
 ): BotHolding {
   const effectiveMaxHp =
     bot == null ? null : effectiveBotMaxHp(bot.maxHp, row.maxHpBonus);
+  const combat = readBotCombatStats(bot);
+  const tracks = presentBotTracks(bot, row, row.currentHp);
+  const placementViews = presentPlacementActions(
+    placements,
+    tracks.attributes,
+    tracks.mayRoll,
+    tracks.rollBlockedReason
+  );
   return {
     id: row.id,
     characterId: row.characterId,
@@ -153,13 +173,62 @@ export function presentBotHolding(
     maxHpBonus: row.maxHpBonus,
     effectiveMaxHp,
     notes: row.notes,
-    ...presentBotTracks(bot, row, row.currentHp),
+    ...tracks,
+    actions: presentBotActionRolls(
+      readBotActionList(bot?.actions),
+      tracks.attributes,
+      tracks.mayRoll,
+      tracks.rollBlockedReason
+    ),
+    additionalActions: presentBotActionRolls(
+      readBotActionList(bot?.additionalActions),
+      tracks.attributes,
+      tracks.mayRoll,
+      tracks.rollBlockedReason
+    ),
+    combat,
+    reactionsRemaining: reactionsRemainingForCap(
+      row.reactionsRemaining,
+      combat.numberOfReactions
+    ),
     damageProfile: [...BOT_DAMAGE_PROFILE],
     bot: projectHoldingBot(bot),
     maxCargoWeightKg: bot?.maxCargoWeightKg ?? null,
     maxInstalledItems: bot?.maxInstalledItems ?? null,
+    ...placementViews,
+    ...botLoadFacts(bot, placementViews),
+  };
+}
+
+function presentPlacementActions(
+  placements: BotPlacementSummary,
+  attributes: BotHolding["attributes"],
+  mayRoll: boolean,
+  rollBlockedReason: BotHolding["rollBlockedReason"]
+): BotPlacementSummary {
+  const mapList = (
+    items: Array<BotPlacedItem & { storedBotActions?: BotAction[] }>,
+    include: boolean
+  ): BotPlacedItem[] =>
+    items.map((item) => {
+      const { storedBotActions, ...rest } = item;
+      return {
+        ...rest,
+        botActions: include
+          ? presentBotActionRolls(
+              storedBotActions ?? [],
+              attributes,
+              mayRoll,
+              rollBlockedReason
+            )
+          : [],
+      };
+    });
+  return {
     ...placements,
-    ...botLoadFacts(bot, placements),
+    installedItems: mapList(placements.installedItems, true),
+    cargoItems: mapList(placements.cargoItems, false),
+    carriedItems: mapList(placements.carriedItems, false),
   };
 }
 

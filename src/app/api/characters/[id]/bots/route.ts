@@ -1,3 +1,4 @@
+import { DEFAULT_BOT_REACTION_CAP } from "@/app/lib/botCombat";
 import { presentBotHolding } from "@/app/lib/botHoldingView";
 import {
   characterIsInGame,
@@ -114,6 +115,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         sourceType: "UNIQUE",
         currentHp: template.maxHp,
         maxHpBonus: 0,
+        reactionsRemaining:
+          template.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
       });
       return NextResponse.json(
         presentBotHolding({ ...created, sourceType: "UNIQUE" }, template),
@@ -149,6 +152,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         sourceType: "CUSTOM",
         currentHp: customBot.maxHp,
         maxHpBonus: 0,
+        reactionsRemaining:
+          customBot.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
       });
       return NextResponse.json(presentBotHolding(created, customBot), {
         status: 201,
@@ -165,6 +170,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       botId: bot.id,
       currentHp: bot.maxHp,
       maxHpBonus: 0,
+      reactionsRemaining: bot.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
     });
 
     return NextResponse.json(presentBotHolding(created, bot), { status: 201 });

@@ -1,4 +1,10 @@
 import {
+  pickDefinedCombatStats,
+  readBotCombatStats,
+  type BotCombatStats,
+} from "@/app/lib/botCombat";
+import { readBotActionList } from "@/app/lib/botActions";
+import {
   pickDefinedTrackStats,
   readBotTrackStats,
   type BotTrackStats,
@@ -26,7 +32,10 @@ type CustomBotRow = {
   maxCarryWeight?: number | null;
   heightMetres?: number | null;
   weight?: number | null;
-} & Partial<BotTrackStats>;
+  actions?: unknown;
+  additionalActions?: unknown;
+} & Partial<BotTrackStats> &
+  Partial<BotCombatStats>;
 
 type CustomBotWriteData = Omit<CustomBotRow, "id">;
 
@@ -54,6 +63,9 @@ function mapRow(row: CustomBotRow): CustomBotResponse {
     heightMetres: row.heightMetres ?? null,
     weight: row.weight ?? null,
     ...readBotTrackStats(row),
+    ...readBotCombatStats(row),
+    actions: readBotActionList(row.actions),
+    additionalActions: readBotActionList(row.additionalActions),
   };
 }
 
@@ -74,6 +86,9 @@ function writeData(data: CustomBotCreate): CustomBotWriteData {
     heightMetres: data.heightMetres ?? null,
     weight: data.weight ?? null,
     ...readBotTrackStats(data),
+    ...readBotCombatStats(data),
+    actions: data.actions ?? [],
+    additionalActions: data.additionalActions ?? [],
   };
 }
 
@@ -157,6 +172,11 @@ export async function updateCustomBot(
         : {}),
       ...(data.weight !== undefined ? { weight: data.weight ?? null } : {}),
       ...pickDefinedTrackStats(data),
+      ...pickDefinedCombatStats(data),
+      ...(data.actions !== undefined ? { actions: data.actions } : {}),
+      ...(data.additionalActions !== undefined
+        ? { additionalActions: data.additionalActions }
+        : {}),
     },
   });
   return mapRow(row);

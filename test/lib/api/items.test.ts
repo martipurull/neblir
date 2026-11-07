@@ -20,6 +20,7 @@ const siikeGun = {
   description: "A compact sidearm.",
   confCost: 120,
   weight: 1,
+  botActions: [],
 };
 
 describe("getItem", () => {

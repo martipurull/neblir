@@ -382,6 +382,84 @@ describe("/api/bots/[id] route handlers", () => {
     expect(listBotCharacterRowsByBotMock).not.toHaveBeenCalledWith("ub-own");
   });
 
+  it("PATCH drops Reactions remaining when the cap shrinks, including a holding that has not stored it", async () => {
+    listBotCharacterRowsByBotMock.mockImplementation(async (botId: string) => {
+      if (botId === "ub-inherit") {
+        return [
+          {
+            id: "hold-inherit",
+            sourceType: "UNIQUE",
+            reactionsRemaining: 2,
+          },
+        ];
+      }
+      return [
+        {
+          id: "hold-stored",
+          sourceType: "OFFICIAL",
+          reactionsRemaining: 2,
+        },
+        {
+          id: "hold-missing",
+          sourceType: "OFFICIAL",
+        },
+        {
+          id: "hold-low",
+          sourceType: "OFFICIAL",
+          reactionsRemaining: 0,
+        },
+      ];
+    });
+    listUniqueBotsForTemplateMock.mockResolvedValue([
+      { id: "ub-inherit", numberOfReactionsOverride: null },
+      { id: "ub-own", numberOfReactionsOverride: 4 },
+    ]);
+    updateBotMock.mockResolvedValue({ id: "bot-1", name: "Loader" });
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+
+    const shrink = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ numberOfReactions: 0 }),
+      makeParams({ id: "bot-1" })
+    );
+    expect(shrink.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-stored", {
+      reactionsRemaining: 0,
+    });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-missing", {
+      reactionsRemaining: 0,
+    });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-inherit", {
+      reactionsRemaining: 0,
+    });
+    expect(updateBotCharacterMock).not.toHaveBeenCalledWith(
+      "hold-low",
+      expect.anything()
+    );
+    expect(listBotCharacterRowsByBotMock).not.toHaveBeenCalledWith("ub-own");
+
+    updateBotCharacterMock.mockClear();
+    const rise = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ numberOfReactions: 5 }),
+      makeParams({ id: "bot-1" })
+    );
+    expect(rise.status).toBe(200);
+    expect(updateBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH rejects a Reaction cap below 0", async () => {
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ numberOfReactions: -1 }),
+      makeParams({ id: "bot-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(updateBotMock).not.toHaveBeenCalled();
+    expect(updateBotCharacterMock).not.toHaveBeenCalled();
+  });
+
   it("PATCH drops an Upgrade when a lower max potential leaves it above the ceiling", async () => {
     listUniqueBotsForTemplateMock.mockResolvedValue([
       { id: "ub-1", processingPowerMaxPotentialOverride: null },

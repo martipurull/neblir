@@ -1,5 +1,7 @@
 "use client";
 
+import { BotActionListEditor } from "@/app/components/character/BotActionListEditor";
+import { DarkBotCombatFields } from "@/app/components/games/DarkBotCombatFields";
 import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
@@ -7,6 +9,11 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import {
+  combatFieldTextFromStats,
+  combatStatsFromFieldText,
+  defaultCombatFieldText,
+} from "@/app/lib/botCombat";
 import {
   defaultTrackFieldText,
   trackFieldTextFromStats,
@@ -17,6 +24,7 @@ import {
   customBotUpdateSchema,
   type CustomBotResponse,
 } from "@/app/lib/types/bot";
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   createGameCustomBot,
   getGameCustomBot,
@@ -59,6 +67,8 @@ function formFromBot(bot: CustomBotResponse) {
     usage: bot.usage ?? "",
     notes: bot.notes ?? "",
     membersCanModify: bot.membersCanModify,
+    actions: bot.actions,
+    additionalActions: bot.additionalActions,
   };
 }
 
@@ -93,7 +103,10 @@ function CreateCustomBotModalBody({
   const [description, setDescription] = useState("");
   const [usage, setUsage] = useState("");
   const [notes, setNotes] = useState("");
+  const [actions, setActions] = useState<BotAction[]>([]);
+  const [additionalActions, setAdditionalActions] = useState<BotAction[]>([]);
   const [tracks, setTracks] = useState(defaultTrackFieldText);
+  const [combat, setCombat] = useState(defaultCombatFieldText);
   const [membersCanModify, setMembersCanModify] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
@@ -119,8 +132,11 @@ function CreateCustomBotModalBody({
         setDescription(next.description);
         setUsage(next.usage);
         setNotes(next.notes);
+        setActions(next.actions);
+        setAdditionalActions(next.additionalActions);
         setMembersCanModify(next.membersCanModify);
         setTracks(trackFieldTextFromStats(bot));
+        setCombat(combatFieldTextFromStats(bot));
       } catch (loadError) {
         if (!cancelled) {
           setError(
@@ -153,7 +169,10 @@ function CreateCustomBotModalBody({
       usage,
       notes,
       membersCanModify,
+      actions,
+      additionalActions,
       ...trackStatsFromFieldText(tracks),
+      ...combatStatsFromFieldText(combat),
     };
     if (isEdit && editCustomBotId) {
       const update = customBotUpdateSchema.safeParse(payload);
@@ -343,6 +362,20 @@ function CreateCustomBotModalBody({
           disabled={busy}
         />
       </div>
+      <BotActionListEditor
+        idPrefix="custom-bot-actions"
+        title="Bot actions"
+        value={actions}
+        disabled={busy}
+        onChange={setActions}
+      />
+      <BotActionListEditor
+        idPrefix="custom-bot-additional-actions"
+        title="Bot additional actions"
+        value={additionalActions}
+        disabled={busy}
+        onChange={setAdditionalActions}
+      />
       <DarkBotTrackFields
         idPrefix="custom-bot"
         values={tracks}
@@ -351,6 +384,16 @@ function CreateCustomBotModalBody({
         labelFor={(label) => label}
         onChange={(key, value) =>
           setTracks((current) => ({ ...current, [key]: value }))
+        }
+      />
+      <DarkBotCombatFields
+        idPrefix="custom-bot"
+        values={combat}
+        disabled={busy}
+        required
+        labelFor={(label) => label}
+        onChange={(key, value) =>
+          setCombat((current) => ({ ...current, [key]: value }))
         }
       />
       <Checkbox

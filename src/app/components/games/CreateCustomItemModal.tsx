@@ -8,6 +8,7 @@ import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
+import { BotActionListEditor } from "@/app/components/character/BotActionListEditor";
 import { ItemModalEquippableFields } from "@/app/components/games/shared/ItemModalEquippableFields";
 import { ItemModalStatModifierFields } from "@/app/components/games/shared/ItemModalStatModifierFields";
 import { ItemModalWeaponFields } from "@/app/components/games/shared/ItemModalWeaponFields";
@@ -240,6 +241,18 @@ export function CreateCustomItemModal({
               equipSlotCost={f.equipSlotCost}
               onEquipSlotCostChange={f.setEquipSlotCost}
             />
+            {f.botInstallable ? (
+              <div className="mt-4">
+                <BotActionListEditor
+                  idPrefix="custom-item-bot-actions"
+                  title="Item bot actions"
+                  hint="These actions show on a bot only while this item is installed."
+                  value={f.botActions}
+                  disabled={f.submitting}
+                  onChange={f.setBotActions}
+                />
+              </div>
+            ) : null}
           </section>
 
           <section>

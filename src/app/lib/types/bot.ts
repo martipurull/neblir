@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { BOT_DAMAGE_MARKS } from "@/app/lib/botDamageProfile";
 import {
+  BOT_COMBAT_VALUE_MAX,
+  BOT_COMBAT_VALUE_MIN,
+} from "@/app/lib/botCombat";
+import {
   BOT_ATTRIBUTE_MAX,
   BOT_ATTRIBUTE_MIN,
   BOT_BATTERY_CAPACITY_MAX,
@@ -9,7 +13,11 @@ import {
   BOT_MAX_POTENTIAL_MIN,
   BOT_UPGRADE_TRACKS,
 } from "@/app/lib/botTracks";
-import { weaponDamageTypeSchema } from "@/app/lib/types/item";
+import {
+  botActionRollSchema,
+  botActionSchema,
+} from "@/app/lib/types/botAction";
+import { weaponDamageTypeSchema } from "@/app/lib/types/weaponDamage";
 
 const attributeBaseSchema = (label: string) =>
   z
@@ -40,6 +48,60 @@ const batteryCapacitySchema = z
     "Battery capacity must stay from 1 through 10"
   );
 
+const combatValueSchema = (label: string) =>
+  z
+    .number()
+    .int()
+    .min(BOT_COMBAT_VALUE_MIN, `${label} must stay from 1 through 5`)
+    .max(BOT_COMBAT_VALUE_MAX, `${label} must stay from 1 through 5`);
+
+const reactionCapSchema = z
+  .number()
+  .int()
+  .min(0, "Reactions must be at least 0");
+
+const botCombatInputShape = {
+  attackMelee: combatValueSchema("Attack Melee").optional(),
+  attackRange: combatValueSchema("Attack Range").optional(),
+  defenceMelee: combatValueSchema("Defence Melee").optional(),
+  defenceRange: combatValueSchema("Defence Range").optional(),
+  defenceGrid: combatValueSchema("Defence GRID").optional(),
+  numberOfReactions: reactionCapSchema.optional(),
+};
+
+const botCombatOverrideShape = {
+  attackMeleeOverride: combatValueSchema("Attack Melee").nullish(),
+  attackRangeOverride: combatValueSchema("Attack Range").nullish(),
+  defenceMeleeOverride: combatValueSchema("Defence Melee").nullish(),
+  defenceRangeOverride: combatValueSchema("Defence Range").nullish(),
+  defenceGridOverride: combatValueSchema("Defence GRID").nullish(),
+  numberOfReactionsOverride: reactionCapSchema.nullish(),
+};
+
+const botActionListShape = {
+  actions: z.array(botActionSchema).optional(),
+  additionalActions: z.array(botActionSchema).optional(),
+};
+
+const botActionOverrideShape = {
+  actionsOverride: z.array(botActionSchema).nullish(),
+  additionalActionsOverride: z.array(botActionSchema).nullish(),
+};
+
+const botActionListResponseShape = {
+  actions: z.array(botActionSchema).default([]),
+  additionalActions: z.array(botActionSchema).default([]),
+};
+
+const botCombatResponseShape = {
+  attackMelee: z.number().int().default(1),
+  attackRange: z.number().int().default(1),
+  defenceMelee: z.number().int().default(1),
+  defenceRange: z.number().int().default(1),
+  defenceGrid: z.number().int().default(1),
+  numberOfReactions: z.number().int().default(2),
+};
+
 const botTrackInputShape = {
   processingPower: attributeBaseSchema("Processing Power").optional(),
   processingPowerMaxPotential:
@@ -53,6 +115,8 @@ const botTrackInputShape = {
   gridProtectionMaxPotential: maxPotentialSchema("Grid Protection").optional(),
   batteryCapacity: batteryCapacitySchema.optional(),
   batteryMaxPotential: maxPotentialSchema("Battery").optional(),
+  ...botCombatInputShape,
+  ...botActionListShape,
 };
 
 const botTrackOverrideShape = {
@@ -70,6 +134,8 @@ const botTrackOverrideShape = {
     maxPotentialSchema("Grid Protection").nullish(),
   batteryCapacityOverride: batteryCapacitySchema.nullish(),
   batteryMaxPotentialOverride: maxPotentialSchema("Battery").nullish(),
+  ...botCombatOverrideShape,
+  ...botActionOverrideShape,
 };
 
 const botTrackResponseShape = {
@@ -83,6 +149,8 @@ const botTrackResponseShape = {
   gridProtectionMaxPotential: z.number().int().default(0),
   batteryCapacity: z.number().int().default(1),
   batteryMaxPotential: z.number().int().default(0),
+  ...botCombatResponseShape,
+  ...botActionListResponseShape,
 };
 
 const botAccessTypeSchema = z.enum(["PLAYER", "GAME_MASTER"]);
@@ -259,6 +327,8 @@ const botPlacedItemSchema = z.object({
     })
     .nullable(),
   botEquipSlots: z.array(z.string()).default([]),
+  /** Bot actions on this row. Empty unless the row is installed. */
+  botActions: z.array(botActionRollSchema).default([]),
 });
 export type BotPlacedItem = z.infer<typeof botPlacedItemSchema>;
 
@@ -333,9 +403,20 @@ export const botHoldingSchema = z.object({
     gridProtection: botAttributeFigureSchema,
   }),
   battery: botBatteryFigureSchema,
+  combat: z.object(botCombatResponseShape).default({
+    attackMelee: 1,
+    attackRange: 1,
+    defenceMelee: 1,
+    defenceRange: 1,
+    defenceGrid: 1,
+    numberOfReactions: 2,
+  }),
+  reactionsRemaining: z.number().int().default(2),
   isBeyondRepair: z.boolean(),
   mayRoll: z.boolean(),
   rollBlockedReason: botRollBlockReasonSchema.nullable(),
+  actions: z.array(botActionRollSchema).default([]),
+  additionalActions: z.array(botActionRollSchema).default([]),
   sourceType: z
     .enum(["OFFICIAL", "CUSTOM", "UNIQUE"])
     .optional()

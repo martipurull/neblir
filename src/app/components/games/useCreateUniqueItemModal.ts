@@ -9,6 +9,7 @@ import {
   type UniqueItemCreate,
   type ItemDamage,
 } from "@/app/lib/types/item";
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   itemWithIdToBrowseDetail,
   type ItemBrowseDetailFields,
@@ -64,6 +65,7 @@ function applyUniqueItemDraft(
     setEquippableOverride: (v: boolean | "") => void;
     setVehicleMountableOverride: (v: boolean | "") => void;
     setBotInstallableOverride: (v: boolean | "") => void;
+    setBotActionsOverride: (v: BotAction[] | null) => void;
     setEquipSlotTypesOverride: (v: string[]) => void;
     setEquipSlotCostOverride: (v: string) => void;
     setMaxUsesOverride: (v: string) => void;
@@ -103,6 +105,7 @@ function applyUniqueItemDraft(
   apply.setEquippableOverride(draft.equippableOverride);
   apply.setVehicleMountableOverride(draft.vehicleMountableOverride);
   apply.setBotInstallableOverride(draft.botInstallableOverride);
+  apply.setBotActionsOverride(draft.botActionsOverride);
   apply.setEquipSlotTypesOverride(draft.equipSlotTypesOverride);
   apply.setEquipSlotCostOverride(draft.equipSlotCostOverride);
   apply.setMaxUsesOverride(draft.maxUsesOverride);
@@ -170,6 +173,9 @@ export function useCreateUniqueItemModal({
   const [botInstallableOverride, setBotInstallableOverride] = useState<
     boolean | ""
   >("");
+  const [botActionsOverride, setBotActionsOverride] = useState<
+    BotAction[] | null
+  >(null);
   const [equipSlotTypesOverride, setEquipSlotTypesOverride] = useState<
     string[]
   >([]);
@@ -316,6 +322,7 @@ export function useCreateUniqueItemModal({
     setEquippableOverride("");
     setVehicleMountableOverride("");
     setBotInstallableOverride("");
+    setBotActionsOverride(null);
     setEquipSlotTypesOverride([]);
     setEquipSlotCostOverride("");
     setMaxUsesOverride("");
@@ -364,6 +371,7 @@ export function useCreateUniqueItemModal({
         setEquippableOverride,
         setVehicleMountableOverride,
         setBotInstallableOverride,
+        setBotActionsOverride,
         setEquipSlotTypesOverride,
         setEquipSlotCostOverride,
         setMaxUsesOverride,
@@ -410,6 +418,7 @@ export function useCreateUniqueItemModal({
       equippableOverride,
       vehicleMountableOverride,
       botInstallableOverride,
+      botActionsOverride,
       equipSlotTypesOverride,
       equipSlotCostOverride,
       maxUsesOverride,
@@ -450,6 +459,7 @@ export function useCreateUniqueItemModal({
     equippableOverride,
     vehicleMountableOverride,
     botInstallableOverride,
+    botActionsOverride,
     equipSlotTypesOverride,
     equipSlotCostOverride,
     maxUsesOverride,
@@ -565,6 +575,11 @@ export function useCreateUniqueItemModal({
         setEquippableOverride(data.equippableOverride ?? "");
         setVehicleMountableOverride(data.vehicleMountableOverride ?? "");
         setBotInstallableOverride(data.botInstallableOverride ?? "");
+        setBotActionsOverride(
+          loadedSourceType === "STANDALONE"
+            ? (data.botActionsOverride ?? [])
+            : (data.botActionsOverride ?? null)
+        );
         setEquipSlotTypesOverride(data.equipSlotTypesOverride ?? []);
         setEquipSlotCostOverride(optionalNumStr(data.equipSlotCostOverride));
         setMaxUsesOverride(optionalNumStr(data.maxUsesOverride));
@@ -783,6 +798,10 @@ export function useCreateUniqueItemModal({
         (body as Record<string, boolean>).botInstallableOverride =
           botInstallableOverride as boolean;
       }
+      (body as Record<string, unknown>).botActionsOverride =
+        sourceType === "STANDALONE"
+          ? (botActionsOverride ?? [])
+          : botActionsOverride;
       if (equipSlotTypesOverride.length > 0) {
         (body as Record<string, string[]>).equipSlotTypesOverride =
           equipSlotTypesOverride;
@@ -924,6 +943,8 @@ export function useCreateUniqueItemModal({
     setVehicleMountableOverride,
     botInstallableOverride,
     setBotInstallableOverride,
+    botActionsOverride,
+    setBotActionsOverride,
     equipSlotTypesOverride,
     equipSlotCostOverride,
     setEquipSlotCostOverride,

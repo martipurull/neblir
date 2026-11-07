@@ -24,10 +24,12 @@ import {
   botHandsUsed,
   itemFitsBotSlot,
 } from "@/app/lib/botCarry";
+import { readBotActionList } from "@/app/lib/botActions";
 import { getItemCost } from "@/app/lib/equipUtils";
+import type { BotAction } from "@/app/lib/types/botAction";
 import type { BotPlacedItem, BotPlacementSummary } from "@/app/lib/types/bot";
 import { prisma } from "./client";
-import { hydrateItemCharacters } from "./itemCharacter";
+import { hydrateItemCharacters, resolvedItemBotActions } from "./itemCharacter";
 
 export class BotPlacementConflictError extends Error {
   readonly status: 404 | 409;
@@ -70,6 +72,7 @@ type HydratedRow = InventoryRow & {
     botInstallable?: boolean | null;
     equipSlotCost?: number | null;
     equipSlotTypes?: string[] | null;
+    botActions?: unknown;
   } | null;
 };
 
@@ -88,7 +91,10 @@ function stackWeightKg(quantity: number, unitWeight: number): number {
   return quantity * unitWeight;
 }
 
-function toPlacedItem(entry: HydratedRow): BotPlacedItem {
+function toPlacedItem(
+  entry: HydratedRow,
+  includeBotActions: boolean
+): BotPlacedItem & { storedBotActions: BotAction[] } {
   const quantity = entry.quantity ?? 1;
   const unitWeight = entry.item?.weight ?? 0;
   return {
@@ -107,6 +113,10 @@ function toPlacedItem(entry: HydratedRow): BotPlacedItem {
         }
       : null,
     botEquipSlots: entry.botEquipSlots ?? [],
+    botActions: [],
+    storedBotActions: includeBotActions
+      ? readBotActionList(entry.item?.botActions)
+      : [],
   };
 }
 
@@ -120,7 +130,7 @@ function summaryFromRows(
   for (const row of rows) {
     const place = parseBotItemLocation(row.itemLocation);
     if (place?.botCharacterId !== holdingId) continue;
-    const placed = toPlacedItem(row);
+    const placed = toPlacedItem(row, place.place === "installed");
     if (place.place === "installed") installedItems.push(placed);
     else if (place.place === "cargo") cargoItems.push(placed);
     else carriedItems.push(placed);
@@ -464,4 +474,32 @@ export async function setBotEquip(args: {
       equipSlots: [],
     },
   });
+}
+
+export const ITEM_NOT_INSTALLED_MESSAGE =
+  "That item is not installed on this bot.";
+
+export async function installedItemBotActions(
+  characterId: string,
+  botCharacterId: string,
+  itemCharacterId: string
+): Promise<
+  | { ok: true; actions: BotAction[]; itemName: string }
+  | { ok: false; status: 400 | 404; message: string }
+> {
+  const row = await prisma.itemCharacter.findUnique({
+    where: { id: itemCharacterId },
+  });
+  if (row?.characterId !== characterId) {
+    return { ok: false, status: 404, message: "Item not found" };
+  }
+  const place = parseBotItemLocation(row.itemLocation);
+  if (place?.place !== "installed" || place.botCharacterId !== botCharacterId) {
+    return { ok: false, status: 400, message: ITEM_NOT_INSTALLED_MESSAGE };
+  }
+  const resolved = await resolvedItemBotActions(row.sourceType, row.itemId);
+  if (!resolved) {
+    return { ok: false, status: 404, message: "Item not found" };
+  }
+  return { ok: true, actions: resolved.botActions, itemName: resolved.name };
 }

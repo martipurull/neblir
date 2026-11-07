@@ -16,10 +16,14 @@ import { NumberField } from "@/app/components/shared/NumberField";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import { BotActionsSection } from "@/app/components/character/BotActionsSection";
 import { BotAttributeRollModal } from "@/app/components/character/BotAttributeRollModal";
+import { BotCombatRollModal } from "@/app/components/character/BotCombatRollModal";
+import { BotCombatSection } from "@/app/components/character/BotCombatSection";
 import { BotInitiativeRollModal } from "@/app/components/character/BotInitiativeRollModal";
 import { BotHoldingTracksSection } from "@/app/components/character/BotHoldingTracksSection";
 import type { BotAttributeRoll } from "@/app/lib/botAttributeRoll";
+import type { BotCombatValue } from "@/app/lib/botCombat";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import { BotPlacementSection } from "@/app/components/character/BotPlacementSection";
 import { BotSpeedReadout } from "@/app/components/character/BotSpeedReadout";
@@ -82,6 +86,9 @@ function BotDetailModalBody({
   const [removeOpen, setRemoveOpen] = useState(false);
   const [rollingAttribute, setRollingAttribute] =
     useState<BotAttributeRoll | null>(null);
+  const [rollingCombat, setRollingCombat] = useState<BotCombatValue | null>(
+    null
+  );
   const [initiativeOpen, setInitiativeOpen] = useState(false);
   const [recipientId, setRecipientId] = useState("");
   const [recipients, setRecipients] = useState<SelectDropdownOption[]>([]);
@@ -304,6 +311,21 @@ function BotDetailModalBody({
             onSave={save}
           />
 
+          <BotCombatSection
+            holding={holding}
+            inventory={inventory}
+            canRoll={canRoll}
+            onRoll={setRollingCombat}
+          />
+
+          <BotActionsSection
+            holding={holding}
+            canRoll={canRoll}
+            characterId={characterId}
+            gameId={gameId}
+            rollPrivacy={rollPrivacy}
+          />
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <FieldLabel id={`bot-nickname-${holding.id}`} label="Nickname" />
@@ -486,6 +508,21 @@ function BotDetailModalBody({
           gameId={gameId}
           rollPrivacy={rollPrivacy}
           onClose={() => setRollingAttribute(null)}
+        />
+      ) : null}
+      {rollingCombat != null && gameId != null && gameId.length > 0 ? (
+        <BotCombatRollModal
+          key={`${holding.id}-${rollingCombat}`}
+          holding={holding}
+          combat={rollingCombat}
+          inventory={inventory}
+          characterId={characterId}
+          gameId={gameId}
+          rollPrivacy={rollPrivacy}
+          onClose={() => setRollingCombat(null)}
+          onRolled={() => {
+            void mutateAction();
+          }}
         />
       ) : null}
     </>

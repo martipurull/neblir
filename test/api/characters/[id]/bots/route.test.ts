@@ -176,6 +176,7 @@ describe("/api/characters/[id]/bots handlers", () => {
       botId: "bot-1",
       currentHp: 12,
       maxHpBonus: 0,
+      reactionsRemaining: 2,
     });
     const body = await response.json();
     expect(body).toMatchObject({
@@ -401,6 +402,7 @@ describe("/api/characters/[id]/bots handlers", () => {
       sourceType: "CUSTOM",
       currentHp: 9,
       maxHpBonus: 0,
+      reactionsRemaining: 2,
     });
     const body = await response.json();
     expect(body).toMatchObject({
@@ -543,6 +545,7 @@ describe("/api/characters/[id]/bots handlers", () => {
       sourceType: "UNIQUE",
       currentHp: 8,
       maxHpBonus: 0,
+      reactionsRemaining: 2,
     });
     const body = await response.json();
     expect(body.displayName).toBe("Mule");
@@ -680,6 +683,54 @@ describe("/api/characters/[id]/bots handlers", () => {
         effectiveMaxHp: 14,
       }),
     ]);
+  });
+
+  it("GET includes the to-hit pool for a bot action", async () => {
+    listBotCharacterRowsMock.mockResolvedValue([
+      {
+        id: "hold-1",
+        characterId: "char-1",
+        botId: "ub-1",
+        sourceType: "UNIQUE",
+        customName: "Mule",
+        currentHp: 8,
+        maxHpBonus: 0,
+        notes: null,
+        processingPowerUpgrade: 1,
+      },
+    ]);
+    getResolvedUniqueBotsByIdsMock.mockResolvedValue([
+      {
+        id: "ub-1",
+        name: "Loader",
+        maxHp: 10,
+        processingPower: 2,
+        actions: [
+          {
+            name: "Weld",
+            description: null,
+            notes: null,
+            numberOfDice: 0,
+            attribute: "processingPower",
+            damage: null,
+          },
+        ],
+      },
+    ]);
+    const { GET } = await import("@/app/api/characters/[id]/bots/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body[0].actions[0]).toMatchObject({
+      name: "Weld",
+      toHitPool: 3,
+      mayRoll: true,
+      rollBlockedReason: null,
+    });
   });
 
   it("GET returns 401 when unauthenticated", async () => {

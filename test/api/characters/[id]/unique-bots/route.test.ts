@@ -148,6 +148,7 @@ describe("POST /api/characters/[id]/unique-bots", () => {
         botId: "ub-1",
         sourceType: "UNIQUE",
         currentHp: 8,
+        reactionsRemaining: 2,
       })
     );
   });

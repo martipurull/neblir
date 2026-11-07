@@ -1,4 +1,5 @@
 import { clampHoldingsToTemplateCeilings } from "@/app/lib/botHoldingCeiling";
+import { clampTemplateReactionCap } from "@/app/lib/prisma/botReactionCap";
 import { readBotTrackStats, trackCeilingsChanged } from "@/app/lib/botTracks";
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
@@ -134,6 +135,14 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           await updateBotCharacter(row.id, { currentHp: max });
         })
       );
+    }
+
+    if (parsedBody.numberOfReactions !== undefined) {
+      await clampTemplateReactionCap({
+        templateId: id,
+        sourceType: "OFFICIAL",
+        nextCap: parsedBody.numberOfReactions,
+      });
     }
 
     if (trackCeilingsChanged(parsedBody)) {

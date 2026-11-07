@@ -1,4 +1,10 @@
 import {
+  pickDefinedCombatStats,
+  readBotCombatStats,
+  type BotCombatStats,
+} from "@/app/lib/botCombat";
+import { readBotActionList } from "@/app/lib/botActions";
+import {
   pickDefinedTrackStats,
   readBotTrackStats,
   type BotTrackStats,
@@ -27,7 +33,10 @@ type BotRow = {
   maxCarryWeight?: number | null;
   heightMetres?: number | null;
   weight?: number | null;
-} & Partial<BotTrackStats>;
+  actions?: unknown;
+  additionalActions?: unknown;
+} & Partial<BotTrackStats> &
+  Partial<BotCombatStats>;
 
 type BotCreateData = Omit<BotRow, "id"> & {
   protectedFromOfficialImport?: boolean;
@@ -69,6 +78,9 @@ function mapPrismaBotToApi(row: BotRow): OfficialBot {
     heightMetres: row.heightMetres ?? null,
     weight: row.weight ?? null,
     ...readBotTrackStats(row),
+    ...readBotCombatStats(row),
+    actions: readBotActionList(row.actions),
+    additionalActions: readBotActionList(row.additionalActions),
   };
 }
 
@@ -92,6 +104,9 @@ function botCreateDataFromParsed(
     heightMetres: data.heightMetres ?? null,
     weight: data.weight ?? null,
     ...readBotTrackStats(data),
+    ...readBotCombatStats(data),
+    actions: data.actions ?? [],
+    additionalActions: data.additionalActions ?? [],
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),
@@ -130,6 +145,11 @@ function botUpdateDataFromParsed(
       : {}),
     ...(data.weight !== undefined ? { weight: data.weight ?? null } : {}),
     ...pickDefinedTrackStats(data),
+    ...pickDefinedCombatStats(data),
+    ...(data.actions !== undefined ? { actions: data.actions } : {}),
+    ...(data.additionalActions !== undefined
+      ? { additionalActions: data.additionalActions }
+      : {}),
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),

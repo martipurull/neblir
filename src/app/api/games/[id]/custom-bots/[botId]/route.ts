@@ -1,4 +1,5 @@
 import { clampHoldingsToTemplateCeilings } from "@/app/lib/botHoldingCeiling";
+import { clampTemplateReactionCap } from "@/app/lib/prisma/botReactionCap";
 import { readBotTrackStats, trackCeilingsChanged } from "@/app/lib/botTracks";
 import { listBotCharacterRowsByBot } from "@/app/lib/prisma/botCharacter";
 import { getCustomBot, updateCustomBot } from "@/app/lib/prisma/customBot";
@@ -97,6 +98,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const updated = await updateCustomBot(botId, parsed.data);
+    if (parsed.data.numberOfReactions !== undefined) {
+      await clampTemplateReactionCap({
+        templateId: botId,
+        sourceType: "CUSTOM",
+        nextCap: parsed.data.numberOfReactions,
+      });
+    }
     if (trackCeilingsChanged(parsed.data)) {
       const stats = readBotTrackStats({ ...existing, ...parsed.data });
       await clampHoldingsToTemplateCeilings({

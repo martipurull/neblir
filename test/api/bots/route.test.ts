@@ -245,4 +245,52 @@ describe("/api/bots route handlers", () => {
     expect(response.status).toBe(400);
     expect(createBotMock).not.toHaveBeenCalled();
   });
+
+  it("POST stores a bot action list", async () => {
+    const actions = [
+      {
+        name: "Weld",
+        description: null,
+        notes: null,
+        numberOfDice: 0,
+        attribute: "processingPower",
+        damage: null,
+      },
+    ];
+    createBotMock.mockResolvedValue({ id: "bot-1", ...officialBot, actions });
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, actions })
+    );
+    expect(response.status).toBe(201);
+    expect(createBotMock).toHaveBeenCalledWith(
+      { ...officialBot, actions },
+      { officialCatalogueWrite: true }
+    );
+  });
+
+  it("POST rejects Grid Protection as a bot action attribute", async () => {
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({
+        ...officialBot,
+        actions: [
+          {
+            name: "Weld",
+            numberOfDice: 0,
+            attribute: "gridProtection",
+          },
+        ],
+      })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
 });

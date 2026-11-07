@@ -1,4 +1,5 @@
 import { persistHoldingTrackClamp } from "@/app/lib/botHoldingCeiling";
+import { clampUniqueReactionCap } from "@/app/lib/prisma/botReactionCap";
 import { effectiveBotMaxHp } from "@/app/lib/botHoldingView";
 import { trackCeilingOverridesChanged } from "@/app/lib/botTracks";
 import { getBot } from "@/app/lib/prisma/bot";
@@ -104,7 +105,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const statsChanged =
       parsed.data.maxHpOverride !== undefined ||
       trackCeilingOverridesChanged(parsed.data);
-    if (statsChanged) {
+    const reactionCapChanged =
+      parsed.data.numberOfReactionsOverride !== undefined;
+    if (statsChanged || reactionCapChanged) {
       const templateBot =
         updated.sourceType === "OFFICIAL" && updated.botId
           ? await getBot(updated.botId)
@@ -112,18 +115,23 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
             ? await getCustomBot(updated.botId)
             : null;
       const stats = resolveUniqueBotStats(updated, templateBot);
-      const rows = await listBotCharacterRowsByBot(id);
-      const holding = rows.find((row) => row.sourceType === "UNIQUE");
-      if (holding) {
-        const extra: { currentHp?: number } = {};
-        if (parsed.data.maxHpOverride !== undefined) {
-          const max = Math.max(
-            0,
-            effectiveBotMaxHp(stats.maxHp, holding.maxHpBonus)
-          );
-          if (holding.currentHp > max) extra.currentHp = max;
+      if (reactionCapChanged) {
+        await clampUniqueReactionCap(id, stats.numberOfReactions);
+      }
+      if (statsChanged) {
+        const rows = await listBotCharacterRowsByBot(id);
+        const holding = rows.find((row) => row.sourceType === "UNIQUE");
+        if (holding) {
+          const extra: { currentHp?: number } = {};
+          if (parsed.data.maxHpOverride !== undefined) {
+            const max = Math.max(
+              0,
+              effectiveBotMaxHp(stats.maxHp, holding.maxHpBonus)
+            );
+            if (holding.currentHp > max) extra.currentHp = max;
+          }
+          await persistHoldingTrackClamp(holding, stats, extra);
         }
-        await persistHoldingTrackClamp(holding, stats, extra);
       }
     }
     return NextResponse.json(updated);

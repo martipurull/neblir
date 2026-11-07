@@ -1,3 +1,4 @@
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   equipSlotTypeSchema,
   type EquipSlotType,
@@ -35,6 +36,7 @@ export type SuperAdminItemFormValues = {
   equippable: boolean;
   vehicleMountable: boolean;
   botInstallable: boolean;
+  botActions: BotAction[];
   equipSlotTypes: EquipSlotType[];
   equipSlotCost: string;
   maxUses?: number;
@@ -116,6 +118,7 @@ export function catalogueItemToFormValues(
     equippable: item.equippable ?? false,
     vehicleMountable: item.vehicleMountable ?? false,
     botInstallable: item.botInstallable ?? false,
+    botActions: item.botActions ?? [],
     equipSlotTypes: (item.equipSlotTypes ?? []).flatMap((slot) => {
       const parsed = equipSlotTypeSchema.safeParse(slot);
       return parsed.success ? [parsed.data] : [];

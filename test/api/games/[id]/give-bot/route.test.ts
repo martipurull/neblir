@@ -154,6 +154,7 @@ describe("POST /api/games/[id]/give-bot", () => {
         botId: "ub-1",
         sourceType: "UNIQUE",
         currentHp: 8,
+        reactionsRemaining: 2,
       })
     );
   });

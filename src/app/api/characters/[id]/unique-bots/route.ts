@@ -1,3 +1,4 @@
+import { DEFAULT_BOT_REACTION_CAP } from "@/app/lib/botCombat";
 import { presentBotHolding } from "@/app/lib/botHoldingView";
 import { getCharacter } from "@/app/lib/prisma/character";
 import { characterBelongsToUser } from "@/app/lib/prisma/characterUser";
@@ -127,6 +128,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       sourceType: "UNIQUE",
       currentHp,
       maxHpBonus: 0,
+      reactionsRemaining:
+        template.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
     });
 
     return NextResponse.json(

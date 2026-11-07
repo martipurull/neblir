@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/customItems";
 import { optionalStoredRichHtml } from "@/app/lib/tiptap/richText";
 import type { CustomItemResponse } from "@/app/lib/types/item";
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   clearGameCustomItemDraft,
   isMeaningfulGameCustomItemDraft,
@@ -46,6 +47,7 @@ function populateFormFromCustomItem(
     setEquippable: (v: boolean) => void;
     setVehicleMountable: (v: boolean) => void;
     setBotInstallable: (v: boolean) => void;
+    setBotActions: (v: BotAction[]) => void;
     setEquipSlotTypes: (v: string[]) => void;
     setEquipSlotCost: (v: string) => void;
     setMaxUses: (v: string) => void;
@@ -82,6 +84,7 @@ function populateFormFromCustomItem(
   setters.setEquippable(item.equippable ?? false);
   setters.setVehicleMountable(item.vehicleMountable ?? false);
   setters.setBotInstallable(item.botInstallable ?? false);
+  setters.setBotActions(item.botActions ?? []);
   setters.setEquipSlotTypes(item.equipSlotTypes ?? []);
   setters.setEquipSlotCost(optionalNumStr(item.equipSlotCost));
   setters.setMaxUses(optionalNumStr(item.maxUses));
@@ -139,6 +142,7 @@ export function useCreateCustomItemModal({
   const [equippable, setEquippable] = useState(false);
   const [vehicleMountable, setVehicleMountable] = useState(false);
   const [botInstallable, setBotInstallable] = useState(false);
+  const [botActions, setBotActions] = useState<BotAction[]>([]);
   const [equipSlotTypes, setEquipSlotTypes] = useState<string[]>([]);
   const [equipSlotCost, setEquipSlotCost] = useState<string>("");
   const [maxUses, setMaxUses] = useState<string>("");
@@ -229,6 +233,8 @@ export function useCreateCustomItemModal({
     setConfCost("");
     setEquippable(false);
     setVehicleMountable(false);
+    setBotInstallable(false);
+    setBotActions([]);
     setEquipSlotTypes([]);
     setEquipSlotCost("");
     setMaxUses("");
@@ -269,6 +275,7 @@ export function useCreateCustomItemModal({
       setEquippable(draft.equippable);
       setVehicleMountable(draft.vehicleMountable);
       setBotInstallable(draft.botInstallable);
+      setBotActions(draft.botActions);
       setEquipSlotTypes(draft.equipSlotTypes);
       setEquipSlotCost(draft.equipSlotCost);
       setMaxUses(draft.maxUses);
@@ -311,6 +318,7 @@ export function useCreateCustomItemModal({
       equippable,
       vehicleMountable,
       botInstallable,
+      botActions,
       equipSlotTypes,
       equipSlotCost,
       maxUses,
@@ -347,6 +355,7 @@ export function useCreateCustomItemModal({
     equippable,
     vehicleMountable,
     botInstallable,
+    botActions,
     equipSlotTypes,
     equipSlotCost,
     maxUses,
@@ -424,6 +433,7 @@ export function useCreateCustomItemModal({
           setEquippable,
           setVehicleMountable,
           setBotInstallable,
+          setBotActions,
           setEquipSlotTypes,
           setEquipSlotCost,
           setMaxUses,
@@ -482,6 +492,7 @@ export function useCreateCustomItemModal({
       equippable,
       vehicleMountable,
       botInstallable,
+      botActions: botInstallable ? botActions : [],
       equipSlotTypes: equipSlotTypes.length ? equipSlotTypes : [],
     };
     if (confCost !== "") {
@@ -654,6 +665,8 @@ export function useCreateCustomItemModal({
     setVehicleMountable,
     botInstallable,
     setBotInstallable,
+    botActions,
+    setBotActions,
     equipSlotTypes,
     equipSlotCost,
     setEquipSlotCost,

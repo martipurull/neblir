@@ -117,6 +117,30 @@ describe("PATCH /api/unique-bots/[id]", () => {
     expect(updateBotCharacterMock).not.toHaveBeenCalled();
   });
 
+  it("PATCH stores an actions override, including an empty list", async () => {
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const actionsOverride = [
+      {
+        name: "Weld",
+        description: null,
+        notes: null,
+        numberOfDice: 1,
+        attribute: null,
+        damage: null,
+      },
+    ];
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ actionsOverride }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUniqueBotMock).toHaveBeenCalledWith("ub-1", {
+      actionsOverride,
+    });
+    expect(await response.json()).toMatchObject({ actionsOverride });
+  });
+
   it("returns 404 when the unique bot does not exist", async () => {
     getUniqueBotMock.mockResolvedValue(null);
     const { PATCH } = await import("@/app/api/unique-bots/[id]/route");

@@ -1,3 +1,4 @@
+import { DEFAULT_BOT_REACTION_CAP } from "@/app/lib/botCombat";
 import { presentBotHolding } from "@/app/lib/botHoldingView";
 import { getBot } from "@/app/lib/prisma/bot";
 import {
@@ -67,6 +68,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         sourceType: "OFFICIAL",
         currentHp: bot.maxHp,
         maxHpBonus: 0,
+        reactionsRemaining: bot.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
       });
       return NextResponse.json(presentBotHolding(created, bot), {
         status: 201,
@@ -88,6 +90,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         sourceType: "CUSTOM",
         currentHp: bot.maxHp,
         maxHpBonus: 0,
+        reactionsRemaining: bot.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
       });
       return NextResponse.json(
         presentBotHolding({ ...created, sourceType: "CUSTOM" }, bot),
@@ -123,6 +126,8 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       sourceType: "UNIQUE",
       currentHp: template.maxHp,
       maxHpBonus: 0,
+      reactionsRemaining:
+        template.numberOfReactions ?? DEFAULT_BOT_REACTION_CAP,
     });
     return NextResponse.json(
       presentBotHolding({ ...created, sourceType: "UNIQUE" }, template),

@@ -138,6 +138,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       equippable: createData.equippable ?? undefined,
       vehicleMountable: createData.vehicleMountable ?? undefined,
       botInstallable: createData.botInstallable ?? undefined,
+      ...(createData.botActions !== undefined
+        ? { botActions: createData.botActions }
+        : {}),
       equipSlotTypes: createData.equipSlotTypes ?? undefined,
       equipSlotCost: createData.equipSlotCost ?? undefined,
       maxUses: createData.maxUses ?? undefined,

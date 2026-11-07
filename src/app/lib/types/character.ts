@@ -68,6 +68,7 @@ const resolvedItemSchema = z
     equipSlotCost: equipSlotCostSchema.optional().nullable(),
     vehicleMountable: z.boolean().optional().nullable(),
     botInstallable: z.boolean().optional().nullable(),
+    maxUses: z.number().int().positive().nullish(),
     modifiesAttribute: itemAttributePathSchema.optional().nullable(),
     attributeMod: z.number().int().optional().nullable(),
     modifiesSkill: itemGeneralSkillSchema.optional().nullable(),

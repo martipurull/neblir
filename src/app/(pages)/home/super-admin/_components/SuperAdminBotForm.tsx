@@ -7,6 +7,12 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import {
+  BOT_COMBAT_FIELDS,
+  DEFAULT_BOT_COMBAT_STATS,
+  readBotCombatStats,
+  type BotCombatStats,
+} from "@/app/lib/botCombat";
+import {
   BOT_TEMPLATE_TRACK_FIELDS,
   DEFAULT_BOT_TRACK_STATS,
   readBotTrackStats,
@@ -30,6 +36,8 @@ import {
 import { SuperAdminCatalogueDomainNav } from "./SuperAdminCatalogueDomainNav";
 import { SuperAdminCatalogueImageBlock } from "./SuperAdminCatalogueImageBlock";
 import { SuperAdminSectionShell } from "./SuperAdminSectionShell";
+import { BotActionListEditor } from "@/app/components/character/BotActionListEditor";
+import type { BotAction } from "@/app/lib/types/botAction";
 import { SuperAdminLabeledField } from "./superAdminFormPrimitives";
 
 type BotFormValues = {
@@ -47,7 +55,8 @@ type BotFormValues = {
   maxCarryWeight: number;
   heightMetres?: number;
   weight?: number;
-} & BotTrackStats;
+} & BotTrackStats &
+  BotCombatStats;
 
 const accessOptions = [
   { value: "PLAYER", label: "Player" },
@@ -71,6 +80,7 @@ function createDefaults(): BotFormValues {
     heightMetres: undefined,
     weight: undefined,
     ...DEFAULT_BOT_TRACK_STATS,
+    ...DEFAULT_BOT_COMBAT_STATS,
   };
 }
 
@@ -91,6 +101,7 @@ function botToFormValues(bot: OfficialBot): BotFormValues {
     heightMetres: bot.heightMetres ?? undefined,
     weight: bot.weight ?? undefined,
     ...readBotTrackStats(bot),
+    ...readBotCombatStats(bot),
   };
 }
 
@@ -149,6 +160,10 @@ function SuperAdminBotFormFields({
   const imageKeyRef = useRef(initialValues.imageKey);
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [actions, setActions] = useState<BotAction[]>(data?.actions ?? []);
+  const [additionalActions, setAdditionalActions] = useState<BotAction[]>(
+    data?.additionalActions ?? []
+  );
 
   const form = useForm<BotFormValues>({
     defaultValues: initialValues,
@@ -190,6 +205,8 @@ function SuperAdminBotFormFields({
       gridProtectionMaxPotential: values.gridProtectionMaxPotential,
       batteryCapacity: values.batteryCapacity,
       batteryMaxPotential: values.batteryMaxPotential,
+      actions,
+      additionalActions,
     };
     const parsed = (isEdit ? botUpdateSchema : botSchema).safeParse(payload);
     if (!parsed.success) {
@@ -360,6 +377,17 @@ function SuperAdminBotFormFields({
                   className="mb-0"
                 />
               ))}
+              {BOT_COMBAT_FIELDS.map((field) => (
+                <NumberInput
+                  key={field.key}
+                  name={field.key}
+                  label={field.label}
+                  min={field.min}
+                  max={field.max}
+                  parseAs="int"
+                  className="mb-0"
+                />
+              ))}
             </div>
 
             <SuperAdminCatalogueImageBlock
@@ -394,6 +422,22 @@ function SuperAdminBotFormFields({
               register={form.register}
               name="notes"
               rows={3}
+            />
+            <BotActionListEditor
+              idPrefix="official-bot-actions"
+              title="Bot actions"
+              variant="light"
+              value={actions}
+              disabled={submitting}
+              onChange={setActions}
+            />
+            <BotActionListEditor
+              idPrefix="official-bot-additional-actions"
+              title="Bot additional actions"
+              variant="light"
+              value={additionalActions}
+              disabled={submitting}
+              onChange={setAdditionalActions}
             />
 
             {status ? (

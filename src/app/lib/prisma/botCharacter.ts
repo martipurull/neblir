@@ -1,9 +1,11 @@
+import { readBotActionList } from "@/app/lib/botActions";
 import {
   botHoldingSource,
   presentBotHolding,
   type BotHoldingRow,
   type BotTemplateView,
 } from "@/app/lib/botHoldingView";
+import { readBotCombatStats, type BotCombatStats } from "@/app/lib/botCombat";
 import {
   readBotTrackStats,
   type BotHoldingTrackState,
@@ -37,12 +39,13 @@ type BotCharacterCreateData = {
   maxHpBonus?: number;
   customName?: string | null;
   notes?: string | null;
+  reactionsRemaining?: number;
 };
 
 type BotCharacterUpdateData = Partial<
   Pick<
     BotCharacterCreateData,
-    "currentHp" | "maxHpBonus" | "customName" | "notes"
+    "currentHp" | "maxHpBonus" | "customName" | "notes" | "reactionsRemaining"
   >
 > &
   Partial<BotHoldingTrackState>;
@@ -122,6 +125,9 @@ export async function createBotCharacter(data: BotCharacterCreateData) {
       maxHpBonus: data.maxHpBonus ?? 0,
       customName: data.customName ?? null,
       notes: data.notes ?? null,
+      ...(data.reactionsRemaining !== undefined
+        ? { reactionsRemaining: data.reactionsRemaining }
+        : {}),
     },
   });
 }
@@ -134,6 +140,13 @@ export async function updateBotCharacter(
     where: { id },
     data,
   });
+}
+
+export async function setBotReactionsRemaining(
+  id: string,
+  reactionsRemaining: number
+) {
+  return updateBotCharacter(id, { reactionsRemaining });
 }
 
 function templateView(
@@ -153,7 +166,10 @@ function templateView(
     maxCarryWeight?: number | null;
     heightMetres?: number | null;
     weight?: number | null;
-  } & Partial<BotTrackStats>
+    actions?: unknown;
+    additionalActions?: unknown;
+  } & Partial<BotTrackStats> &
+    Partial<BotCombatStats>
 ): BotTemplateView {
   return {
     id: bot.id ?? "",
@@ -172,6 +188,9 @@ function templateView(
     heightMetres: bot.heightMetres ?? null,
     weight: bot.weight ?? null,
     ...readBotTrackStats(bot),
+    ...readBotCombatStats(bot),
+    actions: readBotActionList(bot.actions),
+    additionalActions: readBotActionList(bot.additionalActions),
   };
 }
 

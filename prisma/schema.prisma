@@ -698,6 +698,23 @@ model Bot {
   gridProtectionMaxPotential  Int           @default(0)
   batteryCapacity             Int           @default(1)
   batteryMaxPotential         Int           @default(0)
+  attackMelee                 Int           @default(1)
+  attackRange                 Int           @default(1)
+  defenceMelee                Int           @default(1)
+  defenceRange                Int           @default(1)
+  defenceGrid                 Int           @default(1)
+  /**
+   * Reaction cap. No upper limit. Remaining on a holding cannot exceed it.
+   */
+  numberOfReactions           Int           @default(2)
+  /**
+   * Bot actions this Official bot owns.
+   */
+  actions                     Json?
+  /**
+   * Bot additional actions this Official bot owns.
+   */
+  additionalActions           Json?
   protectedFromOfficialImport Boolean       @default(false)
 
   @@unique([name])
@@ -724,6 +741,10 @@ model BotCharacter {
   batteryUpgrade           Int                @default(0)
   batteryUsed              Int                @default(0)
   isBeyondRepair           Boolean            @default(false)
+  /**
+   * Reactions left this round. A reset restores this to the cap.
+   */
+  reactionsRemaining       Int                @default(2)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   installedItems BotInstalledItem[]
@@ -796,6 +817,23 @@ model CustomBot {
   gridProtectionMaxPotential  Int     @default(0)
   batteryCapacity             Int     @default(1)
   batteryMaxPotential         Int     @default(0)
+  attackMelee                 Int     @default(1)
+  attackRange                 Int     @default(1)
+  defenceMelee                Int     @default(1)
+  defenceRange                Int     @default(1)
+  defenceGrid                 Int     @default(1)
+  /**
+   * Reaction cap. No upper limit. Remaining on a holding cannot exceed it.
+   */
+  numberOfReactions           Int     @default(2)
+  /**
+   * Bot actions this Custom bot owns.
+   */
+  actions                     Json?
+  /**
+   * Bot additional actions this Custom bot owns.
+   */
+  additionalActions           Json?
 
   @@index([gameId])
 }
@@ -834,6 +872,22 @@ model UniqueBot {
   gridProtectionMaxPotentialOverride  Int?
   batteryCapacityOverride             Int?
   batteryMaxPotentialOverride         Int?
+  attackMeleeOverride                 Int?
+  attackRangeOverride                 Int?
+  defenceMeleeOverride                Int?
+  defenceRangeOverride                Int?
+  defenceGridOverride                 Int?
+  numberOfReactionsOverride           Int?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   * A standalone Unique bot stores its own list here.
+   */
+  actionsOverride                     Json?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   * A standalone Unique bot stores its own list here.
+   */
+  additionalActionsOverride           Json?
 
   @@index([ownerUserId])
   @@index([gameId])
@@ -1135,6 +1189,10 @@ model Item {
    * When true, this item can be installed on a bot. Independent of vehicle-mountable.
    */
   botInstallable              Boolean                    @default(false)
+  /**
+   * Bot actions this Official item owns. They show on a bot only while installed.
+   */
+  botActions                  Json?
   maxUses                     Int?
   modifiesAttribute           ItemAttributePath?
   attributeMod                Int?
@@ -1183,6 +1241,10 @@ model CustomItem {
    * When true, this item can be installed on a bot. Independent of vehicle-mountable.
    */
   botInstallable    Boolean?                   @default(false)
+  /**
+   * Bot actions this Custom item owns. They show on a bot only while installed.
+   */
+  botActions        Json?
   maxUses           Int?
   modifiesAttribute ItemAttributePath?
   attributeMod      Int?
@@ -1226,6 +1288,10 @@ model UniqueItem {
   equipSlotCostOverride     Int?
   vehicleMountableOverride  Boolean?
   botInstallableOverride    Boolean?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   */
+  botActionsOverride        Json?
   maxUsesOverride           Int?
   modifiesAttributeOverride ItemAttributePath?
   attributeModOverride      Int?
