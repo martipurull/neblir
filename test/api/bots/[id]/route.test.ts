@@ -339,14 +339,29 @@ describe("/api/bots/[id] route handlers", () => {
   });
 
   it("PATCH drops battery used when the template capacity falls below it", async () => {
-    listBotCharacterRowsByBotMock.mockResolvedValue([
-      {
-        id: "hold-1",
-        batteryUsed: 5,
-        batteryUpgrade: 0,
-        maxHpBonus: 0,
-        currentHp: 4,
-      },
+    listBotCharacterRowsByBotMock.mockImplementation(async (botId: string) => {
+      if (botId === "ub-1") {
+        return [
+          {
+            id: "hold-unique",
+            sourceType: "UNIQUE",
+            batteryUsed: 5,
+            batteryUpgrade: 0,
+          },
+        ];
+      }
+      return [
+        {
+          id: "hold-1",
+          sourceType: "OFFICIAL",
+          batteryUsed: 5,
+          batteryUpgrade: 0,
+        },
+      ];
+    });
+    listUniqueBotsForTemplateMock.mockResolvedValue([
+      { id: "ub-1", batteryCapacityOverride: null },
+      { id: "ub-own", batteryCapacityOverride: 8 },
     ]);
     updateBotMock.mockResolvedValue({ id: "bot-1", name: "Loader" });
     const { PATCH } = await import("@/app/api/bots/[id]/route");
@@ -361,6 +376,10 @@ describe("/api/bots/[id] route handlers", () => {
     expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
       batteryUsed: 2,
     });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-unique", {
+      batteryUsed: 2,
+    });
+    expect(listBotCharacterRowsByBotMock).not.toHaveBeenCalledWith("ub-own");
   });
 
   it("PATCH drops an Upgrade when a lower max potential leaves it above the ceiling", async () => {

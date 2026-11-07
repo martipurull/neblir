@@ -1,13 +1,8 @@
+import { persistHoldingTrackClamp } from "@/app/lib/botHoldingCeiling";
 import { effectiveBotMaxHp } from "@/app/lib/botHoldingView";
-import {
-  holdingTrackClamp,
-  trackCeilingOverridesChanged,
-} from "@/app/lib/botTracks";
+import { trackCeilingOverridesChanged } from "@/app/lib/botTracks";
 import { getBot } from "@/app/lib/prisma/bot";
-import {
-  listBotCharacterRowsByBot,
-  updateBotCharacter,
-} from "@/app/lib/prisma/botCharacter";
+import { listBotCharacterRowsByBot } from "@/app/lib/prisma/botCharacter";
 import { getCustomBot } from "@/app/lib/prisma/customBot";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import {
@@ -120,19 +115,15 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       const rows = await listBotCharacterRowsByBot(id);
       const holding = rows.find((row) => row.sourceType === "UNIQUE");
       if (holding) {
-        const patch: { currentHp?: number } & ReturnType<
-          typeof holdingTrackClamp
-        > = holdingTrackClamp(holding, stats);
+        const extra: { currentHp?: number } = {};
         if (parsed.data.maxHpOverride !== undefined) {
           const max = Math.max(
             0,
             effectiveBotMaxHp(stats.maxHp, holding.maxHpBonus)
           );
-          if (holding.currentHp > max) patch.currentHp = max;
+          if (holding.currentHp > max) extra.currentHp = max;
         }
-        if (Object.keys(patch).length > 0) {
-          await updateBotCharacter(holding.id, patch);
-        }
+        await persistHoldingTrackClamp(holding, stats, extra);
       }
     }
     return NextResponse.json(updated);

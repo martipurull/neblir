@@ -1,17 +1,7 @@
-import {
-  holdingTrackClamp,
-  readBotTrackStats,
-  resolveBotTrackStats,
-  trackCeilingsChanged,
-  uniqueInheritsChangedCeiling,
-  type BotHoldingTrackState,
-} from "@/app/lib/botTracks";
-import {
-  listBotCharacterRowsByBot,
-  updateBotCharacter,
-} from "@/app/lib/prisma/botCharacter";
+import { clampHoldingsToTemplateCeilings } from "@/app/lib/botHoldingCeiling";
+import { readBotTrackStats, trackCeilingsChanged } from "@/app/lib/botTracks";
+import { listBotCharacterRowsByBot } from "@/app/lib/prisma/botCharacter";
 import { getCustomBot, updateCustomBot } from "@/app/lib/prisma/customBot";
-import { listUniqueBotsForTemplate } from "@/app/lib/prisma/uniqueBot";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import { customBotUpdateSchema } from "@/app/lib/types/bot";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -20,19 +10,6 @@ import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-
-async function clampHoldingTracks(
-  rows: Array<{ id: string } & Partial<BotHoldingTrackState>>,
-  stats: Parameters<typeof holdingTrackClamp>[1]
-) {
-  await Promise.all(
-    rows.map(async (row) => {
-      const data = holdingTrackClamp(row, stats);
-      if (Object.keys(data).length === 0) return;
-      await updateBotCharacter(row.id, data);
-    })
-  );
-}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -122,20 +99,13 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const updated = await updateCustomBot(botId, parsed.data);
     if (trackCeilingsChanged(parsed.data)) {
       const stats = readBotTrackStats({ ...existing, ...parsed.data });
-      const holdings = await listBotCharacterRowsByBot(botId);
-      await clampHoldingTracks(
-        holdings.filter((row) => (row.sourceType ?? "OFFICIAL") === "CUSTOM"),
-        stats
-      );
-      const uniques = await listUniqueBotsForTemplate("CUSTOM", botId);
-      for (const unique of uniques) {
-        if (!uniqueInheritsChangedCeiling(unique, parsed.data)) continue;
-        const uniqueHoldings = await listBotCharacterRowsByBot(unique.id);
-        await clampHoldingTracks(
-          uniqueHoldings.filter((row) => row.sourceType === "UNIQUE"),
-          resolveBotTrackStats(unique, stats)
-        );
-      }
+      await clampHoldingsToTemplateCeilings({
+        templateId: botId,
+        sourceType: "CUSTOM",
+        stats,
+        patch: parsed.data,
+        directHoldings: await listBotCharacterRowsByBot(botId),
+      });
     }
     return NextResponse.json(updated);
   } catch (error) {

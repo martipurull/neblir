@@ -61,6 +61,10 @@ const mule = {
   usageOverride: null,
   notesOverride: null,
   maxHpOverride: 8,
+  speedOverride: 3,
+  maxCarryWeightOverride: 40,
+  processingPowerOverride: 2,
+  batteryCapacityOverride: 6,
   maxCargoWeightKgOverride: null,
   maxInstalledItemsOverride: null,
   templateName: null,
@@ -134,6 +138,16 @@ describe("POST /api/games/[id]/give-bot", () => {
     const body = await response.json();
     expect(body.displayName).toBe("Mule");
     expect(body.currentHp).toBe(8);
+    expect(body.speed).toBe(3);
+    expect(body.effectiveSpeed).toBe(3);
+    expect(body.maxCarryWeight).toBe(40);
+    expect(body.attributes.processingPower).toMatchObject({
+      base: 2,
+      effective: 2,
+      signedUpgrade: null,
+    });
+    expect(body.battery).toMatchObject({ base: 6, used: 0, remaining: 6 });
+    expect(body.mayRoll).toBe(true);
     expect(createBotCharacterMock).toHaveBeenCalledWith(
       expect.objectContaining({
         characterId: "char-1",
@@ -192,6 +206,10 @@ describe("POST /api/games/[id]/give-bot", () => {
       maxHp: 6,
       maxCargoWeightKg: null,
       maxInstalledItems: null,
+      speed: 5,
+      maxCarryWeight: 20,
+      processingPower: 1,
+      batteryCapacity: 4,
     });
     const { POST } = await import("@/app/api/games/[id]/give-bot/route");
     const response = await invokeRoute(
@@ -206,6 +224,15 @@ describe("POST /api/games/[id]/give-bot", () => {
     const body = await response.json();
     expect(body.displayName).toBe("Hauler");
     expect(body.currentHp).toBe(6);
+    expect(body.speed).toBe(5);
+    expect(body.effectiveSpeed).toBe(5);
+    expect(body.maxCarryWeight).toBe(20);
+    expect(body.attributes.processingPower).toMatchObject({
+      base: 1,
+      effective: 1,
+      signedUpgrade: null,
+    });
+    expect(body.battery).toMatchObject({ base: 4, used: 0, remaining: 4 });
   });
 
   it("refuses a custom bot from another game", async () => {
@@ -234,6 +261,10 @@ describe("POST /api/games/[id]/give-bot", () => {
       name: "Loader",
       maxHp: 12,
       accessType: "PLAYER",
+      speed: 4,
+      maxCarryWeight: 30,
+      processingPower: -1,
+      batteryCapacity: 8,
     });
     const { POST } = await import("@/app/api/games/[id]/give-bot/route");
     const response = await invokeRoute(
@@ -248,5 +279,14 @@ describe("POST /api/games/[id]/give-bot", () => {
     const body = await response.json();
     expect(body.displayName).toBe("Loader");
     expect(body.currentHp).toBe(12);
+    expect(body.speed).toBe(4);
+    expect(body.effectiveSpeed).toBe(4);
+    expect(body.maxCarryWeight).toBe(30);
+    expect(body.attributes.processingPower).toMatchObject({
+      base: -1,
+      effective: -1,
+      signedUpgrade: null,
+    });
+    expect(body.battery).toMatchObject({ base: 8, used: 0, remaining: 8 });
   });
 });

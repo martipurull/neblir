@@ -152,6 +152,40 @@ describe("/api/games/[id]/custom-bots handlers", () => {
     expect(body.membersCanModify).toBe(true);
   });
 
+  it("POST stores a chosen speed and track base", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          name: "Porter",
+          maxHp: 9,
+          speed: 4,
+          processingPower: 2,
+          batteryCapacity: 6,
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(201);
+    expect(createCustomBotMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        speed: 4,
+        processingPower: 2,
+        batteryCapacity: 6,
+      })
+    );
+    expect(await response.json()).toMatchObject({
+      speed: 4,
+      processingPower: 2,
+      batteryCapacity: 6,
+    });
+  });
+
   it("POST stores cargo and install caps when the GM sets them", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
