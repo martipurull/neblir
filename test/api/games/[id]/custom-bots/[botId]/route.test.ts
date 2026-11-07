@@ -176,4 +176,34 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
       membersCanModify: false,
     });
   });
+
+  it("PATCH saves cargo and install caps, including clearing them", async () => {
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+
+    const capped = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ maxCargoWeightKg: 8, maxInstalledItems: 1 }, "gm-1"),
+      params()
+    );
+    expect(capped.status).toBe(200);
+    expect(await capped.json()).toMatchObject({
+      maxCargoWeightKg: 8,
+      maxInstalledItems: 1,
+    });
+
+    const cleared = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { maxCargoWeightKg: null, maxInstalledItems: null },
+        "gm-1"
+      ),
+      params()
+    );
+    expect(cleared.status).toBe(200);
+    expect(await cleared.json()).toMatchObject({
+      maxCargoWeightKg: null,
+      maxInstalledItems: null,
+    });
+  });
 });

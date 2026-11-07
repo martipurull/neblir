@@ -134,6 +134,37 @@ describe("/api/games/[id]/custom-bots handlers", () => {
     expect(body.membersCanModify).toBe(true);
   });
 
+  it("POST stores cargo and install caps when the GM sets them", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          name: "Porter",
+          maxHp: 9,
+          maxCargoWeightKg: 12.5,
+          maxInstalledItems: 2,
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      maxCargoWeightKg: 12.5,
+      maxInstalledItems: 2,
+    });
+    expect(createCustomBotMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        maxCargoWeightKg: 12.5,
+        maxInstalledItems: 2,
+      })
+    );
+  });
+
   it("POST returns 404 when the game does not exist", async () => {
     getGameMock.mockResolvedValue(null);
     const { POST } = await import("@/app/api/games/[id]/custom-bots/route");

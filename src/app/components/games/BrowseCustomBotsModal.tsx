@@ -174,6 +174,12 @@ function CustomBotDetail({ bot }: { bot: CustomBotResponse }) {
         <p className="text-xs text-white/70">
           {bot.maxHp} HP
           {bot.confCost != null ? ` · ${bot.confCost} CONF` : ""}
+          {bot.maxCargoWeightKg != null
+            ? ` · ${bot.maxCargoWeightKg} kg cargo`
+            : " · Cargo uncapped"}
+          {bot.maxInstalledItems != null
+            ? ` · ${bot.maxInstalledItems} installed`
+            : " · Installed uncapped"}
           {bot.membersCanModify
             ? " · Members may mint a unique bot"
             : " · Members may not mint"}

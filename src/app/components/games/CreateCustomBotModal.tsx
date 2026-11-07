@@ -28,17 +28,23 @@ type CreateCustomBotModalProps = {
   onSuccess?: () => void;
 };
 
-function optionalConfCost(value: string): number | null {
+function optionalNumber(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   return Number(trimmed);
+}
+
+function optionalNumberText(value: number | null | undefined): string {
+  return value != null ? String(value) : "";
 }
 
 function formFromBot(bot: CustomBotResponse) {
   return {
     name: bot.name,
     maxHp: String(bot.maxHp),
-    confCost: bot.confCost != null ? String(bot.confCost) : "",
+    confCost: optionalNumberText(bot.confCost),
+    maxCargoWeightKg: optionalNumberText(bot.maxCargoWeightKg),
+    maxInstalledItems: optionalNumberText(bot.maxInstalledItems),
     description: bot.description ?? "",
     usage: bot.usage ?? "",
     notes: bot.notes ?? "",
@@ -68,6 +74,8 @@ function CreateCustomBotModalBody({
   const [name, setName] = useState("");
   const [maxHp, setMaxHp] = useState("10");
   const [confCost, setConfCost] = useState("");
+  const [maxCargoWeightKg, setMaxCargoWeightKg] = useState("");
+  const [maxInstalledItems, setMaxInstalledItems] = useState("");
   const [description, setDescription] = useState("");
   const [usage, setUsage] = useState("");
   const [notes, setNotes] = useState("");
@@ -87,6 +95,8 @@ function CreateCustomBotModalBody({
         setName(next.name);
         setMaxHp(next.maxHp);
         setConfCost(next.confCost);
+        setMaxCargoWeightKg(next.maxCargoWeightKg);
+        setMaxInstalledItems(next.maxInstalledItems);
         setDescription(next.description);
         setUsage(next.usage);
         setNotes(next.notes);
@@ -112,7 +122,9 @@ function CreateCustomBotModalBody({
     const payload = {
       name,
       maxHp: Number(maxHp),
-      confCost: optionalConfCost(confCost),
+      confCost: optionalNumber(confCost),
+      maxCargoWeightKg: optionalNumber(maxCargoWeightKg),
+      maxInstalledItems: optionalNumber(maxInstalledItems),
       description,
       usage,
       notes,
@@ -206,6 +218,29 @@ function CreateCustomBotModalBody({
         min={0}
         required={false}
         placeholder="Optional"
+      />
+      <ModalNumberField
+        id="custom-bot-cargo"
+        label="Max cargo kg"
+        value={maxCargoWeightKg}
+        onChange={setMaxCargoWeightKg}
+        disabled={busy}
+        min={0}
+        step={0.1}
+        required={false}
+        placeholder="No cap"
+        hint="Leave empty for no cargo cap."
+      />
+      <ModalNumberField
+        id="custom-bot-installed"
+        label="Max installed items"
+        value={maxInstalledItems}
+        onChange={setMaxInstalledItems}
+        disabled={busy}
+        min={0}
+        required={false}
+        placeholder="No cap"
+        hint="Leave empty for no install cap."
       />
       <div>
         <FieldLabel id="custom-bot-description" label="Description" />
