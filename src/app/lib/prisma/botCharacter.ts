@@ -4,6 +4,11 @@ import {
   type BotHoldingRow,
   type BotTemplateView,
 } from "@/app/lib/botHoldingView";
+import {
+  readBotTrackStats,
+  type BotHoldingTrackState,
+  type BotTrackStats,
+} from "@/app/lib/botTracks";
 import type { BotHolding } from "@/app/lib/types/bot";
 import { getBot, getBotsByIds } from "./bot";
 import { getCustomBot, getCustomBotsByIds } from "./customBot";
@@ -39,7 +44,8 @@ type BotCharacterUpdateData = Partial<
     BotCharacterCreateData,
     "currentHp" | "maxHpBonus" | "customName" | "notes"
   >
->;
+> &
+  Partial<BotHoldingTrackState>;
 
 const botCharacterPrisma = prisma as typeof prisma & {
   botCharacter: {
@@ -122,19 +128,25 @@ export async function updateBotCharacter(
   });
 }
 
-function templateView(bot: {
-  id?: string;
-  name?: string;
-  imageKey?: string | null;
-  description?: string | null;
-  confCost?: number | null;
-  usage?: string | null;
-  notes?: string | null;
-  maxHp?: number;
-  accessType?: BotTemplateView["accessType"];
-  maxCargoWeightKg?: number | null;
-  maxInstalledItems?: number | null;
-}): BotTemplateView {
+function templateView(
+  bot: {
+    id?: string;
+    name?: string;
+    imageKey?: string | null;
+    description?: string | null;
+    confCost?: number | null;
+    usage?: string | null;
+    notes?: string | null;
+    maxHp?: number;
+    accessType?: BotTemplateView["accessType"];
+    maxCargoWeightKg?: number | null;
+    maxInstalledItems?: number | null;
+    speed?: number | null;
+    maxCarryWeight?: number | null;
+    heightMetres?: number | null;
+    weight?: number | null;
+  } & Partial<BotTrackStats>
+): BotTemplateView {
   return {
     id: bot.id ?? "",
     name: bot.name ?? "",
@@ -147,6 +159,11 @@ function templateView(bot: {
     accessType: bot.accessType ?? null,
     maxCargoWeightKg: bot.maxCargoWeightKg ?? null,
     maxInstalledItems: bot.maxInstalledItems ?? null,
+    speed: bot.speed ?? 0,
+    maxCarryWeight: bot.maxCarryWeight ?? 0,
+    heightMetres: bot.heightMetres ?? null,
+    weight: bot.weight ?? null,
+    ...readBotTrackStats(bot),
   };
 }
 

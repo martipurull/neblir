@@ -1,9 +1,11 @@
+import { batteryUsedDrop } from "@/app/lib/botTracks";
 import { userIsSuperAdmin } from "@/app/lib/authz/superAdmin";
 import {
   BOT_EFFECTIVE_MAX_BELOW_ZERO_MESSAGE,
   effectiveBotMaxHp,
 } from "@/app/lib/botHoldingView";
 import { getBot, getBots, updateBot } from "@/app/lib/prisma/bot";
+import { listUniqueBotsForTemplate } from "@/app/lib/prisma/uniqueBot";
 import {
   listBotCharacterRowsByBot,
   updateBotCharacter,
@@ -20,6 +22,27 @@ import {
   responseIfOfficialNameUniqueConstraint,
 } from "../../shared/officialNameConflict";
 import { errorResponse } from "../../shared/responses";
+
+async function dropBatteryUsed(
+  rows: Array<{
+    id: string;
+    batteryUsed?: number | null;
+    batteryUpgrade?: number | null;
+  }>,
+  baseCapacity: number
+) {
+  await Promise.all(
+    rows.map(async (row) => {
+      const next = batteryUsedDrop(
+        row.batteryUsed,
+        row.batteryUpgrade,
+        baseCapacity
+      );
+      if (next == null) return;
+      await updateBotCharacter(row.id, { batteryUsed: next });
+    })
+  );
+}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -132,6 +155,24 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           await updateBotCharacter(row.id, { currentHp: max });
         })
       );
+    }
+
+    if (parsedBody.batteryCapacity !== undefined) {
+      const nextBase = parsedBody.batteryCapacity;
+      const batteryHoldings =
+        holdings.length > 0 || parsedBody.maxHp !== undefined
+          ? holdings
+          : await listBotCharacterRowsByBot(id);
+      await dropBatteryUsed(batteryHoldings, nextBase);
+      const uniques = await listUniqueBotsForTemplate("OFFICIAL", id);
+      for (const unique of uniques) {
+        if (unique.batteryCapacityOverride != null) continue;
+        const uniqueHoldings = await listBotCharacterRowsByBot(unique.id);
+        await dropBatteryUsed(
+          uniqueHoldings.filter((row) => row.sourceType === "UNIQUE"),
+          nextBase
+        );
+      }
     }
 
     return NextResponse.json(updated);

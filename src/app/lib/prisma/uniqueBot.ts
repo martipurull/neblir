@@ -1,4 +1,12 @@
 import type { BotTemplateView } from "@/app/lib/botHoldingView";
+import {
+  pickDefinedTrackOverrides,
+  readBotTrackOverrides,
+  readBotTrackStats,
+  resolveBotTrackStats,
+  type BotTrackOverrides,
+  type BotTrackStats,
+} from "@/app/lib/botTracks";
 import type {
   BotTemplateSourceType,
   UniqueBotCreate,
@@ -25,7 +33,11 @@ type UniqueBotRow = {
   maxHpOverride: number | null;
   maxCargoWeightKgOverride: number | null;
   maxInstalledItemsOverride: number | null;
-};
+  speedOverride?: number | null;
+  maxCarryWeightOverride?: number | null;
+  heightMetresOverride?: number | null;
+  weightOverride?: number | null;
+} & Partial<BotTrackOverrides>;
 
 type UniqueBotWriteData = Omit<UniqueBotRow, "id">;
 
@@ -40,14 +52,21 @@ type TemplateStats = {
   maxHp: number;
   maxCargoWeightKg?: number | null;
   maxInstalledItems?: number | null;
-};
+  speed?: number | null;
+  maxCarryWeight?: number | null;
+  heightMetres?: number | null;
+  weight?: number | null;
+} & Partial<BotTrackStats>;
 
 const uniqueBotPrisma = prisma as typeof prisma & {
   uniqueBot: {
     create(args: { data: UniqueBotWriteData }): Promise<UniqueBotRow>;
     findUnique(args: { where: { id: string } }): Promise<UniqueBotRow | null>;
     findMany(args: {
-      where: { gameId: string } | { id: { in: string[] } };
+      where:
+        | { gameId: string }
+        | { id: { in: string[] } }
+        | { sourceType: "OFFICIAL" | "CUSTOM"; botId: string };
     }): Promise<UniqueBotRow[]>;
     update(args: {
       where: { id: string };
@@ -95,6 +114,11 @@ function mapRecord(
     maxHpOverride: row.maxHpOverride,
     maxCargoWeightKgOverride: row.maxCargoWeightKgOverride,
     maxInstalledItemsOverride: row.maxInstalledItemsOverride,
+    speedOverride: row.speedOverride ?? null,
+    maxCarryWeightOverride: row.maxCarryWeightOverride ?? null,
+    heightMetresOverride: row.heightMetresOverride ?? null,
+    weightOverride: row.weightOverride ?? null,
+    ...readBotTrackOverrides(row),
     templateName,
   };
 }
@@ -115,6 +139,11 @@ export function uniqueBotCreateDataFromParsed(
     maxHpOverride: parsed.maxHpOverride ?? null,
     maxCargoWeightKgOverride: parsed.maxCargoWeightKgOverride ?? null,
     maxInstalledItemsOverride: parsed.maxInstalledItemsOverride ?? null,
+    speedOverride: parsed.speedOverride ?? null,
+    maxCarryWeightOverride: parsed.maxCarryWeightOverride ?? null,
+    heightMetresOverride: parsed.heightMetresOverride ?? null,
+    weightOverride: parsed.weightOverride ?? null,
+    ...readBotTrackOverrides(parsed),
   };
   if (parsed.sourceType === "STANDALONE") {
     return {
@@ -161,6 +190,19 @@ function updateData(parsed: UniqueBotUpdate): Partial<UniqueBotWriteData> {
           maxInstalledItemsOverride: parsed.maxInstalledItemsOverride ?? null,
         }
       : {}),
+    ...(parsed.speedOverride !== undefined
+      ? { speedOverride: parsed.speedOverride ?? null }
+      : {}),
+    ...(parsed.maxCarryWeightOverride !== undefined
+      ? { maxCarryWeightOverride: parsed.maxCarryWeightOverride ?? null }
+      : {}),
+    ...(parsed.heightMetresOverride !== undefined
+      ? { heightMetresOverride: parsed.heightMetresOverride ?? null }
+      : {}),
+    ...(parsed.weightOverride !== undefined
+      ? { weightOverride: parsed.weightOverride ?? null }
+      : {}),
+    ...pickDefinedTrackOverrides(parsed),
   };
 }
 
@@ -178,7 +220,11 @@ export function resolveUniqueBotStats(
     maxHpOverride?: number | null;
     maxCargoWeightKgOverride?: number | null;
     maxInstalledItemsOverride?: number | null;
-  },
+    speedOverride?: number | null;
+    maxCarryWeightOverride?: number | null;
+    heightMetresOverride?: number | null;
+    weightOverride?: number | null;
+  } & Partial<BotTrackOverrides>,
   template: TemplateStats | null
 ): BotTemplateView {
   const resolvedName = firstNonBlank(row.nameOverride, template?.name);
@@ -195,6 +241,11 @@ export function resolveUniqueBotStats(
       row.maxCargoWeightKgOverride ?? template?.maxCargoWeightKg ?? null,
     maxInstalledItems:
       row.maxInstalledItemsOverride ?? template?.maxInstalledItems ?? null,
+    speed: row.speedOverride ?? template?.speed ?? 0,
+    maxCarryWeight: row.maxCarryWeightOverride ?? template?.maxCarryWeight ?? 0,
+    heightMetres: row.heightMetresOverride ?? template?.heightMetres ?? null,
+    weight: row.weightOverride ?? template?.weight ?? null,
+    ...resolveBotTrackStats(row, template),
     gameId: row.gameId,
     ownerUserId: row.ownerUserId,
   };
@@ -217,6 +268,11 @@ async function templateForRow(
       maxHp: official.maxHp,
       maxCargoWeightKg: official.maxCargoWeightKg ?? null,
       maxInstalledItems: official.maxInstalledItems ?? null,
+      speed: official.speed ?? 0,
+      maxCarryWeight: official.maxCarryWeight ?? 0,
+      heightMetres: official.heightMetres ?? null,
+      weight: official.weight ?? null,
+      ...readBotTrackStats(official),
     };
   }
   if (row.sourceType === "CUSTOM" && row.botId) {
@@ -232,6 +288,11 @@ async function templateForRow(
           maxHp: custom.maxHp,
           maxCargoWeightKg: custom.maxCargoWeightKg,
           maxInstalledItems: custom.maxInstalledItems,
+          speed: custom.speed,
+          maxCarryWeight: custom.maxCarryWeight,
+          heightMetres: custom.heightMetres,
+          weight: custom.weight,
+          ...readBotTrackStats(custom),
         }
       : null;
   }
@@ -255,6 +316,15 @@ export async function getUniqueBotRow(
   id: string
 ): Promise<UniqueBotRow | null> {
   return uniqueBotPrisma.uniqueBot.findUnique({ where: { id } });
+}
+
+export async function listUniqueBotsForTemplate(
+  sourceType: "OFFICIAL" | "CUSTOM",
+  templateId: string
+): Promise<UniqueBotRow[]> {
+  return uniqueBotPrisma.uniqueBot.findMany({
+    where: { sourceType, botId: templateId },
+  });
 }
 
 export async function resolveUniqueBotTemplate(

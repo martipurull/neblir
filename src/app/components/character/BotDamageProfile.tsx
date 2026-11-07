@@ -41,7 +41,9 @@ function namesForMark(
 }
 
 export function botConditionLabel(condition: BotHolding["condition"]): string {
-  return condition === "BROKEN" ? "Broken" : "Operational";
+  if (condition === "BEYOND_REPAIR") return "Beyond repair";
+  if (condition === "BROKEN") return "Broken";
+  return "Operational";
 }
 
 export function botConditionClassName(
@@ -51,7 +53,10 @@ export function botConditionClassName(
   if (condition === "OPERATIONAL") {
     return tone === "light" ? "text-neblirSafe-600" : "text-neblirSafe-400";
   }
-  return tone === "light" ? "text-neblirDanger-600" : "text-neblirDanger-400";
+  if (condition === "BEYOND_REPAIR") {
+    return tone === "light" ? "text-neblirDanger-600" : "text-neblirDanger-400";
+  }
+  return tone === "light" ? "text-neblirWarning-600" : "text-neblirWarning-400";
 }
 
 export function BotDamageProfile({

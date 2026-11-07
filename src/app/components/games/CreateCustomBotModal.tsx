@@ -1,11 +1,17 @@
 "use client";
 
+import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import {
+  defaultTrackFieldText,
+  trackFieldTextFromStats,
+  trackStatsFromFieldText,
+} from "@/app/lib/botTracks";
 import {
   customBotCreateBodySchema,
   customBotUpdateSchema,
@@ -45,6 +51,10 @@ function formFromBot(bot: CustomBotResponse) {
     confCost: optionalNumberText(bot.confCost),
     maxCargoWeightKg: optionalNumberText(bot.maxCargoWeightKg),
     maxInstalledItems: optionalNumberText(bot.maxInstalledItems),
+    speed: String(bot.speed ?? 0),
+    maxCarryWeight: String(bot.maxCarryWeight ?? 0),
+    heightMetres: optionalNumberText(bot.heightMetres),
+    weight: optionalNumberText(bot.weight),
     description: bot.description ?? "",
     usage: bot.usage ?? "",
     notes: bot.notes ?? "",
@@ -76,9 +86,14 @@ function CreateCustomBotModalBody({
   const [confCost, setConfCost] = useState("");
   const [maxCargoWeightKg, setMaxCargoWeightKg] = useState("");
   const [maxInstalledItems, setMaxInstalledItems] = useState("");
+  const [speed, setSpeed] = useState("0");
+  const [maxCarryWeight, setMaxCarryWeight] = useState("0");
+  const [heightMetres, setHeightMetres] = useState("");
+  const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [usage, setUsage] = useState("");
   const [notes, setNotes] = useState("");
+  const [tracks, setTracks] = useState(defaultTrackFieldText);
   const [membersCanModify, setMembersCanModify] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
@@ -97,10 +112,15 @@ function CreateCustomBotModalBody({
         setConfCost(next.confCost);
         setMaxCargoWeightKg(next.maxCargoWeightKg);
         setMaxInstalledItems(next.maxInstalledItems);
+        setSpeed(next.speed);
+        setMaxCarryWeight(next.maxCarryWeight);
+        setHeightMetres(next.heightMetres);
+        setWeight(next.weight);
         setDescription(next.description);
         setUsage(next.usage);
         setNotes(next.notes);
         setMembersCanModify(next.membersCanModify);
+        setTracks(trackFieldTextFromStats(bot));
       } catch (loadError) {
         if (!cancelled) {
           setError(
@@ -125,10 +145,15 @@ function CreateCustomBotModalBody({
       confCost: optionalNumber(confCost),
       maxCargoWeightKg: optionalNumber(maxCargoWeightKg),
       maxInstalledItems: optionalNumber(maxInstalledItems),
+      speed: Number(speed),
+      maxCarryWeight: Number(maxCarryWeight),
+      heightMetres: optionalNumber(heightMetres),
+      weight: optionalNumber(weight),
       description,
       usage,
       notes,
       membersCanModify,
+      ...trackStatsFromFieldText(tracks),
     };
     if (isEdit && editCustomBotId) {
       const update = customBotUpdateSchema.safeParse(payload);
@@ -220,6 +245,49 @@ function CreateCustomBotModalBody({
         placeholder="Optional"
       />
       <ModalNumberField
+        id="custom-bot-speed"
+        label="Speed (m)"
+        value={speed}
+        onChange={setSpeed}
+        disabled={busy}
+        min={0}
+        required
+      />
+      <ModalNumberField
+        id="custom-bot-max-carry"
+        label="Max carry (kg)"
+        value={maxCarryWeight}
+        onChange={setMaxCarryWeight}
+        disabled={busy}
+        min={0}
+        step={0.1}
+        required
+      />
+      <ModalNumberField
+        id="custom-bot-height"
+        label="Height (m)"
+        value={heightMetres}
+        onChange={setHeightMetres}
+        disabled={busy}
+        min={0}
+        step={0.1}
+        required={false}
+        placeholder="Descriptive"
+        hint="Shown on the sheet. It does not encumber the character."
+      />
+      <ModalNumberField
+        id="custom-bot-weight"
+        label="Weight (kg)"
+        value={weight}
+        onChange={setWeight}
+        disabled={busy}
+        min={0}
+        step={0.1}
+        required={false}
+        placeholder="Descriptive"
+        hint="The bot's own weight. It does not encumber the character."
+      />
+      <ModalNumberField
         id="custom-bot-cargo"
         label="Max cargo kg"
         value={maxCargoWeightKg}
@@ -275,6 +343,16 @@ function CreateCustomBotModalBody({
           disabled={busy}
         />
       </div>
+      <DarkBotTrackFields
+        idPrefix="custom-bot"
+        values={tracks}
+        disabled={busy}
+        required
+        labelFor={(label) => label}
+        onChange={(key, value) =>
+          setTracks((current) => ({ ...current, [key]: value }))
+        }
+      />
       <Checkbox
         checked={membersCanModify}
         onChange={setMembersCanModify}

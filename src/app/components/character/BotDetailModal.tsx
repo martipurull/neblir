@@ -16,7 +16,10 @@ import { NumberField } from "@/app/components/shared/NumberField";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import { BotHoldingTracksSection } from "@/app/components/character/BotHoldingTracksSection";
 import { BotPlacementSection } from "@/app/components/character/BotPlacementSection";
+import { BotSpeedReadout } from "@/app/components/character/BotSpeedReadout";
+import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import type { BotHolding } from "@/app/lib/types/bot";
 import { useImageUrls } from "@/hooks/use-image-urls";
@@ -220,7 +223,58 @@ function BotDetailModalBody({
               {holding.effectiveMaxHp ?? "—"}
             </div>
           </div>
+          <div className="rounded-md border border-white/15 bg-white/5 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wider text-white/60">
+              Speed
+            </div>
+            <div className="mt-1 text-sm">
+              <BotSpeedReadout
+                speed={holding.speed}
+                effectiveSpeed={holding.effectiveSpeed}
+                strikethrough={holding.speedStrikethrough}
+                tone="dark"
+              />
+            </div>
+          </div>
+          <div className="rounded-md border border-white/15 bg-white/5 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wider text-white/60">
+              Carry
+            </div>
+            <div className="mt-1 text-sm text-white">
+              {formatWeightKgForDisplay(holding.carriedWeightKg)} /{" "}
+              {formatWeightKgForDisplay(
+                holding.effectiveMaxCarryWeight ?? holding.maxCarryWeight
+              )}{" "}
+              kg
+            </div>
+          </div>
+          <div className="rounded-md border border-white/15 bg-white/5 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wider text-white/60">
+              Height
+            </div>
+            <div className="mt-1 text-sm text-white">
+              {holding.heightMetres != null
+                ? `${formatWeightKgForDisplay(holding.heightMetres)} m`
+                : "—"}
+            </div>
+          </div>
+          <div className="rounded-md border border-white/15 bg-white/5 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wider text-white/60">
+              Weight
+            </div>
+            <div className="mt-1 text-sm text-white">
+              {holding.weight != null
+                ? `${formatWeightKgForDisplay(holding.weight)} kg`
+                : "—"}
+            </div>
+          </div>
         </div>
+
+        <BotHoldingTracksSection
+          holding={holding}
+          locked={locked}
+          onSave={save}
+        />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">

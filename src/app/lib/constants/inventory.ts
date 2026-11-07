@@ -77,15 +77,15 @@ export function isVehicleItemLocation(
   );
 }
 
-export function botInstalledItemLocation(botCharacterId: string): string {
+function botInstalledItemLocation(botCharacterId: string): string {
   return `${BOT_INSTALLED_LOCATION_PREFIX}${botCharacterId}`;
 }
 
-export function botCargoItemLocation(botCharacterId: string): string {
+function botCargoItemLocation(botCharacterId: string): string {
   return `${BOT_CARGO_LOCATION_PREFIX}${botCharacterId}`;
 }
 
-export function botCarriedItemLocation(botCharacterId: string): string {
+function botCarriedItemLocation(botCharacterId: string): string {
   return `${BOT_CARRIED_LOCATION_PREFIX}${botCharacterId}`;
 }
 

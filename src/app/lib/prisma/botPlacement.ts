@@ -8,6 +8,23 @@ import {
   parseVehicleMountedItemLocation,
   type BotPlacement,
 } from "@/app/lib/constants/inventory";
+import {
+  BOT_BODY_FULL_MESSAGE,
+  BOT_CARRY_LIMIT_MESSAGE,
+  BOT_EQUIP_NOT_CARRIED_MESSAGE,
+  BOT_EQUIP_SLOT_REFUSED_MESSAGE,
+  BOT_HANDS_FULL_MESSAGE,
+  BOT_ITEM_SLOT_MESSAGE,
+  BOT_NOT_EQUIPPED_MESSAGE,
+  botBodyOccupied,
+  botCarriedLoadRefused,
+  botEffectiveMaxCarry,
+  botEquipSlotRefused,
+  botHandCanFit,
+  botHandsUsed,
+  itemFitsBotSlot,
+} from "@/app/lib/botCarry";
+import { getItemCost } from "@/app/lib/equipUtils";
 import type { BotPlacedItem, BotPlacementSummary } from "@/app/lib/types/bot";
 import { prisma } from "./client";
 import { hydrateItemCharacters } from "./itemCharacter";
@@ -22,11 +39,9 @@ export class BotPlacementConflictError extends Error {
   }
 }
 
-export const BOT_NOT_INSTALLABLE_MESSAGE =
-  "This item cannot be installed on a bot";
+const BOT_NOT_INSTALLABLE_MESSAGE = "This item cannot be installed on a bot";
 
-export const BOT_ALREADY_ON_VEHICLE_MESSAGE =
-  "That item is already on a vehicle";
+const BOT_ALREADY_ON_VEHICLE_MESSAGE = "That item is already on a vehicle";
 
 export const BOT_HOLDING_REMOVE_BLOCKED_MESSAGE =
   "Return placed items to carried inventory before removing this bot";
@@ -44,6 +59,7 @@ type InventoryRow = {
   status: string;
   isEquipped: boolean;
   equipSlots: string[];
+  botEquipSlots?: string[] | null;
 };
 
 type HydratedRow = InventoryRow & {
@@ -52,6 +68,8 @@ type HydratedRow = InventoryRow & {
     name?: string;
     weight?: number | null;
     botInstallable?: boolean | null;
+    equipSlotCost?: number | null;
+    equipSlotTypes?: string[] | null;
   } | null;
 };
 
@@ -84,8 +102,11 @@ function toPlacedItem(entry: HydratedRow): BotPlacedItem {
           name: entry.item.name ?? "Item",
           weight: unitWeight,
           botInstallable: entry.item.botInstallable === true,
+          equipSlotCost: entry.item.equipSlotCost ?? null,
+          equipSlotTypes: entry.item.equipSlotTypes ?? [],
         }
       : null,
+    botEquipSlots: entry.botEquipSlots ?? [],
   };
 }
 
@@ -190,6 +211,7 @@ export async function placeItemOnBot(args: {
   place: BotPlacement;
   maxCargoWeightKg: number | null;
   maxInstalledItems: number | null;
+  maxCarryWeight: number | null;
 }): Promise<void> {
   const holding = await prisma.botCharacter.findFirst({
     where: { id: args.botCharacterId, characterId: args.characterId },
@@ -262,6 +284,22 @@ export async function placeItemOnBot(args: {
     }
   }
 
+  if (args.place === "carried") {
+    const alreadyCarried = currentPlace?.place === "carried";
+    const nextWeight =
+      current.carriedWeightKg + (alreadyCarried ? 0 : incomingWeight);
+    const effectiveMax = botEffectiveMaxCarry(
+      args.maxCarryWeight,
+      current.carriedItems.map((item) => ({
+        botEquipSlots: item.botEquipSlots,
+        itemName: item.item?.name,
+      }))
+    );
+    if (botCarriedLoadRefused(nextWeight, effectiveMax)) {
+      throw new BotPlacementConflictError(BOT_CARRY_LIMIT_MESSAGE);
+    }
+  }
+
   if (args.place === "cargo" && args.maxCargoWeightKg != null) {
     const alreadyCargo = currentPlace?.place === "cargo";
     const nextWeight =
@@ -284,6 +322,7 @@ export async function placeItemOnBot(args: {
         itemLocation: targetLocation,
         isEquipped: false,
         equipSlots: [],
+        ...(args.place === "carried" ? {} : { botEquipSlots: [] }),
       },
     });
     if (args.place === "installed") {
@@ -329,7 +368,100 @@ export async function returnBotItemToCarried(args: {
     });
     await tx.itemCharacter.update({
       where: { id: item.id },
-      data: { itemLocation: ITEM_LOCATION_CARRIED },
+      data: { itemLocation: ITEM_LOCATION_CARRIED, botEquipSlots: [] },
     });
+  });
+}
+
+export async function setBotEquip(args: {
+  characterId: string;
+  botCharacterId: string;
+  itemCharacterId: string;
+  action: "equip" | "unequip";
+  slot: "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN";
+}): Promise<void> {
+  if (botEquipSlotRefused(args.slot)) {
+    throw new BotPlacementConflictError(BOT_EQUIP_SLOT_REFUSED_MESSAGE);
+  }
+  const slot = args.slot === "HAND" ? "HAND" : "BODY";
+
+  const holding = await prisma.botCharacter.findFirst({
+    where: { id: args.botCharacterId, characterId: args.characterId },
+  });
+  if (!holding) {
+    throw new BotPlacementConflictError(
+      "Bot holding not found for this character",
+      404
+    );
+  }
+
+  const item = await prisma.itemCharacter.findFirst({
+    where: { id: args.itemCharacterId, characterId: args.characterId },
+  });
+  const place = parseBotItemLocation(item?.itemLocation);
+  if (!item || place?.botCharacterId !== args.botCharacterId) {
+    throw new BotPlacementConflictError(BOT_EQUIP_NOT_CARRIED_MESSAGE);
+  }
+  if (place.place !== "carried") {
+    throw new BotPlacementConflictError(BOT_EQUIP_NOT_CARRIED_MESSAGE);
+  }
+
+  const inventory = await inventoryForCharacters([args.characterId]);
+  const rows = (inventory.get(args.characterId) ?? []).filter((row) => {
+    const rowPlace = parseBotItemLocation(row.itemLocation);
+    return (
+      rowPlace?.botCharacterId === args.botCharacterId &&
+      rowPlace.place === "carried"
+    );
+  });
+  const [hydrated] = (await hydrateItemCharacters([item])) as HydratedRow[];
+  const currentSlots = item.botEquipSlots ?? [];
+
+  if (args.action === "unequip") {
+    if (!currentSlots.includes(slot)) {
+      throw new BotPlacementConflictError(BOT_NOT_EQUIPPED_MESSAGE);
+    }
+    await prisma.itemCharacter.update({
+      where: { id: item.id },
+      data: {
+        botEquipSlots: currentSlots.filter((entry) => entry !== slot),
+        isEquipped: false,
+        equipSlots: [],
+      },
+    });
+    return;
+  }
+
+  if (!itemFitsBotSlot(slot, hydrated?.item?.equipSlotTypes)) {
+    throw new BotPlacementConflictError(BOT_ITEM_SLOT_MESSAGE);
+  }
+  if (currentSlots.includes(slot)) return;
+
+  if (slot === "HAND") {
+    const used = botHandsUsed(
+      rows.map((row) => ({
+        id: row.id,
+        botEquipSlots: row.botEquipSlots,
+        equipSlotCost: row.item?.equipSlotCost,
+      }))
+    );
+    if (!botHandCanFit(used, getItemCost(hydrated?.item?.equipSlotCost))) {
+      throw new BotPlacementConflictError(BOT_HANDS_FULL_MESSAGE);
+    }
+  } else if (
+    botBodyOccupied(
+      rows.map((row) => ({ id: row.id, botEquipSlots: row.botEquipSlots }))
+    )
+  ) {
+    throw new BotPlacementConflictError(BOT_BODY_FULL_MESSAGE);
+  }
+
+  await prisma.itemCharacter.update({
+    where: { id: item.id },
+    data: {
+      botEquipSlots: [...currentSlots, slot],
+      isEquipped: false,
+      equipSlots: [],
+    },
   });
 }

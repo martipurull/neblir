@@ -1,4 +1,10 @@
 import { BOT_DAMAGE_PROFILE } from "@/app/lib/botDamageProfile";
+import { botEffectiveMaxCarry, botSpeedFromLoad } from "@/app/lib/botCarry";
+import {
+  presentBotTracks,
+  type BotHoldingTrackState,
+  type BotTrackStats,
+} from "@/app/lib/botTracks";
 import type {
   BotHolding,
   BotPlacementSummary,
@@ -6,7 +12,7 @@ import type {
 } from "@/app/lib/types/bot";
 
 /** Template fields a holding displays. Official bots also carry an access type. */
-export type BotTemplateView = {
+export type BotTemplateView = BotTrackStats & {
   id: string;
   name: string;
   imageKey?: string | null;
@@ -20,6 +26,14 @@ export type BotTemplateView = {
   maxCargoWeightKg?: number | null;
   /** Unset means installed hardware is not capped. */
   maxInstalledItems?: number | null;
+  /** Movement speed in metres, before carry load. */
+  speed?: number | null;
+  /** Base max carry weight in kilograms. */
+  maxCarryWeight?: number | null;
+  /** Descriptive height in metres. */
+  heightMetres?: number | null;
+  /** Descriptive weight in kilograms. Does not encumber the holding character. */
+  weight?: number | null;
   /** Unique bot's game. Absent on Official and Custom templates. */
   gameId?: string | null;
   /** User who minted a Unique bot. */
@@ -42,7 +56,7 @@ export type BotHoldingRow = {
   currentHp: number;
   maxHpBonus: number;
   notes: string | null;
-};
+} & Partial<BotHoldingTrackState>;
 
 export type BotHoldingSource = "OFFICIAL" | "CUSTOM" | "UNIQUE";
 
@@ -61,9 +75,7 @@ export function missingBotTemplateMessage(source: BotHoldingSource): string {
 }
 
 /** Official bots keep their access type. Custom bots expose the shared frame only. */
-export function projectHoldingBot(
-  bot: BotTemplateView | null
-): BotHolding["bot"] {
+function projectHoldingBot(bot: BotTemplateView | null): BotHolding["bot"] {
   if (bot == null) return null;
   if (bot.accessType) {
     return {
@@ -112,11 +124,7 @@ function botDisplayName(
   return template.length > 0 ? template : "Unknown bot";
 }
 
-function botCondition(currentHp: number): BotHolding["condition"] {
-  return currentHp <= 0 ? "BROKEN" : "OPERATIONAL";
-}
-
-export const EMPTY_BOT_PLACEMENTS: BotPlacementSummary = {
+const EMPTY_BOT_PLACEMENTS: BotPlacementSummary = {
   installedItems: [],
   cargoItems: [],
   carriedItems: [],
@@ -145,11 +153,51 @@ export function presentBotHolding(
     maxHpBonus: row.maxHpBonus,
     effectiveMaxHp,
     notes: row.notes,
-    condition: botCondition(row.currentHp),
+    ...presentBotTracks(bot, row, row.currentHp),
     damageProfile: [...BOT_DAMAGE_PROFILE],
     bot: projectHoldingBot(bot),
     maxCargoWeightKg: bot?.maxCargoWeightKg ?? null,
     maxInstalledItems: bot?.maxInstalledItems ?? null,
     ...placements,
+    ...botLoadFacts(bot, placements),
+  };
+}
+
+function botLoadFacts(
+  bot: BotTemplateView | null,
+  placements: BotPlacementSummary
+): Pick<
+  BotHolding,
+  | "speed"
+  | "effectiveSpeed"
+  | "speedStrikethrough"
+  | "maxCarryWeight"
+  | "effectiveMaxCarryWeight"
+  | "heightMetres"
+  | "weight"
+> {
+  const loadItems = placements.carriedItems.map((item) => ({
+    botEquipSlots: item.botEquipSlots,
+    itemName: item.item?.name,
+  }));
+  const maxCarryWeight = bot?.maxCarryWeight ?? 0;
+  const effectiveMaxCarryWeight = botEffectiveMaxCarry(
+    maxCarryWeight,
+    loadItems
+  );
+  const speed = Math.max(0, bot?.speed ?? 0);
+  const { effectiveSpeed, speedStrikethrough } = botSpeedFromLoad(
+    speed,
+    placements.carriedWeightKg,
+    effectiveMaxCarryWeight
+  );
+  return {
+    speed,
+    effectiveSpeed,
+    speedStrikethrough,
+    maxCarryWeight,
+    effectiveMaxCarryWeight,
+    heightMetres: bot?.heightMetres ?? null,
+    weight: bot?.weight ?? null,
   };
 }

@@ -1,4 +1,10 @@
+import { batteryUsedDrop } from "@/app/lib/botTracks";
+import {
+  listBotCharacterRowsByBot,
+  updateBotCharacter,
+} from "@/app/lib/prisma/botCharacter";
 import { getCustomBot, updateCustomBot } from "@/app/lib/prisma/customBot";
+import { listUniqueBotsForTemplate } from "@/app/lib/prisma/uniqueBot";
 import { getGame, userIsInGame } from "@/app/lib/prisma/game";
 import { customBotUpdateSchema } from "@/app/lib/types/bot";
 import type { AuthNextRequest } from "@/app/lib/types/api";
@@ -7,6 +13,27 @@ import { logger } from "@/logger";
 import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
+
+async function dropBatteryUsed(
+  rows: Array<{
+    id: string;
+    batteryUsed?: number | null;
+    batteryUpgrade?: number | null;
+  }>,
+  baseCapacity: number
+) {
+  await Promise.all(
+    rows.map(async (row) => {
+      const next = batteryUsedDrop(
+        row.batteryUsed,
+        row.batteryUpgrade,
+        baseCapacity
+      );
+      if (next == null) return;
+      await updateBotCharacter(row.id, { batteryUsed: next });
+    })
+  );
+}
 
 export const GET = auth(async (request: AuthNextRequest, { params }) => {
   try {
@@ -94,6 +121,23 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const updated = await updateCustomBot(botId, parsed.data);
+    if (parsed.data.batteryCapacity !== undefined) {
+      const nextBase = parsed.data.batteryCapacity;
+      const holdings = await listBotCharacterRowsByBot(botId);
+      await dropBatteryUsed(
+        holdings.filter((row) => (row.sourceType ?? "OFFICIAL") === "CUSTOM"),
+        nextBase
+      );
+      const uniques = await listUniqueBotsForTemplate("CUSTOM", botId);
+      for (const unique of uniques) {
+        if (unique.batteryCapacityOverride != null) continue;
+        const uniqueHoldings = await listBotCharacterRowsByBot(unique.id);
+        await dropBatteryUsed(
+          uniqueHoldings.filter((row) => row.sourceType === "UNIQUE"),
+          nextBase
+        );
+      }
+    }
     return NextResponse.json(updated);
   } catch (error) {
     logger.error({

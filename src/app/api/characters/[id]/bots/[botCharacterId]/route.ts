@@ -7,6 +7,14 @@ import {
   effectiveBotMaxHp,
   presentBotHolding,
 } from "@/app/lib/botHoldingView";
+import {
+  BOT_BATTERY_USED_OUT_OF_RANGE_MESSAGE,
+  BOT_UPGRADE_OUT_OF_RANGE_MESSAGE,
+  effectiveBatteryCapacity,
+  readBotTrackStats,
+  readHoldingTracks,
+  upgradeWrite,
+} from "@/app/lib/botTracks";
 import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   deleteBotCharacter,
@@ -101,6 +109,34 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     } else if (action === "setCustomName") {
       updated = await updateBotCharacter(botCharacterId, {
         customName: blankToNull(parsed.data.customName),
+      });
+    } else if (action === "setUpgrade") {
+      const write = upgradeWrite(
+        parsed.data.track,
+        parsed.data.upgrade,
+        bot,
+        existing
+      );
+      if (!write.ok) {
+        return errorResponse(BOT_UPGRADE_OUT_OF_RANGE_MESSAGE, 400);
+      }
+      updated = await updateBotCharacter(botCharacterId, write.data);
+    } else if (action === "setBatteryUsed") {
+      const stats = readBotTrackStats(bot);
+      const holding = readHoldingTracks(existing);
+      const capacity = effectiveBatteryCapacity(
+        stats.batteryCapacity,
+        holding.batteryUpgrade
+      );
+      if (parsed.data.batteryUsed < 0 || parsed.data.batteryUsed > capacity) {
+        return errorResponse(BOT_BATTERY_USED_OUT_OF_RANGE_MESSAGE, 400);
+      }
+      updated = await updateBotCharacter(botCharacterId, {
+        batteryUsed: parsed.data.batteryUsed,
+      });
+    } else if (action === "setBeyondRepair") {
+      updated = await updateBotCharacter(botCharacterId, {
+        isBeyondRepair: parsed.data.isBeyondRepair,
       });
     } else {
       updated = await updateBotCharacter(botCharacterId, {

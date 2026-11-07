@@ -7,6 +7,12 @@ import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import {
+  BOT_TEMPLATE_TRACK_FIELDS,
+  DEFAULT_BOT_TRACK_STATS,
+  readBotTrackStats,
+  type BotTrackStats,
+} from "@/app/lib/botTracks";
+import {
   botSchema,
   botUpdateSchema,
   type BotAccessType,
@@ -37,7 +43,11 @@ type BotFormValues = {
   maxHp: number;
   maxCargoWeightKg?: number;
   maxInstalledItems?: number;
-};
+  speed: number;
+  maxCarryWeight: number;
+  heightMetres?: number;
+  weight?: number;
+} & BotTrackStats;
 
 const accessOptions = [
   { value: "PLAYER", label: "Player" },
@@ -56,6 +66,11 @@ function createDefaults(): BotFormValues {
     maxHp: 1,
     maxCargoWeightKg: undefined,
     maxInstalledItems: undefined,
+    speed: 0,
+    maxCarryWeight: 0,
+    heightMetres: undefined,
+    weight: undefined,
+    ...DEFAULT_BOT_TRACK_STATS,
   };
 }
 
@@ -71,6 +86,11 @@ function botToFormValues(bot: OfficialBot): BotFormValues {
     maxHp: bot.maxHp,
     maxCargoWeightKg: bot.maxCargoWeightKg ?? undefined,
     maxInstalledItems: bot.maxInstalledItems ?? undefined,
+    speed: bot.speed ?? 0,
+    maxCarryWeight: bot.maxCarryWeight ?? 0,
+    heightMetres: bot.heightMetres ?? undefined,
+    weight: bot.weight ?? undefined,
+    ...readBotTrackStats(bot),
   };
 }
 
@@ -156,6 +176,20 @@ function SuperAdminBotFormFields({
       maxHp: values.maxHp,
       maxCargoWeightKg: values.maxCargoWeightKg ?? null,
       maxInstalledItems: values.maxInstalledItems ?? null,
+      speed: values.speed,
+      maxCarryWeight: values.maxCarryWeight,
+      heightMetres: values.heightMetres ?? null,
+      weight: values.weight ?? null,
+      processingPower: values.processingPower,
+      processingPowerMaxPotential: values.processingPowerMaxPotential,
+      physicalPower: values.physicalPower,
+      physicalPowerMaxPotential: values.physicalPowerMaxPotential,
+      finesseCapacity: values.finesseCapacity,
+      finesseCapacityMaxPotential: values.finesseCapacityMaxPotential,
+      gridProtection: values.gridProtection,
+      gridProtectionMaxPotential: values.gridProtectionMaxPotential,
+      batteryCapacity: values.batteryCapacity,
+      batteryMaxPotential: values.batteryMaxPotential,
     };
     const parsed = (isEdit ? botUpdateSchema : botSchema).safeParse(payload);
     if (!parsed.success) {
@@ -266,6 +300,39 @@ function SuperAdminBotFormFields({
                 className="mb-0"
               />
               <NumberInput
+                name="speed"
+                label="Speed (m)"
+                min={0}
+                parseAs="int"
+                className="mb-0"
+              />
+              <NumberInput
+                name="maxCarryWeight"
+                label="Max carry (kg)"
+                min={0}
+                step="any"
+                parseAs="float"
+                className="mb-0"
+              />
+              <NumberInput
+                name="heightMetres"
+                label="Height (m, descriptive)"
+                min={0}
+                step="any"
+                parseAs="float"
+                allowEmpty
+                className="mb-0"
+              />
+              <NumberInput
+                name="weight"
+                label="Weight (kg, descriptive)"
+                min={0}
+                step="any"
+                parseAs="float"
+                allowEmpty
+                className="mb-0"
+              />
+              <NumberInput
                 name="maxCargoWeightKg"
                 label="Cargo max (kg, empty = no cap)"
                 min={0}
@@ -282,6 +349,17 @@ function SuperAdminBotFormFields({
                 allowEmpty
                 className="mb-0"
               />
+              {BOT_TEMPLATE_TRACK_FIELDS.map((field) => (
+                <NumberInput
+                  key={field.key}
+                  name={field.key}
+                  label={field.label}
+                  min={field.min}
+                  max={field.max}
+                  parseAs="int"
+                  className="mb-0"
+                />
+              ))}
             </div>
 
             <SuperAdminCatalogueImageBlock

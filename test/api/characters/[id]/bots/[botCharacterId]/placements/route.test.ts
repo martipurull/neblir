@@ -29,6 +29,7 @@ type Stack = {
   status: "FUNCTIONAL";
   isEquipped: boolean;
   equipSlots: string[];
+  botEquipSlots?: string[];
   currentUses: number;
 };
 
@@ -43,6 +44,8 @@ type CatalogueItem = {
   name: string;
   weight: number;
   botInstallable: boolean;
+  equipSlotCost?: number | null;
+  equipSlotTypes?: string[];
   vehicleMountable: boolean;
   maxUses: number | null;
   modifiesAttribute: null;
@@ -73,6 +76,10 @@ type BotRow = {
   maxHp: number;
   maxCargoWeightKg: number | null;
   maxInstalledItems: number | null;
+  speed?: number;
+  maxCarryWeight?: number;
+  heightMetres?: number | null;
+  weight?: number | null;
 };
 
 type CustomBotRow = {
@@ -87,6 +94,8 @@ type CustomBotRow = {
   membersCanModify: boolean;
   maxCargoWeightKg: number | null;
   maxInstalledItems: number | null;
+  speed?: number;
+  maxCarryWeight?: number;
 };
 
 const state = {
@@ -322,6 +331,10 @@ function resetStore() {
     maxHp: 12,
     maxCargoWeightKg: null,
     maxInstalledItems: null,
+    speed: 8,
+    maxCarryWeight: 100,
+    heightMetres: null,
+    weight: null,
   });
   state.bots.set("bot-2", {
     id: "bot-2",
@@ -335,6 +348,8 @@ function resetStore() {
     maxHp: 8,
     maxCargoWeightKg: null,
     maxInstalledItems: null,
+    speed: 6,
+    maxCarryWeight: 40,
   });
   state.customBots.set("cb-1", {
     id: "cb-1",
@@ -348,19 +363,32 @@ function resetStore() {
     membersCanModify: false,
     maxCargoWeightKg: null,
     maxInstalledItems: null,
+    speed: 7,
+    maxCarryWeight: 50,
   });
 }
 
-function addCatalogueItem(id: string, weight: number, botInstallable: boolean) {
+function addCatalogueItem(
+  id: string,
+  weight: number,
+  botInstallable: boolean,
+  extras?: {
+    name?: string;
+    equipSlotCost?: number | null;
+    equipSlotTypes?: string[];
+  }
+) {
   state.catalogue.set(id, {
     id,
-    name: id,
+    name: extras?.name ?? id,
     weight,
     botInstallable,
     vehicleMountable: true,
     maxUses: null,
     modifiesAttribute: null,
     modifiesSkill: null,
+    equipSlotCost: extras?.equipSlotCost,
+    equipSlotTypes: extras?.equipSlotTypes,
   });
 }
 
@@ -385,6 +413,33 @@ function addStack(args: {
     equipSlots: [],
     currentUses: 0,
   });
+}
+
+async function placeOnBot(
+  itemCharacterId: string,
+  placeName: "installed" | "cargo" | "carried"
+) {
+  const { POST } =
+    await import("@/app/api/characters/[id]/bots/[botCharacterId]/placements/route");
+  return invokeRoute(
+    POST,
+    makeAuthedRequest({ itemCharacterId, place: placeName }, "user-1"),
+    makeParams({ id: "char-1", botCharacterId: "hold-1" })
+  );
+}
+
+async function equipOnBot(
+  itemCharacterId: string,
+  action: "equip" | "unequip",
+  slot: "HAND" | "FOOT" | "BODY" | "HEAD" | "BRAIN"
+) {
+  const { POST } =
+    await import("@/app/api/characters/[id]/bots/[botCharacterId]/equip/route");
+  return invokeRoute(
+    POST,
+    makeAuthedRequest({ itemCharacterId, action, slot }, "user-1"),
+    makeParams({ id: "char-1", botCharacterId: "hold-1" })
+  );
 }
 
 function characterCarryKg(characterId: string): number {
@@ -1180,5 +1235,279 @@ describe("bot placements", () => {
     expect(state.links).toEqual([
       expect.objectContaining({ itemCharacterId: "ic-giver" }),
     ]);
+  });
+
+  it("leaves speed unchanged at or under half load and ignores the bot's own weight", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 10;
+    bot.maxCarryWeight = 10;
+    bot.weight = 400;
+    bot.heightMetres = 1.8;
+    addCatalogueItem("light", 5, false);
+    addStack({ id: "ic-light", itemId: "light" });
+
+    const response = await placeOnBot("ic-light", "carried");
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.effectiveSpeed).toBe(10);
+    expect(body.speedStrikethrough).toBe(false);
+    expect(body.weight).toBe(400);
+    expect(body.heightMetres).toBe(1.8);
+    expect(body.carriedWeightKg).toBe(5);
+    expect(characterCarryKg("char-1")).toBe(0);
+  });
+
+  it("reduces speed by 1 through 75% and by 2 through 100%", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 10;
+    bot.maxCarryWeight = 10;
+    addCatalogueItem("mid", 6, false);
+    addCatalogueItem("near", 8, false);
+    addStack({ id: "ic-mid", itemId: "mid" });
+    addStack({ id: "ic-near", itemId: "near" });
+
+    const through75 = await placeOnBot("ic-mid", "carried");
+    expect(through75.status).toBe(201);
+    const midBody = await through75.json();
+    expect(midBody.effectiveSpeed).toBe(9);
+    expect(midBody.speedStrikethrough).toBe(true);
+
+    state.items.find((row) => row.id === "ic-mid")!.itemLocation = "carried";
+    const through100 = await placeOnBot("ic-near", "carried");
+    expect(through100.status).toBe(201);
+    expect((await through100.json()).effectiveSpeed).toBe(8);
+  });
+
+  it("halves speed through 150% and floors an odd base, and cargo does not change speed", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 11;
+    bot.maxCarryWeight = 10;
+    addCatalogueItem("load", 15, false);
+    addCatalogueItem("crate", 20, false);
+    addStack({ id: "ic-load", itemId: "load" });
+    addStack({ id: "ic-crate", itemId: "crate" });
+
+    const loaded = await placeOnBot("ic-load", "carried");
+    expect(loaded.status).toBe(201);
+    const loadedBody = await loaded.json();
+    expect(loadedBody.effectiveSpeed).toBe(5);
+    expect(loadedBody.speedStrikethrough).toBe(true);
+
+    const cargo = await placeOnBot("ic-crate", "cargo");
+    expect(cargo.status).toBe(201);
+    const cargoBody = await cargo.json();
+    expect(cargoBody.cargoWeightKg).toBe(20);
+    expect(cargoBody.effectiveSpeed).toBe(5);
+  });
+
+  it("does not reduce speed below 0", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 1;
+    bot.maxCarryWeight = 10;
+    addCatalogueItem("mid", 6, false);
+    addStack({ id: "ic-mid", itemId: "mid" });
+
+    const response = await placeOnBot("ic-mid", "carried");
+    expect(response.status).toBe(201);
+    expect((await response.json()).effectiveSpeed).toBe(0);
+  });
+
+  it("refuses carried weight that would pass 150% of max carry", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 10;
+    bot.maxCarryWeight = 10;
+    addCatalogueItem("limit", 16, false);
+    addStack({ id: "ic-limit", itemId: "limit" });
+
+    const response = await placeOnBot("ic-limit", "carried");
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        message: "Carried load would pass 150% of max carry",
+      })
+    );
+    expect(state.items[0]?.itemLocation).toBe("carried");
+  });
+
+  it("raises effective max carry when a backpack is equipped on Body", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.speed = 10;
+    bot.maxCarryWeight = 10;
+    addCatalogueItem("pack", 1, false, {
+      name: "Backpack (small)",
+      equipSlotTypes: ["BODY"],
+    });
+    addCatalogueItem("load", 15, false);
+    addStack({ id: "ic-pack", itemId: "pack" });
+    addStack({ id: "ic-load", itemId: "load" });
+
+    expect((await placeOnBot("ic-pack", "carried")).status).toBe(201);
+    const equipped = await equipOnBot("ic-pack", "equip", "BODY");
+    expect(equipped.status).toBe(200);
+    expect((await equipped.json()).effectiveMaxCarryWeight).toBe(11);
+
+    const loaded = await placeOnBot("ic-load", "carried");
+    expect(loaded.status).toBe(201);
+    const body = await loaded.json();
+    expect(body.carriedWeightKg).toBe(16);
+    expect(body.effectiveMaxCarryWeight).toBe(11);
+    expect(body.maxCarryWeight).toBe(10);
+    expect(body.effectiveSpeed).toBe(5);
+  });
+
+  it("equips carried items in the hands up to cost 2 and keeps character slots empty", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    addCatalogueItem("rifle", 1, false, {
+      equipSlotCost: 2,
+      equipSlotTypes: ["HAND"],
+    });
+    addCatalogueItem("knife", 1, false, { equipSlotTypes: ["HAND"] });
+    addCatalogueItem("token", 0, false, {
+      equipSlotCost: 0,
+      equipSlotTypes: ["HAND"],
+    });
+    addStack({ id: "ic-rifle", itemId: "rifle" });
+    addStack({ id: "ic-knife", itemId: "knife" });
+    addStack({ id: "ic-token", itemId: "token" });
+
+    expect((await placeOnBot("ic-rifle", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-knife", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-token", "carried")).status).toBe(201);
+
+    const rifle = await equipOnBot("ic-rifle", "equip", "HAND");
+    expect(rifle.status).toBe(200);
+    expect(state.items.find((row) => row.id === "ic-rifle")).toEqual(
+      expect.objectContaining({
+        botEquipSlots: ["HAND"],
+        equipSlots: [],
+        isEquipped: false,
+      })
+    );
+
+    const knife = await equipOnBot("ic-knife", "equip", "HAND");
+    expect(knife.status).toBe(409);
+    expect(await knife.json()).toEqual(
+      expect.objectContaining({
+        message: "The bot's hands cannot fit that item",
+      })
+    );
+
+    const token = await equipOnBot("ic-token", "equip", "HAND");
+    expect(token.status).toBe(200);
+    expect(
+      state.items.find((row) => row.id === "ic-token")?.botEquipSlots
+    ).toEqual(["HAND"]);
+  });
+
+  it("treats a missing hand cost as 1", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    addCatalogueItem("knife", 1, false, { equipSlotTypes: ["HAND"] });
+    addCatalogueItem("dagger", 1, false, { equipSlotTypes: ["HAND"] });
+    addCatalogueItem("shiv", 1, false, { equipSlotTypes: ["HAND"] });
+    addStack({ id: "ic-knife", itemId: "knife" });
+    addStack({ id: "ic-dagger", itemId: "dagger" });
+    addStack({ id: "ic-shiv", itemId: "shiv" });
+    expect((await placeOnBot("ic-knife", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-dagger", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-shiv", "carried")).status).toBe(201);
+
+    expect((await equipOnBot("ic-knife", "equip", "HAND")).status).toBe(200);
+    expect((await equipOnBot("ic-dagger", "equip", "HAND")).status).toBe(200);
+    const shiv = await equipOnBot("ic-shiv", "equip", "HAND");
+    expect(shiv.status).toBe(409);
+    expect(await shiv.json()).toEqual(
+      expect.objectContaining({
+        message: "The bot's hands cannot fit that item",
+      })
+    );
+  });
+
+  it("refuses a second item on Body", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    addCatalogueItem("coat", 1, false, { equipSlotTypes: ["BODY"] });
+    addCatalogueItem("vest", 1, false, { equipSlotTypes: ["BODY"] });
+    addStack({ id: "ic-coat", itemId: "coat" });
+    addStack({ id: "ic-vest", itemId: "vest" });
+    expect((await placeOnBot("ic-coat", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-vest", "carried")).status).toBe(201);
+    expect((await equipOnBot("ic-coat", "equip", "BODY")).status).toBe(200);
+    const vest = await equipOnBot("ic-vest", "equip", "BODY");
+    expect(vest.status).toBe(409);
+    expect(await vest.json()).toEqual(
+      expect.objectContaining({
+        message: "The bot's Body slot cannot fit another item",
+      })
+    );
+  });
+
+  it("refuses equipping Foot, Head, or Brain", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    addCatalogueItem("boot", 1, false, {
+      equipSlotTypes: ["FOOT", "HEAD", "BRAIN"],
+    });
+    addStack({ id: "ic-boot", itemId: "boot" });
+    expect((await placeOnBot("ic-boot", "carried")).status).toBe(201);
+
+    for (const slot of ["FOOT", "HEAD", "BRAIN"] as const) {
+      const response = await equipOnBot("ic-boot", "equip", slot);
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          message: "Bots cannot equip Foot, Head, or Brain",
+        })
+      );
+    }
+    expect(state.items[0]?.botEquipSlots ?? []).toEqual([]);
+  });
+
+  it("refuses equipping an item that is not bot-carried", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    addCatalogueItem("knife", 1, false, { equipSlotTypes: ["HAND"] });
+    addStack({ id: "ic-knife", itemId: "knife" });
+
+    const carriedByCharacter = await equipOnBot("ic-knife", "equip", "HAND");
+    expect(carriedByCharacter.status).toBe(409);
+    expect(await carriedByCharacter.json()).toEqual(
+      expect.objectContaining({
+        message: "Only items this bot is carrying can be equipped",
+      })
+    );
+
+    expect((await placeOnBot("ic-knife", "cargo")).status).toBe(201);
+    const inCargo = await equipOnBot("ic-knife", "equip", "HAND");
+    expect(inCargo.status).toBe(409);
+    expect(await inCargo.json()).toEqual(
+      expect.objectContaining({
+        message: "Only items this bot is carrying can be equipped",
+      })
+    );
+  });
+
+  it("clears bot equip when a row is installed or put in cargo", async () => {
+    const bot = state.bots.get("bot-1")!;
+    bot.maxCarryWeight = 100;
+    bot.maxInstalledItems = 2;
+    addCatalogueItem("rifle", 1, true, { equipSlotTypes: ["HAND"] });
+    addCatalogueItem("coat", 1, false, { equipSlotTypes: ["BODY"] });
+    addStack({ id: "ic-rifle", itemId: "rifle" });
+    addStack({ id: "ic-coat", itemId: "coat" });
+    expect((await placeOnBot("ic-rifle", "carried")).status).toBe(201);
+    expect((await placeOnBot("ic-coat", "carried")).status).toBe(201);
+    expect((await equipOnBot("ic-rifle", "equip", "HAND")).status).toBe(200);
+    expect((await equipOnBot("ic-coat", "equip", "BODY")).status).toBe(200);
+
+    expect((await placeOnBot("ic-rifle", "installed")).status).toBe(201);
+    expect(
+      state.items.find((row) => row.id === "ic-rifle")?.botEquipSlots
+    ).toEqual([]);
+    expect((await placeOnBot("ic-coat", "cargo")).status).toBe(201);
+    expect(
+      state.items.find((row) => row.id === "ic-coat")?.botEquipSlots
+    ).toEqual([]);
   });
 });

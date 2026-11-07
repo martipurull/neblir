@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  botCargoItemLocation,
-  botCarriedItemLocation,
-  botInstalledItemLocation,
+  botItemLocation,
   vehicleCargoItemLocation,
   vehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
@@ -63,9 +61,9 @@ describe("projectStoredInventory", () => {
     const layout = projectStoredInventory(
       [
         holding("crate", "Crate", "Locker"),
-        holding("blade", "Blade", botInstalledItemLocation("scout")),
-        holding("pack", "Pack", botCargoItemLocation("scout")),
-        holding("lamp", "Lamp", botCarriedItemLocation("hauler")),
+        holding("blade", "Blade", botItemLocation("installed", "scout")),
+        holding("pack", "Pack", botItemLocation("cargo", "scout")),
+        holding("lamp", "Lamp", botItemLocation("carried", "hauler")),
       ],
       { botNamesById: { scout: "Scout", hauler: "Hauler" } }
     );

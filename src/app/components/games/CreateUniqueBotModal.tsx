@@ -1,5 +1,6 @@
 "use client";
 
+import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
@@ -8,6 +9,11 @@ import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone
 import { SelectField } from "@/app/components/shared/SelectField";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import {
+  emptyTrackFieldText,
+  trackFieldTextFromOverrides,
+  trackOverridesFromFieldText,
+} from "@/app/lib/botTracks";
 import {
   uniqueBotCreateSchema,
   uniqueBotUpdateSchema,
@@ -88,9 +94,14 @@ function CreateUniqueBotModalBody({
   const [confCost, setConfCost] = useState("");
   const [maxCargoWeightKg, setMaxCargoWeightKg] = useState("");
   const [maxInstalledItems, setMaxInstalledItems] = useState("");
+  const [speed, setSpeed] = useState("");
+  const [maxCarryWeight, setMaxCarryWeight] = useState("");
+  const [heightMetres, setHeightMetres] = useState("");
+  const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [usage, setUsage] = useState("");
   const [notes, setNotes] = useState("");
+  const [tracks, setTracks] = useState(emptyTrackFieldText);
   const [loadingEdit, setLoadingEdit] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,9 +152,14 @@ function CreateUniqueBotModalBody({
         setConfCost(numberText(bot.confCostOverride));
         setMaxCargoWeightKg(numberText(bot.maxCargoWeightKgOverride));
         setMaxInstalledItems(numberText(bot.maxInstalledItemsOverride));
+        setSpeed(numberText(bot.speedOverride));
+        setMaxCarryWeight(numberText(bot.maxCarryWeightOverride));
+        setHeightMetres(numberText(bot.heightMetresOverride));
+        setWeight(numberText(bot.weightOverride));
         setDescription(bot.descriptionOverride ?? "");
         setUsage(bot.usageOverride ?? "");
         setNotes(bot.notesOverride ?? "");
+        setTracks(trackFieldTextFromOverrides(bot));
         if (bot.imageKeyOverride) {
           setImageKey(bot.imageKeyOverride);
         }
@@ -179,6 +195,11 @@ function CreateUniqueBotModalBody({
       maxHpOverride: optionalNumber(maxHp),
       maxCargoWeightKgOverride: optionalNumber(maxCargoWeightKg),
       maxInstalledItemsOverride: optionalNumber(maxInstalledItems),
+      speedOverride: optionalNumber(speed),
+      maxCarryWeightOverride: optionalNumber(maxCarryWeight),
+      heightMetresOverride: optionalNumber(heightMetres),
+      weightOverride: optionalNumber(weight),
+      ...trackOverridesFromFieldText(tracks),
     };
 
     if (isEdit && editUniqueBotId) {
@@ -321,6 +342,46 @@ function CreateUniqueBotModalBody({
         step={1}
       />
       <ModalNumberField
+        id="unique-bot-speed"
+        label={isStandalone ? "Speed (m)" : "Speed override (m)"}
+        value={speed}
+        onChange={setSpeed}
+        disabled={busy}
+        required={false}
+        min={0}
+        step={1}
+      />
+      <ModalNumberField
+        id="unique-bot-max-carry"
+        label={isStandalone ? "Max carry (kg)" : "Max carry override (kg)"}
+        value={maxCarryWeight}
+        onChange={setMaxCarryWeight}
+        disabled={busy}
+        required={false}
+        min={0}
+        step={0.1}
+      />
+      <ModalNumberField
+        id="unique-bot-height"
+        label={isStandalone ? "Height (m)" : "Height override (m)"}
+        value={heightMetres}
+        onChange={setHeightMetres}
+        disabled={busy}
+        required={false}
+        min={0}
+        step={0.1}
+      />
+      <ModalNumberField
+        id="unique-bot-weight"
+        label={isStandalone ? "Weight (kg)" : "Weight override (kg)"}
+        value={weight}
+        onChange={setWeight}
+        disabled={busy}
+        required={false}
+        min={0}
+        step={0.1}
+      />
+      <ModalNumberField
         id="unique-bot-cargo"
         label="Max cargo kg"
         value={maxCargoWeightKg}
@@ -339,6 +400,21 @@ function CreateUniqueBotModalBody({
         required={false}
         min={0}
         step={1}
+      />
+      <p className="text-xs text-white/65">
+        {isStandalone
+          ? "Blank bases use 0. Blank battery capacity uses 1."
+          : "Leave a track blank to keep the template value."}
+      </p>
+      <DarkBotTrackFields
+        idPrefix="unique-bot"
+        values={tracks}
+        disabled={busy}
+        required={false}
+        labelFor={(label) => (isStandalone ? label : `${label} override`)}
+        onChange={(key, value) =>
+          setTracks((current) => ({ ...current, [key]: value }))
+        }
       />
       <div>
         <FieldLabel id="unique-bot-description" label="Description" />

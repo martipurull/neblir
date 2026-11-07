@@ -7,7 +7,9 @@ import {
   botConditionClassName,
   botConditionLabel,
 } from "@/app/components/character/BotDamageProfile";
+import { shownTrackFigure } from "@/app/lib/botTracks";
 import { BotDetailModal } from "@/app/components/character/BotDetailModal";
+import { BotSpeedReadout } from "@/app/components/character/BotSpeedReadout";
 import type { CharacterSectionSlide } from "@/app/components/character/CharacterSectionCarousel";
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
@@ -249,11 +251,38 @@ function BotHoldingRow({
             {botConditionLabel(holding.condition)}
           </span>
         </div>
-        <p className="mt-1 text-xs text-black/65">
-          {holding.effectiveMaxHp != null
-            ? `${holding.currentHp} / ${holding.effectiveMaxHp} HP`
-            : `${holding.currentHp} HP`}
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-black/65">
+          <span>
+            {holding.effectiveMaxHp != null
+              ? `${holding.currentHp} / ${holding.effectiveMaxHp} HP`
+              : `${holding.currentHp} HP`}
+          </span>
+          <BotSpeedReadout
+            speed={holding.speed}
+            effectiveSpeed={holding.effectiveSpeed}
+            strikethrough={holding.speedStrikethrough}
+          />
+          <span>
+            Battery{" "}
+            {shownTrackFigure(
+              holding.battery.base,
+              holding.battery.effectiveCapacity,
+              holding.battery.signedUpgrade
+            )}
+            {" · "}
+            {holding.battery.used} used
+          </span>
         </p>
+        {holding.mayRoll ? null : (
+          <p className="mt-1 text-xs text-neblirDanger-600">
+            Cannot roll
+            {holding.rollBlockedReason === "BATTERY_EMPTY"
+              ? ": Battery empty"
+              : holding.rollBlockedReason === "BEYOND_REPAIR"
+                ? ": Beyond repair"
+                : ": Broken"}
+          </p>
+        )}
         <div className="mt-2">
           <BotDamageProfile profile={holding.damageProfile} tone="light" />
         </div>

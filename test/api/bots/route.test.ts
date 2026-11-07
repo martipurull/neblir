@@ -90,6 +90,41 @@ describe("/api/bots route handlers", () => {
     });
   });
 
+  it("POST stores speed, max carry, and descriptive height and weight", async () => {
+    const frame = {
+      ...officialBot,
+      speed: 8,
+      maxCarryWeight: 40,
+      heightMetres: 1.7,
+      weight: 90,
+    };
+    createBotMock.mockResolvedValue({ id: "bot-1", ...frame });
+    const { POST } = await import("@/app/api/bots/route");
+
+    const response = await invokeRoute(POST, makeAuthedRequest(frame));
+
+    expect(response.status).toBe(201);
+    expect(createBotMock).toHaveBeenCalledWith(frame, {
+      officialCatalogueWrite: true,
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      speed: 8,
+      maxCarryWeight: 40,
+      heightMetres: 1.7,
+      weight: 90,
+    });
+  });
+
+  it("POST returns 400 when speed is negative", async () => {
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, speed: -1 })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
   it("POST returns 409 when the Official name matches after case and extra spaces", async () => {
     getBotsMock.mockResolvedValue([{ id: "bot-1", name: "Loader" }]);
     const { POST } = await import("@/app/api/bots/route");
@@ -151,5 +186,63 @@ describe("/api/bots route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual([catalogue[0]]);
+  });
+
+  it("POST stores attribute bases, max potentials, and battery capacity", async () => {
+    const tracks = {
+      processingPower: 2,
+      processingPowerMaxPotential: 4,
+      physicalPower: -5,
+      physicalPowerMaxPotential: 0,
+      finesseCapacity: 5,
+      finesseCapacityMaxPotential: 5,
+      gridProtection: 0,
+      gridProtectionMaxPotential: 1,
+      batteryCapacity: 10,
+      batteryMaxPotential: 3,
+    };
+    createBotMock.mockResolvedValue({ id: "bot-1", ...officialBot, ...tracks });
+    const { POST } = await import("@/app/api/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, ...tracks })
+    );
+
+    expect(response.status).toBe(201);
+    expect(createBotMock).toHaveBeenCalledWith(
+      { ...officialBot, ...tracks },
+      { officialCatalogueWrite: true }
+    );
+  });
+
+  it("POST returns 400 when Processing Power is above +5", async () => {
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, processingPower: 6 })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 400 when battery capacity is below 1", async () => {
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, batteryCapacity: 0 })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 400 when a max potential is above +5", async () => {
+    const { POST } = await import("@/app/api/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...officialBot, gridProtectionMaxPotential: 6 })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
   });
 });

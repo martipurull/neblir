@@ -223,4 +223,38 @@ describe("GET /api/unique-bots/[id]", () => {
     );
     expect(response.status).toBe(403);
   });
+
+  it("PATCH refuses an attribute override outside -5 through +5", async () => {
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ processingPowerOverride: 6 }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(updateUniqueBotMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH drops battery used when a lower capacity override shrinks the tank", async () => {
+    listBotCharacterRowsByBotMock.mockResolvedValue([
+      {
+        id: "hold-1",
+        sourceType: "UNIQUE",
+        currentHp: 8,
+        maxHpBonus: 0,
+        batteryUsed: 5,
+        batteryUpgrade: 0,
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ batteryCapacityOverride: 2 }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      batteryUsed: 2,
+    });
+  });
 });

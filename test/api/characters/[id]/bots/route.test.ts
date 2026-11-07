@@ -549,6 +549,46 @@ describe("/api/characters/[id]/bots handlers", () => {
     expect(body.effectiveMaxHp).toBe(8);
   });
 
+  it("POST uses a unique bot's speed, carry, height, and weight overrides", async () => {
+    getUniqueBotRowMock.mockResolvedValue({
+      id: "ub-1",
+      ownerUserId: "user-1",
+      gameId: "g-1",
+      sourceType: "OFFICIAL",
+      botId: "bot-1",
+      nameOverride: null,
+      maxHpOverride: null,
+      speedOverride: 12,
+      maxCarryWeightOverride: 30,
+      heightMetresOverride: 1.8,
+      weightOverride: 400,
+    });
+    getBotMock.mockResolvedValue({
+      ...loader,
+      speed: 4,
+      maxCarryWeight: 10,
+      heightMetres: 1,
+      weight: 20,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "ub-1", sourceType: "UNIQUE" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.speed).toBe(12);
+    expect(body.effectiveSpeed).toBe(12);
+    expect(body.speedStrikethrough).toBe(false);
+    expect(body.maxCarryWeight).toBe(30);
+    expect(body.effectiveMaxCarryWeight).toBe(30);
+    expect(body.heightMetres).toBe(1.8);
+    expect(body.weight).toBe(400);
+  });
+
   it("POST refuses a second holding of one unique bot", async () => {
     getUniqueBotRowMock.mockResolvedValue({
       id: "ub-1",
@@ -650,5 +690,84 @@ describe("/api/characters/[id]/bots handlers", () => {
       makeParams({ id: "char-1" })
     );
     expect(response.status).toBe(401);
+  });
+
+  it("POST starts a holding at max HP with upgrades, battery used, and the flag clear", async () => {
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "bot-1" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({
+      currentHp: 12,
+      effectiveMaxHp: 12,
+      condition: "OPERATIONAL",
+      isBeyondRepair: false,
+      mayRoll: true,
+      rollBlockedReason: null,
+      attributes: {
+        processingPower: {
+          base: 0,
+          upgrade: 0,
+          effective: 0,
+          signedUpgrade: null,
+        },
+        physicalPower: { upgrade: 0, signedUpgrade: null },
+        finesseCapacity: { upgrade: 0, signedUpgrade: null },
+        gridProtection: { upgrade: 0, signedUpgrade: null },
+      },
+      battery: {
+        base: 1,
+        upgrade: 0,
+        used: 0,
+        remaining: 1,
+        signedUpgrade: null,
+      },
+    });
+  });
+
+  it("POST uses a Unique bot's overridden bases", async () => {
+    getUniqueBotRowMock.mockResolvedValue({
+      id: "ub-1",
+      ownerUserId: "user-1",
+      gameId: "g-1",
+      sourceType: "OFFICIAL",
+      botId: "bot-1",
+      nameOverride: "Scout",
+      maxHpOverride: null,
+      processingPowerOverride: 4,
+      processingPowerMaxPotentialOverride: 5,
+      batteryCapacityOverride: 8,
+    });
+    getBotMock.mockResolvedValue({
+      ...loader,
+      processingPower: 1,
+      batteryCapacity: 2,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "ub-1", sourceType: "UNIQUE" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({
+      displayName: "Scout",
+      attributes: {
+        processingPower: {
+          base: 4,
+          maxPotential: 5,
+          upgrade: 0,
+          effective: 4,
+          signedUpgrade: null,
+        },
+      },
+      battery: { base: 8, used: 0, remaining: 8 },
+    });
   });
 });

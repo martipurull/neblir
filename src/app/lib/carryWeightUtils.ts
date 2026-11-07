@@ -12,6 +12,27 @@ const BACKPACK_BONUSES: Record<string, number> = {
   "backpack (large)": 0.3,
 };
 
+/** Fraction added to max carry for a small, medium, or large backpack. */
+export function backpackCarryBonusFraction(
+  itemName: string | null | undefined
+): number {
+  const name = (itemName ?? "").trim().toLowerCase();
+  return BACKPACK_BONUSES[name] ?? 0;
+}
+
+/**
+ * Base max carry plus a backpack bonus fraction. The bonus is not stored.
+ * A missing or non-positive base has no effective max.
+ */
+export function maxCarryWeightWithBackpackBonus(
+  baseMaxCarryWeight: number | null | undefined,
+  bonusFraction: number
+): number | null {
+  if (baseMaxCarryWeight == null || baseMaxCarryWeight <= 0) return null;
+  if (bonusFraction === 0) return baseMaxCarryWeight;
+  return Math.floor(baseMaxCarryWeight * (1 + bonusFraction));
+}
+
 type InventoryEntry = {
   itemLocation?: string | null;
   quantity?: number;
@@ -54,9 +75,7 @@ function getCarryWeightBonusFromInventory(
   for (const entry of carried) {
     const equipCount = entry.equipSlots?.length ?? 0;
     if (equipCount === 0) continue;
-    const name = (entry.item?.name ?? "").trim().toLowerCase();
-    const add = BACKPACK_BONUSES[name];
-    if (add != null) bonus += add;
+    bonus += backpackCarryBonusFraction(entry.item?.name);
   }
   return bonus;
 }
@@ -69,10 +88,10 @@ export function getEffectiveMaxCarryWeight(
   baseMaxCarryWeight: number | null | undefined,
   inventory: InventoryEntry[] | undefined
 ): number | null {
-  if (baseMaxCarryWeight == null || baseMaxCarryWeight <= 0) return null;
-  const bonus = getCarryWeightBonusFromInventory(inventory);
-  if (bonus === 0) return baseMaxCarryWeight;
-  return Math.floor(baseMaxCarryWeight * (1 + bonus));
+  return maxCarryWeightWithBackpackBonus(
+    baseMaxCarryWeight,
+    getCarryWeightBonusFromInventory(inventory)
+  );
 }
 
 /**

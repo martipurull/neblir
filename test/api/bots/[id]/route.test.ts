@@ -28,6 +28,10 @@ vi.mock("@/app/lib/prisma/botCharacter", () => ({
   updateBotCharacter: updateBotCharacterMock,
 }));
 
+vi.mock("@/app/lib/prisma/uniqueBot", () => ({
+  listUniqueBotsForTemplate: async () => [],
+}));
+
 describe("/api/bots/[id] route handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -328,6 +332,31 @@ describe("/api/bots/[id] route handlers", () => {
     expect(updateBotCharacterMock).toHaveBeenCalledTimes(1);
     expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-over", {
       currentHp: 4,
+    });
+  });
+
+  it("PATCH drops battery used when the template capacity falls below it", async () => {
+    listBotCharacterRowsByBotMock.mockResolvedValue([
+      {
+        id: "hold-1",
+        batteryUsed: 5,
+        batteryUpgrade: 0,
+        maxHpBonus: 0,
+        currentHp: 4,
+      },
+    ]);
+    updateBotMock.mockResolvedValue({ id: "bot-1", name: "Loader" });
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ batteryCapacity: 2 }),
+      makeParams({ id: "bot-1" })
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      batteryUsed: 2,
     });
   });
 });

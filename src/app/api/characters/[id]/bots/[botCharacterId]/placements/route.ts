@@ -92,6 +92,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       place: parsed.data.place,
       maxCargoWeightKg: template.maxCargoWeightKg ?? null,
       maxInstalledItems: template.maxInstalledItems ?? null,
+      maxCarryWeight: template.maxCarryWeight ?? null,
     });
 
     const wasEquipped =

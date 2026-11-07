@@ -493,11 +493,15 @@ model ItemCharacter {
   sourceType ItemSourceType
   itemId     String         @db.ObjectId
 
-  quantity     Int        @default(1)
-  currentUses  Int        @default(0)
-  isEquipped   Boolean    @default(false)
-  equipSlots   String[]   @default([])
-  customName   String?
+  quantity      Int        @default(1)
+  currentUses   Int        @default(0)
+  isEquipped    Boolean    @default(false)
+  equipSlots    String[]   @default([])
+  /**
+   * Hands or Body on a bot holding. Separate from the character's equip slots.
+   */
+  botEquipSlots String[]   @default([])
+  customName    String?
   status       ItemStatus @default(FUNCTIONAL)
   itemLocation String     @default("carried")
   /** Game that was active when this holding was left at a place. Empty when carried, in a vehicle, or left with no active game. */
@@ -668,6 +672,32 @@ model Bot {
    * Unset means installed hardware is not capped.
    */
   maxInstalledItems           Int?
+  /**
+   * Movement speed in metres, before carry load.
+   */
+  speed                       Int           @default(0)
+  /**
+   * Base max carry weight in kilograms. Backpack bonuses are not stored.
+   */
+  maxCarryWeight              Float         @default(0)
+  /**
+   * Descriptive height in metres. Does not encumber the holding character.
+   */
+  heightMetres                Float?
+  /**
+   * Descriptive weight in kilograms. Does not encumber the holding character.
+   */
+  weight                      Float?
+  processingPower             Int           @default(0)
+  processingPowerMaxPotential Int           @default(0)
+  physicalPower               Int           @default(0)
+  physicalPowerMaxPotential   Int           @default(0)
+  finesseCapacity             Int           @default(0)
+  finesseCapacityMaxPotential Int           @default(0)
+  gridProtection              Int           @default(0)
+  gridProtectionMaxPotential  Int           @default(0)
+  batteryCapacity             Int           @default(1)
+  batteryMaxPotential         Int           @default(0)
   protectedFromOfficialImport Boolean       @default(false)
 
   @@unique([name])
@@ -683,10 +713,17 @@ model BotCharacter {
    */
   sourceType     BotSourceType      @default(OFFICIAL)
   botId          String             @db.ObjectId
-  customName     String?
-  currentHp      Int
-  maxHpBonus     Int                @default(0)
-  notes          String?
+  customName               String?
+  currentHp                Int
+  maxHpBonus               Int                @default(0)
+  notes                    String?
+  processingPowerUpgrade   Int                @default(0)
+  physicalPowerUpgrade     Int                @default(0)
+  finesseCapacityUpgrade   Int                @default(0)
+  gridProtectionUpgrade    Int                @default(0)
+  batteryUpgrade           Int                @default(0)
+  batteryUsed              Int                @default(0)
+  isBeyondRepair           Boolean            @default(false)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   installedItems BotInstalledItem[]
@@ -733,6 +770,32 @@ model CustomBot {
    * Unset means installed hardware is not capped.
    */
   maxInstalledItems Int?
+  /**
+   * Movement speed in metres, before carry load.
+   */
+  speed             Int    @default(0)
+  /**
+   * Base max carry weight in kilograms. Backpack bonuses are not stored.
+   */
+  maxCarryWeight    Float  @default(0)
+  /**
+   * Descriptive height in metres. Does not encumber the holding character.
+   */
+  heightMetres      Float?
+  /**
+   * Descriptive weight in kilograms. Does not encumber the holding character.
+   */
+  weight                      Float?
+  processingPower             Int     @default(0)
+  processingPowerMaxPotential Int     @default(0)
+  physicalPower               Int     @default(0)
+  physicalPowerMaxPotential   Int     @default(0)
+  finesseCapacity             Int     @default(0)
+  finesseCapacityMaxPotential Int     @default(0)
+  gridProtection              Int     @default(0)
+  gridProtectionMaxPotential  Int     @default(0)
+  batteryCapacity             Int     @default(1)
+  batteryMaxPotential         Int     @default(0)
 
   @@index([gameId])
 }
@@ -757,6 +820,20 @@ model UniqueBot {
   maxHpOverride             Int?
   maxCargoWeightKgOverride  Float?
   maxInstalledItemsOverride Int?
+  speedOverride             Int?
+  maxCarryWeightOverride    Float?
+  heightMetresOverride      Float?
+  weightOverride            Float?
+  processingPowerOverride             Int?
+  processingPowerMaxPotentialOverride Int?
+  physicalPowerOverride               Int?
+  physicalPowerMaxPotentialOverride   Int?
+  finesseCapacityOverride             Int?
+  finesseCapacityMaxPotentialOverride Int?
+  gridProtectionOverride              Int?
+  gridProtectionMaxPotentialOverride  Int?
+  batteryCapacityOverride             Int?
+  batteryMaxPotentialOverride         Int?
 
   @@index([ownerUserId])
   @@index([gameId])

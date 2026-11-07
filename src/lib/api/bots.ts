@@ -3,6 +3,7 @@ import {
   officialBotListResponseSchema,
   officialBotResponseSchema,
   type AddBotToCharacter,
+  type BotEquip,
   type BotHolding,
   type BotHoldingPatch,
   type BotPlace,
@@ -205,6 +206,35 @@ export async function placeItemOnCharacterBot(
         response.status,
         await readApiErrorBody(response),
         "Failed to place item on bot"
+      )
+    );
+  }
+  const parsed = botHoldingSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Bot holding", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function equipItemOnCharacterBot(
+  characterId: string,
+  botCharacterId: string,
+  body: BotEquip
+): Promise<BotHolding> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/bots/${encodeURIComponent(botCharacterId)}/equip`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to equip item on bot"
       )
     );
   }

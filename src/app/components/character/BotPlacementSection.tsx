@@ -5,9 +5,11 @@ import { isItemCarried } from "@/app/lib/constants/inventory";
 import { formatWeightKgForDisplay } from "@/app/lib/carryWeightUtils";
 import type { BotHolding, BotPlace, BotPlacedItem } from "@/app/lib/types/bot";
 import {
+  equipItemOnCharacterBot,
   placeItemOnCharacterBot,
   returnBotItemToCarried,
 } from "@/lib/api/bots";
+import type { BotEquip } from "@/app/lib/types/bot";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useState } from "react";
 
@@ -117,13 +119,22 @@ export function BotPlacementSection({
       />
       <PlaceList
         title="Carried"
-        summary={`${formatWeightKgForDisplay(holding.carriedWeightKg)} kg`}
+        summary={carrySummary(holding)}
         items={holding.carriedItems}
         readOnly={readOnly}
         busyId={busyId}
         onReturn={(itemCharacterId) =>
           void run(`return-${itemCharacterId}`, () =>
             returnBotItemToCarried(characterId, holding.id, itemCharacterId)
+          )
+        }
+        onEquip={(itemCharacterId, action, slot) =>
+          void run(`equip-${itemCharacterId}-${slot}-${action}`, () =>
+            equipItemOnCharacterBot(characterId, holding.id, {
+              itemCharacterId,
+              action,
+              slot,
+            })
           )
         }
       />
@@ -185,6 +196,12 @@ export function BotPlacementSection({
   );
 }
 
+function carrySummary(holding: BotHolding): string {
+  const carried = formatWeightKgForDisplay(holding.carriedWeightKg);
+  const max = holding.effectiveMaxCarryWeight ?? holding.maxCarryWeight;
+  return `${carried} / ${formatWeightKgForDisplay(max)} kg`;
+}
+
 function place(
   characterId: string,
   botCharacterId: string,
@@ -195,6 +212,60 @@ function place(
     itemCharacterId,
     place: placeName,
   });
+}
+
+function EquipButtons({
+  item,
+  busy,
+  onEquip,
+}: {
+  item: BotPlacedItem;
+  busy: boolean;
+  onEquip: (action: BotEquip["action"], slot: "HAND" | "BODY") => void;
+}) {
+  return (
+    <>
+      <SlotButton
+        item={item}
+        slot="HAND"
+        label="Hand"
+        busy={busy}
+        onEquip={onEquip}
+      />
+      <SlotButton
+        item={item}
+        slot="BODY"
+        label="Body"
+        busy={busy}
+        onEquip={onEquip}
+      />
+    </>
+  );
+}
+
+function SlotButton({
+  item,
+  slot,
+  label,
+  busy,
+  onEquip,
+}: {
+  item: BotPlacedItem;
+  slot: "HAND" | "BODY";
+  label: string;
+  busy: boolean;
+  onEquip: (action: BotEquip["action"], slot: "HAND" | "BODY") => void;
+}) {
+  const types = item.item?.equipSlotTypes ?? [];
+  const equipped = item.botEquipSlots.includes(slot);
+  if (!equipped && types.length > 0 && !types.includes(slot)) return null;
+  return (
+    <PlaceButton
+      label={equipped ? `Unequip ${label.toLowerCase()}` : label}
+      busy={busy}
+      onClick={() => onEquip(equipped ? "unequip" : "equip", slot)}
+    />
+  );
 }
 
 function PlaceButton({
@@ -226,6 +297,7 @@ function PlaceList({
   readOnly,
   busyId,
   onReturn,
+  onEquip,
 }: {
   title: string;
   summary: string;
@@ -233,6 +305,11 @@ function PlaceList({
   readOnly: boolean;
   busyId: string | null;
   onReturn: (itemCharacterId: string) => void;
+  onEquip?: (
+    itemCharacterId: string,
+    action: BotEquip["action"],
+    slot: "HAND" | "BODY"
+  ) => void;
 }) {
   return (
     <div className="space-y-1">
@@ -257,15 +334,26 @@ function PlaceList({
               </span>
             </span>
             {!readOnly ? (
-              <Button
-                type="button"
-                variant="modalPaleOutline"
-                fullWidth={false}
-                disabled={busyId != null}
-                onClick={() => onReturn(item.itemCharacterId)}
-              >
-                Return
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                {onEquip ? (
+                  <EquipButtons
+                    item={item}
+                    busy={busyId != null}
+                    onEquip={(action, slot) =>
+                      onEquip(item.itemCharacterId, action, slot)
+                    }
+                  />
+                ) : null}
+                <Button
+                  type="button"
+                  variant="modalPaleOutline"
+                  fullWidth={false}
+                  disabled={busyId != null}
+                  onClick={() => onReturn(item.itemCharacterId)}
+                >
+                  Return
+                </Button>
+              </div>
             ) : null}
           </div>
         ))

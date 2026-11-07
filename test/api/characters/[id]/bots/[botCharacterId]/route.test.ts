@@ -392,4 +392,263 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
     expect(getBotMock).not.toHaveBeenCalled();
     expect(resolveUniqueBotTemplateMock).toHaveBeenCalledWith("ub-1");
   });
+
+  it("PATCH shows the effective attribute and the signed Upgrade", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      processingPower: 5,
+      processingPowerMaxPotential: 5,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setUpgrade", track: "processingPower", upgrade: 5 },
+        "user-1"
+      ),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      attributes: {
+        processingPower: {
+          base: 5,
+          upgrade: 5,
+          effective: 10,
+          signedUpgrade: "+5",
+        },
+      },
+    });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      processingPowerUpgrade: 5,
+    });
+  });
+
+  it("PATCH shows the base alone when the Upgrade is 0", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      processingPower: 2,
+      processingPowerMaxPotential: 4,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setUpgrade", track: "processingPower", upgrade: 0 },
+        "user-1"
+      ),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      attributes: {
+        processingPower: {
+          base: 2,
+          effective: 2,
+          signedUpgrade: null,
+        },
+      },
+    });
+  });
+
+  it("PATCH refuses an Upgrade outside -5 through the track max potential", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      processingPower: 2,
+      processingPowerMaxPotential: 2,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const tooHigh = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setUpgrade", track: "processingPower", upgrade: 3 },
+        "user-1"
+      ),
+      params()
+    );
+    expect(tooHigh.status).toBe(400);
+    await expect(tooHigh.json()).resolves.toMatchObject({
+      message: "Upgrade must stay from -5 through that track's max potential.",
+    });
+
+    const tooLow = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setUpgrade", track: "processingPower", upgrade: -6 },
+        "user-1"
+      ),
+      params()
+    );
+    expect(tooLow.status).toBe(400);
+    expect(updateBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH refuses battery used above the effective capacity", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      batteryCapacity: 4,
+      batteryMaxPotential: 0,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setBatteryUsed", batteryUsed: 5 }, "user-1"),
+      params()
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      message: "Battery used must stay from 0 through the effective capacity.",
+    });
+    expect(updateBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH marks the bot unable to roll when battery used reaches capacity", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      batteryCapacity: 4,
+      batteryMaxPotential: 0,
+    });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setBatteryUsed", batteryUsed: 4 }, "user-1"),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      battery: { used: 4, remaining: 0, effectiveCapacity: 4 },
+      mayRoll: false,
+      rollBlockedReason: "BATTERY_EMPTY",
+      condition: "OPERATIONAL",
+    });
+  });
+
+  it("PATCH drops battery used when the battery Upgrade shrinks capacity below it", async () => {
+    getBotMock.mockResolvedValue({
+      ...loader,
+      batteryCapacity: 4,
+      batteryMaxPotential: 5,
+    });
+    getBotCharacterRowMock.mockResolvedValue({ ...holding, batteryUsed: 3 });
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setUpgrade", track: "battery", upgrade: -5 },
+        "user-1"
+      ),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      batteryUpgrade: -5,
+      batteryUsed: 0,
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      battery: {
+        effectiveCapacity: 0,
+        used: 0,
+        remaining: 0,
+        signedUpgrade: "-5",
+      },
+    });
+  });
+
+  it("PATCH keeps Beyond repair until the flag is cleared, even after healing", async () => {
+    const flagged = { ...holding, isBeyondRepair: true, currentHp: 0 };
+    getBotCharacterRowMock.mockResolvedValue(flagged);
+    updateBotCharacterMock.mockImplementation(
+      async (_id: string, data: Partial<typeof flagged>) => ({
+        ...flagged,
+        ...data,
+      })
+    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const healed = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setHp", currentHp: 4 }, "user-1"),
+      params()
+    );
+    expect(healed.status).toBe(200);
+    await expect(healed.json()).resolves.toMatchObject({
+      currentHp: 4,
+      condition: "BEYOND_REPAIR",
+      mayRoll: false,
+      rollBlockedReason: "BEYOND_REPAIR",
+    });
+
+    const cleared = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setBeyondRepair", isBeyondRepair: false },
+        "user-1"
+      ),
+      params()
+    );
+    expect(cleared.status).toBe(200);
+    await expect(cleared.json()).resolves.toMatchObject({
+      condition: "BROKEN",
+      isBeyondRepair: false,
+      rollBlockedReason: "BROKEN",
+    });
+  });
+
+  it("PATCH reports Broken before an empty battery when HP is 0", async () => {
+    const broken = {
+      ...holding,
+      currentHp: 0,
+      batteryUsed: 1,
+      isBeyondRepair: false,
+    };
+    getBotMock.mockResolvedValue({
+      ...loader,
+      batteryCapacity: 1,
+      batteryMaxPotential: 0,
+    });
+    getBotCharacterRowMock.mockResolvedValue(broken);
+    updateBotCharacterMock.mockImplementation(
+      async (_id: string, data: Partial<typeof broken>) => ({
+        ...broken,
+        ...data,
+      })
+    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "setBeyondRepair", isBeyondRepair: false },
+        "user-1"
+      ),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      condition: "BROKEN",
+      mayRoll: false,
+      rollBlockedReason: "BROKEN",
+      battery: { remaining: 0 },
+    });
+  });
 });

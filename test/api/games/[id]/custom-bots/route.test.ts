@@ -80,6 +80,20 @@ describe("/api/games/[id]/custom-bots handlers", () => {
     expect(createCustomBotMock).not.toHaveBeenCalled();
   });
 
+  it("POST returns 400 when speed is negative", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "Porter", maxHp: 9, speed: -1 }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+
+    expect(response.status).toBe(400);
+    expect(createCustomBotMock).not.toHaveBeenCalled();
+  });
+
   it("POST creates a Custom bot with empty optional fields and members-may-modify off", async () => {
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
@@ -113,6 +127,10 @@ describe("/api/games/[id]/custom-bots handlers", () => {
       membersCanModify: false,
       maxCargoWeightKg: null,
       maxInstalledItems: null,
+      speed: 0,
+      maxCarryWeight: 0,
+      heightMetres: null,
+      weight: null,
     });
   });
 

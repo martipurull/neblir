@@ -90,20 +90,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         maxHpBonus: 0,
       });
       return NextResponse.json(
-        presentBotHolding(
-          { ...created, sourceType: "CUSTOM" },
-          {
-            id: bot.id,
-            name: bot.name,
-            description: bot.description,
-            confCost: bot.confCost,
-            usage: bot.usage,
-            notes: bot.notes,
-            maxHp: bot.maxHp,
-            maxCargoWeightKg: bot.maxCargoWeightKg,
-            maxInstalledItems: bot.maxInstalledItems,
-          }
-        ),
+        presentBotHolding({ ...created, sourceType: "CUSTOM" }, bot),
         { status: 201 }
       );
     }

@@ -1,3 +1,4 @@
+import { pickDefinedTrackStats } from "@/app/lib/botTracks";
 import {
   createCustomBot,
   getCustomBotsByGame,
@@ -101,6 +102,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       membersCanModify: parsed.data.membersCanModify,
       maxCargoWeightKg: parsed.data.maxCargoWeightKg ?? null,
       maxInstalledItems: parsed.data.maxInstalledItems ?? null,
+      speed: parsed.data.speed ?? 0,
+      maxCarryWeight: parsed.data.maxCarryWeight ?? 0,
+      heightMetres: parsed.data.heightMetres ?? null,
+      weight: parsed.data.weight ?? null,
+      ...pickDefinedTrackStats(parsed.data),
     };
     const bot = await createCustomBot(createData);
     return NextResponse.json(bot, { status: 201 });

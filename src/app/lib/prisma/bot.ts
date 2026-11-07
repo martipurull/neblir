@@ -1,3 +1,8 @@
+import {
+  pickDefinedTrackStats,
+  readBotTrackStats,
+  type BotTrackStats,
+} from "@/app/lib/botTracks";
 import type {
   Bot as ParsedBot,
   BotAccessType,
@@ -18,7 +23,11 @@ type BotRow = {
   maxHp: number;
   maxCargoWeightKg: number | null;
   maxInstalledItems: number | null;
-};
+  speed?: number | null;
+  maxCarryWeight?: number | null;
+  heightMetres?: number | null;
+  weight?: number | null;
+} & Partial<BotTrackStats>;
 
 type BotCreateData = Omit<BotRow, "id"> & {
   protectedFromOfficialImport?: boolean;
@@ -55,6 +64,11 @@ function mapPrismaBotToApi(row: BotRow): OfficialBot {
     maxHp: row.maxHp,
     maxCargoWeightKg: row.maxCargoWeightKg ?? null,
     maxInstalledItems: row.maxInstalledItems ?? null,
+    speed: row.speed ?? 0,
+    maxCarryWeight: row.maxCarryWeight ?? 0,
+    heightMetres: row.heightMetres ?? null,
+    weight: row.weight ?? null,
+    ...readBotTrackStats(row),
   };
 }
 
@@ -73,6 +87,11 @@ function botCreateDataFromParsed(
     maxHp: data.maxHp,
     maxCargoWeightKg: data.maxCargoWeightKg ?? null,
     maxInstalledItems: data.maxInstalledItems ?? null,
+    speed: data.speed ?? 0,
+    maxCarryWeight: data.maxCarryWeight ?? 0,
+    heightMetres: data.heightMetres ?? null,
+    weight: data.weight ?? null,
+    ...readBotTrackStats(data),
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),
@@ -102,6 +121,15 @@ function botUpdateDataFromParsed(
     ...(data.maxInstalledItems !== undefined
       ? { maxInstalledItems: data.maxInstalledItems ?? null }
       : {}),
+    ...(data.speed !== undefined ? { speed: data.speed ?? 0 } : {}),
+    ...(data.maxCarryWeight !== undefined
+      ? { maxCarryWeight: data.maxCarryWeight ?? 0 }
+      : {}),
+    ...(data.heightMetres !== undefined
+      ? { heightMetres: data.heightMetres ?? null }
+      : {}),
+    ...(data.weight !== undefined ? { weight: data.weight ?? null } : {}),
+    ...pickDefinedTrackStats(data),
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),
