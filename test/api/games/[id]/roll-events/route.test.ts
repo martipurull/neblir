@@ -663,6 +663,59 @@ describe("/api/games/[id]/roll-events", () => {
       expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
 
+    it("returns 404 when the bot holding is not on that character", async () => {
+      getBotCharacterRowMock.mockResolvedValue(null);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8, 8, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toMatchObject({
+        message: "Bot holding not found",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when the bot template is missing", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(null);
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8, 8, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toMatchObject({
+        message: "Official bot not found",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
     it("refuses to roll battery", async () => {
       getBotCharacterRowMock.mockResolvedValue(botHolding());
       resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
