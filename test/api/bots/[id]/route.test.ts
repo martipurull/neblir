@@ -12,6 +12,7 @@ const updateBotMock = vi.fn();
 const userIsSuperAdminMock = vi.fn();
 const listBotCharacterRowsByBotMock = vi.fn();
 const updateBotCharacterMock = vi.fn();
+const listUniqueBotsForTemplateMock = vi.fn();
 
 vi.mock("@/app/lib/authz/superAdmin", () => ({
   userIsSuperAdmin: userIsSuperAdminMock,
@@ -29,7 +30,8 @@ vi.mock("@/app/lib/prisma/botCharacter", () => ({
 }));
 
 vi.mock("@/app/lib/prisma/uniqueBot", () => ({
-  listUniqueBotsForTemplate: async () => [],
+  listUniqueBotsForTemplate: (...args: unknown[]) =>
+    listUniqueBotsForTemplateMock(...args),
 }));
 
 describe("/api/bots/[id] route handlers", () => {
@@ -49,6 +51,7 @@ describe("/api/bots/[id] route handlers", () => {
       { id: "bot-2", name: "Sentinel" },
     ]);
     listBotCharacterRowsByBotMock.mockResolvedValue([]);
+    listUniqueBotsForTemplateMock.mockResolvedValue([]);
   });
 
   it("GET returns 401 when unauthenticated", async () => {
@@ -357,6 +360,54 @@ describe("/api/bots/[id] route handlers", () => {
     expect(response.status).toBe(200);
     expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
       batteryUsed: 2,
+    });
+  });
+
+  it("PATCH drops an Upgrade when a lower max potential leaves it above the ceiling", async () => {
+    listUniqueBotsForTemplateMock.mockResolvedValue([
+      { id: "ub-1", processingPowerMaxPotentialOverride: null },
+    ]);
+    listBotCharacterRowsByBotMock.mockImplementation(async (botId: string) => {
+      if (botId === "ub-1") {
+        return [
+          {
+            id: "hold-unique",
+            sourceType: "UNIQUE",
+            processingPowerUpgrade: 4,
+            batteryUsed: 0,
+            batteryUpgrade: 0,
+            maxHpBonus: 0,
+            currentHp: 4,
+          },
+        ];
+      }
+      return [
+        {
+          id: "hold-1",
+          sourceType: "OFFICIAL",
+          processingPowerUpgrade: 4,
+          batteryUsed: 0,
+          batteryUpgrade: 0,
+          maxHpBonus: 0,
+          currentHp: 4,
+        },
+      ];
+    });
+    updateBotMock.mockResolvedValue({ id: "bot-1", name: "Loader" });
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ processingPowerMaxPotential: 2 }),
+      makeParams({ id: "bot-1" })
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      processingPowerUpgrade: 2,
+    });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-unique", {
+      processingPowerUpgrade: 2,
     });
   });
 });

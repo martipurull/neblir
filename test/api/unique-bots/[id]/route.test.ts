@@ -257,4 +257,28 @@ describe("GET /api/unique-bots/[id]", () => {
       batteryUsed: 2,
     });
   });
+
+  it("PATCH drops an Upgrade when a lower max potential override leaves it above the ceiling", async () => {
+    listBotCharacterRowsByBotMock.mockResolvedValue([
+      {
+        id: "hold-1",
+        sourceType: "UNIQUE",
+        currentHp: 8,
+        maxHpBonus: 0,
+        processingPowerUpgrade: 4,
+        batteryUsed: 0,
+        batteryUpgrade: 0,
+      },
+    ]);
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ processingPowerMaxPotentialOverride: 1 }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-1", {
+      processingPowerUpgrade: 1,
+    });
+  });
 });

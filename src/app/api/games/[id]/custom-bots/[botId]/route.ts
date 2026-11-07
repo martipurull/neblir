@@ -1,4 +1,11 @@
-import { batteryUsedDrop } from "@/app/lib/botTracks";
+import {
+  holdingTrackClamp,
+  readBotTrackStats,
+  resolveBotTrackStats,
+  trackCeilingsChanged,
+  uniqueInheritsChangedCeiling,
+  type BotHoldingTrackState,
+} from "@/app/lib/botTracks";
 import {
   listBotCharacterRowsByBot,
   updateBotCharacter,
@@ -14,23 +21,15 @@ import { NextResponse } from "next/server";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 
-async function dropBatteryUsed(
-  rows: Array<{
-    id: string;
-    batteryUsed?: number | null;
-    batteryUpgrade?: number | null;
-  }>,
-  baseCapacity: number
+async function clampHoldingTracks(
+  rows: Array<{ id: string } & Partial<BotHoldingTrackState>>,
+  stats: Parameters<typeof holdingTrackClamp>[1]
 ) {
   await Promise.all(
     rows.map(async (row) => {
-      const next = batteryUsedDrop(
-        row.batteryUsed,
-        row.batteryUpgrade,
-        baseCapacity
-      );
-      if (next == null) return;
-      await updateBotCharacter(row.id, { batteryUsed: next });
+      const data = holdingTrackClamp(row, stats);
+      if (Object.keys(data).length === 0) return;
+      await updateBotCharacter(row.id, data);
     })
   );
 }
@@ -121,20 +120,20 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     }
 
     const updated = await updateCustomBot(botId, parsed.data);
-    if (parsed.data.batteryCapacity !== undefined) {
-      const nextBase = parsed.data.batteryCapacity;
+    if (trackCeilingsChanged(parsed.data)) {
+      const stats = readBotTrackStats({ ...existing, ...parsed.data });
       const holdings = await listBotCharacterRowsByBot(botId);
-      await dropBatteryUsed(
+      await clampHoldingTracks(
         holdings.filter((row) => (row.sourceType ?? "OFFICIAL") === "CUSTOM"),
-        nextBase
+        stats
       );
       const uniques = await listUniqueBotsForTemplate("CUSTOM", botId);
       for (const unique of uniques) {
-        if (unique.batteryCapacityOverride != null) continue;
+        if (!uniqueInheritsChangedCeiling(unique, parsed.data)) continue;
         const uniqueHoldings = await listBotCharacterRowsByBot(unique.id);
-        await dropBatteryUsed(
+        await clampHoldingTracks(
           uniqueHoldings.filter((row) => row.sourceType === "UNIQUE"),
-          nextBase
+          resolveBotTrackStats(unique, stats)
         );
       }
     }

@@ -304,18 +304,66 @@ function batteryUsedWithinCapacity(used: number, capacity: number): number {
   return Math.min(Math.max(0, used), Math.max(0, capacity));
 }
 
-/** The next stored battery used, or null when the counter does not need to drop. */
-export function batteryUsedDrop(
-  used: number | null | undefined,
-  upgrade: number | null | undefined,
-  baseCapacity: number
-): number | null {
-  const current = used ?? 0;
-  const next = batteryUsedWithinCapacity(
-    current,
-    effectiveBatteryCapacity(baseCapacity, upgrade ?? 0)
+const BOT_TRACK_CEILING_KEYS = [
+  "batteryCapacity",
+  "processingPowerMaxPotential",
+  "physicalPowerMaxPotential",
+  "finesseCapacityMaxPotential",
+  "gridProtectionMaxPotential",
+  "batteryMaxPotential",
+] as const;
+
+export function trackCeilingsChanged(
+  body: Partial<BotTrackStats> | null | undefined
+): boolean {
+  if (body == null) return false;
+  return BOT_TRACK_CEILING_KEYS.some((key) => body[key] !== undefined);
+}
+
+export function uniqueInheritsChangedCeiling(
+  unique: Partial<BotTrackOverrides> | null | undefined,
+  patch: Partial<BotTrackStats> | null | undefined
+): boolean {
+  if (patch == null) return false;
+  return BOT_TRACK_CEILING_KEYS.some(
+    (key) => patch[key] !== undefined && unique?.[`${key}Override`] == null
   );
-  return next === current ? null : next;
+}
+
+export function trackCeilingOverridesChanged(
+  body: Partial<BotTrackOverrides> | null | undefined
+): boolean {
+  if (body == null) return false;
+  return BOT_TRACK_CEILING_KEYS.some(
+    (key) => body[`${key}Override`] !== undefined
+  );
+}
+
+/**
+ * Fields to persist so every Upgrade stays within −5 through its max potential,
+ * and battery used stays within the effective capacity.
+ */
+export function holdingTrackClamp(
+  row: Partial<BotHoldingTrackState> | null | undefined,
+  stats: Partial<BotTrackStats> | null | undefined
+): Partial<BotHoldingTrackState> {
+  const template = readBotTrackStats(stats);
+  const holding = readHoldingTracks(row);
+  const data: Partial<BotHoldingTrackState> = {};
+  for (const track of BOT_UPGRADE_TRACKS) {
+    const field = UPGRADE_FIELD[track];
+    const max = maxPotentialForTrack(template, track);
+    const current = holding[field];
+    if (current > max) data[field] = max;
+    else if (current < BOT_UPGRADE_MIN) data[field] = BOT_UPGRADE_MIN;
+  }
+  const batteryUpgrade = data.batteryUpgrade ?? holding.batteryUpgrade;
+  const used = batteryUsedWithinCapacity(
+    holding.batteryUsed,
+    effectiveBatteryCapacity(template.batteryCapacity, batteryUpgrade)
+  );
+  if (used !== holding.batteryUsed) data.batteryUsed = used;
+  return data;
 }
 
 function signedUpgrade(upgrade: number): string | null {

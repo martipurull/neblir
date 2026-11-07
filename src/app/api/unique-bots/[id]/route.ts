@@ -1,5 +1,8 @@
 import { effectiveBotMaxHp } from "@/app/lib/botHoldingView";
-import { batteryUsedDrop } from "@/app/lib/botTracks";
+import {
+  holdingTrackClamp,
+  trackCeilingOverridesChanged,
+} from "@/app/lib/botTracks";
 import { getBot } from "@/app/lib/prisma/bot";
 import {
   listBotCharacterRowsByBot,
@@ -105,7 +108,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const updated = await updateUniqueBot(id, parsed.data);
     const statsChanged =
       parsed.data.maxHpOverride !== undefined ||
-      parsed.data.batteryCapacityOverride !== undefined;
+      trackCeilingOverridesChanged(parsed.data);
     if (statsChanged) {
       const templateBot =
         updated.sourceType === "OFFICIAL" && updated.botId
@@ -117,7 +120,9 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       const rows = await listBotCharacterRowsByBot(id);
       const holding = rows.find((row) => row.sourceType === "UNIQUE");
       if (holding) {
-        const patch: { currentHp?: number; batteryUsed?: number } = {};
+        const patch: { currentHp?: number } & ReturnType<
+          typeof holdingTrackClamp
+        > = holdingTrackClamp(holding, stats);
         if (parsed.data.maxHpOverride !== undefined) {
           const max = Math.max(
             0,
@@ -125,15 +130,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
           );
           if (holding.currentHp > max) patch.currentHp = max;
         }
-        if (parsed.data.batteryCapacityOverride !== undefined) {
-          const nextUsed = batteryUsedDrop(
-            holding.batteryUsed,
-            holding.batteryUpgrade,
-            stats.batteryCapacity
-          );
-          if (nextUsed != null) patch.batteryUsed = nextUsed;
-        }
-        if (patch.currentHp !== undefined || patch.batteryUsed !== undefined) {
+        if (Object.keys(patch).length > 0) {
           await updateBotCharacter(holding.id, patch);
         }
       }
