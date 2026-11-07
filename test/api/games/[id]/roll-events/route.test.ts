@@ -744,6 +744,106 @@ describe("/api/games/[id]/roll-events", () => {
       expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
 
+    it("attributes a public bot initiative roll to the roller as the bot", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "INITIATIVE",
+            results: [8],
+            botCharacterId: "hold-1",
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(201);
+      expect(await response.json()).toMatchObject({
+        attribution: "Ada as Mule",
+      });
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          characterId: "c-1",
+          rollerUserId: "user-1",
+          rollType: "INITIATIVE",
+          diceExpression: "1d10",
+          results: [8],
+          total: 9,
+          metadata: expect.objectContaining({
+            botCharacterId: "hold-1",
+            botDisplayName: "Mule",
+            initiativeModifier: 1,
+          }),
+        }),
+      });
+    });
+
+    it("attributes a private bot initiative roll as SECRET ROLL", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "INITIATIVE",
+            results: [8],
+            botCharacterId: "hold-1",
+          },
+          "gm-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(201);
+      expect(await response.json()).toMatchObject({
+        attribution: "SECRET ROLL",
+      });
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          diceExpression: "1d10",
+          total: 9,
+          metadata: expect.objectContaining({
+            botDisplayName: "Mule",
+            isPrivate: true,
+          }),
+        }),
+      });
+    });
+
+    it("refuses extra dice on a bot initiative roll event", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "INITIATIVE",
+            results: [8],
+            botCharacterId: "hold-1",
+            extraDice: 2,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "A bot initiative roll does not accept extra dice.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
     it("does not let a play-grant grantee un-hide a private-link roll", async () => {
       getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
       getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });

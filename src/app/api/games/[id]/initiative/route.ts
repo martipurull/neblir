@@ -3,8 +3,19 @@ import {
   updateGame,
   userIsInGame,
 } from "@/app/lib/prisma/game";
+import { prepareBotInitiativeRoll } from "@/app/lib/botInitiative";
+import {
+  botHoldingSource,
+  missingBotTemplateMessage,
+  presentBotHolding,
+} from "@/app/lib/botHoldingView";
+import {
+  getBotCharacterById,
+  resolveHoldingTemplate,
+} from "@/app/lib/prisma/botCharacter";
 import {
   characterIsInGame,
+  userHasPlayControlInGame,
   userOwnsCharacter,
 } from "@/app/lib/prisma/gameCharacter";
 import { getEnemyInstance } from "@/app/lib/prisma/enemyInstance";
@@ -51,13 +62,15 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       );
     }
 
-    const {
-      combatantType,
-      combatantId,
-      combatantName,
-      rolledValue,
-      initiativeModifier,
-    } = parsed.data;
+    const { combatantType, combatantId, rolledValue } = parsed.data;
+    const combatantName =
+      parsed.data.combatantType === "BOT"
+        ? undefined
+        : parsed.data.combatantName;
+    const initiativeModifier =
+      parsed.data.combatantType === "BOT"
+        ? undefined
+        : parsed.data.initiativeModifier;
 
     const game = await getGameWithDetails(gameId);
     if (!game) {
@@ -66,6 +79,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
 
     const isGameMaster = game.gameMaster === userId;
     let resolvedCombatantName: string | undefined = combatantName;
+    let resolvedModifier = initiativeModifier;
     if (combatantType === "CHARACTER") {
       const inThisGame = await characterIsInGame(gameId, combatantId);
       if (!inThisGame) {
@@ -84,6 +98,43 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       const name = character?.generalInformation?.name ?? "";
       const surname = character?.generalInformation?.surname ?? "";
       resolvedCombatantName = `${name}${surname ? ` ${surname}` : ""}`.trim();
+    } else if (combatantType === "BOT") {
+      const row = await getBotCharacterById(combatantId);
+      if (!row) {
+        return errorResponse("Bot holding not found", 404);
+      }
+      const template = await resolveHoldingTemplate(row);
+      if (!template) {
+        return errorResponse(
+          missingBotTemplateMessage(botHoldingSource(row)),
+          404
+        );
+      }
+      const holding = presentBotHolding(row, template);
+      const inThisGame = await characterIsInGame(gameId, holding.characterId);
+      if (!inThisGame) {
+        return errorResponse("Character is not in this game", 403);
+      }
+      if (
+        !(await userHasPlayControlInGame(gameId, holding.characterId, userId))
+      ) {
+        return errorResponse(
+          "You do not have play control of this character in this game",
+          403
+        );
+      }
+      const prepared = prepareBotInitiativeRoll({
+        holding,
+        results: [rolledValue],
+        extraDice: parsed.data.extraDice,
+        isPrivate: false,
+        rollerName: "",
+      });
+      if (!prepared.ok) {
+        return errorResponse(prepared.message, 400);
+      }
+      resolvedCombatantName = holding.displayName;
+      resolvedModifier = prepared.modifier;
     } else {
       if (!isGameMaster) {
         return errorResponse(
@@ -101,6 +152,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     }
     if (!resolvedCombatantName) {
       return errorResponse("Combatant name could not be resolved", 400);
+    }
+    if (resolvedModifier == null) {
+      return errorResponse("Initiative modifier could not be resolved", 400);
     }
 
     const existing = game.initiativeOrder ?? [];
@@ -125,7 +179,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           combatantId,
           combatantName: resolvedCombatantName,
           rolledValue,
-          initiativeModifier,
+          initiativeModifier: resolvedModifier,
           submittedAt,
         },
       ],

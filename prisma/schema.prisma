@@ -842,6 +842,7 @@ model UniqueBot {
 enum InitiativeCombatantType {
   CHARACTER
   ENEMY
+  BOT
 }
 
 /**

@@ -9,11 +9,16 @@ import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
 
 function parseCombatantRef(raw: string): {
-  combatantType: "CHARACTER" | "ENEMY";
+  combatantType: "CHARACTER" | "ENEMY" | "BOT";
   combatantId: string;
 } {
   const [maybeType, ...rest] = raw.split(":");
-  if ((maybeType === "CHARACTER" || maybeType === "ENEMY") && rest.length > 0) {
+  if (
+    (maybeType === "CHARACTER" ||
+      maybeType === "ENEMY" ||
+      maybeType === "BOT") &&
+    rest.length > 0
+  ) {
     return { combatantType: maybeType, combatantId: rest.join(":") };
   }
   throw new Error("Invalid combatant reference format");
@@ -44,7 +49,7 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     if (!combatantRef || typeof combatantRef !== "string") {
       return errorResponse("Invalid combatant ID", 400);
     }
-    let combatantType: "CHARACTER" | "ENEMY";
+    let combatantType: "CHARACTER" | "ENEMY" | "BOT";
     let combatantId: string;
     try {
       ({ combatantType, combatantId } = parseCombatantRef(combatantRef));
@@ -122,7 +127,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (!combatantRef || typeof combatantRef !== "string") {
       return errorResponse("Invalid combatant ID", 400);
     }
-    let combatantType: "CHARACTER" | "ENEMY";
+    let combatantType: "CHARACTER" | "ENEMY" | "BOT";
     let combatantId: string;
     try {
       ({ combatantType, combatantId } = parseCombatantRef(combatantRef));

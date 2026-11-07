@@ -6,11 +6,16 @@ type GameDetailInitiativeEntry = NonNullable<
 >[number];
 
 function parseCombatantRef(raw: string): {
-  combatantType: "CHARACTER" | "ENEMY";
+  combatantType: "CHARACTER" | "ENEMY" | "BOT";
   combatantId: string;
 } | null {
   const [maybeType, ...rest] = raw.split(":");
-  if ((maybeType === "CHARACTER" || maybeType === "ENEMY") && rest.length > 0) {
+  if (
+    (maybeType === "CHARACTER" ||
+      maybeType === "ENEMY" ||
+      maybeType === "BOT") &&
+    rest.length > 0
+  ) {
     return { combatantType: maybeType, combatantId: rest.join(":") };
   }
   return null;

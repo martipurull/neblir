@@ -53,7 +53,7 @@ const botCharacterPrisma = prisma as typeof prisma & {
       where: { characterId: string } | { botId: string };
     }): Promise<BotHoldingRow[]>;
     findFirst(args: {
-      where: { id: string; characterId: string };
+      where: { id: string; characterId?: string };
     }): Promise<BotHoldingRow | null>;
     create(args: { data: BotCharacterCreateData }): Promise<BotHoldingRow>;
     update(args: {
@@ -89,6 +89,14 @@ export async function getBotCharacterRow(
 ): Promise<BotHoldingRow | null> {
   return botCharacterPrisma.botCharacter.findFirst({
     where: { id: botCharacterId, characterId },
+  });
+}
+
+export async function getBotCharacterById(
+  botCharacterId: string
+): Promise<BotHoldingRow | null> {
+  return botCharacterPrisma.botCharacter.findFirst({
+    where: { id: botCharacterId },
   });
 }
 

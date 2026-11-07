@@ -42,6 +42,17 @@ const BLOCKED_ROLL_MESSAGE: Record<BotRollBlockReason, string> = {
   BATTERY_EMPTY: "This bot cannot roll while its battery is empty.",
 };
 
+export function botRollBlockedMessage(holding: {
+  mayRoll: boolean;
+  rollBlockedReason: BotRollBlockReason | null;
+}): string | null {
+  if (holding.mayRoll) return null;
+  const reason = holding.rollBlockedReason;
+  return reason == null
+    ? "This bot cannot roll."
+    : BLOCKED_ROLL_MESSAGE[reason];
+}
+
 export function botRollAttribution(options: {
   isPrivate: boolean;
   rollerName: string;
@@ -68,13 +79,9 @@ export function prepareBotAttributeRoll(input: {
       metadata: Record<string, unknown>;
     }
   | { ok: false; message: string } {
-  if (!input.holding.mayRoll) {
-    const reason = input.holding.rollBlockedReason;
-    return {
-      ok: false,
-      message:
-        reason == null ? "This bot cannot roll." : BLOCKED_ROLL_MESSAGE[reason],
-    };
+  const blocked = botRollBlockedMessage(input.holding);
+  if (blocked != null) {
+    return { ok: false, message: blocked };
   }
 
   const pool = botAttributePool(

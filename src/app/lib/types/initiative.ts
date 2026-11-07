@@ -16,9 +16,20 @@ const submitEnemyInitiativeSchema = z.object({
   initiativeModifier: z.number().int(),
 });
 
-export const submitInitiativeBodySchema = z
-  .union([submitCharacterInitiativeSchema, submitEnemyInitiativeSchema])
-  .transform((input) => input);
+const submitBotInitiativeSchema = z
+  .object({
+    combatantType: z.literal("BOT"),
+    combatantId: z.string().min(1),
+    rolledValue: z.number().int().min(1).max(10),
+    extraDice: z.number().int().optional(),
+  })
+  .strict();
+
+export const submitInitiativeBodySchema = z.union([
+  submitCharacterInitiativeSchema,
+  submitEnemyInitiativeSchema,
+  submitBotInitiativeSchema,
+]);
 
 export const adjustInitiativeBodySchema = z.object({
   initiativeDelta: z

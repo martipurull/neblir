@@ -3,6 +3,7 @@ import {
   isBotAttributeRoll,
   prepareBotAttributeRoll,
 } from "@/app/lib/botAttributeRoll";
+import { prepareBotInitiativeRoll } from "@/app/lib/botInitiative";
 import {
   botHoldingSource,
   missingBotTemplateMessage,
@@ -122,7 +123,49 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     let attribution: string | undefined;
     let successes: number | undefined;
 
-    if (payload.botCharacterId != null) {
+    if (payload.botCharacterId != null && payload.rollType === "INITIATIVE") {
+      const characterId = payload.characterId;
+      if (characterId == null) {
+        return errorResponse(
+          "Invalid request body",
+          400,
+          "A bot initiative roll needs the holding character."
+        );
+      }
+      const row = await getBotCharacterRow(characterId, payload.botCharacterId);
+      if (!row) {
+        return errorResponse("Bot holding not found", 404);
+      }
+      const template = await resolveHoldingTemplate(row);
+      if (!template) {
+        return errorResponse(
+          missingBotTemplateMessage(botHoldingSource(row)),
+          404
+        );
+      }
+      const roller = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+      const rollerName = roller?.name?.trim() ?? "";
+      const prepared = prepareBotInitiativeRoll({
+        holding: presentBotHolding(row, template),
+        results: payload.results,
+        extraDice: payload.extraDice,
+        isPrivate: persistedIsPrivate,
+        rollerName: rollerName.length > 0 ? rollerName : "Unknown",
+      });
+      if (!prepared.ok) {
+        return errorResponse(prepared.message, 400);
+      }
+      diceExpression = prepared.diceExpression;
+      total = prepared.total;
+      persistedMetadata = rollMetadataWithPrivateFlag(
+        prepared.metadata,
+        persistedIsPrivate
+      );
+      attribution = prepared.attribution;
+    } else if (payload.botCharacterId != null) {
       const characterId = payload.characterId;
       const botAttribute = payload.botAttribute;
       const extraDice = payload.extraDice;

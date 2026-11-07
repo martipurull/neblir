@@ -17,6 +17,7 @@ import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import { BotAttributeRollModal } from "@/app/components/character/BotAttributeRollModal";
+import { BotInitiativeRollModal } from "@/app/components/character/BotInitiativeRollModal";
 import { BotHoldingTracksSection } from "@/app/components/character/BotHoldingTracksSection";
 import type { BotAttributeRoll } from "@/app/lib/botAttributeRoll";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
@@ -81,6 +82,7 @@ function BotDetailModalBody({
   const [removeOpen, setRemoveOpen] = useState(false);
   const [rollingAttribute, setRollingAttribute] =
     useState<BotAttributeRoll | null>(null);
+  const [initiativeOpen, setInitiativeOpen] = useState(false);
   const [recipientId, setRecipientId] = useState("");
   const [recipients, setRecipients] = useState<SelectDropdownOption[]>([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
@@ -282,6 +284,18 @@ function BotDetailModalBody({
             </div>
           </div>
 
+          {canRoll ? (
+            <Button
+              type="button"
+              variant="semanticWarningOutline"
+              fullWidth={false}
+              disabled={!holding.mayRoll}
+              onClick={() => setInitiativeOpen(true)}
+            >
+              Roll initiative
+            </Button>
+          ) : null}
+
           <BotHoldingTracksSection
             holding={holding}
             locked={locked}
@@ -453,6 +467,16 @@ function BotDetailModalBody({
           }}
         />
       </ModalShell>
+      {initiativeOpen && gameId != null && gameId.length > 0 ? (
+        <BotInitiativeRollModal
+          key={holding.id}
+          holding={holding}
+          characterId={characterId}
+          gameId={gameId}
+          rollPrivacy={rollPrivacy}
+          onClose={() => setInitiativeOpen(false)}
+        />
+      ) : null}
       {rollingAttribute != null && gameId != null && gameId.length > 0 ? (
         <BotAttributeRollModal
           key={`${holding.id}-${rollingAttribute}`}

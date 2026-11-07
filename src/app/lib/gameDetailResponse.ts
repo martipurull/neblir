@@ -30,20 +30,22 @@ function shapeInitiativeOrderForResponse(
     labeledEnemyInstances.map((enemy) => [enemy.id, enemy])
   );
   return sorted.map((entry) => {
-    const ch =
-      entry.combatantType === "CHARACTER"
-        ? characterById.get(entry.combatantId)
-        : undefined;
+    const isCharacter = entry.combatantType === "CHARACTER";
+    const isEnemy = entry.combatantType === "ENEMY";
+    const ch = isCharacter ? characterById.get(entry.combatantId) : undefined;
     const gi = ch?.generalInformation;
-    const enemyInstance = enemyInstanceById.get(entry.combatantId);
+    const enemyInstance = isEnemy
+      ? enemyInstanceById.get(entry.combatantId)
+      : undefined;
     const liveEnemyLabel =
       enemyInstance?.instanceLabel ?? entry.combatantName ?? "Enemy";
-    const displayName =
-      entry.combatantType === "CHARACTER" ? (gi?.name ?? null) : liveEnemyLabel;
-    const displaySurname =
-      entry.combatantType === "CHARACTER" ? (gi?.surname ?? null) : null;
-    const combatantName =
-      entry.combatantType === "ENEMY" ? liveEnemyLabel : entry.combatantName;
+    const displayName = isCharacter
+      ? (gi?.name ?? null)
+      : isEnemy
+        ? liveEnemyLabel
+        : (entry.combatantName ?? null);
+    const displaySurname = isCharacter ? (gi?.surname ?? null) : null;
+    const combatantName = isEnemy ? liveEnemyLabel : entry.combatantName;
     return {
       combatantType: entry.combatantType,
       combatantId: entry.combatantId,
