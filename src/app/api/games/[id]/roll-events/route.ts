@@ -1,5 +1,18 @@
 import { errorResponse } from "@/app/api/shared/responses";
 import {
+  isBotAttributeRoll,
+  prepareBotAttributeRoll,
+} from "@/app/lib/botAttributeRoll";
+import {
+  botHoldingSource,
+  missingBotTemplateMessage,
+  presentBotHolding,
+} from "@/app/lib/botHoldingView";
+import {
+  getBotCharacterRow,
+  resolveHoldingTemplate,
+} from "@/app/lib/prisma/botCharacter";
+import {
   characterIsInGame,
   getGameCharacterLinkIsPublic,
   userHasPlayControlInGame,
@@ -99,10 +112,75 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       characterIsPublic,
       enemyInstanceIsPublic,
     });
-    const persistedMetadata = rollMetadataWithPrivateFlag(
+
+    let diceExpression = payload.diceExpression;
+    let total = payload.total;
+    let persistedMetadata = rollMetadataWithPrivateFlag(
       payload.metadata,
       persistedIsPrivate
     );
+    let attribution: string | undefined;
+    let successes: number | undefined;
+
+    if (payload.botCharacterId != null) {
+      const characterId = payload.characterId;
+      const botAttribute = payload.botAttribute;
+      const extraDice = payload.extraDice;
+      if (characterId == null || botAttribute == null || extraDice == null) {
+        return errorResponse(
+          "Invalid request body",
+          400,
+          "A bot attribute roll needs the holding character, one attribute, and extra dice."
+        );
+      }
+      if (botAttribute === "battery") {
+        return errorResponse("Battery is not rolled.", 400);
+      }
+      if (!isBotAttributeRoll(botAttribute)) {
+        return errorResponse(
+          "Roll one of Processing Power, Physical Power, Finesse Capacity, or Grid Protection.",
+          400
+        );
+      }
+
+      const row = await getBotCharacterRow(characterId, payload.botCharacterId);
+      if (!row) {
+        return errorResponse("Bot holding not found", 404);
+      }
+      const template = await resolveHoldingTemplate(row);
+      if (!template) {
+        return errorResponse(
+          missingBotTemplateMessage(botHoldingSource(row)),
+          404
+        );
+      }
+
+      const roller = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+      const rollerName = roller?.name?.trim() ?? "";
+      const prepared = prepareBotAttributeRoll({
+        holding: presentBotHolding(row, template),
+        attribute: botAttribute,
+        extraDice,
+        results: payload.results,
+        isPrivate: persistedIsPrivate,
+        rollerName: rollerName.length > 0 ? rollerName : "Unknown",
+      });
+      if (!prepared.ok) {
+        return errorResponse(prepared.message, 400);
+      }
+
+      diceExpression = prepared.diceExpression;
+      total = prepared.total;
+      persistedMetadata = rollMetadataWithPrivateFlag(
+        prepared.metadata,
+        persistedIsPrivate
+      );
+      attribution = prepared.attribution;
+      successes = prepared.successes;
+    }
 
     const integration = await prisma.discordIntegration.findUnique({
       where: { gameId },
@@ -114,9 +192,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         characterId: payload.characterId,
         rollerUserId: userId,
         rollType: payload.rollType,
-        diceExpression: payload.diceExpression,
+        diceExpression,
         results: payload.results,
-        total: payload.total,
+        total,
         metadata:
           persistedMetadata === undefined
             ? undefined
@@ -137,7 +215,12 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
     }
 
-    return NextResponse.json({ id: created.id, queued }, { status: 201 });
+    return NextResponse.json(
+      attribution == null
+        ? { id: created.id, queued }
+        : { id: created.id, queued, attribution, successes },
+      { status: 201 }
+    );
   } catch (error) {
     logger.error({
       method: "POST",

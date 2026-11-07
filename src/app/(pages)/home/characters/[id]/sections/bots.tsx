@@ -14,6 +14,7 @@ import type { CharacterSectionSlide } from "@/app/components/character/Character
 import { Button } from "@/app/components/shared/Button";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
+import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { BotHolding } from "@/app/lib/types/bot";
 import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
@@ -37,6 +38,7 @@ function BotsSectionContent({
   activeGameId = null,
   allowUniqueCreate = false,
   viewerUserId = null,
+  rollPrivacy = { allowPrivateRoll: false, defaultPrivateRoll: false },
 }: {
   character: CharacterDetail;
   mutate?: KeyedMutator<CharacterDetail | null>;
@@ -44,6 +46,7 @@ function BotsSectionContent({
   activeGameId?: string | null;
   allowUniqueCreate?: boolean;
   viewerUserId?: string | null;
+  rollPrivacy?: RollPrivacyOptions;
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
@@ -201,6 +204,8 @@ function BotsSectionContent({
           inventory={character.inventory ?? []}
           mutateAction={mutate}
           readOnly={readOnly}
+          gameId={activeGameId}
+          rollPrivacy={rollPrivacy}
           resolveGiveRecipientsAction={resolveGiveRecipients}
         />
       ) : null}
@@ -319,6 +324,7 @@ export function getBotsSection(
     activeGameId?: string | null;
     allowUniqueCreate?: boolean;
     viewerUserId?: string | null;
+    rollPrivacy?: RollPrivacyOptions;
   }
 ): CharacterSectionSlide {
   const count = character.bots?.length ?? 0;
@@ -334,6 +340,7 @@ export function getBotsSection(
         activeGameId={options?.activeGameId}
         allowUniqueCreate={options?.allowUniqueCreate}
         viewerUserId={options?.viewerUserId}
+        rollPrivacy={options?.rollPrivacy}
       />
     ),
   };

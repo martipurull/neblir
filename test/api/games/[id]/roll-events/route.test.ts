@@ -12,11 +12,14 @@ const characterIsInGameMock = vi.fn();
 const userHasPlayControlInGameMock = vi.fn();
 const getGameCharacterLinkIsPublicMock = vi.fn();
 const getEnemyInstanceIsPublicMock = vi.fn();
+const getBotCharacterRowMock = vi.fn();
+const resolveHoldingTemplateMock = vi.fn();
 
 const prismaMocks = vi.hoisted(() => ({
   discordIntegration: { findUnique: vi.fn() },
   rollEvent: { create: vi.fn() },
   discordOutbox: { create: vi.fn() },
+  user: { findUnique: vi.fn() },
 }));
 
 vi.mock("@/app/lib/prisma/game", () => ({
@@ -38,6 +41,12 @@ vi.mock("@/app/lib/prisma/client", () => ({
   prisma: prismaMocks,
 }));
 
+vi.mock("@/app/lib/prisma/botCharacter", () => ({
+  getBotCharacterRow: (...args: unknown[]) => getBotCharacterRowMock(...args),
+  resolveHoldingTemplate: (...args: unknown[]) =>
+    resolveHoldingTemplateMock(...args),
+}));
+
 describe("/api/games/[id]/roll-events", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -50,6 +59,9 @@ describe("/api/games/[id]/roll-events", () => {
     prismaMocks.discordIntegration.findUnique.mockResolvedValue(null);
     prismaMocks.rollEvent.create.mockResolvedValue({ id: "re-1" });
     prismaMocks.discordOutbox.create.mockResolvedValue({});
+    prismaMocks.user.findUnique.mockResolvedValue({ name: "Ada" });
+    getBotCharacterRowMock.mockResolvedValue(null);
+    resolveHoldingTemplateMock.mockResolvedValue(null);
   });
 
   describe("POST", () => {
@@ -294,6 +306,388 @@ describe("/api/games/[id]/roll-events", () => {
           }),
         }),
       });
+    });
+
+    function botTemplate(
+      overrides: Record<string, number> = {}
+    ): Record<string, unknown> {
+      return {
+        id: "bot-1",
+        name: "Loader",
+        imageKey: null,
+        description: null,
+        confCost: null,
+        usage: null,
+        notes: null,
+        maxHp: 10,
+        accessType: "PLAYER",
+        maxCargoWeightKg: null,
+        maxInstalledItems: null,
+        speed: 0,
+        maxCarryWeight: 0,
+        heightMetres: null,
+        weight: null,
+        processingPower: 2,
+        processingPowerMaxPotential: 2,
+        physicalPower: 5,
+        physicalPowerMaxPotential: 2,
+        finesseCapacity: 0,
+        finesseCapacityMaxPotential: 0,
+        gridProtection: 1,
+        gridProtectionMaxPotential: 1,
+        batteryCapacity: 2,
+        batteryMaxPotential: 0,
+        ...overrides,
+      };
+    }
+
+    function botHolding(
+      overrides: Record<string, unknown> = {}
+    ): Record<string, unknown> {
+      return {
+        id: "hold-1",
+        characterId: "c-1",
+        botId: "bot-1",
+        sourceType: "OFFICIAL",
+        customName: "Mule",
+        currentHp: 8,
+        maxHpBonus: 0,
+        notes: null,
+        processingPowerUpgrade: 1,
+        physicalPowerUpgrade: 0,
+        finesseCapacityUpgrade: 0,
+        gridProtectionUpgrade: 0,
+        batteryUpgrade: 0,
+        batteryUsed: 0,
+        isBeyondRepair: false,
+        ...overrides,
+      };
+    }
+
+    it("rolls one bot attribute from its effective value and counts 8–10 as successes", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 8, 3, 1],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 1,
+            metadata: { label1: "Strength", label2: "Agility" },
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(201);
+      expect(await response.json()).toEqual({
+        id: "re-1",
+        queued: false,
+        attribution: "Ada as Mule",
+        successes: 2,
+      });
+      expect(userHasPlayControlInGameMock).toHaveBeenCalledWith(
+        "g-1",
+        "c-1",
+        "user-1"
+      );
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: {
+          gameId: "g-1",
+          characterId: "c-1",
+          rollerUserId: "user-1",
+          rollType: "GENERAL_ROLL",
+          diceExpression: "4d10",
+          results: [10, 8, 3, 1],
+          total: 2,
+          metadata: {
+            label1: "Processing Power",
+            attribute: "processingPower",
+            botCharacterId: "hold-1",
+            botDisplayName: "Mule",
+            extraDice: 1,
+            baseDice: 3,
+          },
+        },
+      });
+    });
+
+    it("uses a pool of 1 when the effective attribute is lower, and lets extra dice subtract", async () => {
+      getBotCharacterRowMock.mockResolvedValue(
+        botHolding({ processingPowerUpgrade: 0 })
+      );
+      resolveHoldingTemplateMock.mockResolvedValue(
+        botTemplate({ processingPower: -4 })
+      );
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const low = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [9],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(low.status).toBe(201);
+      expect(await low.json()).toMatchObject({ successes: 1 });
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          diceExpression: "1d10",
+          total: 1,
+          metadata: expect.objectContaining({ baseDice: 1, extraDice: 0 }),
+        }),
+      });
+
+      prismaMocks.rollEvent.create.mockClear();
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const reduced = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 2],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: -1,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+      expect(reduced.status).toBe(201);
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          diceExpression: "2d10",
+          results: [10, 2],
+          total: 1,
+          metadata: expect.objectContaining({ baseDice: 3, extraDice: -1 }),
+        }),
+      });
+    });
+
+    it("attributes a private bot roll, including the holding character's private default, as SECRET ROLL", async () => {
+      getGameCharacterLinkIsPublicMock.mockResolvedValue(false);
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 4, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "finesseCapacity",
+            extraDice: 2,
+          },
+          "gm-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(201);
+      expect(await response.json()).toMatchObject({
+        attribution: "SECRET ROLL",
+        successes: 2,
+      });
+      expect(prismaMocks.rollEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          characterId: "c-1",
+          rollerUserId: "gm-1",
+          diceExpression: "3d10",
+          metadata: expect.objectContaining({
+            label1: "Finesse Capacity",
+            attribute: "finesseCapacity",
+            botCharacterId: "hold-1",
+            botDisplayName: "Mule",
+            isPrivate: true,
+            baseDice: 1,
+            extraDice: 2,
+          }),
+        }),
+      });
+    });
+
+    it("refuses a dice count that does not match the pool plus extra dice", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 8, 3, 1, 9, 6, 5, 4],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "Dice count does not match the pool plus extra dice.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a bot attribute roll of zero dice", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [4],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: -3,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "A bot attribute roll needs at least one die.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a bot attribute roll while the bot is Broken", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding({ currentHp: 0 }));
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8, 8, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "processingPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "This bot cannot roll while it is Broken.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a bot attribute roll while the bot is Beyond repair", async () => {
+      getBotCharacterRowMock.mockResolvedValue(
+        botHolding({ isBeyondRepair: true })
+      );
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8, 8, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "physicalPower",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "This bot cannot roll while it is Beyond repair.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a bot attribute roll while the battery is empty", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding({ batteryUsed: 1 }));
+      resolveHoldingTemplateMock.mockResolvedValue(
+        botTemplate({ batteryCapacity: 1 })
+      );
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8, 8, 8],
+            botCharacterId: "hold-1",
+            botAttribute: "gridProtection",
+            extraDice: 2,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "This bot cannot roll while its battery is empty.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses to roll battery", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding());
+      resolveHoldingTemplateMock.mockResolvedValue(botTemplate());
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [8],
+            botCharacterId: "hold-1",
+            botAttribute: "battery",
+            extraDice: 0,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "Battery is not rolled.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
 
     it("does not let a play-grant grantee un-hide a private-link roll", async () => {

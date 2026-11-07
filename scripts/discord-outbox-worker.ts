@@ -6,6 +6,7 @@ const envRoot = process.cwd();
 loadEnv({ path: resolve(envRoot, ".env") });
 loadEnv({ path: resolve(envRoot, ".env.local"), override: true });
 
+import { botRollAttribution } from "../src/app/lib/botAttributeRoll";
 import { prisma } from "../src/app/lib/prisma/client";
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";
@@ -112,6 +113,13 @@ function isPrivateRoll(metadata: unknown): boolean {
   return (metadata as { isPrivate?: unknown }).isPrivate === true;
 }
 
+function botDisplayNameFromMetadata(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  return cleanMetadataLabel(
+    (metadata as { botDisplayName?: unknown }).botDisplayName
+  );
+}
+
 function formatRollMessage(event: {
   rollType: string;
   diceExpression: string | null;
@@ -122,9 +130,16 @@ function formatRollMessage(event: {
   character: { generalInformation: { name: string; surname: string } } | null;
 }) {
   const isPrivate = isPrivateRoll(event.metadata);
-  const charName = event.character
+  const characterName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
     : "GM";
+  const botName = botDisplayNameFromMetadata(event.metadata);
+  const subjectName = botName ?? characterName;
+  const attribution = botRollAttribution({
+    isPrivate,
+    rollerName: event.rollerUser.name,
+    botDisplayName: subjectName,
+  });
   const displayRollType = (() => {
     if (event.rollType === "GENERAL_ROLL") {
       return getGeneralRollTag(event.metadata);
@@ -137,10 +152,11 @@ function formatRollMessage(event: {
   const label = escapeForDiscordInlineCode(event.diceExpression ?? "roll");
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
+  const rollerName = event.rollerUser.name;
   return (
-    (isPrivate
-      ? `🎲 **${event.rollerUser.name}** ► **SECRET ROLL**\n`
-      : `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n`) +
+    (attribution === "SECRET ROLL"
+      ? `🎲 **${rollerName}** ► **SECRET ROLL**\n`
+      : `🎲 **${rollerName}** as **${subjectName}** ► **${displayRollType}**\n`) +
     `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
   );
 }

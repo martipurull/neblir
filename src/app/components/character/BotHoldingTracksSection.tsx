@@ -4,6 +4,7 @@ import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { NumberField } from "@/app/components/shared/NumberField";
+import type { BotAttributeRoll } from "@/app/lib/botAttributeRoll";
 import {
   BOT_UPGRADE_LABELS,
   BOT_UPGRADE_TRACKS,
@@ -32,10 +33,15 @@ function upgradeDrafts(holding: BotHolding): Record<BotUpgradeTrack, string> {
 export function BotHoldingTracksSection({
   holding,
   locked,
+  canRoll,
+  onRollAttribute,
   onSave,
 }: {
   holding: BotHolding;
   locked: boolean;
+  /** Play control in a game. Blocked holdings still do not offer a roll. */
+  canRoll: boolean;
+  onRollAttribute: (attribute: BotAttributeRoll) => void;
   onSave: (body: BotHoldingPatch, fallback: string) => Promise<boolean>;
 }) {
   const [drafts, setDrafts] = useState(() => upgradeDrafts(holding));
@@ -83,21 +89,39 @@ export function BotHoldingTracksSection({
         {BOT_UPGRADE_TRACKS.filter((track) => track !== "battery").map(
           (track) => {
             const figure = holding.attributes[track];
+            const figureText = shownTrackFigure(
+              figure.base,
+              figure.effective,
+              figure.signedUpgrade
+            );
+            const rollThis = canRoll && holding.mayRoll;
             return (
               <div
                 key={track}
                 className="rounded-md border border-white/10 bg-white/5 px-3 py-2"
               >
-                <div className="text-[11px] uppercase tracking-wider text-white/60">
-                  {BOT_UPGRADE_LABELS[track]}
-                </div>
-                <div className="mt-1 text-sm text-white">
-                  {shownTrackFigure(
-                    figure.base,
-                    figure.effective,
-                    figure.signedUpgrade
-                  )}
-                </div>
+                {rollThis ? (
+                  <Button
+                    type="button"
+                    variant="modalBrowseListRow"
+                    aria-label={`Roll ${BOT_UPGRADE_LABELS[track]}`}
+                    onClick={() => onRollAttribute(track)}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col items-start">
+                      <span className="text-[11px] uppercase tracking-wider text-white/60">
+                        {BOT_UPGRADE_LABELS[track]}
+                      </span>
+                      <span className="text-sm text-white">{figureText}</span>
+                    </span>
+                  </Button>
+                ) : (
+                  <>
+                    <div className="text-[11px] uppercase tracking-wider text-white/60">
+                      {BOT_UPGRADE_LABELS[track]}
+                    </div>
+                    <div className="mt-1 text-sm text-white">{figureText}</div>
+                  </>
+                )}
                 <FieldLabel
                   id={`bot-upgrade-${holding.id}-${track}`}
                   label="Upgrade"

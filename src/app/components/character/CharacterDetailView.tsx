@@ -258,6 +258,7 @@ export function CharacterDetailView({
         activeGameId,
         allowUniqueCreate: hasAuthorship && !sheetReadOnly,
         viewerUserId: user?.id ?? null,
+        rollPrivacy,
       })
     );
     list.push(
