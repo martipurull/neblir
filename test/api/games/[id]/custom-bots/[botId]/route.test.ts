@@ -48,6 +48,27 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
 
   const params = () => makeParams({ id: "g-1", botId: "cb-1" });
 
+  it("GET returns 401 when unauthenticated", async () => {
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+    const response = await invokeRoute(GET, makeUnauthedRequest(), params());
+    expect(response.status).toBe(401);
+    expect(getCustomBotMock).not.toHaveBeenCalled();
+  });
+
+  it("GET returns 403 when the caller is neither the GM nor a member", async () => {
+    userIsInGameMock.mockResolvedValue(false);
+    const { GET } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "stranger"),
+      params()
+    );
+    expect(response.status).toBe(403);
+    expect(getCustomBotMock).not.toHaveBeenCalled();
+  });
+
   it("GET returns the Custom bot to a game member", async () => {
     userIsInGameMock.mockResolvedValue(true);
     const { GET } =
@@ -121,6 +142,18 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
       params()
     );
     expect(response.status).toBe(401);
+    expect(updateCustomBotMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH returns 400 when max HP is below 1", async () => {
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ maxHp: 0 }, "gm-1"),
+      params()
+    );
+    expect(response.status).toBe(400);
     expect(updateCustomBotMock).not.toHaveBeenCalled();
   });
 
