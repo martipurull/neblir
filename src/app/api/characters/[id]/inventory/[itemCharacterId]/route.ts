@@ -29,6 +29,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
+import { botCargoQuantityRefusal } from "@/app/lib/prisma/botCargoCapacity";
 import {
   characterIsInGame,
   userHasPlayControl,
@@ -104,6 +105,9 @@ async function saveHoldingPlace(
 ) {
   await prisma.$transaction(async (tx) => {
     await tx.vehicleMountedItem.deleteMany({
+      where: { itemCharacterId },
+    });
+    await tx.botInstalledItem.deleteMany({
       where: { itemCharacterId },
     });
     await tx.itemCharacter.update({
@@ -349,6 +353,17 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
     } else if (action === "setQuantity") {
       const { quantity } = parsed.data;
+      if (quantity > 0) {
+        const cargoRefusal = await botCargoQuantityRefusal({
+          characterId: id,
+          itemCharacterId,
+          nextQuantity: quantity,
+          inventory,
+        });
+        if (cargoRefusal) {
+          return errorResponse(cargoRefusal, 409);
+        }
+      }
       if (quantity === 0) {
         await deleteItemCharacter(itemCharacterId);
         const characterAfterDelete = await getCharacter(id);

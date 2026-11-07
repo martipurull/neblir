@@ -16,6 +16,8 @@ type BotRow = {
   usage: string | null;
   notes: string | null;
   maxHp: number;
+  maxCargoWeightKg: number | null;
+  maxInstalledItems: number | null;
 };
 
 type BotCreateData = Omit<BotRow, "id"> & {
@@ -51,6 +53,8 @@ function mapPrismaBotToApi(row: BotRow): OfficialBot {
     usage: row.usage,
     notes: row.notes,
     maxHp: row.maxHp,
+    maxCargoWeightKg: row.maxCargoWeightKg ?? null,
+    maxInstalledItems: row.maxInstalledItems ?? null,
   };
 }
 
@@ -67,6 +71,8 @@ function botCreateDataFromParsed(
     usage: blankToNull(data.usage),
     notes: blankToNull(data.notes),
     maxHp: data.maxHp,
+    maxCargoWeightKg: data.maxCargoWeightKg ?? null,
+    maxInstalledItems: data.maxInstalledItems ?? null,
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),
@@ -90,6 +96,12 @@ function botUpdateDataFromParsed(
     ...(data.usage !== undefined ? { usage: blankToNull(data.usage) } : {}),
     ...(data.notes !== undefined ? { notes: blankToNull(data.notes) } : {}),
     ...(data.maxHp !== undefined ? { maxHp: data.maxHp } : {}),
+    ...(data.maxCargoWeightKg !== undefined
+      ? { maxCargoWeightKg: data.maxCargoWeightKg ?? null }
+      : {}),
+    ...(data.maxInstalledItems !== undefined
+      ? { maxInstalledItems: data.maxInstalledItems ?? null }
+      : {}),
     ...(options?.officialCatalogueWrite
       ? { protectedFromOfficialImport: true }
       : {}),

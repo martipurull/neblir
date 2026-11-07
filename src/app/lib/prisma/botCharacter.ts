@@ -7,6 +7,7 @@ import {
 import type { BotHolding } from "@/app/lib/types/bot";
 import { getBot, getBotsByIds } from "./bot";
 import { getCustomBot, getCustomBotsByIds } from "./customBot";
+import { placementsForHoldings } from "./botPlacement";
 import { prisma } from "./client";
 
 type BotCharacterCreateData = {
@@ -147,12 +148,13 @@ export async function hydrateBotCharacters(
   ]);
   const officialById = new Map(official.map((bot) => [bot.id, bot]));
   const customById = new Map(custom.map((bot) => [bot.id, templateView(bot)]));
+  const placements = await placementsForHoldings(records);
   return records.map((record) => {
     const template =
       botHoldingSource(record) === "CUSTOM"
         ? (customById.get(record.botId) ?? null)
         : (officialById.get(record.botId) ?? null);
-    return presentBotHolding(record, template);
+    return presentBotHolding(record, template, placements.get(record.id));
   });
 }
 

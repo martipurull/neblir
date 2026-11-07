@@ -11,9 +11,15 @@ import { getBot } from "@/app/lib/prisma/bot";
 import { getCustomBot } from "@/app/lib/prisma/customBot";
 import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
+  deleteBotCharacter,
   getBotCharacterRow,
   updateBotCharacter,
 } from "@/app/lib/prisma/botCharacter";
+import {
+  BOT_HOLDING_REMOVE_BLOCKED_MESSAGE,
+  botHoldingHasPlacements,
+  placementsByHolding,
+} from "@/app/lib/prisma/botPlacement";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { botHoldingPatchSchema } from "@/app/lib/types/bot";
 import { auth } from "@/auth";
@@ -115,7 +121,10 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       });
     }
 
-    return NextResponse.json(presentBotHolding(updated, bot));
+    const placements = await placementsByHolding(characterId, [botCharacterId]);
+    return NextResponse.json(
+      presentBotHolding(updated, bot, placements.get(botCharacterId))
+    );
   } catch (error) {
     logger.error({
       method: "PATCH",
@@ -125,6 +134,55 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     });
     return errorResponse(
       "Error updating character bot",
+      500,
+      serializeError(error)
+    );
+  }
+});
+
+export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
+  try {
+    if (!request.auth?.user) {
+      return errorResponse("Unauthorised", 401);
+    }
+
+    const { id: characterId, botCharacterId } = (await params) as {
+      id: string;
+      botCharacterId: string;
+    };
+    if (
+      !characterId ||
+      typeof characterId !== "string" ||
+      !botCharacterId ||
+      typeof botCharacterId !== "string"
+    ) {
+      return errorResponse("Invalid character or bot holding ID", 400);
+    }
+
+    if (!(await userHasPlayControl(characterId, request.auth.user.id))) {
+      return errorResponse("This is not one of your characters.", 403);
+    }
+
+    const existing = await getBotCharacterRow(characterId, botCharacterId);
+    if (!existing) {
+      return errorResponse("Bot holding not found for this character", 404);
+    }
+
+    if (await botHoldingHasPlacements(characterId, botCharacterId)) {
+      return errorResponse(BOT_HOLDING_REMOVE_BLOCKED_MESSAGE, 409);
+    }
+
+    await deleteBotCharacter(botCharacterId);
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    logger.error({
+      method: "DELETE",
+      route: "/api/characters/[id]/bots/[botCharacterId]",
+      message: "Error removing character bot",
+      error,
+    });
+    return errorResponse(
+      "Error removing character bot",
       500,
       serializeError(error)
     );

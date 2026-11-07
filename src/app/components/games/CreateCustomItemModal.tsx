@@ -233,6 +233,8 @@ export function CreateCustomItemModal({
               onEquippableChange={f.setEquippable}
               vehicleMountable={f.vehicleMountable}
               onVehicleMountableChange={f.setVehicleMountable}
+              botInstallable={f.botInstallable}
+              onBotInstallableChange={f.setBotInstallable}
               equipSlotTypes={f.equipSlotTypes}
               onToggleEquipSlot={f.toggleEquipSlot}
               equipSlotCost={f.equipSlotCost}

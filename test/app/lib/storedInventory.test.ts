@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  botCargoItemLocation,
+  botCarriedItemLocation,
+  botInstalledItemLocation,
   vehicleCargoItemLocation,
   vehicleMountedItemLocation,
 } from "@/app/lib/constants/inventory";
@@ -54,6 +57,33 @@ describe("projectStoredInventory", () => {
     expect(
       layout.stashDrawers.map((stashDrawer) => stashDrawer.heading)
     ).toEqual(["Amber loft"]);
+  });
+
+  it("lists items on a bot with the bot, and keeps them out of stash drawers", () => {
+    const layout = projectStoredInventory(
+      [
+        holding("crate", "Crate", "Locker"),
+        holding("blade", "Blade", botInstalledItemLocation("scout")),
+        holding("pack", "Pack", botCargoItemLocation("scout")),
+        holding("lamp", "Lamp", botCarriedItemLocation("hauler")),
+      ],
+      { botNamesById: { scout: "Scout", hauler: "Hauler" } }
+    );
+
+    expect(
+      layout.botRows.map((row) => ({
+        id: row.holding.id,
+        locationLabel: row.locationLabel,
+      }))
+    ).toEqual([
+      { id: "blade", locationLabel: "Scout (installed)" },
+      { id: "lamp", locationLabel: "Hauler (carried)" },
+      { id: "pack", locationLabel: "Scout cargo" },
+    ]);
+    expect(layout.vehicleRows).toEqual([]);
+    expect(
+      layout.stashDrawers.map((stashDrawer) => stashDrawer.heading)
+    ).toEqual(["Locker"]);
   });
 
   it("puts spellings that differ by case, spacing, punctuation, or a possessive 's in one drawer", () => {

@@ -13,9 +13,11 @@ import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkelet
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import type { CharacterDetail } from "@/app/lib/types/character";
 import type { BotHolding } from "@/app/lib/types/bot";
+import { isGiveItemRecipientInGame } from "@/app/lib/gmUtils";
 import { useImageUrls } from "@/hooks/use-image-urls";
+import { getGameById } from "@/lib/api/game";
 import type { KeyedMutator } from "swr";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 function BotsCountPill({ count }: { count: number }) {
   return (
@@ -55,6 +57,31 @@ function BotsSectionContent({
   );
   const imageUrls = useImageUrls(imageEntries);
   const detail = holdings.find((holding) => holding.id === detailId) ?? null;
+  const resolveGiveRecipients = useCallback(async () => {
+    const gameIds = character.games?.map((entry) => entry.gameId) ?? [];
+    if (gameIds.length === 0) return [];
+    const games = await Promise.all(gameIds.map((id) => getGameById(id)));
+    const byId = new Map<string, string>();
+    for (const game of games) {
+      if (!game) continue;
+      for (const membership of game.characters ?? []) {
+        if (!isGiveItemRecipientInGame(membership, game, character.id)) {
+          continue;
+        }
+        const current = membership.character;
+        const label = [current.name, current.surname ?? ""]
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
+          .join(" ");
+        if (!byId.has(current.id)) {
+          byId.set(current.id, label.length > 0 ? label : current.id);
+        }
+      }
+    }
+    return [...byId.entries()]
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [character.games, character.id]);
 
   return (
     <div className="space-y-0">
@@ -102,8 +129,10 @@ function BotsSectionContent({
           onCloseAction={() => setDetailId(null)}
           characterId={character.id}
           holding={detail}
+          inventory={character.inventory ?? []}
           mutateAction={mutate}
           readOnly={readOnly}
+          resolveGiveRecipientsAction={resolveGiveRecipients}
         />
       ) : null}
     </div>

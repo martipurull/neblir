@@ -7,6 +7,8 @@ import {
 } from "@/app/components/character/BotDamageProfile";
 import { CurrentHpAdjustRow } from "@/app/components/character/vehicleDetailModal/VehicleDetailStatRows";
 import { Button } from "@/app/components/shared/Button";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
@@ -14,21 +16,29 @@ import { NumberField } from "@/app/components/shared/NumberField";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import { BotPlacementSection } from "@/app/components/character/BotPlacementSection";
+import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import type { BotHolding } from "@/app/lib/types/bot";
 import { useImageUrls } from "@/hooks/use-image-urls";
-import { updateCharacterBotHolding } from "@/lib/api/bots";
+import {
+  removeCharacterBotHolding,
+  transferCharacterBotHolding,
+  updateCharacterBotHolding,
+} from "@/lib/api/bots";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { KeyedMutator } from "swr";
-import type { CharacterDetail } from "@/app/lib/types/character";
+import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
 
 type BotDetailModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
   characterId: string;
   holding: BotHolding | null;
+  inventory: ItemCharacter[];
   mutateAction: KeyedMutator<CharacterDetail | null>;
   readOnly?: boolean;
+  resolveGiveRecipientsAction?: () => Promise<SelectDropdownOption[]>;
 };
 
 export function BotDetailModal(props: BotDetailModalProps) {
@@ -46,20 +56,45 @@ function BotDetailModalBody({
   onCloseAction,
   characterId,
   holding,
+  inventory,
   mutateAction,
   readOnly = false,
+  resolveGiveRecipientsAction,
 }: BotDetailModalProps & { holding: BotHolding }) {
   const [nickname, setNickname] = useState(holding.customName ?? "");
   const [notes, setNotes] = useState(holding.notes ?? "");
   const [bonus, setBonus] = useState(String(holding.maxHpBonus));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [recipientId, setRecipientId] = useState("");
+  const [recipients, setRecipients] = useState<SelectDropdownOption[]>([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
   const imageKey = holding.bot?.imageKey ?? null;
   const imageUrls = useImageUrls(
     imageKey ? [{ id: holding.id, imageKey }] : []
   );
   const imageUrl = imageUrls[holding.id];
   const locked = readOnly || busy;
+
+  useEffect(() => {
+    if (readOnly || !resolveGiveRecipientsAction) return;
+    let cancelled = false;
+    setRecipientsLoading(true);
+    void resolveGiveRecipientsAction()
+      .then((options) => {
+        if (!cancelled) setRecipients(options);
+      })
+      .catch(() => {
+        if (!cancelled) setRecipients([]);
+      })
+      .finally(() => {
+        if (!cancelled) setRecipientsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [readOnly, resolveGiveRecipientsAction]);
 
   const save = async (
     body: Parameters<typeof updateCharacterBotHolding>[2],
@@ -236,6 +271,14 @@ function BotDetailModalBody({
           <PlainBlock label="Template notes" text={holding.bot.notes} />
         ) : null}
 
+        <BotPlacementSection
+          characterId={characterId}
+          holding={holding}
+          inventory={inventory}
+          readOnly={readOnly}
+          onChanged={() => mutateAction()}
+        />
+
         <section className="space-y-2 rounded-md border border-white/10 bg-white/5 p-3">
           <div className="font-medium text-white">Damage profile</div>
           <p className="text-xs text-white/60">
@@ -244,11 +287,57 @@ function BotDetailModalBody({
           <BotDamageProfile profile={holding.damageProfile} tone="dark" />
         </section>
 
+        {!readOnly && resolveGiveRecipientsAction ? (
+          <section className="space-y-2 rounded-md border border-white/10 bg-white/5 p-3">
+            <div>
+              <div className="font-medium text-white">Give bot</div>
+              <p className="text-xs text-white/65">
+                Return installed, cargo, and carried items before giving this
+                bot to another character.
+              </p>
+            </div>
+            <SelectDropdown
+              id={`bot-give-recipient-${holding.id}`}
+              label="Give to"
+              showLabel={false}
+              placeholder={
+                recipientsLoading ? "Loading characters…" : "Choose a character"
+              }
+              value={recipientId}
+              options={recipients}
+              disabled={locked || recipientsLoading || recipients.length === 0}
+              onChange={setRecipientId}
+            />
+            <Button
+              type="button"
+              variant="modalPaleOutline"
+              fullWidth={false}
+              disabled={locked || recipientId.length === 0}
+              onClick={() => {
+                void giveBot();
+              }}
+            >
+              Give bot
+            </Button>
+          </section>
+        ) : null}
+
         {error ? (
           <p className="text-xs text-neblirDanger-300">{error}</p>
         ) : null}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {!readOnly ? (
+            <Button
+              type="button"
+              variant="danger"
+              fullWidth={false}
+              disabled={locked}
+              onClick={() => setRemoveOpen(true)}
+            >
+              Remove bot
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="modalPalePrimary"
@@ -259,8 +348,54 @@ function BotDetailModalBody({
           </Button>
         </div>
       </div>
+      <DangerConfirmModal
+        isOpen={removeOpen}
+        variant="modalBackground"
+        title="Remove bot"
+        description="Return installed, cargo, and carried items to this character first. An empty holding can be removed."
+        confirmLabel="Remove bot"
+        isSubmitting={busy}
+        errorMessage={removeOpen ? error : null}
+        onCancel={() => {
+          if (busy) return;
+          setRemoveOpen(false);
+        }}
+        onConfirm={() => {
+          void saveRemoval();
+        }}
+      />
     </ModalShell>
   );
+
+  async function giveBot() {
+    if (recipientId.length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await transferCharacterBotHolding(characterId, holding.id, recipientId);
+      await mutateAction();
+      onCloseAction();
+    } catch (giveError) {
+      setError(getUserSafeErrorMessage(giveError, "Failed to give bot"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveRemoval() {
+    setBusy(true);
+    setError(null);
+    try {
+      await removeCharacterBotHolding(characterId, holding.id);
+      setRemoveOpen(false);
+      await mutateAction();
+      onCloseAction();
+    } catch (removeError) {
+      setError(getUserSafeErrorMessage(removeError, "Failed to remove bot"));
+    } finally {
+      setBusy(false);
+    }
+  }
 }
 
 function PlainBlock({ label, text }: { label: string; text: string }) {

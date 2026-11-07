@@ -1,6 +1,7 @@
 import {
   ITEM_LOCATION_CARRIED,
   isVehicleItemLocation,
+  parseBotItemLocation,
 } from "@/app/lib/constants/inventory";
 import {
   foldSharedName,
@@ -12,6 +13,7 @@ const CARRIED_RESERVED =
   "That word is reserved for items the character is carrying. Choose a place name.";
 const VEHICLE_RESERVED =
   "That name is reserved for items in or on a vehicle. Use the vehicle's cargo or mount controls, or choose a place name.";
+const BOT_RESERVED = "Place items on a bot from the bot holding.";
 const CARRIED_FOLD = foldSharedName(ITEM_LOCATION_CARRIED);
 
 type PlaceName =
@@ -23,6 +25,9 @@ function readPlaceName(candidate: string): PlaceName {
   const trimmed = candidate.trim();
   if (isVehicleItemLocation(trimmed)) {
     return { ok: false, message: VEHICLE_RESERVED };
+  }
+  if (parseBotItemLocation(trimmed)) {
+    return { ok: false, message: BOT_RESERVED };
   }
   const key = foldSharedName(trimmed);
   if (key === "") return { ok: false, message: PLACE_NAME_REQUIRED };

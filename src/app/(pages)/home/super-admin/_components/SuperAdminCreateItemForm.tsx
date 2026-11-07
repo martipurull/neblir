@@ -190,6 +190,7 @@ export function SuperAdminCreateItemForm({
       damageNumberOfDice: 1,
       equippable: false,
       vehicleMountable: false,
+      botInstallable: false,
       equipSlotTypes: [],
       equipSlotCost: "",
       modifiesAttribute: "",
@@ -340,6 +341,7 @@ export function SuperAdminCreateItemForm({
       weight,
       equippable: values.equippable,
       vehicleMountable: values.vehicleMountable,
+      botInstallable: values.botInstallable,
       equipSlotTypes: values.equippable ? values.equipSlotTypes : [],
       ...(values.equippable && equipSlotCostParsed !== undefined
         ? { equipSlotCost: equipSlotCostParsed }
@@ -669,6 +671,17 @@ export function SuperAdminCreateItemForm({
                   checked={field.value}
                   onChange={field.onChange}
                   label="Can be mounted on a vehicle"
+                />
+              )}
+            />
+            <Controller
+              name="botInstallable"
+              control={form.control}
+              render={({ field }) => (
+                <Checkbox
+                  checked={field.value}
+                  onChange={field.onChange}
+                  label="Can be installed on a bot"
                 />
               )}
             />

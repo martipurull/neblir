@@ -213,6 +213,9 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.vehicleMountableOverride != null && {
           vehicleMountable: uniqueItem.vehicleMountableOverride,
         }),
+        ...(uniqueItem.botInstallableOverride != null && {
+          botInstallable: uniqueItem.botInstallableOverride,
+        }),
         ...("equipSlotTypesOverride" in uniqueItem &&
           uniqueItem.equipSlotTypesOverride != null && {
             equipSlotTypes: Array.isArray(uniqueItem.equipSlotTypesOverride)
@@ -289,6 +292,7 @@ export async function deleteItemCharacter(id: string) {
   return prisma.$transaction(async (tx) => {
     // Mount links have no FK cascade from ItemCharacter; clear before delete.
     await tx.vehicleMountedItem.deleteMany({ where: { itemCharacterId: id } });
+    await tx.botInstalledItem.deleteMany({ where: { itemCharacterId: id } });
     return tx.itemCharacter.delete({ where: { id } });
   });
 }

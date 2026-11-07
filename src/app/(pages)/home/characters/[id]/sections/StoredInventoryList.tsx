@@ -36,17 +36,19 @@ export function StoredInventoryList({
     () =>
       projectStoredInventory(holdings, {
         vehicleNamesById: row.vehicleNamesById,
+        botNamesById: row.botNamesById,
         openByKey,
       }),
-    [holdings, openByKey, row.vehicleNamesById]
+    [holdings, openByKey, row.botNamesById, row.vehicleNamesById]
   );
+  const placedRows = [...layout.vehicleRows, ...layout.botRows];
 
-  if (layout.vehicleRows.length === 0 && layout.stashDrawers.length === 0) {
+  if (placedRows.length === 0 && layout.stashDrawers.length === 0) {
     return null;
   }
 
   const showColumnHeader =
-    layout.vehicleRows.length > 0 ||
+    placedRows.length > 0 ||
     layout.stashDrawers.some((stashDrawer) => stashDrawer.open);
   return (
     <div className="mb-6">
@@ -56,13 +58,13 @@ export function StoredInventoryList({
         </h3>
       </div>
       {showColumnHeader ? <InventoryColumnHeader variant="stored" /> : null}
-      {layout.vehicleRows.length > 0 ? (
+      {placedRows.length > 0 ? (
         <ul className="divide-y divide-black">
-          {layout.vehicleRows.map((vehicleRow) => (
+          {placedRows.map((placedRow) => (
             <InventoryHoldingRow
-              key={vehicleRow.holding.id}
-              holding={vehicleRow.holding}
-              locationLabel={vehicleRow.locationLabel}
+              key={placedRow.holding.id}
+              holding={placedRow.holding}
+              locationLabel={placedRow.locationLabel}
               variant="stored"
               row={row}
             />
@@ -72,7 +74,7 @@ export function StoredInventoryList({
       {layout.stashDrawers.length > 0 ? (
         <div
           className={
-            layout.vehicleRows.length > 0 ? "mt-4 space-y-4" : "mt-3 space-y-4"
+            placedRows.length > 0 ? "mt-4 space-y-4" : "mt-3 space-y-4"
           }
         >
           {renameError ? (

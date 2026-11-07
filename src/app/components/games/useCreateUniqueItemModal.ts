@@ -63,6 +63,7 @@ function applyUniqueItemDraft(
     setSpecialTag: (v: string) => void;
     setEquippableOverride: (v: boolean | "") => void;
     setVehicleMountableOverride: (v: boolean | "") => void;
+    setBotInstallableOverride: (v: boolean | "") => void;
     setEquipSlotTypesOverride: (v: string[]) => void;
     setEquipSlotCostOverride: (v: string) => void;
     setMaxUsesOverride: (v: string) => void;
@@ -101,6 +102,7 @@ function applyUniqueItemDraft(
   apply.setSpecialTag(draft.specialTag);
   apply.setEquippableOverride(draft.equippableOverride);
   apply.setVehicleMountableOverride(draft.vehicleMountableOverride);
+  apply.setBotInstallableOverride(draft.botInstallableOverride);
   apply.setEquipSlotTypesOverride(draft.equipSlotTypesOverride);
   apply.setEquipSlotCostOverride(draft.equipSlotCostOverride);
   apply.setMaxUsesOverride(draft.maxUsesOverride);
@@ -163,6 +165,9 @@ export function useCreateUniqueItemModal({
     ""
   );
   const [vehicleMountableOverride, setVehicleMountableOverride] = useState<
+    boolean | ""
+  >("");
+  const [botInstallableOverride, setBotInstallableOverride] = useState<
     boolean | ""
   >("");
   const [equipSlotTypesOverride, setEquipSlotTypesOverride] = useState<
@@ -310,6 +315,7 @@ export function useCreateUniqueItemModal({
     setSpecialTag("");
     setEquippableOverride("");
     setVehicleMountableOverride("");
+    setBotInstallableOverride("");
     setEquipSlotTypesOverride([]);
     setEquipSlotCostOverride("");
     setMaxUsesOverride("");
@@ -357,6 +363,7 @@ export function useCreateUniqueItemModal({
         setSpecialTag,
         setEquippableOverride,
         setVehicleMountableOverride,
+        setBotInstallableOverride,
         setEquipSlotTypesOverride,
         setEquipSlotCostOverride,
         setMaxUsesOverride,
@@ -402,6 +409,7 @@ export function useCreateUniqueItemModal({
       specialTag,
       equippableOverride,
       vehicleMountableOverride,
+      botInstallableOverride,
       equipSlotTypesOverride,
       equipSlotCostOverride,
       maxUsesOverride,
@@ -441,6 +449,7 @@ export function useCreateUniqueItemModal({
     specialTag,
     equippableOverride,
     vehicleMountableOverride,
+    botInstallableOverride,
     equipSlotTypesOverride,
     equipSlotCostOverride,
     maxUsesOverride,
@@ -555,6 +564,7 @@ export function useCreateUniqueItemModal({
         setSpecialTag(presentString(data.specialTag));
         setEquippableOverride(data.equippableOverride ?? "");
         setVehicleMountableOverride(data.vehicleMountableOverride ?? "");
+        setBotInstallableOverride(data.botInstallableOverride ?? "");
         setEquipSlotTypesOverride(data.equipSlotTypesOverride ?? []);
         setEquipSlotCostOverride(optionalNumStr(data.equipSlotCostOverride));
         setMaxUsesOverride(optionalNumStr(data.maxUsesOverride));
@@ -769,6 +779,10 @@ export function useCreateUniqueItemModal({
         (body as Record<string, boolean>).vehicleMountableOverride =
           vehicleMountableOverride as boolean;
       }
+      if (botInstallableOverride !== "") {
+        (body as Record<string, boolean>).botInstallableOverride =
+          botInstallableOverride as boolean;
+      }
       if (equipSlotTypesOverride.length > 0) {
         (body as Record<string, string[]>).equipSlotTypesOverride =
           equipSlotTypesOverride;
@@ -908,6 +922,8 @@ export function useCreateUniqueItemModal({
     setEquippableOverride,
     vehicleMountableOverride,
     setVehicleMountableOverride,
+    botInstallableOverride,
+    setBotInstallableOverride,
     equipSlotTypesOverride,
     equipSlotCostOverride,
     setEquipSlotCostOverride,

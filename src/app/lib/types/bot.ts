@@ -104,7 +104,10 @@ const botDamageProfileEntrySchema = z.object({
 
 const botConditionSchema = z.enum(["OPERATIONAL", "BROKEN"]);
 
-const botPlacedItemSchema = z.object({
+export const botPlaceSchema = z.enum(["installed", "cargo", "carried"]);
+export type BotPlace = z.infer<typeof botPlaceSchema>;
+
+export const botPlacedItemSchema = z.object({
   itemCharacterId: z.string(),
   quantity: z.number().int(),
   weightKg: z.number(),
@@ -118,17 +121,29 @@ const botPlacedItemSchema = z.object({
     })
     .nullable(),
 });
-const botPlacementSummarySchema = z.object({
-  installedItems: z.array(botPlacedItemSchema).default([]),
-  cargoItems: z.array(botPlacedItemSchema).default([]),
-  carriedItems: z.array(botPlacedItemSchema).default([]),
-  installedCount: z.number().int().default(0),
-  cargoWeightKg: z.number().default(0),
-  carriedWeightKg: z.number().default(0),
+export type BotPlacedItem = z.infer<typeof botPlacedItemSchema>;
+
+export const botPlacementSummarySchema = z.object({
+  installedItems: z.array(botPlacedItemSchema),
+  cargoItems: z.array(botPlacedItemSchema),
+  carriedItems: z.array(botPlacedItemSchema),
+  installedCount: z.number().int(),
+  cargoWeightKg: z.number(),
+  carriedWeightKg: z.number(),
 });
 export type BotPlacementSummary = z.infer<typeof botPlacementSummarySchema>;
 
-export const botHoldingSchema = botPlacementSummarySchema.extend({
+export const placeBotItemSchema = z.object({
+  itemCharacterId: z.string().min(1, "Item is required"),
+  place: botPlaceSchema,
+});
+export type PlaceBotItem = z.infer<typeof placeBotItemSchema>;
+
+export const transferBotHoldingSchema = z.object({
+  toCharacterId: z.string().min(1, "Recipient is required"),
+});
+
+export const botHoldingSchema = z.object({
   id: z.string(),
   characterId: z.string(),
   botId: z.string(),
@@ -155,6 +170,12 @@ export const botHoldingSchema = botPlacementSummarySchema.extend({
     .nullable(),
   maxCargoWeightKg: z.number().nullish(),
   maxInstalledItems: z.number().int().nullish(),
+  installedItems: z.array(botPlacedItemSchema).default([]),
+  cargoItems: z.array(botPlacedItemSchema).default([]),
+  carriedItems: z.array(botPlacedItemSchema).default([]),
+  installedCount: z.number().int().default(0),
+  cargoWeightKg: z.number().default(0),
+  carriedWeightKg: z.number().default(0),
 });
 export type BotHolding = z.infer<typeof botHoldingSchema>;
 

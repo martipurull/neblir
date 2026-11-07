@@ -34,6 +34,7 @@ export type SuperAdminItemFormValues = {
   damageNumberOfDice: number;
   equippable: boolean;
   vehicleMountable: boolean;
+  botInstallable: boolean;
   equipSlotTypes: EquipSlotType[];
   equipSlotCost: string;
   maxUses?: number;
@@ -114,6 +115,7 @@ export function catalogueItemToFormValues(
     ...damageFields,
     equippable: item.equippable ?? false,
     vehicleMountable: item.vehicleMountable ?? false,
+    botInstallable: item.botInstallable ?? false,
     equipSlotTypes: (item.equipSlotTypes ?? []).flatMap((slot) => {
       const parsed = equipSlotTypeSchema.safeParse(slot);
       return parsed.success ? [parsed.data] : [];

@@ -67,6 +67,7 @@ export function buildStandaloneResolvedItem(uniqueItem: UniqueItem) {
     equipSlotTypes,
     equipSlotCost: uniqueItem.equipSlotCostOverride ?? null,
     vehicleMountable: uniqueItem.vehicleMountableOverride ?? false,
+    botInstallable: uniqueItem.botInstallableOverride ?? false,
     maxUses: uniqueItem.maxUsesOverride ?? null,
     modifiesAttribute:
       uniqueItem.modifiesAttributeOverride == null
@@ -122,6 +123,7 @@ export function prismaDataFromUniqueItemCreate(
     equipSlotTypesOverride: parsed.equipSlotTypesOverride ?? undefined,
     equipSlotCostOverride: parsed.equipSlotCostOverride ?? undefined,
     vehicleMountableOverride: parsed.vehicleMountableOverride ?? undefined,
+    botInstallableOverride: parsed.botInstallableOverride ?? undefined,
     maxUsesOverride: parsed.maxUsesOverride ?? parsed.maxUses ?? undefined,
     ...(parsed.isSpeedAlteredOverride !== undefined && {
       isSpeedAlteredOverride: parsed.isSpeedAlteredOverride,
@@ -282,6 +284,9 @@ function applyUniqueItemOverrides(
     }),
     ...(uniqueItem.vehicleMountableOverride != null && {
       vehicleMountable: uniqueItem.vehicleMountableOverride,
+    }),
+    ...(uniqueItem.botInstallableOverride != null && {
+      botInstallable: uniqueItem.botInstallableOverride,
     }),
     ...("equipSlotTypesOverride" in uniqueItem &&
       uniqueItem.equipSlotTypesOverride != null && {

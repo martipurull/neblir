@@ -25,6 +25,17 @@ export const MAX_STACK_QUANTITY = 999;
 
 const VEHICLE_CARGO_LOCATION_PREFIX = "vehicle:" as const;
 const VEHICLE_MOUNTED_LOCATION_PREFIX = "vehicle-mounted:" as const;
+const BOT_INSTALLED_LOCATION_PREFIX = "bot-installed:" as const;
+const BOT_CARGO_LOCATION_PREFIX = "bot-cargo:" as const;
+const BOT_CARRIED_LOCATION_PREFIX = "bot-carried:" as const;
+
+export type BotPlacement = "installed" | "cargo" | "carried";
+
+export const BOT_ALREADY_ON_BOT_MESSAGE = "That item is already on a bot";
+
+export function botCargoCapacityMessage(maxCargoWeightKg: number): string {
+  return `Stowing this item would exceed cargo capacity (${maxCargoWeightKg} kg)`;
+}
 
 /** itemLocation value for cargo stowed on a vehicle instance. */
 export function vehicleCargoItemLocation(vehicleCharacterId: string): string {
@@ -66,6 +77,52 @@ export function isVehicleItemLocation(
   );
 }
 
+export function botInstalledItemLocation(botCharacterId: string): string {
+  return `${BOT_INSTALLED_LOCATION_PREFIX}${botCharacterId}`;
+}
+
+export function botCargoItemLocation(botCharacterId: string): string {
+  return `${BOT_CARGO_LOCATION_PREFIX}${botCharacterId}`;
+}
+
+export function botCarriedItemLocation(botCharacterId: string): string {
+  return `${BOT_CARRIED_LOCATION_PREFIX}${botCharacterId}`;
+}
+
+export function botItemLocation(
+  place: BotPlacement,
+  botCharacterId: string
+): string {
+  if (place === "installed") return botInstalledItemLocation(botCharacterId);
+  if (place === "cargo") return botCargoItemLocation(botCharacterId);
+  return botCarriedItemLocation(botCharacterId);
+}
+
+function parsePrefixedId(
+  itemLocation: string | null | undefined,
+  prefix: string
+): string | null {
+  if (!itemLocation?.startsWith(prefix)) return null;
+  const id = itemLocation.slice(prefix.length).trim();
+  return id.length > 0 ? id : null;
+}
+
+/** Parse a bot placement itemLocation; null when the row is not on a bot. */
+export function parseBotItemLocation(
+  itemLocation: string | null | undefined
+): { place: BotPlacement; botCharacterId: string } | null {
+  const installed = parsePrefixedId(
+    itemLocation,
+    BOT_INSTALLED_LOCATION_PREFIX
+  );
+  if (installed) return { place: "installed", botCharacterId: installed };
+  const cargo = parsePrefixedId(itemLocation, BOT_CARGO_LOCATION_PREFIX);
+  if (cargo) return { place: "cargo", botCharacterId: cargo };
+  const carried = parsePrefixedId(itemLocation, BOT_CARRIED_LOCATION_PREFIX);
+  if (carried) return { place: "carried", botCharacterId: carried };
+  return null;
+}
+
 export function isItemInVehicleCargo(
   entry: { itemLocation?: string | null },
   vehicleCharacterId: string
@@ -78,6 +135,8 @@ export function isItemInVehicleCargo(
 export type FormatItemLocationLabelOptions = {
   /** Map of VehicleCharacter id → display name for vehicle cargo/mount labels. */
   vehicleNamesById?: Readonly<Record<string, string>>;
+  /** Map of bot holding id → display name for bot placement labels. */
+  botNamesById?: Readonly<Record<string, string>>;
 };
 
 function resolveVehicleLocationName(
@@ -103,6 +162,14 @@ export function formatItemLocationLabel(
   if (cargoId) {
     const name = options?.vehicleNamesById?.[cargoId]?.trim();
     return name && name.length > 0 ? name : "Vehicle cargo";
+  }
+  const botPlace = parseBotItemLocation(trimmed);
+  if (botPlace) {
+    const name = options?.botNamesById?.[botPlace.botCharacterId]?.trim();
+    const botName = name && name.length > 0 ? name : "Bot";
+    if (botPlace.place === "installed") return `${botName} (installed)`;
+    if (botPlace.place === "cargo") return `${botName} cargo`;
+    return `${botName} (carried)`;
   }
   return trimmed;
 }

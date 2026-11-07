@@ -160,6 +160,8 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           onEquippableOverrideChange={f.setEquippableOverride}
           vehicleMountableOverride={f.vehicleMountableOverride}
           onVehicleMountableOverrideChange={f.setVehicleMountableOverride}
+          botInstallableOverride={f.botInstallableOverride}
+          onBotInstallableOverrideChange={f.setBotInstallableOverride}
           equipSlotTypesOverride={f.equipSlotTypesOverride}
           onToggleEquipSlot={f.toggleEquipSlot}
           equipSlotCostOverride={f.equipSlotCostOverride}

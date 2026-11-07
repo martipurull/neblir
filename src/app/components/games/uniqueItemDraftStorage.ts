@@ -24,6 +24,7 @@ export type UniqueItemDraft = {
   specialTag: string;
   equippableOverride: boolean | "";
   vehicleMountableOverride: boolean | "";
+  botInstallableOverride: boolean | "";
   equipSlotTypesOverride: string[];
   equipSlotCostOverride: string;
   maxUsesOverride: string;
@@ -111,6 +112,9 @@ function normaliseUniqueItemDraft(
     vehicleMountableOverride: draftBoolOrEmptyField(
       parsed.vehicleMountableOverride
     ),
+    botInstallableOverride: draftBoolOrEmptyField(
+      parsed.botInstallableOverride
+    ),
     equipSlotTypesOverride: draftStringArrayField(
       parsed.equipSlotTypesOverride
     ),
@@ -182,6 +186,7 @@ export function isMeaningfulUniqueItemDraft(draft: UniqueItemDraft): boolean {
   }
   if (draft.equippableOverride !== "") return true;
   if (draft.vehicleMountableOverride !== "") return true;
+  if (draft.botInstallableOverride !== "") return true;
   if (draft.isSpeedAlteredOverride !== "") return true;
   if (draft.isSpeedAlteredStandalone) return true;
   if (draft.equipSlotTypesOverride.length > 0) return true;

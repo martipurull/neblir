@@ -35,6 +35,8 @@ type BotFormValues = {
   usage: string;
   notes: string;
   maxHp: number;
+  maxCargoWeightKg?: number;
+  maxInstalledItems?: number;
 };
 
 const accessOptions = [
@@ -52,6 +54,8 @@ function createDefaults(): BotFormValues {
     usage: "",
     notes: "",
     maxHp: 1,
+    maxCargoWeightKg: undefined,
+    maxInstalledItems: undefined,
   };
 }
 
@@ -65,6 +69,8 @@ function botToFormValues(bot: OfficialBot): BotFormValues {
     usage: bot.usage ?? "",
     notes: bot.notes ?? "",
     maxHp: bot.maxHp,
+    maxCargoWeightKg: bot.maxCargoWeightKg ?? undefined,
+    maxInstalledItems: bot.maxInstalledItems ?? undefined,
   };
 }
 
@@ -148,6 +154,8 @@ function SuperAdminBotFormFields({
       usage: optionalPlainText(values.usage),
       notes: optionalPlainText(values.notes),
       maxHp: values.maxHp,
+      maxCargoWeightKg: values.maxCargoWeightKg ?? null,
+      maxInstalledItems: values.maxInstalledItems ?? null,
     };
     const parsed = (isEdit ? botUpdateSchema : botSchema).safeParse(payload);
     if (!parsed.success) {
@@ -255,6 +263,23 @@ function SuperAdminBotFormFields({
                 name="maxHp"
                 label="Max HP"
                 min={1}
+                className="mb-0"
+              />
+              <NumberInput
+                name="maxCargoWeightKg"
+                label="Cargo max (kg, empty = no cap)"
+                min={0}
+                step="any"
+                parseAs="float"
+                allowEmpty
+                className="mb-0"
+              />
+              <NumberInput
+                name="maxInstalledItems"
+                label="Installed max (empty = no cap)"
+                min={0}
+                parseAs="int"
+                allowEmpty
                 className="mb-0"
               />
             </div>

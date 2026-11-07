@@ -5,6 +5,7 @@ const itemCharacterDelete = vi.fn();
 const itemCharacterUpdate = vi.fn();
 const itemCharacterCreate = vi.fn();
 const vehicleMountedItemDeleteMany = vi.fn();
+const botInstalledItemDeleteMany = vi.fn();
 const getMaxUsesForItem = vi.fn();
 
 vi.mock("@/app/lib/prisma/client", () => ({
@@ -23,6 +24,10 @@ vi.mock("@/app/lib/prisma/client", () => ({
         vehicleMountedItem: {
           deleteMany: (...args: unknown[]) =>
             vehicleMountedItemDeleteMany(...args),
+        },
+        botInstalledItem: {
+          deleteMany: (...args: unknown[]) =>
+            botInstalledItemDeleteMany(...args),
         },
       }),
   },
@@ -56,6 +61,7 @@ describe("performInventoryItemTransfer mount cleanup", () => {
       }
     );
     vehicleMountedItemDeleteMany.mockResolvedValue({ count: 1 });
+    botInstalledItemDeleteMany.mockResolvedValue({ count: 0 });
     itemCharacterUpdate.mockResolvedValue({});
     itemCharacterCreate.mockResolvedValue({});
   });
@@ -179,6 +185,12 @@ describe("performInventoryItemTransfer mount cleanup", () => {
     });
 
     expect(vehicleMountedItemDeleteMany).toHaveBeenCalledWith({
+      where: { itemCharacterId: "ic-2" },
+    });
+    expect(botInstalledItemDeleteMany).toHaveBeenCalledWith({
+      where: { itemCharacterId: "ic-1" },
+    });
+    expect(botInstalledItemDeleteMany).toHaveBeenCalledWith({
       where: { itemCharacterId: "ic-2" },
     });
     expect(itemCharacterUpdate).toHaveBeenCalledWith({

@@ -15,6 +15,8 @@ type Props = {
   onEquipSlotCostOverrideChange: (value: string) => void;
   vehicleMountableOverride?: boolean | "";
   onVehicleMountableOverrideChange?: (value: boolean | "") => void;
+  botInstallableOverride?: boolean | "";
+  onBotInstallableOverrideChange?: (value: boolean | "") => void;
 };
 
 export function UniqueItemEquippableOverrideFields({
@@ -27,6 +29,8 @@ export function UniqueItemEquippableOverrideFields({
   onEquipSlotCostOverrideChange,
   vehicleMountableOverride = "",
   onVehicleMountableOverrideChange,
+  botInstallableOverride = "",
+  onBotInstallableOverrideChange,
 }: Props) {
   return (
     <>
@@ -88,6 +92,39 @@ export function UniqueItemEquippableOverrideFields({
                 onVehicleMountableOverrideChange("");
               } else {
                 onVehicleMountableOverrideChange(value === "yes");
+              }
+            }}
+            disabled={disabled}
+          />
+        </div>
+      ) : null}
+      {onBotInstallableOverrideChange ? (
+        <div>
+          <FieldLabel
+            id="unique-bot-installable-override"
+            label="Bot-installable override"
+          />
+          <RadioGroup
+            name="botInstallableOverride"
+            value={
+              botInstallableOverride === ""
+                ? "template"
+                : botInstallableOverride
+                  ? "yes"
+                  : "no"
+            }
+            tone="inverse"
+            variant="chip"
+            options={[
+              { value: "template", label: "Use template" },
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+            onChange={(value) => {
+              if (value === "template") {
+                onBotInstallableOverrideChange("");
+              } else {
+                onBotInstallableOverrideChange(value === "yes");
               }
             }}
             disabled={disabled}

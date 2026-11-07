@@ -671,12 +671,28 @@ model BotCharacter {
   customName  String?
   currentHp   Int
   maxHpBonus  Int           @default(0)
-  notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  installedItems BotInstalledItem[]
 
   @@index([characterId])
   @@index([botId])
+}
+
+/**
+ * One inventory row installed on one bot holding.
+ * Ownership stays on the character; this is an install link only.
+ */
+model BotInstalledItem {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  botCharacterId  String       @db.ObjectId
+  botCharacter    BotCharacter @relation(fields: [botCharacterId], references: [id], onDelete: Cascade)
+  itemCharacterId String       @db.ObjectId
+  createdAt       DateTime     @default(now())
+
+  @@unique([itemCharacterId])
+  @@index([botCharacterId])
 }
 
 model CustomBot {
@@ -986,6 +1002,8 @@ model Item {
   equipSlotCost               Int?
   /** When true, this item can be mounted on a vehicle (not cargo). */
   vehicleMountable            Boolean                    @default(false)
+  /** When true, this item can be installed on a bot. Independent of vehicle-mountable. */
+  botInstallable              Boolean                    @default(false)
   maxUses                     Int?
   modifiesAttribute           ItemAttributePath?
   attributeMod                Int?
@@ -1028,6 +1046,8 @@ model CustomItem {
   equipSlotCost     Int?
   /** When true, this item can be mounted on a vehicle (not cargo). */
   vehicleMountable  Boolean?                   @default(false)
+  /** When true, this item can be installed on a bot. Independent of vehicle-mountable. */
+  botInstallable    Boolean?                   @default(false)
   maxUses           Int?
   modifiesAttribute ItemAttributePath?
   attributeMod      Int?
@@ -1070,6 +1090,7 @@ model UniqueItem {
   equipSlotTypesOverride    Json? // String[] when set; null = use template
   equipSlotCostOverride     Int?
   vehicleMountableOverride  Boolean?
+  botInstallableOverride    Boolean?
   maxUsesOverride           Int?
   modifiesAttributeOverride ItemAttributePath?
   attributeModOverride      Int?

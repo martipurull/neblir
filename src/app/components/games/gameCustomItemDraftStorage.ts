@@ -19,6 +19,7 @@ export type GameCustomItemDraft = {
   confCost: string;
   equippable: boolean;
   vehicleMountable: boolean;
+  botInstallable: boolean;
   equipSlotTypes: string[];
   equipSlotCost: string;
   maxUses: string;
@@ -75,6 +76,7 @@ function normaliseGameCustomItemDraft(
     confCost: draftStrField(parsed.confCost),
     equippable: parsed.equippable === true,
     vehicleMountable: parsed.vehicleMountable === true,
+    botInstallable: parsed.botInstallable === true,
     equipSlotTypes: draftStringArrayField(parsed.equipSlotTypes),
     equipSlotCost: draftStrField(parsed.equipSlotCost),
     maxUses: draftStrField(parsed.maxUses),
@@ -106,6 +108,7 @@ export function isMeaningfulGameCustomItemDraft(
   if (draft.imageKey.trim()) return true;
   if (draft.equippable) return true;
   if (draft.vehicleMountable) return true;
+  if (draft.botInstallable) return true;
   if (draft.isSpeedAltered) return true;
   if (draft.type === "WEAPON") return true;
   if (

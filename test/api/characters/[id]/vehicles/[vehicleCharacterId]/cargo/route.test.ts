@@ -154,6 +154,36 @@ describe("POST /api/characters/[id]/vehicles/[vehicleCharacterId]/cargo", () => 
     );
     expect(response.status).toBe(409);
   });
+
+  it("refuses to stow an item that is already on a bot", async () => {
+    belongsMock.mockResolvedValue(true);
+    getCharacterVehicleRecordMock.mockResolvedValue({
+      id: "vc-1",
+      sourceType: "GLOBAL_VEHICLE",
+      vehicleId: "veh-1",
+    });
+    resolveVehicleMock.mockResolvedValue({ maxCargoWeightKg: 50 });
+    itemCharacterFindFirstMock.mockResolvedValue({
+      isEquipped: false,
+      equipSlots: [],
+      itemLocation: "bot-installed:hold-1",
+    });
+
+    const { POST } =
+      await import("@/app/api/characters/[id]/vehicles/[vehicleCharacterId]/cargo/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ itemCharacterId: "ic-1" }, "user-1"),
+      makeParams({ id: "char-1", vehicleCharacterId: "vc-1" })
+    );
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        message: "That item is already on a bot",
+      })
+    );
+    expect(stowItemAsVehicleCargoMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("DELETE /api/characters/[id]/vehicles/[vehicleCharacterId]/cargo/[itemCharacterId]", () => {

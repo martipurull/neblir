@@ -181,6 +181,20 @@ describe("PATCH /api/games/[id]/stashes", () => {
     expect(prismaMock.itemCharacter.updateMany).not.toHaveBeenCalled();
   });
 
+  it("rejects a bot placement location and does not write", async () => {
+    asPlayerWithPlayControl();
+    prismaMock.itemCharacter.findMany.mockResolvedValue(flatHoldings);
+    const response = await patchStash({
+      from: "Indira's Flat",
+      placeName: "bot-installed:hold-1",
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toBe(
+      "Place items on a bot from the bot holding."
+    );
+    expect(prismaMock.itemCharacter.updateMany).not.toHaveBeenCalled();
+  });
+
   it("renames every holding recorded for this game under that fold", async () => {
     asPlayerWithPlayControl();
     prismaMock.itemCharacter.findMany.mockResolvedValue(flatHoldings);

@@ -1,6 +1,8 @@
 import {
+  BOT_ALREADY_ON_BOT_MESSAGE,
   carriedHoldingWrite,
   holdingPlaceWrite,
+  parseBotItemLocation,
   vehicleCargoItemLocation,
 } from "@/app/lib/constants/inventory";
 import { getInventoryEntryCarriedWeight } from "@/app/lib/carryWeightUtils";
@@ -117,6 +119,10 @@ export async function stowItemAsVehicleCargo(args: {
     throw new VehicleCargoConflictError(
       "That item is already in this vehicle's cargo"
     );
+  }
+
+  if (parseBotItemLocation(item.itemLocation)) {
+    throw new VehicleCargoConflictError(BOT_ALREADY_ON_BOT_MESSAGE);
   }
 
   const mounted = await findMountedItemByItemCharacterId(args.itemCharacterId);

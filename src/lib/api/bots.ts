@@ -5,6 +5,7 @@ import {
   type AddBotToCharacter,
   type BotHolding,
   type BotHoldingPatch,
+  type BotPlace,
   type OfficialBot,
 } from "@/app/lib/types/bot";
 import { readApiErrorBody, responseShapeError } from "@/lib/api/responseShape";
@@ -182,4 +183,101 @@ export async function updateCharacterBotHolding(
     throw responseShapeError("Bot holding", parsed.error);
   }
   return parsed.data;
+}
+
+export async function placeItemOnCharacterBot(
+  characterId: string,
+  botCharacterId: string,
+  body: { itemCharacterId: string; place: BotPlace }
+): Promise<BotHolding> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/bots/${encodeURIComponent(botCharacterId)}/placements`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to place item on bot"
+      )
+    );
+  }
+  const parsed = botHoldingSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Bot holding", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function returnBotItemToCarried(
+  characterId: string,
+  botCharacterId: string,
+  itemCharacterId: string
+): Promise<BotHolding> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/bots/${encodeURIComponent(botCharacterId)}/placements/${encodeURIComponent(itemCharacterId)}`,
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to return item"
+      )
+    );
+  }
+  const parsed = botHoldingSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Bot holding", parsed.error);
+  }
+  return parsed.data;
+}
+
+export async function removeCharacterBotHolding(
+  characterId: string,
+  botCharacterId: string
+): Promise<void> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/bots/${encodeURIComponent(botCharacterId)}`,
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to remove bot"
+      )
+    );
+  }
+}
+
+export async function transferCharacterBotHolding(
+  characterId: string,
+  botCharacterId: string,
+  toCharacterId: string
+): Promise<void> {
+  const response = await fetch(
+    `/api/characters/${encodeURIComponent(characterId)}/bots/${encodeURIComponent(botCharacterId)}/transfer`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toCharacterId }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to give bot"
+      )
+    );
+  }
 }
