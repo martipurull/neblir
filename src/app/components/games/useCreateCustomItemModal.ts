@@ -492,7 +492,7 @@ export function useCreateCustomItemModal({
       equippable,
       vehicleMountable,
       botInstallable,
-      botActions: botInstallable ? botActions : [],
+      ...(botInstallable ? { botActions } : {}),
       equipSlotTypes: equipSlotTypes.length ? equipSlotTypes : [],
     };
     if (confCost !== "") {

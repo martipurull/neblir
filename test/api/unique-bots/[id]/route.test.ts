@@ -141,6 +141,37 @@ describe("PATCH /api/unique-bots/[id]", () => {
     expect(await response.json()).toMatchObject({ actionsOverride });
   });
 
+  it("PATCH can replace the action list with an empty one", async () => {
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ actionsOverride: [] }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUniqueBotMock).toHaveBeenCalledWith("ub-1", {
+      actionsOverride: [],
+    });
+  });
+
+  it("PATCH rejects Grid Protection as a bot action attribute", async () => {
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        {
+          actionsOverride: [
+            { name: "Weld", numberOfDice: 0, attribute: "gridProtection" },
+          ],
+        },
+        "minter-1"
+      ),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(updateUniqueBotMock).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when the unique bot does not exist", async () => {
     getUniqueBotMock.mockResolvedValue(null);
     const { PATCH } = await import("@/app/api/unique-bots/[id]/route");

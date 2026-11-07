@@ -349,7 +349,7 @@ export function SuperAdminCreateItemForm({
       equippable: values.equippable,
       vehicleMountable: values.vehicleMountable,
       botInstallable: values.botInstallable,
-      botActions: values.botInstallable ? values.botActions : [],
+      ...(values.botInstallable ? { botActions: values.botActions } : {}),
       equipSlotTypes: values.equippable ? values.equipSlotTypes : [],
       ...(values.equippable && equipSlotCostParsed !== undefined
         ? { equipSlotCost: equipSlotCostParsed }

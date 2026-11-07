@@ -156,12 +156,37 @@ function formatRollMessage(event: {
           rollerName,
           botDisplayName: botName,
         }) === "SECRET ROLL";
+  const damage = damageLineFromMetadata(event.metadata);
   return (
     (secret
       ? `🎲 **${rollerName}** ► **SECRET ROLL**\n`
       : `🎲 **${rollerName}** as **${subjectName}** ► **${displayRollType}**\n`) +
-    `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
+    `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}` +
+    (damage == null ? "" : `\n${damage}`)
   );
+}
+
+function damageLineFromMetadata(metadata: unknown): string | null {
+  if (metadata == null || typeof metadata !== "object") return null;
+  const damage = (metadata as { damage?: unknown }).damage;
+  if (damage == null || typeof damage !== "object") return null;
+  const record = damage as {
+    diceExpression?: unknown;
+    results?: unknown;
+    total?: unknown;
+    damageType?: unknown;
+  };
+  if (
+    typeof record.diceExpression !== "string" ||
+    !Array.isArray(record.results) ||
+    typeof record.total !== "number"
+  ) {
+    return null;
+  }
+  const faces = record.results.map(formatDieForDiscord).join(", ");
+  const kind =
+    typeof record.damageType === "string" ? ` ${record.damageType}` : "";
+  return `**Damage** \`${escapeForDiscordInlineCode(record.diceExpression)}\` **→** \`[${faces}]\`  **→** **${record.total}${kind}**`;
 }
 
 async function postToDiscord(channelId: string, content: string) {

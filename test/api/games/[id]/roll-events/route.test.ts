@@ -1483,6 +1483,66 @@ describe("/api/games/[id]/roll-events", () => {
       expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
 
+    it("refuses a bot action while the bot is Beyond repair", async () => {
+      getBotCharacterRowMock.mockResolvedValue(
+        botHolding({ isBeyondRepair: true })
+      );
+      resolveHoldingTemplateMock.mockResolvedValue(
+        botTemplate({ actions: [weld] })
+      );
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 8, 3, 1],
+            botCharacterId: "hold-1",
+            botAction: { list: "actions", index: 0 },
+            extraDice: 1,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "This bot cannot roll while it is Beyond repair.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a bot action while the battery is empty", async () => {
+      getBotCharacterRowMock.mockResolvedValue(botHolding({ batteryUsed: 2 }));
+      resolveHoldingTemplateMock.mockResolvedValue(
+        botTemplate({ actions: [weld] })
+      );
+      const { POST } = await import("@/app/api/games/[id]/roll-events/route");
+      const response = await invokeRoute(
+        POST,
+        makeAuthedRequest(
+          {
+            characterId: "c-1",
+            rollType: "GENERAL_ROLL",
+            results: [10, 8, 3, 1],
+            botCharacterId: "hold-1",
+            botAction: { list: "actions", index: 0 },
+            extraDice: 1,
+          },
+          "user-1"
+        ),
+        makeParams({ id: "g-1" })
+      );
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        message: "This bot cannot roll while its battery is empty.",
+      });
+      expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
+    });
+
     it("refuses a bot action while the bot is Broken", async () => {
       getBotCharacterRowMock.mockResolvedValue(botHolding({ currentHp: 0 }));
       resolveHoldingTemplateMock.mockResolvedValue(

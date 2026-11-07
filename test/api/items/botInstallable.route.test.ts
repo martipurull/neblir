@@ -78,4 +78,50 @@ describe("POST /api/items botInstallable", () => {
     expect(response.status).toBe(400);
     expect(createItemMock).not.toHaveBeenCalled();
   });
+
+  it("stores bot actions on a bot-installable item", async () => {
+    const botActions = [
+      {
+        name: "Flare",
+        description: null,
+        notes: null,
+        numberOfDice: 2,
+        attribute: null,
+        damage: null,
+      },
+    ];
+    const { POST } = await import("@/app/api/items/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ ...servo, botActions }, "admin-1")
+    );
+    expect(response.status).toBe(201);
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ botActions }),
+      { officialCatalogueWrite: true }
+    );
+  });
+
+  it("rejects Grid Protection as an item bot action attribute", async () => {
+    const { POST } = await import("@/app/api/items/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          ...servo,
+          botActions: [
+            { name: "Flare", numberOfDice: 1, attribute: "gridProtection" },
+          ],
+        },
+        "admin-1"
+      )
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(createItemMock).not.toHaveBeenCalled();
+  });
 });

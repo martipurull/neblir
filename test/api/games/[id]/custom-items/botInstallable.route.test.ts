@@ -79,4 +79,55 @@ describe("POST custom items botInstallable", () => {
     expect(response.status).toBe(400);
     expect(createCustomItemMock).not.toHaveBeenCalled();
   });
+
+  it("stores bot actions on a custom item", async () => {
+    const botActions = [
+      {
+        name: "Flare",
+        description: null,
+        notes: null,
+        numberOfDice: 2,
+        attribute: null,
+        damage: null,
+      },
+    ];
+    const { POST } = await import("@/app/api/games/[id]/custom-items/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { name: "Servo", weight: 1, botInstallable: true, botActions },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createCustomItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ botActions })
+    );
+  });
+
+  it("rejects Grid Protection as a custom item bot action attribute", async () => {
+    const { POST } = await import("@/app/api/games/[id]/custom-items/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          name: "Servo",
+          weight: 1,
+          botActions: [
+            { name: "Flare", numberOfDice: 1, attribute: "gridProtection" },
+          ],
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(createCustomItemMock).not.toHaveBeenCalled();
+  });
 });
