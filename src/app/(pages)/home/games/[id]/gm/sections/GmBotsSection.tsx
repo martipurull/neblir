@@ -6,12 +6,16 @@ type GmBotsSectionProps = {
   onBrowseCatalogue: () => void;
   onBrowseCustom: () => void;
   onCreateCustom: () => void;
+  onCreateUnique: () => void;
+  onGiveBot: () => void;
 };
 
 export function GmBotsSection({
   onBrowseCatalogue,
   onBrowseCustom,
   onCreateCustom,
+  onCreateUnique,
+  onGiveBot,
 }: GmBotsSectionProps) {
   return (
     <InfoCard border>
@@ -40,6 +44,22 @@ export function GmBotsSection({
           onClick={onCreateCustom}
         >
           Create custom bot
+        </Button>
+        <Button
+          type="button"
+          variant="primarySm"
+          fullWidth={false}
+          onClick={onCreateUnique}
+        >
+          Mint unique bot
+        </Button>
+        <Button
+          type="button"
+          variant="primarySm"
+          fullWidth={false}
+          onClick={onGiveBot}
+        >
+          Give bot to character
         </Button>
       </div>
     </InfoCard>

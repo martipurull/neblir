@@ -8,6 +8,7 @@ export type UploadKeyType =
   | "unique_items"
   | "custom_vehicles"
   | "unique_vehicles"
+  | "unique_bots"
   | "games"
   | "characters"
   | "items"

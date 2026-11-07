@@ -39,6 +39,7 @@ type BotDetailModalProps = {
   mutateAction: KeyedMutator<CharacterDetail | null>;
   readOnly?: boolean;
   resolveGiveRecipientsAction?: () => Promise<SelectDropdownOption[]>;
+  onEditUniqueAction?: () => void;
 };
 
 export function BotDetailModal(props: BotDetailModalProps) {
@@ -60,6 +61,7 @@ function BotDetailModalBody({
   mutateAction,
   readOnly = false,
   resolveGiveRecipientsAction,
+  onEditUniqueAction,
 }: BotDetailModalProps & { holding: BotHolding }) {
   const [nickname, setNickname] = useState(holding.customName ?? "");
   const [notes, setNotes] = useState(holding.notes ?? "");
@@ -327,6 +329,17 @@ function BotDetailModalBody({
         ) : null}
 
         <div className="flex justify-end gap-2">
+          {onEditUniqueAction ? (
+            <Button
+              type="button"
+              variant="modalPaleOutline"
+              fullWidth={false}
+              disabled={locked}
+              onClick={onEditUniqueAction}
+            >
+              Edit unique bot
+            </Button>
+          ) : null}
           {!readOnly ? (
             <Button
               type="button"

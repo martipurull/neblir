@@ -7,13 +7,27 @@ import {
 import type { BotHolding } from "@/app/lib/types/bot";
 import { getBot, getBotsByIds } from "./bot";
 import { getCustomBot, getCustomBotsByIds } from "./customBot";
+import {
+  getResolvedUniqueBotsByIds,
+  resolveUniqueBotTemplate,
+} from "./uniqueBot";
 import { placementsForHoldings } from "./botPlacement";
 import { prisma } from "./client";
+
+export class BotCharacterConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotCharacterConflictError";
+  }
+}
+
+export const UNIQUE_BOT_ALREADY_HELD_MESSAGE =
+  "This unique bot already has a holding.";
 
 type BotCharacterCreateData = {
   characterId: string;
   botId: string;
-  sourceType?: "OFFICIAL" | "CUSTOM";
+  sourceType?: "OFFICIAL" | "CUSTOM" | "UNIQUE";
   currentHp: number;
   maxHpBonus?: number;
   customName?: string | null;
@@ -72,7 +86,19 @@ export async function getBotCharacterRow(
   });
 }
 
+export async function uniqueBotHoldingExists(botId: string): Promise<boolean> {
+  const existing = await listBotCharacterRowsByBot(botId);
+  return existing.some((row) => row.sourceType === "UNIQUE");
+}
+
 export async function createBotCharacter(data: BotCharacterCreateData) {
+  if (
+    data.sourceType === "UNIQUE" &&
+    (await uniqueBotHoldingExists(data.botId))
+  ) {
+    throw new BotCharacterConflictError(UNIQUE_BOT_ALREADY_HELD_MESSAGE);
+  }
+
   return botCharacterPrisma.botCharacter.create({
     data: {
       characterId: data.characterId,
@@ -142,18 +168,32 @@ export async function hydrateBotCharacters(
         .map((record) => record.botId)
     ),
   ];
-  const [official, custom] = await Promise.all([
+  const uniqueIds = [
+    ...new Set(
+      records
+        .filter((record) => botHoldingSource(record) === "UNIQUE")
+        .map((record) => record.botId)
+    ),
+  ];
+  const [official, custom, unique] = await Promise.all([
     officialIds.length > 0 ? getBotsByIds(officialIds) : Promise.resolve([]),
     customIds.length > 0 ? getCustomBotsByIds(customIds) : Promise.resolve([]),
+    uniqueIds.length > 0
+      ? getResolvedUniqueBotsByIds(uniqueIds)
+      : Promise.resolve([]),
   ]);
   const officialById = new Map(official.map((bot) => [bot.id, bot]));
   const customById = new Map(custom.map((bot) => [bot.id, templateView(bot)]));
+  const uniqueById = new Map(unique.map((bot) => [bot.id, bot]));
   const placements = await placementsForHoldings(records);
   return records.map((record) => {
+    const source = botHoldingSource(record);
     const template =
-      botHoldingSource(record) === "CUSTOM"
+      source === "CUSTOM"
         ? (customById.get(record.botId) ?? null)
-        : (officialById.get(record.botId) ?? null);
+        : source === "UNIQUE"
+          ? (uniqueById.get(record.botId) ?? null)
+          : (officialById.get(record.botId) ?? null);
     return presentBotHolding(record, template, placements.get(record.id));
   });
 }
@@ -161,9 +201,13 @@ export async function hydrateBotCharacters(
 export async function resolveHoldingTemplate(
   row: BotHoldingRow
 ): Promise<BotTemplateView | null> {
-  if (botHoldingSource(row) === "CUSTOM") {
+  const source = botHoldingSource(row);
+  if (source === "CUSTOM") {
     const bot = await getCustomBot(row.botId);
     return bot ? templateView(bot) : null;
+  }
+  if (source === "UNIQUE") {
+    return resolveUniqueBotTemplate(row.botId);
   }
   const bot = await getBot(row.botId);
   return bot ? templateView(bot) : null;

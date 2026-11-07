@@ -11,6 +11,7 @@ const getBotMock = vi.fn();
 const getCustomBotMock = vi.fn();
 const getBotCharacterRowMock = vi.fn();
 const updateBotCharacterMock = vi.fn();
+const resolveUniqueBotTemplateMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   userHasPlayControl: (...args: unknown[]) => playControlMock(...args),
@@ -28,6 +29,11 @@ vi.mock("@/app/lib/prisma/botPlacement", () => ({
   placementsForHoldings: async () => new Map(),
   placementsByHolding: async () => new Map(),
   botHoldingHasPlacements: async () => false,
+}));
+
+vi.mock("@/app/lib/prisma/uniqueBot", () => ({
+  resolveUniqueBotTemplate: (...args: unknown[]) =>
+    resolveUniqueBotTemplateMock(...args),
 }));
 
 vi.mock("@/app/lib/prisma/botCharacter", async (importOriginal) => {
@@ -343,5 +349,47 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
     });
     expect(updateBotCharacterMock).not.toHaveBeenCalled();
     expect(getBotMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH lets play control change HP on a unique holding", async () => {
+    getBotCharacterRowMock.mockResolvedValue({
+      ...holding,
+      botId: "ub-1",
+      sourceType: "UNIQUE",
+      currentHp: 8,
+    });
+    resolveUniqueBotTemplateMock.mockResolvedValue({
+      id: "ub-1",
+      name: "Mule",
+      maxHp: 8,
+      gameId: "g-1",
+      ownerUserId: "minter-1",
+    });
+    updateBotCharacterMock.mockImplementation(
+      async (_id: string, data: Partial<typeof holding>) => ({
+        ...holding,
+        botId: "ub-1",
+        sourceType: "UNIQUE",
+        currentHp: 8,
+        ...data,
+      })
+    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setHp", currentHp: 3 }, "grantee"),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      displayName: "Mule",
+      currentHp: 3,
+      effectiveMaxHp: 8,
+    });
+    expect(getBotMock).not.toHaveBeenCalled();
+    expect(resolveUniqueBotTemplateMock).toHaveBeenCalledWith("ub-1");
   });
 });

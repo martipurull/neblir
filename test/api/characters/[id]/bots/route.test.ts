@@ -14,6 +14,9 @@ const getCustomBotMock = vi.fn();
 const getCustomBotsByIdsMock = vi.fn();
 const createBotCharacterMock = vi.fn();
 const listBotCharacterRowsMock = vi.fn();
+const uniqueBotHoldingExistsMock = vi.fn();
+const getUniqueBotRowMock = vi.fn();
+const getResolvedUniqueBotsByIdsMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   userHasPlayControl: (...args: unknown[]) => playControlMock(...args),
@@ -36,6 +39,16 @@ vi.mock("@/app/lib/prisma/botPlacement", () => ({
   botHoldingHasPlacements: async () => false,
 }));
 
+vi.mock("@/app/lib/prisma/uniqueBot", async (importOriginal) => {
+  const mod = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...mod,
+    getUniqueBotRow: (...args: unknown[]) => getUniqueBotRowMock(...args),
+    getResolvedUniqueBotsByIds: (...args: unknown[]) =>
+      getResolvedUniqueBotsByIdsMock(...args),
+  };
+});
+
 vi.mock("@/app/lib/prisma/botCharacter", async (importOriginal) => {
   const mod = (await importOriginal()) as Record<string, unknown>;
   return {
@@ -43,6 +56,8 @@ vi.mock("@/app/lib/prisma/botCharacter", async (importOriginal) => {
     listBotCharacterRows: (...args: unknown[]) =>
       listBotCharacterRowsMock(...args),
     createBotCharacter: (...args: unknown[]) => createBotCharacterMock(...args),
+    uniqueBotHoldingExists: (...args: unknown[]) =>
+      uniqueBotHoldingExistsMock(...args),
   };
 });
 
@@ -78,6 +93,7 @@ describe("/api/characters/[id]/bots handlers", () => {
     vi.clearAllMocks();
     playControlMock.mockResolvedValue(true);
     characterIsInGameMock.mockResolvedValue(true);
+    uniqueBotHoldingExistsMock.mockResolvedValue(false);
     getBotMock.mockResolvedValue(loader);
     createBotCharacterMock.mockImplementation(
       async (data: {
@@ -466,6 +482,162 @@ describe("/api/characters/[id]/bots handlers", () => {
         currentHp: 4,
         effectiveMaxHp: 20,
         bot: expect.objectContaining({ name: "Hauler", maxHp: 20 }),
+      }),
+    ]);
+  });
+
+  it("POST refuses a unique bot minted by somebody else", async () => {
+    getUniqueBotRowMock.mockResolvedValue({
+      id: "ub-1",
+      ownerUserId: "minter",
+      gameId: "g-1",
+      sourceType: "STANDALONE",
+      botId: null,
+      nameOverride: "Mule",
+      maxHpOverride: 8,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "ub-1", sourceType: "UNIQUE" }, "grantee"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({
+      message: "You can only add a unique bot you minted.",
+    });
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("POST holds a minted unique bot again and shows its own name", async () => {
+    getUniqueBotRowMock.mockResolvedValue({
+      id: "ub-1",
+      ownerUserId: "user-1",
+      gameId: "g-1",
+      sourceType: "STANDALONE",
+      botId: null,
+      nameOverride: "Mule",
+      imageKeyOverride: null,
+      descriptionOverride: null,
+      confCostOverride: null,
+      usageOverride: null,
+      notesOverride: null,
+      maxHpOverride: 8,
+      maxCargoWeightKgOverride: null,
+      maxInstalledItemsOverride: null,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "ub-1", sourceType: "UNIQUE" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(201);
+    expect(createBotCharacterMock).toHaveBeenCalledWith({
+      characterId: "char-1",
+      botId: "ub-1",
+      sourceType: "UNIQUE",
+      currentHp: 8,
+      maxHpBonus: 0,
+    });
+    const body = await response.json();
+    expect(body.displayName).toBe("Mule");
+    expect(body.effectiveMaxHp).toBe(8);
+  });
+
+  it("POST refuses a second holding of one unique bot", async () => {
+    getUniqueBotRowMock.mockResolvedValue({
+      id: "ub-1",
+      ownerUserId: "user-1",
+      gameId: "g-1",
+      sourceType: "STANDALONE",
+      botId: null,
+      nameOverride: "Mule",
+      maxHpOverride: 8,
+    });
+    uniqueBotHoldingExistsMock.mockResolvedValue(true);
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "ub-1", sourceType: "UNIQUE" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      message: "This unique bot already has a holding.",
+    });
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("GET shows the nickname, otherwise the unique name", async () => {
+    listBotCharacterRowsMock.mockResolvedValue([
+      {
+        id: "hold-nick",
+        characterId: "char-1",
+        botId: "ub-1",
+        sourceType: "UNIQUE",
+        customName: "Sparky",
+        currentHp: 8,
+        maxHpBonus: 0,
+        notes: null,
+      },
+      {
+        id: "hold-own",
+        characterId: "char-1",
+        botId: "ub-1",
+        sourceType: "UNIQUE",
+        customName: null,
+        currentHp: 8,
+        maxHpBonus: 0,
+        notes: null,
+      },
+    ]);
+    getResolvedUniqueBotsByIdsMock.mockResolvedValue([
+      {
+        id: "ub-1",
+        name: "Scout",
+        maxHp: 14,
+        description: null,
+        confCost: null,
+        usage: null,
+        notes: null,
+        imageKey: "unique_bots-scout.png",
+        gameId: "g-1",
+        ownerUserId: "user-1",
+      },
+    ]);
+    const { GET } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toEqual([
+      expect.objectContaining({
+        id: "hold-nick",
+        displayName: "Sparky",
+        effectiveMaxHp: 14,
+        uniqueOwnerUserId: "user-1",
+        gameId: "g-1",
+        bot: expect.objectContaining({
+          name: "Scout",
+          imageKey: "unique_bots-scout.png",
+        }),
+      }),
+      expect.objectContaining({
+        id: "hold-own",
+        displayName: "Scout",
+        effectiveMaxHp: 14,
       }),
     ]);
   });

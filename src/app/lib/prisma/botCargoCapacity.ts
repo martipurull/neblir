@@ -2,7 +2,9 @@ import {
   botCargoCapacityMessage,
   parseBotItemLocation,
 } from "@/app/lib/constants/inventory";
+import { botHoldingSource } from "@/app/lib/botHoldingView";
 import { prisma } from "./client";
+import { resolveUniqueBotTemplate } from "./uniqueBot";
 
 type CargoQuantityRow = {
   id?: string;
@@ -27,11 +29,16 @@ export async function botCargoQuantityRefusal(args: {
   });
   if (!holding) return null;
 
-  const template =
-    holding.sourceType === "CUSTOM"
-      ? await prisma.customBot.findUnique({ where: { id: holding.botId } })
-      : await prisma.bot.findUnique({ where: { id: holding.botId } });
-  const maxCargoWeightKg = template?.maxCargoWeightKg ?? null;
+  const source = botHoldingSource(holding);
+  const maxCargoWeightKg =
+    source === "CUSTOM"
+      ? ((await prisma.customBot.findUnique({ where: { id: holding.botId } }))
+          ?.maxCargoWeightKg ?? null)
+      : source === "UNIQUE"
+        ? ((await resolveUniqueBotTemplate(holding.botId))?.maxCargoWeightKg ??
+          null)
+        : ((await prisma.bot.findUnique({ where: { id: holding.botId } }))
+            ?.maxCargoWeightKg ?? null);
   if (maxCargoWeightKg == null) return null;
 
   let nextWeight = 0;

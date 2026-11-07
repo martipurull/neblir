@@ -20,6 +20,10 @@ export type BotTemplateView = {
   maxCargoWeightKg?: number | null;
   /** Unset means installed hardware is not capped. */
   maxInstalledItems?: number | null;
+  /** Unique bot's game. Absent on Official and Custom templates. */
+  gameId?: string | null;
+  /** User who minted a Unique bot. */
+  ownerUserId?: string | null;
 };
 
 export const BOT_HP_OUT_OF_RANGE_MESSAGE =
@@ -33,17 +37,27 @@ export type BotHoldingRow = {
   characterId: string;
   botId: string;
   /** Missing on holdings created before Custom bots. Those are Official. */
-  sourceType?: "OFFICIAL" | "CUSTOM" | null;
+  sourceType?: "OFFICIAL" | "CUSTOM" | "UNIQUE" | null;
   customName: string | null;
   currentHp: number;
   maxHpBonus: number;
   notes: string | null;
 };
 
+export type BotHoldingSource = "OFFICIAL" | "CUSTOM" | "UNIQUE";
+
 export function botHoldingSource(
   row: Pick<BotHoldingRow, "sourceType">
-): "OFFICIAL" | "CUSTOM" {
-  return row.sourceType === "CUSTOM" ? "CUSTOM" : "OFFICIAL";
+): BotHoldingSource {
+  if (row.sourceType === "CUSTOM") return "CUSTOM";
+  if (row.sourceType === "UNIQUE") return "UNIQUE";
+  return "OFFICIAL";
+}
+
+export function missingBotTemplateMessage(source: BotHoldingSource): string {
+  if (source === "CUSTOM") return "Custom bot not found";
+  if (source === "UNIQUE") return "Unique bot not found";
+  return "Official bot not found";
 }
 
 /** Official bots keep their access type. Custom bots expose the shared frame only. */
@@ -64,9 +78,11 @@ export function projectHoldingBot(
       accessType: bot.accessType,
     };
   }
+  const imageKey = bot.imageKey ?? null;
   return {
     id: bot.id,
     name: bot.name,
+    ...(imageKey ? { imageKey } : {}),
     description: bot.description ?? null,
     confCost: bot.confCost ?? null,
     usage: bot.usage ?? null,
@@ -122,6 +138,9 @@ export function presentBotHolding(
     botId: row.botId,
     customName: row.customName,
     displayName: botDisplayName(row.customName, bot?.name),
+    sourceType: botHoldingSource(row),
+    uniqueOwnerUserId: bot?.ownerUserId ?? null,
+    gameId: bot?.gameId ?? null,
     currentHp: row.currentHp,
     maxHpBonus: row.maxHpBonus,
     effectiveMaxHp,

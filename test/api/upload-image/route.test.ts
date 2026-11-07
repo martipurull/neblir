@@ -492,6 +492,21 @@ describe("/api/upload-image POST", () => {
     expect(data.fileKey).toMatch(/^custom_vehicles-/);
   });
 
+  it("returns 201 with fileKey prefixed unique_bots- when type is unique_bots", async () => {
+    process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
+    process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";
+    process.env.R2_NEBLIR_ACCOUNT_SECRET_ACCESS_KEY = "sk";
+    process.env.R2_NEBLIR_BUCKET_NAME = "bucket";
+
+    const file = new File(["x"], "unique.png", { type: "image/png" });
+    const { POST } = await import("@/app/api/upload-image/route");
+    const request = makeUploadRequest({ file, type: "unique_bots" });
+    const response = await invokeRoute(POST, request);
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.fileKey).toMatch(/^unique_bots-/);
+  });
+
   it("returns 201 with fileKey prefixed unique_vehicles- when type is unique_vehicles", async () => {
     process.env.R2_NEBLIR_ACCOUNT_ID = "acc";
     process.env.R2_NEBLIR_ACCOUNT_ACCESS_KEY = "ak";

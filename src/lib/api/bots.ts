@@ -6,6 +6,7 @@ import {
   type BotHolding,
   type BotHoldingPatch,
   type BotPlace,
+  type GiveBot,
   type OfficialBot,
 } from "@/app/lib/types/bot";
 import { readApiErrorBody, responseShapeError } from "@/lib/api/responseShape";
@@ -256,6 +257,34 @@ export async function removeCharacterBotHolding(
       )
     );
   }
+}
+
+export async function giveBotToCharacter(
+  gameId: string,
+  body: GiveBot
+): Promise<BotHolding> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/give-bot`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to give bot"
+      )
+    );
+  }
+  const parsed = botHoldingSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Bot holding", parsed.error);
+  }
+  return parsed.data;
 }
 
 export async function transferCharacterBotHolding(

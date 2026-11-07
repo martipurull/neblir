@@ -27,6 +27,7 @@ const ALLOWED_TYPES = [
   "unique_items",
   "custom_vehicles",
   "unique_vehicles",
+  "unique_bots",
   "games",
   "characters",
   ...CATALOGUE_UPLOAD_TYPES,

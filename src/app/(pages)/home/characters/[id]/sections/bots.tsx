@@ -1,6 +1,7 @@
 "use client";
 
 import { AddBotToCharacterModal } from "@/app/components/character/AddBotToCharacterModal";
+import { CreateUniqueBotModal } from "@/app/components/games/CreateUniqueBotModal";
 import {
   BotDamageProfile,
   botConditionClassName,
@@ -31,12 +32,20 @@ function BotsSectionContent({
   character,
   mutate,
   readOnly = false,
+  activeGameId = null,
+  allowUniqueCreate = false,
+  viewerUserId = null,
 }: {
   character: CharacterDetail;
   mutate?: KeyedMutator<CharacterDetail | null>;
   readOnly?: boolean;
+  activeGameId?: string | null;
+  allowUniqueCreate?: boolean;
+  viewerUserId?: string | null;
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [createUniqueOpen, setCreateUniqueOpen] = useState(false);
+  const [editUniqueBotId, setEditUniqueBotId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const holdings = useMemo(
     () =>
@@ -83,10 +92,16 @@ function BotsSectionContent({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [character.games, character.id]);
 
+  const activeGameName =
+    character.games?.find((entry) => entry.gameId === activeGameId)?.game
+      ?.name ?? activeGameId;
+  const editHolding =
+    holdings.find((holding) => holding.botId === editUniqueBotId) ?? null;
+
   return (
     <div className="space-y-0">
       {!readOnly && mutate ? (
-        <div className="mb-2 pb-2">
+        <div className="mb-2 flex flex-wrap gap-2 pb-2">
           <Button
             type="button"
             variant="lightToolbarCompact"
@@ -95,6 +110,17 @@ function BotsSectionContent({
           >
             Add bot
           </Button>
+          {allowUniqueCreate ? (
+            <Button
+              type="button"
+              variant="lightToolbarCompact"
+              fullWidth={false}
+              onClick={() => setCreateUniqueOpen(true)}
+              disabled={!activeGameId}
+            >
+              Mint unique bot
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
@@ -123,10 +149,51 @@ function BotsSectionContent({
           mutateAction={mutate}
         />
       ) : null}
+      {mutate && allowUniqueCreate && createUniqueOpen && activeGameId ? (
+        <CreateUniqueBotModal
+          isOpen
+          gameId={activeGameId}
+          gameName={activeGameName ?? activeGameId}
+          characterId={character.id}
+          onClose={() => setCreateUniqueOpen(false)}
+          onSuccess={() => {
+            void mutate();
+          }}
+        />
+      ) : null}
+      {mutate && editUniqueBotId && editHolding?.gameId ? (
+        <CreateUniqueBotModal
+          isOpen
+          gameId={editHolding.gameId}
+          gameName={
+            character.games?.find(
+              (entry) => entry.gameId === editHolding.gameId
+            )?.game?.name ?? editHolding.gameId
+          }
+          editUniqueBotId={editUniqueBotId}
+          characterId={character.id}
+          onClose={() => setEditUniqueBotId(null)}
+          onSuccess={() => {
+            void mutate();
+          }}
+        />
+      ) : null}
       {mutate ? (
         <BotDetailModal
           isOpen={detail != null}
           onCloseAction={() => setDetailId(null)}
+          onEditUniqueAction={
+            !readOnly &&
+            detail?.sourceType === "UNIQUE" &&
+            detail.uniqueOwnerUserId != null &&
+            detail.uniqueOwnerUserId === viewerUserId &&
+            detail.gameId
+              ? () => {
+                  setEditUniqueBotId(detail.botId);
+                  setDetailId(null);
+                }
+              : undefined
+          }
           characterId={character.id}
           holding={detail}
           inventory={character.inventory ?? []}
@@ -220,6 +287,9 @@ export function getBotsSection(
   options?: {
     mutate?: KeyedMutator<CharacterDetail | null>;
     readOnly?: boolean;
+    activeGameId?: string | null;
+    allowUniqueCreate?: boolean;
+    viewerUserId?: string | null;
   }
 ): CharacterSectionSlide {
   const count = character.bots?.length ?? 0;
@@ -232,6 +302,9 @@ export function getBotsSection(
         character={character}
         mutate={options?.mutate}
         readOnly={options?.readOnly === true}
+        activeGameId={options?.activeGameId}
+        allowUniqueCreate={options?.allowUniqueCreate}
+        viewerUserId={options?.viewerUserId}
       />
     ),
   };

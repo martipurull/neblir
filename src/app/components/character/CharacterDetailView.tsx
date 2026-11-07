@@ -255,6 +255,9 @@ export function CharacterDetailView({
       getBotsSection(character, {
         mutate: sheetReadOnly ? undefined : mutateAction,
         readOnly: sheetReadOnly,
+        activeGameId,
+        allowUniqueCreate: hasAuthorship && !sheetReadOnly,
+        viewerUserId: user?.id ?? null,
       })
     );
     list.push(
@@ -288,6 +291,7 @@ export function CharacterDetailView({
     healthWritePending,
     settledCrisisHealth,
     user?.characterSectionOrder,
+    user?.id,
   ]);
 
   const effectiveLayoutMode = resolveCharacterLayoutMode(

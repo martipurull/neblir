@@ -3,6 +3,7 @@ import {
   BOT_HP_OUT_OF_RANGE_MESSAGE,
   botHoldingSource,
   botHpIsInsideEffectiveMax,
+  missingBotTemplateMessage,
   effectiveBotMaxHp,
   presentBotHolding,
 } from "@/app/lib/botHoldingView";
@@ -71,9 +72,7 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     const bot = await resolveHoldingTemplate(existing);
     if (!bot) {
       return errorResponse(
-        botHoldingSource(existing) === "CUSTOM"
-          ? "Custom bot not found"
-          : "Official bot not found",
+        missingBotTemplateMessage(botHoldingSource(existing)),
         404
       );
     }

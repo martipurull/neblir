@@ -176,11 +176,110 @@ export const botHoldingSchema = z.object({
   installedCount: z.number().int().default(0),
   cargoWeightKg: z.number().default(0),
   carriedWeightKg: z.number().default(0),
+  sourceType: z
+    .enum(["OFFICIAL", "CUSTOM", "UNIQUE"])
+    .optional()
+    .default("OFFICIAL"),
+  /** Set when the holding is a Unique bot. The minter is the only editor of that record. */
+  uniqueOwnerUserId: z.string().nullish(),
+  /** Game that owns a Unique bot. */
+  gameId: z.string().nullish(),
 });
 export type BotHolding = z.infer<typeof botHoldingSchema>;
 
-export const botSourceTypeSchema = z.enum(["OFFICIAL", "CUSTOM"]);
+export const botSourceTypeSchema = z.enum(["OFFICIAL", "CUSTOM", "UNIQUE"]);
 export type BotSourceType = z.infer<typeof botSourceTypeSchema>;
+
+export const botTemplateSourceTypeSchema = z.enum([
+  "OFFICIAL",
+  "CUSTOM",
+  "STANDALONE",
+]);
+export type BotTemplateSourceType = z.infer<typeof botTemplateSourceTypeSchema>;
+
+const uniqueBotMutableBodySchema = z.object({
+  gameId: z.string().min(1),
+  nameOverride: z.string().trim().min(1).nullish(),
+  imageKeyOverride: z.string().trim().min(1).nullish(),
+  descriptionOverride: z.string().trim().nullish(),
+  confCostOverride: z.number().int().nullish(),
+  usageOverride: z.string().trim().nullish(),
+  notesOverride: z.string().trim().nullish(),
+  maxHpOverride: z.number().int().min(1, "Max HP must be at least 1").nullish(),
+  maxCargoWeightKgOverride: z.number().min(0).nullish(),
+  maxInstalledItemsOverride: z.number().int().min(0).nullish(),
+});
+
+export const uniqueBotCreateSchema = z.union([
+  uniqueBotMutableBodySchema.extend({
+    sourceType: z.literal("OFFICIAL"),
+    botId: z.string().min(1, "Bot is required"),
+  }),
+  uniqueBotMutableBodySchema.extend({
+    sourceType: z.literal("CUSTOM"),
+    botId: z.string().min(1, "Bot is required"),
+  }),
+  uniqueBotMutableBodySchema.extend({
+    sourceType: z.literal("STANDALONE"),
+    nameOverride: z.string().trim().min(1, "Name is required"),
+    maxHpOverride: z.number().int().min(1, "Max HP must be at least 1"),
+  }),
+]);
+export type UniqueBotCreate = z.infer<typeof uniqueBotCreateSchema>;
+
+export const uniqueBotUpdateSchema = uniqueBotMutableBodySchema
+  .omit({ gameId: true })
+  .partial();
+export type UniqueBotUpdate = z.infer<typeof uniqueBotUpdateSchema>;
+
+const uniqueBotRecordSchema = z.object({
+  id: z.string(),
+  ownerUserId: z.string(),
+  gameId: z.string(),
+  sourceType: botTemplateSourceTypeSchema,
+  botId: z.string().nullish(),
+  nameOverride: z.string().nullish(),
+  imageKeyOverride: z.string().nullish(),
+  descriptionOverride: z.string().nullish(),
+  confCostOverride: z.number().int().nullish(),
+  usageOverride: z.string().nullish(),
+  notesOverride: z.string().nullish(),
+  maxHpOverride: z.number().int().nullish(),
+  maxCargoWeightKgOverride: z.number().nullish(),
+  maxInstalledItemsOverride: z.number().int().nullish(),
+  templateName: z.string().nullish(),
+});
+export type UniqueBotRecord = z.infer<typeof uniqueBotRecordSchema>;
+
+export const uniqueBotDetailResponseSchema = uniqueBotRecordSchema;
+export type UniqueBotDetailResponse = UniqueBotRecord;
+
+export const uniqueBotCreateResponseSchema = z.object({
+  id: z.string(),
+});
+export type UniqueBotCreateResponse = z.infer<
+  typeof uniqueBotCreateResponseSchema
+>;
+
+export const uniqueBotUpdateResponseSchema = uniqueBotRecordSchema;
+export type UniqueBotUpdateResponse = UniqueBotRecord;
+
+const uniqueBotListItemSchema = z.object({
+  id: z.string(),
+  ownerUserId: z.string(),
+  name: z.string(),
+  held: z.boolean(),
+});
+export type UniqueBotListItem = z.infer<typeof uniqueBotListItemSchema>;
+
+export const uniqueBotListResponseSchema = z.array(uniqueBotListItemSchema);
+
+export const giveBotSchema = z.object({
+  characterId: z.string().min(1, "Character is required"),
+  sourceType: botSourceTypeSchema,
+  botId: z.string().min(1, "Bot is required"),
+});
+export type GiveBot = z.infer<typeof giveBotSchema>;
 
 export const addBotToCharacterSchema = z
   .object({

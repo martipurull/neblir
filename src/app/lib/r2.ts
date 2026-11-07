@@ -81,6 +81,7 @@ const ALLOWED_UPLOAD_PREFIXES = [
   "unique_items-",
   "custom_vehicles-",
   "unique_vehicles-",
+  "unique_bots-",
   "games-",
   "characters-",
   ...CATALOGUE_KEY_PREFIXES,
