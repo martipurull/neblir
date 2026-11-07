@@ -35,6 +35,7 @@ import {
   getFeaturesSection,
   getInventorySection,
   getVehiclesSection,
+  getBotsSection,
   getWalletSection,
   getNotesSection,
 } from "@/app/(pages)/home/characters/[id]/sections";
@@ -248,6 +249,12 @@ export function CharacterDetailView({
         mutate: sheetReadOnly ? undefined : mutateAction,
         readOnly: sheetReadOnly,
         allowUniqueCreate: hasAuthorship && !sheetReadOnly,
+      })
+    );
+    list.push(
+      getBotsSection(character, {
+        mutate: sheetReadOnly ? undefined : mutateAction,
+        readOnly: sheetReadOnly,
       })
     );
     list.push(

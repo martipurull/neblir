@@ -18,7 +18,8 @@ export type ImageUploadKind =
   | "vehicles"
   | "maps"
   | "enemies"
-  | "currencies";
+  | "currencies"
+  | "bots";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);

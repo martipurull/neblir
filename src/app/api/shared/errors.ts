@@ -38,6 +38,7 @@ type CharacterDeletionStep =
   | "deleteCharacterUsers"
   | "deleteCharacterInventory"
   | "deleteCharacterWallet"
+  | "deleteCharacterBotHoldings"
   | "deleteCharacter";
 
 export class CharacterDeletionTransactionError extends Error {

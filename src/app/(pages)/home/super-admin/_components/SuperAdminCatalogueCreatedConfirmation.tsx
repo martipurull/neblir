@@ -127,6 +127,24 @@ const CATALOGUE_CREATED_CONFIG: Record<
     savedFallback: "this vehicle",
     recordLabelField: "name",
   },
+  bot: {
+    title: "Bot created",
+    titleWithRecord: "Official bot created",
+    description:
+      "The bot is saved in the catalogue. Download JSON for seed data when you are ready to commit it to the repo.",
+    noIdDescription:
+      "This page is opened after you create an official bot from the form.",
+    noIdMessage:
+      "No bot id was provided. Use the create form, or open this page from the success redirect after creating a bot.",
+    createAnotherLabel: "Create another bot",
+    createInitialLabel: "Create a bot",
+    createFormHref: "/home/super-admin/bots",
+    apiSegment: "bots",
+    filenamePrefix: "bot",
+    loadingText: "Loading bot…",
+    savedFallback: "this bot",
+    recordLabelField: "name",
+  },
   map: {
     title: "Map created",
     titleWithRecord: "Global map created",

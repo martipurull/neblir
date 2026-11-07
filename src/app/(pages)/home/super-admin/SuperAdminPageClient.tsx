@@ -158,6 +158,12 @@ export function SuperAdminPageClient({
           Vehicles
         </Link>
         <Link
+          href="/home/super-admin/bots/browse"
+          className={superAdminNavLinkClassName}
+        >
+          Bots
+        </Link>
+        <Link
           href="/home/super-admin/reference/browse"
           className={superAdminNavLinkClassName}
         >
@@ -212,6 +218,12 @@ export function SuperAdminPageClient({
           Vehicles
         </Link>
         <Link
+          href="/home/super-admin/bots"
+          className={superAdminNavLinkClassName}
+        >
+          Bots
+        </Link>
+        <Link
           href="/home/super-admin/reference"
           className={superAdminNavLinkClassName}
         >
@@ -247,6 +259,7 @@ export function SuperAdminPageClient({
           Forms POST to{" "}
           <code className="rounded bg-black/5 px-1">/api/items</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/vehicles</code>,{" "}
+          <code className="rounded bg-black/5 px-1">/api/bots</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/paths</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/features</code>,{" "}
           <code className="rounded bg-black/5 px-1">/api/enemies</code>,{" "}

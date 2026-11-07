@@ -15,6 +15,7 @@ import {
   weaponDamageTypeSchema,
 } from "./item";
 import { gameCharacterWithGameSchema } from "./game";
+import { botHoldingSchema } from "./bot";
 import { vehicleCharacterSchema } from "./vehicle";
 import { Race, Religion, Status } from "@prisma/client";
 import { specialAbilityNameSchemaValues } from "../specialAbility";
@@ -264,6 +265,10 @@ export const characterSchema = z.object({
     .nullish(),
   vehicles: z
     .array(z.lazy(() => vehicleCharacterSchema))
+    .optional()
+    .nullish(),
+  bots: z
+    .array(z.lazy(() => botHoldingSchema))
     .optional()
     .nullish(),
   activeVehicleCharacterId: z.string().optional().nullish(),

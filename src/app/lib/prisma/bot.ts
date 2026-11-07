@@ -1,0 +1,137 @@
+import type {
+  Bot as ParsedBot,
+  BotAccessType,
+  BotUpdate,
+  OfficialBot,
+} from "@/app/lib/types/bot";
+import { prisma } from "./client";
+
+type BotRow = {
+  id: string;
+  accessType: BotAccessType;
+  name: string;
+  imageKey: string | null;
+  description: string;
+  confCost: number;
+  usage: string | null;
+  notes: string | null;
+  maxHp: number;
+};
+
+type BotCreateData = Omit<BotRow, "id"> & {
+  protectedFromOfficialImport?: boolean;
+};
+
+function blankToNull(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+const botPrisma = prisma as typeof prisma & {
+  bot: {
+    findMany(args?: { where?: { id?: { in: string[] } } }): Promise<BotRow[]>;
+    findUnique(args: { where: { id: string } }): Promise<BotRow | null>;
+    create(args: { data: BotCreateData }): Promise<BotRow>;
+    update(args: {
+      where: { id: string };
+      data: Partial<BotCreateData>;
+    }): Promise<BotRow>;
+  };
+};
+
+function mapPrismaBotToApi(row: BotRow): OfficialBot {
+  return {
+    id: row.id,
+    accessType: row.accessType,
+    name: row.name,
+    imageKey: row.imageKey,
+    description: row.description,
+    confCost: row.confCost,
+    usage: row.usage,
+    notes: row.notes,
+    maxHp: row.maxHp,
+  };
+}
+
+function botCreateDataFromParsed(
+  data: ParsedBot,
+  options?: { officialCatalogueWrite?: boolean }
+): BotCreateData {
+  return {
+    accessType: data.accessType,
+    name: data.name,
+    imageKey: blankToNull(data.imageKey),
+    description: data.description,
+    confCost: data.confCost,
+    usage: blankToNull(data.usage),
+    notes: blankToNull(data.notes),
+    maxHp: data.maxHp,
+    ...(options?.officialCatalogueWrite
+      ? { protectedFromOfficialImport: true }
+      : {}),
+  };
+}
+
+function botUpdateDataFromParsed(
+  data: BotUpdate,
+  options?: { officialCatalogueWrite?: boolean }
+): Partial<BotCreateData> {
+  return {
+    ...(data.accessType !== undefined ? { accessType: data.accessType } : {}),
+    ...(data.name !== undefined ? { name: data.name } : {}),
+    ...(data.imageKey !== undefined
+      ? { imageKey: blankToNull(data.imageKey) }
+      : {}),
+    ...(data.description !== undefined
+      ? { description: data.description }
+      : {}),
+    ...(data.confCost !== undefined ? { confCost: data.confCost } : {}),
+    ...(data.usage !== undefined ? { usage: blankToNull(data.usage) } : {}),
+    ...(data.notes !== undefined ? { notes: blankToNull(data.notes) } : {}),
+    ...(data.maxHp !== undefined ? { maxHp: data.maxHp } : {}),
+    ...(options?.officialCatalogueWrite
+      ? { protectedFromOfficialImport: true }
+      : {}),
+  };
+}
+
+export async function getBots(): Promise<OfficialBot[]> {
+  const rows = await botPrisma.bot.findMany();
+  return rows.map(mapPrismaBotToApi);
+}
+
+export async function getBotsByIds(ids: string[]): Promise<OfficialBot[]> {
+  if (ids.length === 0) return [];
+  const rows = await botPrisma.bot.findMany({
+    where: { id: { in: ids } },
+  });
+  return rows.map(mapPrismaBotToApi);
+}
+
+export async function getBot(id: string): Promise<OfficialBot | null> {
+  const row = await botPrisma.bot.findUnique({ where: { id } });
+  return row ? mapPrismaBotToApi(row) : null;
+}
+
+export async function createBot(
+  data: ParsedBot,
+  options?: { officialCatalogueWrite?: boolean }
+): Promise<OfficialBot> {
+  const row = await botPrisma.bot.create({
+    data: botCreateDataFromParsed(data, options),
+  });
+  return mapPrismaBotToApi(row);
+}
+
+export async function updateBot(
+  id: string,
+  data: BotUpdate,
+  options?: { officialCatalogueWrite?: boolean }
+): Promise<OfficialBot> {
+  const row = await botPrisma.bot.update({
+    where: { id },
+    data: botUpdateDataFromParsed(data, options),
+  });
+  return mapPrismaBotToApi(row);
+}

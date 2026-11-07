@@ -15,6 +15,7 @@ export type UploadKeyType =
   | "maps"
   | "enemies"
   | "currencies"
+  | "bots"
   | "recaps"
   | "files"
   | "lore";

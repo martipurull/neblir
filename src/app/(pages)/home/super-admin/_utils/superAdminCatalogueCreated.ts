@@ -4,6 +4,7 @@ export type SuperAdminCatalogueCreatedKind =
   | "path"
   | "enemy"
   | "vehicle"
+  | "bot"
   | "map"
   | "reference"
   | "currency";
@@ -33,6 +34,7 @@ const CATALOGUE_CREATED_PAGE_SEGMENT: Record<
   path: "paths",
   enemy: "enemies",
   vehicle: "vehicles",
+  bot: "bots",
   map: "maps",
   reference: "reference",
   currency: "currencies",

@@ -88,6 +88,7 @@ export const levelUpCharacterBodySchema = characterSchema
     wallet: true,
     inventory: true,
     vehicles: true,
+    bots: true,
     notes: true,
     paths: true,
     features: true,

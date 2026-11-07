@@ -165,6 +165,11 @@ enum VehicleAccessType {
   GAME_MASTER
 }
 
+enum BotAccessType {
+  PLAYER
+  GAME_MASTER
+}
+
 enum VehicleSourceType {
   GLOBAL_VEHICLE
   CUSTOM_VEHICLE
@@ -417,6 +422,7 @@ model Character {
   wallet                   CharacterCurrency[]
   inventory                ItemCharacter[]
   vehicles                 VehicleCharacter[]
+  bots                     BotCharacter[]
   activeVehicleCharacterId String?                     @db.ObjectId
   notes                    String[]
   paths                    PathCharacter[]
@@ -626,6 +632,37 @@ model VehicleMountedItem {
   @@unique([vehicleCharacterId, itemCharacterId])
   @@unique([itemCharacterId])
   @@index([vehicleCharacterId])
+}
+
+model Bot {
+  id                          String        @id @default(auto()) @map("_id") @db.ObjectId
+  accessType                  BotAccessType
+  name                        String
+  imageKey                    String?
+  description                 String
+  confCost                    Int
+  usage                       String?
+  notes                       String?
+  maxHp                       Int
+  protectedFromOfficialImport Boolean       @default(false)
+
+  @@unique([name])
+}
+
+model BotCharacter {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String    @db.ObjectId
+  character   Character @relation(fields: [characterId], references: [id])
+  botId       String    @db.ObjectId
+  customName  String?
+  currentHp   Int
+  maxHpBonus  Int       @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([characterId])
+  @@index([botId])
 }
 
 enum InitiativeCombatantType {
