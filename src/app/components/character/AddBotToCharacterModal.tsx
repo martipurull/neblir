@@ -6,12 +6,28 @@ import { ModalShell } from "@/app/components/shared/ModalShell";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { TextField } from "@/app/components/shared/TextField";
 import type { CharacterDetail } from "@/app/lib/types/character";
-import type { OfficialBot } from "@/app/lib/types/bot";
+import type { BotAccessType } from "@/app/lib/types/bot";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { addBotToCharacter, getHoldableBots } from "@/lib/api/bots";
+import { fetchGameCustomBots } from "@/lib/api/customBots";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useEffect, useMemo, useState } from "react";
 import type { KeyedMutator } from "swr";
+
+type AddableBot = {
+  key: string;
+  id: string;
+  name: string;
+  description: string | null;
+  usage: string | null;
+  maxHp: number;
+  confCost: number | null;
+  imageKey: string | null;
+  accessType?: BotAccessType;
+  sourceType: "OFFICIAL" | "CUSTOM";
+  gameId?: string;
+  gameName?: string;
+};
 
 type AddBotToCharacterModalProps = {
   isOpen: boolean;
@@ -31,11 +47,19 @@ function AddBotToCharacterModalBody({
   character,
   mutateAction,
 }: AddBotToCharacterModalProps) {
-  const [bots, setBots] = useState<OfficialBot[]>([]);
+  const [bots, setBots] = useState<AddableBot[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const [addingKey, setAddingKey] = useState<string | null>(null);
+  const gameLinks = useMemo(
+    () =>
+      (character.games ?? []).map((link) => ({
+        id: link.game.id,
+        name: link.game.name,
+      })),
+    [character.games]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -46,12 +70,71 @@ function AddBotToCharacterModalBody({
     void (async () => {
       try {
         const official = await getHoldableBots(character.id, controller.signal);
-        if (!cancelled) setBots(official);
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(getUserSafeErrorMessage(loadError, "Failed to load bots"));
-          setBots([]);
+        const officialRows = official.map(
+          (bot): AddableBot => ({
+            key: `OFFICIAL:${bot.id}`,
+            id: bot.id,
+            name: bot.name,
+            description: bot.description,
+            usage: bot.usage ?? null,
+            maxHp: bot.maxHp,
+            confCost: bot.confCost,
+            imageKey: bot.imageKey ?? null,
+            accessType: bot.accessType,
+            sourceType: "OFFICIAL",
+          })
+        );
+        let missedAGame = false;
+        const customGroups = await Promise.all(
+          gameLinks.map(async (link) => {
+            try {
+              const rows = await fetchGameCustomBots(
+                link.id,
+                controller.signal
+              );
+              return rows.map(
+                (bot): AddableBot => ({
+                  key: `CUSTOM:${bot.id}`,
+                  id: bot.id,
+                  name: bot.name,
+                  description: bot.description ?? null,
+                  usage: bot.usage ?? null,
+                  maxHp: bot.maxHp,
+                  confCost: bot.confCost ?? null,
+                  imageKey: null,
+                  sourceType: "CUSTOM",
+                  gameId: link.id,
+                  gameName: link.name,
+                })
+              );
+            } catch (customError) {
+              if (
+                customError instanceof Error &&
+                customError.name === "AbortError"
+              ) {
+                throw customError;
+              }
+              missedAGame = true;
+              return [];
+            }
+          })
+        );
+        if (cancelled) return;
+        if (missedAGame) {
+          setError(
+            "Couldn't load custom bots from every game this character is in."
+          );
         }
+        setBots([...officialRows, ...customGroups.flat()]);
+      } catch (loadError) {
+        if (
+          cancelled ||
+          (loadError instanceof Error && loadError.name === "AbortError")
+        ) {
+          return;
+        }
+        setError(getUserSafeErrorMessage(loadError, "Failed to load bots"));
+        setBots([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -61,13 +144,13 @@ function AddBotToCharacterModalBody({
       cancelled = true;
       controller.abort();
     };
-  }, [character.id]);
+  }, [character.id, gameLinks]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     const rows = query
       ? bots.filter((bot) =>
-          [bot.name, bot.description, bot.usage ?? ""]
+          [bot.name, bot.description ?? "", bot.usage ?? "", bot.gameName ?? ""]
             .join(" ")
             .toLowerCase()
             .includes(query)
@@ -82,22 +165,28 @@ function AddBotToCharacterModalBody({
     () =>
       filtered
         .filter((bot) => bot.imageKey)
-        .map((bot) => ({ id: bot.id, imageKey: bot.imageKey ?? null })),
+        .map((bot) => ({ id: bot.key, imageKey: bot.imageKey })),
     [filtered]
   );
   const imageUrls = useImageUrls(imageEntries);
+  const showGameName = gameLinks.length > 1;
 
-  const handleAdd = async (bot: OfficialBot) => {
-    setAddingId(bot.id);
+  const handleAdd = async (bot: AddableBot) => {
+    setAddingKey(bot.key);
     setError(null);
     try {
-      await addBotToCharacter(character.id, { botId: bot.id });
+      await addBotToCharacter(
+        character.id,
+        bot.sourceType === "CUSTOM" && bot.gameId
+          ? { botId: bot.id, sourceType: "CUSTOM", gameId: bot.gameId }
+          : { botId: bot.id }
+      );
       await mutateAction();
       onCloseAction();
     } catch (addError) {
       setError(getUserSafeErrorMessage(addError, "Failed to add bot"));
     } finally {
-      setAddingId(null);
+      setAddingKey(null);
     }
   };
 
@@ -109,7 +198,7 @@ function AddBotToCharacterModalBody({
       onClose={onCloseAction}
       title="Add a bot"
       titleId="add-bot-modal-title"
-      subtitle="Add an official bot. One character can hold two of the same bot."
+      subtitle="Add an official bot, or a custom bot from a game this character is in. One character can hold two of the same bot."
       maxWidthClass="max-w-2xl"
     >
       <div className="space-y-4 text-sm text-white">
@@ -120,7 +209,7 @@ function AddBotToCharacterModalBody({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search by name, description, or usage"
-          disabled={loading || addingId != null}
+          disabled={loading || addingKey != null}
         />
 
         {error ? (
@@ -132,10 +221,16 @@ function AddBotToCharacterModalBody({
           filtered.length > 0 ? (
             <ul className="space-y-2">
               {filtered.map((bot) => {
-                const imageUrl = bot.imageKey ? imageUrls[bot.id] : null;
-                const isAdding = addingId === bot.id;
+                const imageUrl = bot.imageKey ? imageUrls[bot.key] : null;
+                const isAdding = addingKey === bot.key;
+                const kind =
+                  bot.sourceType === "CUSTOM"
+                    ? "Custom"
+                    : bot.accessType === "GAME_MASTER"
+                      ? "GM"
+                      : null;
                 return (
-                  <li key={bot.id}>
+                  <li key={bot.key}>
                     <div className="flex items-start gap-3 rounded-md border border-white/20 bg-white/5 p-3">
                       {bot.imageKey ? (
                         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-transparent">
@@ -159,18 +254,26 @@ function AddBotToCharacterModalBody({
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold text-white">{bot.name}</p>
                         <p className="mt-1 text-xs text-white/70">
-                          {bot.accessType === "GAME_MASTER" ? "GM · " : ""}
-                          {bot.maxHp} HP · {bot.confCost} CONF
+                          {kind ? `${kind} · ` : ""}
+                          {showGameName && bot.gameName
+                            ? `${bot.gameName} · `
+                            : ""}
+                          {bot.maxHp} HP
+                          {bot.confCost != null
+                            ? ` · ${bot.confCost} CONF`
+                            : ""}
                         </p>
-                        <p className="mt-1 line-clamp-2 text-xs text-white/55">
-                          {bot.description}
-                        </p>
+                        {bot.description ? (
+                          <p className="mt-1 line-clamp-2 text-xs text-white/55">
+                            {bot.description}
+                          </p>
+                        ) : null}
                       </div>
                       <Button
                         type="button"
                         variant="modalPalePrimary"
                         fullWidth={false}
-                        disabled={isAdding}
+                        disabled={addingKey != null}
                         onClick={() => {
                           void handleAdd(bot);
                         }}

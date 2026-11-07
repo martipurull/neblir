@@ -7,18 +7,33 @@ import {
 } from "../../../helpers";
 
 const playControlMock = vi.fn();
+const characterIsInGameMock = vi.fn();
 const getBotMock = vi.fn();
 const getBotsByIdsMock = vi.fn();
+const getCustomBotMock = vi.fn();
+const getCustomBotsByIdsMock = vi.fn();
 const createBotCharacterMock = vi.fn();
 const listBotCharacterRowsMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/gameCharacter", () => ({
   userHasPlayControl: (...args: unknown[]) => playControlMock(...args),
+  characterIsInGame: (...args: unknown[]) => characterIsInGameMock(...args),
 }));
 
 vi.mock("@/app/lib/prisma/bot", () => ({
   getBot: (...args: unknown[]) => getBotMock(...args),
   getBotsByIds: (...args: unknown[]) => getBotsByIdsMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/customBot", () => ({
+  getCustomBot: (...args: unknown[]) => getCustomBotMock(...args),
+  getCustomBotsByIds: (...args: unknown[]) => getCustomBotsByIdsMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/botPlacement", () => ({
+  placementsForHoldings: async () => new Map(),
+  placementsByHolding: async () => new Map(),
+  botHoldingHasPlacements: async () => false,
 }));
 
 vi.mock("@/app/lib/prisma/botCharacter", async (importOriginal) => {
@@ -62,6 +77,7 @@ describe("/api/characters/[id]/bots handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     playControlMock.mockResolvedValue(true);
+    characterIsInGameMock.mockResolvedValue(true);
     getBotMock.mockResolvedValue(loader);
     createBotCharacterMock.mockImplementation(
       async (data: {
@@ -232,6 +248,224 @@ describe("/api/characters/[id]/bots handlers", () => {
         displayName: "Black Frame",
         condition: "OPERATIONAL",
         bot: expect.objectContaining({ accessType: "GAME_MASTER" }),
+      }),
+    ]);
+  });
+
+  it("POST returns 403 when the user lacks play control of a Custom bot", async () => {
+    playControlMock.mockResolvedValue(false);
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { botId: "cb-1", sourceType: "CUSTOM", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(403);
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+    expect(getCustomBotMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 400 when a Custom bot is added without a game", async () => {
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ botId: "cb-1", sourceType: "CUSTOM" }, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining("Game is required"),
+    });
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+    expect(getCustomBotMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 400 when the character is not in the supplied game", async () => {
+    characterIsInGameMock.mockResolvedValue(false);
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { botId: "cb-1", sourceType: "CUSTOM", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      message: "Character is not linked to the supplied game.",
+    });
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+    expect(getCustomBotMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 404 when the Custom bot does not exist", async () => {
+    getCustomBotMock.mockResolvedValue(null);
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { botId: "cb-1", sourceType: "CUSTOM", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      message: "Custom bot not found",
+    });
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 403 when the Custom bot belongs to another game", async () => {
+    getCustomBotMock.mockResolvedValue({
+      id: "cb-1",
+      gameId: "g-2",
+      name: "Porter",
+      description: null,
+      confCost: null,
+      usage: null,
+      notes: null,
+      maxHp: 9,
+      membersCanModify: false,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { botId: "cb-1", sourceType: "CUSTOM", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(403);
+    expect(createBotCharacterMock).not.toHaveBeenCalled();
+  });
+
+  it("POST adds a holding of this game's Custom bot at its max HP", async () => {
+    getCustomBotMock.mockResolvedValue({
+      id: "cb-1",
+      gameId: "g-1",
+      name: "Porter",
+      description: null,
+      confCost: null,
+      usage: null,
+      notes: null,
+      maxHp: 9,
+      membersCanModify: false,
+    });
+    const { POST } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        { botId: "cb-1", sourceType: "CUSTOM", gameId: "g-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(201);
+    expect(createBotCharacterMock).toHaveBeenCalledWith({
+      characterId: "char-1",
+      botId: "cb-1",
+      sourceType: "CUSTOM",
+      currentHp: 9,
+      maxHpBonus: 0,
+    });
+    const body = await response.json();
+    expect(body).toMatchObject({
+      displayName: "Porter",
+      currentHp: 9,
+      maxHpBonus: 0,
+      effectiveMaxHp: 9,
+      condition: "OPERATIONAL",
+    });
+    expect(body.bot).toEqual({
+      id: "cb-1",
+      name: "Porter",
+      description: null,
+      confCost: null,
+      usage: null,
+      notes: null,
+      maxHp: 9,
+    });
+    expect(body.damageProfile).toEqual(damageProfile);
+  });
+
+  it("GET shows the Custom bot's current name and max HP on every holding", async () => {
+    listBotCharacterRowsMock.mockResolvedValue([
+      {
+        id: "hold-1",
+        characterId: "char-1",
+        botId: "cb-1",
+        sourceType: "CUSTOM",
+        customName: null,
+        currentHp: 9,
+        maxHpBonus: 2,
+        notes: null,
+      },
+      {
+        id: "hold-2",
+        characterId: "char-1",
+        botId: "cb-1",
+        sourceType: "CUSTOM",
+        customName: "Left arm",
+        currentHp: 4,
+        maxHpBonus: 0,
+        notes: null,
+      },
+    ]);
+    getCustomBotsByIdsMock.mockResolvedValue([
+      {
+        id: "cb-1",
+        gameId: "g-1",
+        name: "Hauler",
+        description: "A revised frame.",
+        confCost: null,
+        usage: null,
+        notes: null,
+        maxHp: 20,
+        membersCanModify: false,
+      },
+    ]);
+    const { GET } = await import("@/app/api/characters/[id]/bots/route");
+
+    const response = await invokeRoute(
+      GET,
+      makeAuthedRequest(undefined, "user-1"),
+      makeParams({ id: "char-1" })
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toEqual([
+      expect.objectContaining({
+        id: "hold-1",
+        displayName: "Hauler",
+        currentHp: 9,
+        effectiveMaxHp: 22,
+        bot: expect.objectContaining({ name: "Hauler", maxHp: 20 }),
+      }),
+      expect.objectContaining({
+        id: "hold-2",
+        displayName: "Left arm",
+        currentHp: 4,
+        effectiveMaxHp: 20,
+        bot: expect.objectContaining({ name: "Hauler", maxHp: 20 }),
       }),
     ]);
   });

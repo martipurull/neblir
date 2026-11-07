@@ -170,6 +170,11 @@ enum BotAccessType {
   GAME_MASTER
 }
 
+enum BotSourceType {
+  OFFICIAL
+  CUSTOM
+}
+
 enum VehicleSourceType {
   GLOBAL_VEHICLE
   CUSTOM_VEHICLE
@@ -644,25 +649,57 @@ model Bot {
   usage                       String?
   notes                       String?
   maxHp                       Int
+  /** Unset means cargo is not capped. */
+  maxCargoWeightKg            Float?
+  /** Unset means installed hardware is not capped. */
+  maxInstalledItems           Int?
   protectedFromOfficialImport Boolean       @default(false)
 
   @@unique([name])
 }
 
 model BotCharacter {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  characterId String    @db.ObjectId
-  character   Character @relation(fields: [characterId], references: [id])
-  botId       String    @db.ObjectId
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String        @db.ObjectId
+  character   Character     @relation(fields: [characterId], references: [id])
+  /**
+   * Official holdings point at Bot. Custom holdings point at CustomBot.
+   * Missing values on older rows are Official.
+   */
+  sourceType  BotSourceType @default(OFFICIAL)
+  botId       String        @db.ObjectId
   customName  String?
   currentHp   Int
-  maxHpBonus  Int       @default(0)
+  maxHpBonus  Int           @default(0)
   notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([characterId])
   @@index([botId])
+}
+
+model CustomBot {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String  @db.ObjectId
+  game             Game    @relation(fields: [gameId], references: [id])
+  name             String
+  description      String?
+  confCost         Int?
+  usage            String?
+  notes            String?
+  maxHp            Int
+  /**
+   * When true, game members may later mint a Unique bot from this template.
+   * Editing the shared Custom bot stays GM-only.
+   */
+  membersCanModify Boolean @default(false)
+  /** Unset means cargo is not capped. */
+  maxCargoWeightKg Float?
+  /** Unset means installed hardware is not capped. */
+  maxInstalledItems Int?
+
+  @@index([gameId])
 }
 
 enum InitiativeCombatantType {
@@ -694,6 +731,7 @@ model Game {
   characters         GameCharacter[]
   customItems        CustomItem[]
   customVehicles     CustomVehicle[]
+  customBots         CustomBot[]
   customEnemies      CustomEnemy[]
   enemyInstances     EnemyInstance[]
   uniqueItems        UniqueItem[]

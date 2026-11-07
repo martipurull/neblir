@@ -6,6 +6,7 @@ export { GmPlayersSection } from "./GmPlayersSection";
 export { GmCustomEnemiesSection } from "./GmCustomEnemiesSection";
 export { GmItemsSection } from "./GmItemsSection";
 export { GmVehiclesSection } from "./GmVehiclesSection";
+export { GmBotsSection } from "./GmBotsSection";
 export { GmDiscordSection } from "./GmDiscordSection";
 export { GmLoreSection } from "./GmLoreSection";
 export { GmRecapsSection } from "./GmRecapsSection";

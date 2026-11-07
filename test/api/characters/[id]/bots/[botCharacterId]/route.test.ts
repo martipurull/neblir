@@ -8,6 +8,7 @@ import {
 
 const playControlMock = vi.fn();
 const getBotMock = vi.fn();
+const getCustomBotMock = vi.fn();
 const getBotCharacterRowMock = vi.fn();
 const updateBotCharacterMock = vi.fn();
 
@@ -17,6 +18,16 @@ vi.mock("@/app/lib/prisma/gameCharacter", () => ({
 
 vi.mock("@/app/lib/prisma/bot", () => ({
   getBot: (...args: unknown[]) => getBotMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/customBot", () => ({
+  getCustomBot: (...args: unknown[]) => getCustomBotMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/botPlacement", () => ({
+  placementsForHoldings: async () => new Map(),
+  placementsByHolding: async () => new Map(),
+  botHoldingHasPlacements: async () => false,
 }));
 
 vi.mock("@/app/lib/prisma/botCharacter", async (importOriginal) => {
@@ -263,5 +274,74 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
       maxHpBonus: -6,
       currentHp: 4,
     });
+  });
+
+  it("PATCH reads the Custom bot template when the holding is custom", async () => {
+    getBotCharacterRowMock.mockResolvedValue({
+      ...holding,
+      botId: "cb-1",
+      sourceType: "CUSTOM",
+      currentHp: 9,
+    });
+    getCustomBotMock.mockResolvedValue({
+      id: "cb-1",
+      name: "Hauler",
+      description: null,
+      confCost: null,
+      usage: null,
+      notes: null,
+      maxHp: 20,
+    });
+    updateBotCharacterMock.mockImplementation(
+      async (_id: string, data: Partial<typeof holding>) => ({
+        ...holding,
+        botId: "cb-1",
+        sourceType: "CUSTOM",
+        currentHp: 9,
+        ...data,
+      })
+    );
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setHp", currentHp: 15 }, "user-1"),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      displayName: "Hauler",
+      currentHp: 15,
+      effectiveMaxHp: 20,
+      condition: "OPERATIONAL",
+    });
+    expect(getCustomBotMock).toHaveBeenCalledWith("cb-1");
+    expect(getBotMock).not.toHaveBeenCalled();
+  });
+
+  it("PATCH returns 404 when the Custom bot template is missing", async () => {
+    getBotCharacterRowMock.mockResolvedValue({
+      ...holding,
+      botId: "cb-1",
+      sourceType: "CUSTOM",
+    });
+    getCustomBotMock.mockResolvedValue(null);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/bots/[botCharacterId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ action: "setHp", currentHp: 4 }, "user-1"),
+      params()
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      message: "Custom bot not found",
+    });
+    expect(updateBotCharacterMock).not.toHaveBeenCalled();
+    expect(getBotMock).not.toHaveBeenCalled();
   });
 });

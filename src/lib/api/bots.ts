@@ -40,6 +40,36 @@ export async function getHoldableBots(
   return parsed.data;
 }
 
+export async function getGameOfficialBots(
+  gameId: string,
+  signal?: AbortSignal
+): Promise<OfficialBot[]> {
+  const response = await fetch(
+    `/api/games/${encodeURIComponent(gameId)}/official-bots`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      getUserSafeApiError(
+        response.status,
+        await readApiErrorBody(response),
+        "Failed to load bots"
+      )
+    );
+  }
+
+  const parsed = officialBotListResponseSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    throw responseShapeError("Bots", parsed.error);
+  }
+  return parsed.data;
+}
+
 export async function getCatalogueBots(
   signal?: AbortSignal
 ): Promise<OfficialBot[]> {

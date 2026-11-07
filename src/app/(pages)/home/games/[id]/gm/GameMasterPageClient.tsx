@@ -3,6 +3,8 @@
 import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
 import { BrowseCustomEnemiesModal } from "@/app/components/games/BrowseCustomEnemiesModal";
 import { BrowseCustomItemsModal } from "@/app/components/games/BrowseCustomItemsModal";
+import { BrowseBotsModal } from "@/app/components/games/BrowseBotsModal";
+import { BrowseCustomBotsModal } from "@/app/components/games/BrowseCustomBotsModal";
 import { BrowseCustomVehiclesModal } from "@/app/components/games/BrowseCustomVehiclesModal";
 import { BrowseEnemiesModal } from "@/app/components/games/BrowseEnemiesModal";
 import { BrowseItemsModal } from "@/app/components/games/BrowseItemsModal";
@@ -10,6 +12,7 @@ import { BrowseVehiclesModal } from "@/app/components/games/BrowseVehiclesModal"
 import { CopyCustomEnemyModal } from "@/app/components/games/CopyCustomEnemyModal";
 import { CreateCustomEnemyModal } from "@/app/components/games/CreateCustomEnemyModal";
 import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
+import { CreateCustomBotModal } from "@/app/components/games/CreateCustomBotModal";
 import { CreateCustomVehicleModal } from "@/app/components/games/CreateCustomVehicleModal";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
 import { CreateUniqueVehicleModal } from "@/app/components/games/CreateUniqueVehicleModal";
@@ -36,6 +39,7 @@ import {
   GmItemsSection,
   GmNpcsSection,
   GmTableSettingsCard,
+  GmBotsSection,
   GmVehiclesSection,
 } from "./sections";
 import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
@@ -85,6 +89,9 @@ export function GameMasterPageClient() {
   const [browseVehiclesOpen, setBrowseVehiclesOpen] = useState(false);
   const [browseCustomVehiclesOpen, setBrowseCustomVehiclesOpen] =
     useState(false);
+  const [browseBotsOpen, setBrowseBotsOpen] = useState(false);
+  const [browseCustomBotsOpen, setBrowseCustomBotsOpen] = useState(false);
+  const [customBotModalOpen, setCustomBotModalOpen] = useState(false);
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
   const [uniqueVehicleModalOpen, setUniqueVehicleModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
@@ -344,6 +351,12 @@ export function GameMasterPageClient() {
           onGiveVehicle={() => setGiveVehicleModalOpen(true)}
         />
 
+        <GmBotsSection
+          onBrowseCatalogue={() => setBrowseBotsOpen(true)}
+          onBrowseCustom={() => setBrowseCustomBotsOpen(true)}
+          onCreateCustom={() => setCustomBotModalOpen(true)}
+        />
+
         <GmTableSettingsCard gameId={game.id} />
       </div>
 
@@ -352,6 +365,13 @@ export function GameMasterPageClient() {
         gameId={game.id}
         gameName={game.name}
         onClose={() => setCustomItemModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <CreateCustomBotModal
+        isOpen={customBotModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setCustomBotModalOpen(false)}
         onSuccess={() => void mutate()}
       />
       <CreateCustomVehicleModal
@@ -444,6 +464,19 @@ export function GameMasterPageClient() {
         onSuccess={async () => {
           await mutate();
         }}
+      />
+      <BrowseBotsModal
+        isOpen={browseBotsOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setBrowseBotsOpen(false)}
+      />
+      <BrowseCustomBotsModal
+        isOpen={browseCustomBotsOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setBrowseCustomBotsOpen(false)}
+        onSuccess={() => void mutate()}
       />
       <BrowseCustomVehiclesModal
         isOpen={browseCustomVehiclesOpen}

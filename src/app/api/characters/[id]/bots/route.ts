@@ -1,6 +1,10 @@
 import { presentBotHolding } from "@/app/lib/botHoldingView";
-import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
+import {
+  characterIsInGame,
+  userHasPlayControl,
+} from "@/app/lib/prisma/gameCharacter";
 import { getBot } from "@/app/lib/prisma/bot";
+import { getCustomBot } from "@/app/lib/prisma/customBot";
 import {
   createBotCharacter,
   hydrateBotCharacters,
@@ -69,6 +73,41 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         400,
         parsed.error.issues.map((issue) => issue.message).join(". ")
       );
+    }
+
+    const sourceType = parsed.data.sourceType ?? "OFFICIAL";
+    if (sourceType === "CUSTOM") {
+      const gameId = parsed.data.gameId;
+      if (!gameId) {
+        return errorResponse("Game is required", 400);
+      }
+      if (!(await characterIsInGame(gameId, characterId))) {
+        return errorResponse(
+          "Character is not linked to the supplied game.",
+          400
+        );
+      }
+      const customBot = await getCustomBot(parsed.data.botId);
+      if (!customBot) {
+        return errorResponse("Custom bot not found", 404);
+      }
+      if (customBot.gameId !== gameId) {
+        return errorResponse(
+          "That custom bot does not belong to the supplied game.",
+          403
+        );
+      }
+
+      const created = await createBotCharacter({
+        characterId,
+        botId: customBot.id,
+        sourceType: "CUSTOM",
+        currentHp: customBot.maxHp,
+        maxHpBonus: 0,
+      });
+      return NextResponse.json(presentBotHolding(created, customBot), {
+        status: 201,
+      });
     }
 
     const bot = await getBot(parsed.data.botId);

@@ -1,11 +1,14 @@
 import {
   BOT_EFFECTIVE_MAX_BELOW_ZERO_MESSAGE,
   BOT_HP_OUT_OF_RANGE_MESSAGE,
+  botHoldingSource,
   botHpIsInsideEffectiveMax,
   effectiveBotMaxHp,
   presentBotHolding,
+  type BotTemplateView,
 } from "@/app/lib/botHoldingView";
 import { getBot } from "@/app/lib/prisma/bot";
+import { getCustomBot } from "@/app/lib/prisma/customBot";
 import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import {
   getBotCharacterRow,
@@ -22,6 +25,16 @@ import { errorResponse } from "../../../../shared/responses";
 function blankToNull(value: string | null | undefined): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed.length > 0 ? trimmed : null;
+}
+
+async function templateForHolding(row: {
+  botId: string;
+  sourceType?: "OFFICIAL" | "CUSTOM" | null;
+}): Promise<BotTemplateView | null> {
+  if (botHoldingSource(row) === "CUSTOM") {
+    return getCustomBot(row.botId);
+  }
+  return getBot(row.botId);
 }
 
 export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
@@ -61,9 +74,14 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
       return errorResponse("Bot holding not found for this character", 404);
     }
 
-    const bot = await getBot(existing.botId);
+    const bot = await templateForHolding(existing);
     if (!bot) {
-      return errorResponse("Official bot not found", 404);
+      return errorResponse(
+        botHoldingSource(existing) === "CUSTOM"
+          ? "Custom bot not found"
+          : "Official bot not found",
+        404
+      );
     }
 
     const { action } = parsed.data;
