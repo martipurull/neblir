@@ -6,10 +6,11 @@ import { PrivateRollCheckbox } from "@/app/components/shared/PrivateRollCheckbox
 import {
   botAttributeDiceCount,
   botAttributePool,
+  isBotAttributeSuccess,
   type BotAttributeRoll,
 } from "@/app/lib/botAttributeRoll";
 import { BOT_UPGRADE_LABELS, shownTrackFigure } from "@/app/lib/botTracks";
-import { isD10Success, sortDiceResultsHighToLow } from "@/app/lib/diceResults";
+import { sortDiceResultsHighToLow } from "@/app/lib/diceResults";
 import type { RollPrivacyOptions } from "@/app/lib/roll-privacy";
 import type { BotHolding } from "@/app/lib/types/bot";
 import { usePrivateRollState } from "@/hooks/use-private-roll-state";
@@ -47,9 +48,7 @@ export function BotAttributeRollModal({
   const label = BOT_UPGRADE_LABELS[attribute];
   const pool = botAttributePool(figure.effective);
   const totalDice = botAttributeDiceCount(pool, extraDice);
-  const successes =
-    rollResult?.filter((face) => isD10Success(face) && face <= 10).length ??
-    null;
+  const successes = rollResult?.filter(isBotAttributeSuccess).length ?? null;
 
   const clearResult = () => {
     setRollResult(null);
@@ -185,7 +184,7 @@ export function BotAttributeRollModal({
             </p>
             <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-lg tabular-nums text-white">
               {rollResult.map((value, index) => {
-                const isSuccess = isD10Success(value);
+                const isSuccess = isBotAttributeSuccess(value);
                 const spanClass = [
                   isSuccess ? "text-neblirSafe-600" : "",
                   value === 1 ? "text-neblirDanger-400" : "",

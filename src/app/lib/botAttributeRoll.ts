@@ -6,7 +6,7 @@ import {
 import type { BotHolding } from "@/app/lib/types/bot";
 
 /** Attributes a bot can roll. Battery is not one of them. */
-const BOT_ATTRIBUTE_ROLLS = [
+export const BOT_ATTRIBUTE_ROLLS = [
   "processingPower",
   "physicalPower",
   "finesseCapacity",
@@ -19,6 +19,11 @@ const BOT_ATTRIBUTE_ROLL_SET = new Set<string>(BOT_ATTRIBUTE_ROLLS);
 
 export function isBotAttributeRoll(value: string): value is BotAttributeRoll {
   return BOT_ATTRIBUTE_ROLL_SET.has(value);
+}
+
+/** An 8, 9, or 10 on the bot's d10 pool. */
+export function isBotAttributeSuccess(face: number): boolean {
+  return isD10Success(face) && face <= 10;
 }
 
 /** Pool before extra dice. At least 1, otherwise the effective attribute. */
@@ -89,9 +94,7 @@ export function prepareBotAttributeRoll(input: {
     };
   }
 
-  const successes = input.results.filter(
-    (face) => isD10Success(face) && face <= 10
-  ).length;
+  const successes = input.results.filter(isBotAttributeSuccess).length;
 
   return {
     ok: true,

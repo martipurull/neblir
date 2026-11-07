@@ -4,10 +4,12 @@ import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { NumberField } from "@/app/components/shared/NumberField";
-import type { BotAttributeRoll } from "@/app/lib/botAttributeRoll";
+import {
+  BOT_ATTRIBUTE_ROLLS,
+  type BotAttributeRoll,
+} from "@/app/lib/botAttributeRoll";
 import {
   BOT_UPGRADE_LABELS,
-  BOT_UPGRADE_TRACKS,
   shownTrackFigure,
   type BotUpgradeTrack,
 } from "@/app/lib/botTracks";
@@ -86,66 +88,64 @@ export function BotHoldingTracksSection({
         )}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {BOT_UPGRADE_TRACKS.filter((track) => track !== "battery").map(
-          (track) => {
-            const figure = holding.attributes[track];
-            const figureText = shownTrackFigure(
-              figure.base,
-              figure.effective,
-              figure.signedUpgrade
-            );
-            const rollThis = canRoll && holding.mayRoll;
-            return (
-              <div
-                key={track}
-                className="rounded-md border border-white/10 bg-white/5 px-3 py-2"
-              >
-                {rollThis ? (
-                  <Button
-                    type="button"
-                    variant="modalBrowseListRow"
-                    aria-label={`Roll ${BOT_UPGRADE_LABELS[track]}`}
-                    onClick={() => onRollAttribute(track)}
-                  >
-                    <span className="flex min-w-0 flex-1 flex-col items-start">
-                      <span className="text-[11px] uppercase tracking-wider text-white/60">
-                        {BOT_UPGRADE_LABELS[track]}
-                      </span>
-                      <span className="text-sm text-white">{figureText}</span>
-                    </span>
-                  </Button>
-                ) : (
-                  <>
-                    <div className="text-[11px] uppercase tracking-wider text-white/60">
+        {BOT_ATTRIBUTE_ROLLS.map((track) => {
+          const figure = holding.attributes[track];
+          const figureText = shownTrackFigure(
+            figure.base,
+            figure.effective,
+            figure.signedUpgrade
+          );
+          const mayBotRoll = canRoll && holding.mayRoll;
+          return (
+            <div
+              key={track}
+              className="rounded-md border border-white/10 bg-white/5 px-3 py-2"
+            >
+              {mayBotRoll ? (
+                <Button
+                  type="button"
+                  variant="modalBrowseListRow"
+                  aria-label={`Roll ${BOT_UPGRADE_LABELS[track]}`}
+                  onClick={() => onRollAttribute(track)}
+                >
+                  <span className="flex min-w-0 flex-1 flex-col items-start">
+                    <span className="text-[11px] uppercase tracking-wider text-white/60">
                       {BOT_UPGRADE_LABELS[track]}
-                    </div>
-                    <div className="mt-1 text-sm text-white">{figureText}</div>
-                  </>
-                )}
-                <FieldLabel
-                  id={`bot-upgrade-${holding.id}-${track}`}
-                  label="Upgrade"
-                  required={false}
-                />
-                <NumberField
-                  id={`bot-upgrade-${holding.id}-${track}`}
-                  variant="dark"
-                  value={drafts[track]}
-                  disabled={locked}
-                  min={-5}
-                  max={figure.maxPotential}
-                  onChange={(value) =>
-                    setDrafts((prev) => ({ ...prev, [track]: value }))
-                  }
-                  onBlur={() => saveUpgrade(track)}
-                />
-                <p className="mt-1 text-[10px] text-white/50">
-                  From -5 through +{figure.maxPotential}
-                </p>
-              </div>
-            );
-          }
-        )}
+                    </span>
+                    <span className="text-sm text-white">{figureText}</span>
+                  </span>
+                </Button>
+              ) : (
+                <>
+                  <div className="text-[11px] uppercase tracking-wider text-white/60">
+                    {BOT_UPGRADE_LABELS[track]}
+                  </div>
+                  <div className="mt-1 text-sm text-white">{figureText}</div>
+                </>
+              )}
+              <FieldLabel
+                id={`bot-upgrade-${holding.id}-${track}`}
+                label="Upgrade"
+                required={false}
+              />
+              <NumberField
+                id={`bot-upgrade-${holding.id}-${track}`}
+                variant="dark"
+                value={drafts[track]}
+                disabled={locked}
+                min={-5}
+                max={figure.maxPotential}
+                onChange={(value) =>
+                  setDrafts((prev) => ({ ...prev, [track]: value }))
+                }
+                onBlur={() => saveUpgrade(track)}
+              />
+              <p className="mt-1 text-[10px] text-white/50">
+                From -5 through +{figure.maxPotential}
+              </p>
+            </div>
+          );
+        })}
         <div className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
           <div className="text-[11px] uppercase tracking-wider text-white/60">
             Battery

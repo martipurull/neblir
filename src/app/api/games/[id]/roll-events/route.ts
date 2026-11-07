@@ -133,12 +133,9 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           "A bot attribute roll needs the holding character, one attribute, and extra dice."
         );
       }
-      if (botAttribute === "battery") {
-        return errorResponse("Battery is not rolled.", 400);
-      }
       if (!isBotAttributeRoll(botAttribute)) {
         return errorResponse(
-          "Roll one of Processing Power, Physical Power, Finesse Capacity, or Grid Protection.",
+          "Roll one of Processing Power, Physical Power, Finesse Capacity, or Grid Protection. Battery is not rolled.",
           400
         );
       }

@@ -738,7 +738,8 @@ describe("/api/games/[id]/roll-events", () => {
 
       expect(response.status).toBe(400);
       expect(await response.json()).toMatchObject({
-        message: "Battery is not rolled.",
+        message:
+          "Roll one of Processing Power, Physical Power, Finesse Capacity, or Grid Protection. Battery is not rolled.",
       });
       expect(prismaMocks.rollEvent.create).not.toHaveBeenCalled();
     });
