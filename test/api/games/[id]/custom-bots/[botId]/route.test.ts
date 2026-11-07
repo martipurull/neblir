@@ -10,6 +10,9 @@ const getGameMock = vi.fn();
 const userIsInGameMock = vi.fn();
 const getCustomBotMock = vi.fn();
 const updateCustomBotMock = vi.fn();
+const listBotCharacterRowsByBotMock = vi.fn();
+const updateBotCharacterMock = vi.fn();
+const listUniqueBotsForTemplateMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/game", () => ({
   getGame: (...args: unknown[]) => getGameMock(...args),
@@ -19,6 +22,17 @@ vi.mock("@/app/lib/prisma/game", () => ({
 vi.mock("@/app/lib/prisma/customBot", () => ({
   getCustomBot: (...args: unknown[]) => getCustomBotMock(...args),
   updateCustomBot: (...args: unknown[]) => updateCustomBotMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/botCharacter", () => ({
+  listBotCharacterRowsByBot: (...args: unknown[]) =>
+    listBotCharacterRowsByBotMock(...args),
+  updateBotCharacter: (...args: unknown[]) => updateBotCharacterMock(...args),
+}));
+
+vi.mock("@/app/lib/prisma/uniqueBot", () => ({
+  listUniqueBotsForTemplate: (...args: unknown[]) =>
+    listUniqueBotsForTemplateMock(...args),
 }));
 
 const porter = {
@@ -38,6 +52,9 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
     vi.clearAllMocks();
     getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
     getCustomBotMock.mockResolvedValue(porter);
+    listBotCharacterRowsByBotMock.mockResolvedValue([]);
+    listUniqueBotsForTemplateMock.mockResolvedValue([]);
+    updateBotCharacterMock.mockResolvedValue(undefined);
     updateCustomBotMock.mockImplementation(
       async (_id: string, data: Partial<typeof porter>) => ({
         ...porter,
@@ -205,5 +222,62 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
       maxCargoWeightKg: null,
       maxInstalledItems: null,
     });
+  });
+
+  it("PATCH drops battery used when a lower capacity shrinks the tank", async () => {
+    listBotCharacterRowsByBotMock.mockImplementation(async (id: string) => {
+      if (id === "cb-1") {
+        return [
+          {
+            id: "hold-custom",
+            sourceType: "CUSTOM",
+            batteryUsed: 5,
+            batteryUpgrade: 0,
+          },
+          {
+            id: "hold-other",
+            sourceType: "OFFICIAL",
+            batteryUsed: 5,
+            batteryUpgrade: 0,
+          },
+        ];
+      }
+      if (id === "ub-1") {
+        return [
+          {
+            id: "hold-unique",
+            sourceType: "UNIQUE",
+            batteryUsed: 5,
+            batteryUpgrade: 0,
+          },
+        ];
+      }
+      return [];
+    });
+    listUniqueBotsForTemplateMock.mockResolvedValue([
+      { id: "ub-1", batteryCapacityOverride: null },
+      { id: "ub-own", batteryCapacityOverride: 8 },
+    ]);
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ batteryCapacity: 2 }, "gm-1"),
+      params()
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-custom", {
+      batteryUsed: 2,
+    });
+    expect(updateBotCharacterMock).toHaveBeenCalledWith("hold-unique", {
+      batteryUsed: 2,
+    });
+    expect(updateBotCharacterMock).not.toHaveBeenCalledWith(
+      "hold-other",
+      expect.anything()
+    );
+    expect(listBotCharacterRowsByBotMock).not.toHaveBeenCalledWith("ub-own");
   });
 });
