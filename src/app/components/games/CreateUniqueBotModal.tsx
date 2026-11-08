@@ -11,7 +11,7 @@ import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField
 import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { SelectField } from "@/app/components/shared/SelectField";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import {
@@ -277,7 +277,7 @@ function CreateUniqueBotModalBody({
       onClose();
     } catch (submitError) {
       setError(
-        getUserSafeErrorMessage(submitError, "Failed to mint unique bot")
+        getUserSafeErrorMessage(submitError, "Failed to create unique bot")
       );
     } finally {
       setSubmitting(false);
@@ -290,7 +290,7 @@ function CreateUniqueBotModalBody({
   return (
     <GameFormModal
       isOpen={isOpen}
-      title={isEdit ? "Edit unique bot" : "Mint unique bot"}
+      title={isEdit ? "Edit unique bot" : "Create unique bot"}
       subtitle={gameName}
       titleId="unique-bot-form-title"
       error={error}
@@ -300,37 +300,44 @@ function CreateUniqueBotModalBody({
       }}
       submitting={submitting}
       submitDisabled={busy}
-      submitLabel={isEdit ? "Save bot" : "Mint bot"}
+      submitLabel={isEdit ? "Save bot" : "Create unique bot"}
     >
       {isEdit && templateName ? (
         <p className="text-sm text-white/80">Based on {templateName}.</p>
       ) : null}
       {!isEdit ? (
-        <div>
-          <FieldLabel id="unique-bot-source" label="Source" required />
-          <SelectField
-            id="unique-bot-source"
-            variant="dark"
-            value={sourceType}
-            disabled={busy}
-            options={[
-              { value: "STANDALONE", label: "Standalone" },
-              { value: "OFFICIAL", label: "Official bot" },
-              { value: "CUSTOM", label: "Custom bot" },
-            ]}
-            onChange={(value) => {
-              setSourceType(value);
-              setBotId("");
-              if (value === "STANDALONE") {
-                setActions((current) => current ?? []);
-                setAdditionalActions((current) => current ?? []);
-              } else {
-                setActions(null);
-                setAdditionalActions(null);
-              }
-            }}
-          />
-        </div>
+        <SelectDropdown
+          id="unique-bot-source"
+          label="Source"
+          surface="modal"
+          placeholder="Select a source"
+          value={sourceType}
+          sortOptions={false}
+          disabled={busy}
+          options={[
+            { value: "STANDALONE", label: "Standalone" },
+            { value: "OFFICIAL", label: "Official bot" },
+            { value: "CUSTOM", label: "Custom bot" },
+          ]}
+          onChange={(value) => {
+            if (
+              value !== "STANDALONE" &&
+              value !== "OFFICIAL" &&
+              value !== "CUSTOM"
+            ) {
+              return;
+            }
+            setSourceType(value);
+            setBotId("");
+            if (value === "STANDALONE") {
+              setActions((current) => current ?? []);
+              setAdditionalActions((current) => current ?? []);
+            } else {
+              setActions(null);
+              setAdditionalActions(null);
+            }
+          }}
+        />
       ) : null}
       {!isEdit && !isStandalone ? (
         <ModalSelect

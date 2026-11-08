@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createUniqueBot, updateUniqueBot } from "@/lib/api/uniqueBots";
+import {
+  createUniqueBot,
+  mintUniqueBotForCharacter,
+  updateUniqueBot,
+} from "@/lib/api/uniqueBots";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -49,6 +53,38 @@ describe("createUniqueBot", () => {
         botId: "bot-1",
       })
     ).rejects.toThrow(/id:/);
+  });
+
+  it("falls back to Failed to create unique bot when the server fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("nope", { status: 500 }))
+    );
+    await expect(
+      createUniqueBot({
+        gameId: "game-1",
+        sourceType: "STANDALONE",
+        nameOverride: "Mule",
+        maxHpOverride: 8,
+      })
+    ).rejects.toThrow("Failed to create unique bot");
+  });
+});
+
+describe("mintUniqueBotForCharacter", () => {
+  it("falls back to Failed to create unique bot when the server fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("nope", { status: 500 }))
+    );
+    await expect(
+      mintUniqueBotForCharacter("character-1", {
+        gameId: "game-1",
+        sourceType: "STANDALONE",
+        nameOverride: "Mule",
+        maxHpOverride: 8,
+      })
+    ).rejects.toThrow("Failed to create unique bot");
   });
 });
 

@@ -20,11 +20,18 @@ export type SelectDropdownOption = {
   disabledHint?: string;
 };
 
+export type SelectDropdownSurface = "page" | "modal";
+
 export type SelectDropdownProps = {
   id: string;
   label: string;
   /** When false, label is visually hidden but kept for accessibility (paired with an external heading). */
   showLabel?: boolean;
+  /**
+   * `page` is the pale field and the default. `modal` is the menu on a modal
+   * shell. Both follow the document Theme. Callers do not pass a Theme.
+   */
+  surface?: SelectDropdownSurface;
   placeholder: string;
   value: string;
   options: SelectDropdownOption[];
@@ -50,14 +57,45 @@ export type SelectDropdownProps = {
    * and keeps `pinValueFirst` at the top when that value is present.
    */
   sortOptions?: boolean;
-  /** Fires when the paleBlue list opens or closes. */
+  /** Fires when the list opens or closes. */
   onOpenChange?: (open: boolean) => void;
 };
+
+function selectOptionClassName(
+  surface: SelectDropdownSurface,
+  state: { disabled: boolean; selected: boolean; highlighted: boolean }
+): string {
+  const layout =
+    "flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors";
+  if (surface === "page") {
+    if (state.disabled) {
+      return `${layout} bg-paleBlue cursor-not-allowed text-black/40`;
+    }
+    const selected = state.selected ? "bg-black/10 font-medium" : "";
+    const highlighted = state.highlighted
+      ? `ring-2 ring-inset ring-customPrimaryHover ${
+          state.selected ? "bg-black/10" : "bg-paleBlueHover"
+        }`
+      : "";
+    return `${layout} bg-paleBlue cursor-pointer hover:bg-paleBlueHover text-black ${selected} ${highlighted}`;
+  }
+  if (state.disabled) {
+    return `${layout} cursor-not-allowed bg-modalBackground-200 text-white/40`;
+  }
+  const selected = state.selected
+    ? "bg-paleBlue/15 font-medium"
+    : "bg-modalBackground-200";
+  const highlighted = state.highlighted
+    ? "ring-2 ring-inset ring-white/70"
+    : "";
+  return `${layout} cursor-pointer text-white hover:bg-paleBlue/20 ${selected} ${highlighted}`;
+}
 
 export function SelectDropdown({
   id,
   label,
   showLabel = true,
+  surface = "page",
   placeholder,
   value,
   options,
@@ -215,20 +253,27 @@ export function SelectDropdown({
   };
 
   const closeMenu = () => updateOpen(false);
+  const modalSurface = surface === "modal";
+  const labelClassName = showLabel
+    ? modalSurface
+      ? "block text-sm font-medium text-white/90"
+      : "mb-1 block text-sm font-bold text-black"
+    : "sr-only";
+  const triggerClassName = [
+    modalSurface || !showLabel ? "" : "mt-1",
+    !selectedOption ? (modalSurface ? "text-white/60" : "text-black/60") : "",
+  ]
+    .filter((part) => part.length > 0)
+    .join(" ");
 
   return (
     <div ref={containerRef} className="relative">
-      <label
-        htmlFor={id}
-        className={
-          showLabel ? "mb-1 block text-sm font-bold text-black" : "sr-only"
-        }
-      >
+      <label htmlFor={id} className={labelClassName}>
         {label}
       </label>
       <Button
         id={id}
-        variant="selectTriggerLight"
+        variant={modalSurface ? "selectTriggerModal" : "selectTriggerLight"}
         fullWidth
         type="button"
         disabled={disabled}
@@ -236,7 +281,7 @@ export function SelectDropdown({
           if (disabled) return;
           updateOpen(!open);
         }}
-        className={`${showLabel ? "mt-1" : ""} ${!selectedOption ? "text-black/60" : ""}`}
+        className={triggerClassName}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={`${id}-label`}
@@ -245,18 +290,35 @@ export function SelectDropdown({
           {displayLabel}
         </span>
         <span
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black/60"
+          className={
+            modalSurface
+              ? "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/70"
+              : "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black/60"
+          }
           aria-hidden
         >
           {open ? "▲" : "▼"}
         </span>
       </Button>
       {open && (
-        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg">
-          <div className="sticky top-0 border-b border-black/20 bg-paleBlue p-1.5">
+        <div
+          className={
+            modalSurface
+              ? "absolute z-10 mt-1 w-full overflow-hidden rounded border-2 border-white/50 bg-modalBackground-200 shadow-lg"
+              : "absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg"
+          }
+        >
+          <div
+            className={
+              modalSurface
+                ? "sticky top-0 border-b border-white/30 bg-modalBackground-200 p-1.5"
+                : "sticky top-0 border-b border-black/20 bg-paleBlue p-1.5"
+            }
+          >
             <TextField
               ref={filterInputRef}
               type="text"
+              variant={modalSurface ? "dark" : "light"}
               density="compact"
               value={filterQuery}
               onChange={handleFilterInputChange}
@@ -280,7 +342,11 @@ export function SelectDropdown({
             {filteredOptions.length === 0 ? (
               <li
                 role="option"
-                className="px-3 py-2 text-sm text-black/60"
+                className={
+                  modalSurface
+                    ? "px-3 py-2 text-sm text-white/60"
+                    : "px-3 py-2 text-sm text-black/60"
+                }
                 aria-selected={false}
               >
                 {options.length === 0 ? "No options" : "No matches"}
@@ -322,25 +388,22 @@ export function SelectDropdown({
                       }
                     }}
                     tabIndex={-1}
-                    className={`flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors bg-paleBlue ${
-                      isDisabled
-                        ? "cursor-not-allowed text-black/40"
-                        : `cursor-pointer hover:bg-paleBlueHover text-black ${
-                            value === opt.value ? "bg-black/10 font-medium" : ""
-                          } ${
-                            isHighlighted
-                              ? "ring-2 ring-inset ring-customPrimaryHover " +
-                                (value === opt.value
-                                  ? "bg-black/10"
-                                  : "bg-paleBlueHover")
-                              : ""
-                          }`
-                    }`}
+                    className={selectOptionClassName(surface, {
+                      disabled: isDisabled,
+                      selected: value === opt.value,
+                      highlighted: isHighlighted,
+                    })}
                   >
                     <span className="min-w-0 flex-1 px-3 py-2">
                       {opt.label}
                       {isDisabled ? (
-                        <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
+                        <span
+                          className={
+                            modalSurface
+                              ? "ml-2 text-[10px] font-normal uppercase tracking-wide text-white/40"
+                              : "ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40"
+                          }
+                        >
                           {opt.disabledHint ?? "(already rolled)"}
                         </span>
                       ) : null}

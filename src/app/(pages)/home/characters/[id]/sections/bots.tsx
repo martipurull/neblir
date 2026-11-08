@@ -123,7 +123,7 @@ function BotsSectionContent({
               onClick={() => setCreateUniqueOpen(true)}
               disabled={!activeGameId}
             >
-              Mint unique bot
+              Create unique bot
             </Button>
           ) : null}
         </div>

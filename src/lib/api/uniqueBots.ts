@@ -84,7 +84,7 @@ export async function createUniqueBot(
       getUserSafeApiError(
         response.status,
         await readApiErrorBody(response),
-        "Failed to mint unique bot"
+        "Failed to create unique bot"
       )
     );
   }
@@ -112,7 +112,7 @@ export async function mintUniqueBotForCharacter(
       getUserSafeApiError(
         response.status,
         await readApiErrorBody(response),
-        "Failed to mint unique bot"
+        "Failed to create unique bot"
       )
     );
   }

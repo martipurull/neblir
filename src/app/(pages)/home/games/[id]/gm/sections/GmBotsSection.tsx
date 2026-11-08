@@ -51,7 +51,7 @@ export function GmBotsSection({
           fullWidth={false}
           onClick={onCreateUnique}
         >
-          Mint unique bot
+          Create unique bot
         </Button>
         <Button
           type="button"
