@@ -174,7 +174,7 @@ function OfficialBotDetail({
             alt=""
             width={64}
             height={64}
-            className="h-16 w-16 rounded-md object-cover"
+            className="h-16 w-16 rounded-md object-cover object-top"
           />
         ) : null}
         <div>

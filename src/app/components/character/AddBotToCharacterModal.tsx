@@ -241,7 +241,7 @@ function AddBotToCharacterModalBody({
                               alt=""
                               width={64}
                               height={64}
-                              className="h-16 w-16 object-cover object-center"
+                              className="h-16 w-16 object-cover object-top"
                             />
                           ) : imageUrl === undefined ? (
                             <ImageLoadingSkeleton

@@ -398,7 +398,7 @@ function SuperAdminBotFormFields({
               disabled={submitting}
               initialImageKey={form.watch("imageKey")}
               onImageKey={onImageKey}
-              previewLayout="itemThumbnail"
+              previewLayout="sheetPortrait"
               previewAlt={previewAlt}
             />
 

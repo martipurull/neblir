@@ -542,7 +542,7 @@ function CreateUniqueBotModalBody({
         uploading={imageUpload.uploading}
         error={imageUpload.uploadError}
         disabled={busy}
-        previewLayout="itemThumbnail"
+        previewLayout="sheetPortrait"
         previewImageAlt={
           name.trim().length > 0 ? `${name.trim()} image` : "Bot image"
         }

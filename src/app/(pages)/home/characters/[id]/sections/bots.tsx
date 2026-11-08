@@ -235,7 +235,7 @@ function BotHoldingRow({
             alt=""
             width={56}
             height={56}
-            className="h-14 w-14 object-cover object-center"
+            className="h-14 w-14 object-cover object-top"
           />
         ) : (
           <ImageLoadingSkeleton

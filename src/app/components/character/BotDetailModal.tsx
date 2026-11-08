@@ -212,7 +212,7 @@ function BotDetailModalBody({
                     alt=""
                     width={80}
                     height={80}
-                    className="h-20 w-20 object-cover object-center"
+                    className="h-20 w-20 object-cover object-top"
                   />
                 ) : imageUrl === undefined ? (
                   <ImageLoadingSkeleton variant="item" />
