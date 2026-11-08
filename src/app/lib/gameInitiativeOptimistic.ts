@@ -1,25 +1,10 @@
+import { parseCombatantRef } from "@/app/lib/initiativeCombatantRef";
 import { sortInitiativeEntries } from "@/app/lib/initiativeOrder";
 import type { GameDetail } from "@/app/lib/types/game";
 
 type GameDetailInitiativeEntry = NonNullable<
   GameDetail["initiativeOrder"]
 >[number];
-
-function parseCombatantRef(raw: string): {
-  combatantType: "CHARACTER" | "ENEMY" | "BOT";
-  combatantId: string;
-} | null {
-  const [maybeType, ...rest] = raw.split(":");
-  if (
-    (maybeType === "CHARACTER" ||
-      maybeType === "ENEMY" ||
-      maybeType === "BOT") &&
-    rest.length > 0
-  ) {
-    return { combatantType: maybeType, combatantId: rest.join(":") };
-  }
-  return null;
-}
 
 function sortGameDetailInitiative(
   entries: GameDetailInitiativeEntry[]

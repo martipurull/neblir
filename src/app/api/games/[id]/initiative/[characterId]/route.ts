@@ -1,5 +1,6 @@
 import { getGameWithDetails, updateGame } from "@/app/lib/prisma/game";
 import { shapeGameForResponse } from "@/app/lib/gameDetailResponse";
+import { parseCombatantRef } from "@/app/lib/initiativeCombatantRef";
 import { adjustInitiativeBodySchema } from "@/app/lib/types/initiative";
 import type { AuthNextRequest } from "@/app/lib/types/api";
 import { auth } from "@/auth";
@@ -7,22 +8,6 @@ import { NextResponse } from "next/server";
 import { logger } from "@/logger";
 import { serializeError } from "../../../../shared/errors";
 import { errorResponse } from "../../../../shared/responses";
-
-function parseCombatantRef(raw: string): {
-  combatantType: "CHARACTER" | "ENEMY" | "BOT";
-  combatantId: string;
-} {
-  const [maybeType, ...rest] = raw.split(":");
-  if (
-    (maybeType === "CHARACTER" ||
-      maybeType === "ENEMY" ||
-      maybeType === "BOT") &&
-    rest.length > 0
-  ) {
-    return { combatantType: maybeType, combatantId: rest.join(":") };
-  }
-  throw new Error("Invalid combatant reference format");
-}
 
 /** GM removes one initiative entry so it can be rolled again. */
 export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
@@ -49,13 +34,11 @@ export const DELETE = auth(async (request: AuthNextRequest, { params }) => {
     if (!combatantRef || typeof combatantRef !== "string") {
       return errorResponse("Invalid combatant ID", 400);
     }
-    let combatantType: "CHARACTER" | "ENEMY" | "BOT";
-    let combatantId: string;
-    try {
-      ({ combatantType, combatantId } = parseCombatantRef(combatantRef));
-    } catch {
+    const parsedRef = parseCombatantRef(combatantRef);
+    if (!parsedRef) {
       return errorResponse("Invalid combatant ID", 400);
     }
+    const { combatantType, combatantId } = parsedRef;
 
     const game = await getGameWithDetails(gameId);
     if (!game) {
@@ -127,13 +110,11 @@ export const PATCH = auth(async (request: AuthNextRequest, { params }) => {
     if (!combatantRef || typeof combatantRef !== "string") {
       return errorResponse("Invalid combatant ID", 400);
     }
-    let combatantType: "CHARACTER" | "ENEMY" | "BOT";
-    let combatantId: string;
-    try {
-      ({ combatantType, combatantId } = parseCombatantRef(combatantRef));
-    } catch {
+    const parsedRef = parseCombatantRef(combatantRef);
+    if (!parsedRef) {
       return errorResponse("Invalid combatant ID", 400);
     }
+    const { combatantType, combatantId } = parsedRef;
 
     const requestBody = await request.json();
     const parsed = adjustInitiativeBodySchema.safeParse(requestBody);

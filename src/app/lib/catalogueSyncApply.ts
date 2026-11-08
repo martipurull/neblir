@@ -112,6 +112,8 @@ function catalogueRowWriter(domain: CatalogueExportDomain): CatalogueRowWriter {
       return prisma.vehicle as unknown as CatalogueRowWriter;
     case "enemies":
       return prisma.enemy as unknown as CatalogueRowWriter;
+    case "bots":
+      return prisma.bot as unknown as CatalogueRowWriter;
     case "paths":
       return prisma.path as unknown as CatalogueRowWriter;
     case "features":
@@ -210,6 +212,17 @@ async function destOnlyOfficialRowInUse(
       where: { currencyId: id },
     });
     return holdings > 0;
+  }
+  if (domain === "bots") {
+    const [holdings, uniqueCopies] = await Promise.all([
+      prisma.botCharacter.count({
+        where: { botId: id, sourceType: "OFFICIAL" },
+      }),
+      prisma.uniqueBot.count({
+        where: { botId: id, sourceType: "OFFICIAL" },
+      }),
+    ]);
+    return holdings > 0 || uniqueCopies > 0;
   }
   if (!isOfficialCatalogueUsageDomain(domain)) return false;
   const usage = await getOfficialCatalogueUsage(domain, id);

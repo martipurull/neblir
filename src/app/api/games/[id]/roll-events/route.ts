@@ -7,16 +7,8 @@ import { isBotCombatValue } from "@/app/lib/botCombat";
 import { prepareBotCombatRoll } from "@/app/lib/botCombatRoll";
 import { prepareBotActionRoll, readBotActionList } from "@/app/lib/botActions";
 import { prepareBotInitiativeRoll } from "@/app/lib/botInitiative";
-import {
-  botHoldingSource,
-  missingBotTemplateMessage,
-  presentBotHolding,
-} from "@/app/lib/botHoldingView";
-import {
-  getBotCharacterRow,
-  resolveHoldingTemplate,
-  setBotReactionsRemaining,
-} from "@/app/lib/prisma/botCharacter";
+import { loadPresentedBotHolding } from "@/app/lib/botHoldingLoad";
+import { setBotReactionsRemaining } from "@/app/lib/prisma/botCharacter";
 import { installedItemBotActions } from "@/app/lib/prisma/botPlacement";
 import {
   loadBotHandWeapon,
@@ -144,16 +136,12 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
           "A bot initiative roll needs the holding character."
         );
       }
-      const row = await getBotCharacterRow(characterId, payload.botCharacterId);
-      if (!row) {
-        return errorResponse("Bot holding not found", 404);
-      }
-      const template = await resolveHoldingTemplate(row);
-      if (!template) {
-        return errorResponse(
-          missingBotTemplateMessage(botHoldingSource(row)),
-          404
-        );
+      const loaded = await loadPresentedBotHolding({
+        id: payload.botCharacterId,
+        characterId,
+      });
+      if (!loaded.ok) {
+        return errorResponse(loaded.message, 404);
       }
       const roller = await prisma.user.findUnique({
         where: { id: userId },
@@ -161,7 +149,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       });
       const rollerName = roller?.name?.trim() ?? "";
       const prepared = prepareBotInitiativeRoll({
-        holding: presentBotHolding(row, template),
+        holding: loaded.holding,
         results: payload.results,
         extraDice: payload.extraDice,
         isPrivate: persistedIsPrivate,
@@ -221,16 +209,12 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         );
       }
 
-      const row = await getBotCharacterRow(characterId, payload.botCharacterId);
-      if (!row) {
-        return errorResponse("Bot holding not found", 404);
-      }
-      const template = await resolveHoldingTemplate(row);
-      if (!template) {
-        return errorResponse(
-          missingBotTemplateMessage(botHoldingSource(row)),
-          404
-        );
+      const loaded = await loadPresentedBotHolding({
+        id: payload.botCharacterId,
+        characterId,
+      });
+      if (!loaded.ok) {
+        return errorResponse(loaded.message, 404);
       }
 
       const roller = await prisma.user.findUnique({
@@ -238,7 +222,7 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
         select: { name: true },
       });
       const rollerName = roller?.name?.trim() ?? "";
-      const holding = presentBotHolding(row, template);
+      const { holding, template } = loaded;
       const rollContext = {
         isPrivate: persistedIsPrivate,
         rollerName: rollerName.length > 0 ? rollerName : "Unknown",

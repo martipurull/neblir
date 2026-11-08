@@ -1,6 +1,7 @@
 import {
   customImageKey,
   customTemplateName,
+  officialBotFromCustom,
   officialEnemyFromCustom,
   officialItemFromCustom,
   officialVehicleFromCustom,
@@ -11,12 +12,15 @@ import {
   deleteUnreferencedCatalogueImageIfUnused,
 } from "@/app/lib/officialCatalogueImage";
 import { officialNameConflicts } from "@/app/lib/officialName";
-import { getCustomItem } from "@/app/lib/prisma/customItem";
+import { createBot, getBots } from "@/app/lib/prisma/bot";
+import { getCustomBot } from "@/app/lib/prisma/customBot";
 import { getCustomEnemy } from "@/app/lib/prisma/customEnemy";
+import { getCustomItem } from "@/app/lib/prisma/customItem";
 import { createEnemy, getEnemies } from "@/app/lib/prisma/enemy";
 import { getEnemyInstance } from "@/app/lib/prisma/enemyInstance";
 import { createItem, getItems } from "@/app/lib/prisma/item";
 import { touchStaffCatalogueDrift } from "@/app/lib/prisma/staffCatalogueDrift";
+import { getUniqueBot } from "@/app/lib/prisma/uniqueBot";
 import { getUniqueItem } from "@/app/lib/prisma/uniqueItem";
 import { getUniqueVehicle } from "@/app/lib/prisma/uniqueVehicle";
 import {
@@ -28,6 +32,7 @@ import type {
   CataloguePromotionBody,
   PromotableCatalogueDomain,
 } from "@/app/lib/types/cataloguePromotion";
+import type { CustomBotResponse } from "@/app/lib/types/bot";
 import type { CustomItemResponse } from "@/app/lib/types/item";
 import type { CustomVehicleResponse } from "@/app/lib/types/vehicle";
 
@@ -204,6 +209,24 @@ export async function runCataloguePromotion(
       listOfficial: getVehicles,
       create: (data, imageKey) =>
         createVehicle({ ...data, imageKey }, { officialCatalogueWrite: true }),
+    });
+  }
+
+  if (body.catalogueDomain === "bots") {
+    const loaded = await loadCustomTemplate({
+      gameId,
+      loadCustom: () => getCustomBot(body.customId),
+      loadNonTemplate: () => getUniqueBot(body.customId),
+      notFoundMessage: "Custom bot not found",
+    });
+    if (isLoadFailure(loaded)) return loaded;
+    return completeOfficialPromotion({
+      catalogueDomain: "bots",
+      custom: loaded.custom,
+      mapped: officialBotFromCustom(loaded.custom as CustomBotResponse, body),
+      listOfficial: getBots,
+      create: (data, imageKey) =>
+        createBot({ ...data, imageKey }, { officialCatalogueWrite: true }),
     });
   }
 

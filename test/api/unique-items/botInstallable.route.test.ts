@@ -4,12 +4,12 @@ import {
   makeAuthedRequest,
   makeUnauthedRequest,
 } from "../helpers";
+import type * as UniqueItemPrisma from "@/app/lib/prisma/uniqueItem";
 
 const createUniqueItemMock = vi.fn();
 
 vi.mock("@/app/lib/prisma/uniqueItem", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/app/lib/prisma/uniqueItem")>();
+  const actual = await importOriginal<typeof UniqueItemPrisma>();
   return {
     ...actual,
     createUniqueItem: (...args: unknown[]) => createUniqueItemMock(...args),

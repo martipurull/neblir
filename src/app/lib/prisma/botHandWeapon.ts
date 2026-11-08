@@ -43,7 +43,7 @@ export async function loadBotHandWeapon(args: {
   const status = row.status as ItemStatus;
   return {
     itemCharacterId: row.id,
-    displayName: row.customName?.trim() || item?.name?.trim() || "Weapon",
+    displayName: row.customName?.trim() ?? item?.name?.trim() ?? "Weapon",
     attackModes: item?.attackRoll ?? [],
     attackMeleeBonus: item?.attackMeleeBonus ?? 0,
     attackRangeBonus: item?.attackRangeBonus ?? 0,

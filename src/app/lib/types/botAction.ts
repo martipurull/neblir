@@ -43,7 +43,7 @@ function botActionAttributeField(label: string) {
     });
 }
 
-export const botActionDamageSchema = z.object({
+const botActionDamageSchema = z.object({
   numberOfDice: z.number().int().min(0, "Damage dice must be at least 0"),
   diceType: z.number().int().min(1, "Damage dice type must be at least 1"),
   damageType: weaponDamageTypeSchema,

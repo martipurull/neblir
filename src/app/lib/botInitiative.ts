@@ -4,10 +4,10 @@ import {
 } from "@/app/lib/botAttributeRoll";
 import type { BotHolding } from "@/app/lib/types/bot";
 
-export const BOT_INITIATIVE_EXTRA_DICE_MESSAGE =
+const BOT_INITIATIVE_EXTRA_DICE_MESSAGE =
   "A bot initiative roll does not accept extra dice.";
 
-export const BOT_INITIATIVE_DICE_MESSAGE = "A bot initiative roll is one d10.";
+const BOT_INITIATIVE_DICE_MESSAGE = "A bot initiative roll is one d10.";
 
 /** Effective Processing Power plus effective Finesse Capacity, divided by 2 toward zero. */
 export function botInitiativeModifier(

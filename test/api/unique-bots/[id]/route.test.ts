@@ -154,6 +154,19 @@ describe("PATCH /api/unique-bots/[id]", () => {
     });
   });
 
+  it("PATCH clears an actions override so the bot inherits the template list", async () => {
+    const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ actionsOverride: null }, "minter-1"),
+      makeParams({ id: "ub-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateUniqueBotMock).toHaveBeenCalledWith("ub-1", {
+      actionsOverride: null,
+    });
+  });
+
   it("PATCH rejects Grid Protection as a bot action attribute", async () => {
     const { PATCH } = await import("@/app/api/unique-bots/[id]/route");
     const response = await invokeRoute(

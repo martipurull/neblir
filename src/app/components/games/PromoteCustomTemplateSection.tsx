@@ -25,6 +25,7 @@ import {
   promoteCustomTemplate,
   type CataloguePromotionSuccess,
 } from "@/lib/api/cataloguePromotions";
+import { getGameCustomBot } from "@/lib/api/customBots";
 import { getCustomEnemy } from "@/lib/api/customEnemies";
 import { getGameCustomItemRecord } from "@/lib/api/customItems";
 import { getGameCustomVehicleRecord } from "@/lib/api/customVehicles";
@@ -99,6 +100,18 @@ async function loadVehiclePromoteFormSeed(
   });
 }
 
+async function loadBotPromoteFormSeed(
+  gameId: string,
+  customId: string
+): Promise<PromoteFormSeed> {
+  const bot = await getGameCustomBot(gameId, customId);
+  return emptyPromoteFormSeed({
+    confCost: typeof bot.confCost !== "number",
+    description: isBlankRequiredText(bot.description),
+    usage: false,
+  });
+}
+
 async function loadEnemyPromoteFormSeed(
   gameId: string,
   customId: string
@@ -117,6 +130,7 @@ const PROMOTE_FORM_SEED_LOADERS: Record<
 > = {
   items: loadItemPromoteFormSeed,
   vehicles: loadVehiclePromoteFormSeed,
+  bots: loadBotPromoteFormSeed,
   enemies: loadEnemyPromoteFormSeed,
 };
 

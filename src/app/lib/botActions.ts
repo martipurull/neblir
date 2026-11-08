@@ -14,10 +14,7 @@ import {
 } from "@/app/lib/types/botAction";
 
 /** Pool before extra dice. At least 1, otherwise dice plus the chosen attribute. */
-export function botActionPool(
-  numberOfDice: number,
-  effective: number | null
-): number {
+function botActionPool(numberOfDice: number, effective: number | null): number {
   return Math.max(1, numberOfDice + (effective ?? 0));
 }
 

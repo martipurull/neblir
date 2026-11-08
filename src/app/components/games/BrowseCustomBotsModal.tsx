@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateCustomBotModal } from "@/app/components/games/CreateCustomBotModal";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
 import { TextField } from "@/app/components/shared/TextField";
@@ -15,6 +16,7 @@ type BrowseCustomBotsModalProps = {
   gameName: string;
   onClose: () => void;
   onSuccess?: () => void;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 function displayText(value: string | null | undefined): string {
@@ -32,6 +34,7 @@ function BrowseCustomBotsModalContent({
   gameName,
   onClose,
   onSuccess,
+  onPromoted,
 }: BrowseCustomBotsModalProps) {
   const {
     rows: bots,
@@ -161,6 +164,7 @@ function BrowseCustomBotsModalContent({
         onSuccess={() => {
           void refresh().then(() => onSuccess?.());
         }}
+        onPromoted={onPromoted}
       />
     </>
   );

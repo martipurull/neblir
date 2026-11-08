@@ -303,4 +303,54 @@ describe("/api/games/[id]/custom-bots handlers", () => {
     ]);
     expect(getCustomBotsByGameMock).toHaveBeenCalledWith("g-1");
   });
+
+  it("POST stores a bot action list", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const actions = [
+      {
+        name: "Weld",
+        description: null,
+        notes: null,
+        numberOfDice: 0,
+        attribute: "processingPower",
+        damage: null,
+      },
+    ];
+    const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest({ name: "Porter", maxHp: 9, actions }, "gm-1"),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    expect(createCustomBotMock).toHaveBeenCalledWith(
+      expect.objectContaining({ gameId: "g-1", name: "Porter", actions })
+    );
+  });
+
+  it("POST rejects Grid Protection as a bot action attribute", async () => {
+    getGameMock.mockResolvedValue({ id: "g-1", gameMaster: "gm-1" });
+    const { POST } = await import("@/app/api/games/[id]/custom-bots/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          name: "Porter",
+          maxHp: 9,
+          actions: [
+            { name: "Weld", numberOfDice: 0, attribute: "gridProtection" },
+          ],
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(createCustomBotMock).not.toHaveBeenCalled();
+  });
 });

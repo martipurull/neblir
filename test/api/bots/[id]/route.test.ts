@@ -507,4 +507,60 @@ describe("/api/bots/[id] route handlers", () => {
       processingPowerUpgrade: 2,
     });
   });
+
+  it("PATCH stores bot actions and additional actions", async () => {
+    const actions = [
+      {
+        name: "Weld",
+        description: null,
+        notes: null,
+        numberOfDice: 0,
+        attribute: "processingPower",
+        damage: null,
+      },
+    ];
+    const additionalActions = [
+      {
+        name: "Brace",
+        description: null,
+        notes: null,
+        numberOfDice: 1,
+        attribute: null,
+        damage: null,
+      },
+    ];
+    updateBotMock.mockResolvedValue({ id: "bot-1", name: "Loader", actions });
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ actions, additionalActions }),
+      makeParams({ id: "bot-1" })
+    );
+    expect(response.status).toBe(200);
+    expect(updateBotMock).toHaveBeenCalledWith(
+      "bot-1",
+      { actions, additionalActions },
+      { officialCatalogueWrite: true }
+    );
+  });
+
+  it("PATCH rejects Grid Protection as a bot action attribute", async () => {
+    const { PATCH } = await import("@/app/api/bots/[id]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({
+        actions: [
+          { name: "Weld", numberOfDice: 0, attribute: "gridProtection" },
+        ],
+      }),
+      makeParams({ id: "bot-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(updateBotMock).not.toHaveBeenCalled();
+  });
 });

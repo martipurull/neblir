@@ -16,14 +16,14 @@ import {
 } from "@/app/lib/botAttributeRoll";
 import type { BotHolding } from "@/app/lib/types/bot";
 
-export const BOT_WEAPON_NOT_IN_HAND_MESSAGE =
+const BOT_WEAPON_NOT_IN_HAND_MESSAGE =
   "That weapon is not a bot-equipped hand weapon for this attack.";
 
-export const BOT_WEAPON_BROKEN_MESSAGE = "That weapon is broken.";
+const BOT_WEAPON_BROKEN_MESSAGE = "That weapon is broken.";
 
-export const BOT_WEAPON_NO_USES_MESSAGE = "That weapon has no uses left.";
+const BOT_WEAPON_NO_USES_MESSAGE = "That weapon has no uses left.";
 
-export const BOT_NO_REACTIONS_MESSAGE = "This bot has no Reactions remaining.";
+const BOT_NO_REACTIONS_MESSAGE = "This bot has no Reactions remaining.";
 
 export type BotHandWeapon = {
   itemCharacterId: string;

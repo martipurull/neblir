@@ -23,6 +23,11 @@ export const cataloguePromotionBodySchema = z.discriminatedUnion(
       customId: z.string().min(1),
       accessType: accessTypeSchema,
     }),
+    promotionExtrasSchema.extend({
+      catalogueDomain: z.literal("bots"),
+      customId: z.string().min(1),
+      accessType: accessTypeSchema,
+    }),
     z.object({
       catalogueDomain: z.literal("enemies"),
       customId: z.string().min(1),
@@ -43,6 +48,7 @@ export const PROMOTABLE_CATALOGUE_DOMAIN_LABEL: Record<
 > = {
   items: "item",
   vehicles: "vehicle",
+  bots: "bot",
   enemies: "enemy",
 };
 

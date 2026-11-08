@@ -476,8 +476,7 @@ export async function setBotEquip(args: {
   });
 }
 
-export const ITEM_NOT_INSTALLED_MESSAGE =
-  "That item is not installed on this bot.";
+const ITEM_NOT_INSTALLED_MESSAGE = "That item is not installed on this bot.";
 
 export async function installedItemBotActions(
   characterId: string,

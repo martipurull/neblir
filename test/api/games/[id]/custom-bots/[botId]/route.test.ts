@@ -280,4 +280,53 @@ describe("/api/games/[id]/custom-bots/[botId] handlers", () => {
     );
     expect(listBotCharacterRowsByBotMock).not.toHaveBeenCalledWith("ub-own");
   });
+
+  it("PATCH stores a bot action list", async () => {
+    const actions = [
+      {
+        name: "Weld",
+        description: null,
+        notes: null,
+        numberOfDice: 0,
+        attribute: "processingPower",
+        damage: null,
+      },
+    ];
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest({ actions }, "gm-1"),
+      params()
+    );
+    expect(response.status).toBe(200);
+    expect(updateCustomBotMock).toHaveBeenCalledWith(
+      "cb-1",
+      expect.objectContaining({ actions })
+    );
+  });
+
+  it("PATCH rejects Grid Protection as a bot action attribute", async () => {
+    const { PATCH } =
+      await import("@/app/api/games/[id]/custom-bots/[botId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        {
+          actions: [
+            { name: "Weld", numberOfDice: 0, attribute: "gridProtection" },
+          ],
+        },
+        "gm-1"
+      ),
+      params()
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection is not a bot action attribute."
+      ),
+    });
+    expect(updateCustomBotMock).not.toHaveBeenCalled();
+  });
 });

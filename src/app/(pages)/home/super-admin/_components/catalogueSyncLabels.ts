@@ -7,6 +7,7 @@ export const CATALOGUE_SYNC_DOMAIN_LABELS: Record<
   items: "Items",
   vehicles: "Vehicles",
   enemies: "Enemies",
+  bots: "Bots",
   paths: "Paths",
   features: "Features",
   maps: "Maps",

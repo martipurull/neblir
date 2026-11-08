@@ -107,6 +107,12 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       heightMetres: parsed.data.heightMetres ?? null,
       weight: parsed.data.weight ?? null,
       ...pickDefinedTrackStats(parsed.data),
+      ...(parsed.data.actions !== undefined
+        ? { actions: parsed.data.actions }
+        : {}),
+      ...(parsed.data.additionalActions !== undefined
+        ? { additionalActions: parsed.data.additionalActions }
+        : {}),
     };
     const bot = await createCustomBot(createData);
     return NextResponse.json(bot, { status: 201 });

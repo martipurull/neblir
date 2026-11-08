@@ -379,6 +379,7 @@ export function GameMasterPageClient() {
         gameName={game.name}
         onClose={() => setCustomBotModalOpen(false)}
         onSuccess={() => void mutate()}
+        onPromoted={onPromoted}
       />
       <CreateCustomVehicleModal
         isOpen={customVehicleModalOpen}
@@ -483,6 +484,7 @@ export function GameMasterPageClient() {
         gameName={game.name}
         onClose={() => setBrowseCustomBotsOpen(false)}
         onSuccess={() => void mutate()}
+        onPromoted={onPromoted}
       />
       <BrowseCustomVehiclesModal
         isOpen={browseCustomVehiclesOpen}

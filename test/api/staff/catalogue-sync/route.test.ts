@@ -84,6 +84,28 @@ vi.mock("@/app/lib/prisma/client", () => {
       delete: vi.fn(),
     },
     characterCurrency: { count: vi.fn() },
+    bot: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    customBot: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    uniqueBot: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
+    botCharacter: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
+    },
     $transaction: vi.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
   };
   return { prisma };
@@ -102,11 +124,60 @@ function emptySeedData() {
     items: [],
     vehicles: [],
     enemies: [],
+    bots: [],
     paths: [],
     features: [],
     maps: [],
     reference: [],
     currencies: [],
+  };
+}
+
+function officialBotRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "bot-scout",
+    accessType: "PLAYER",
+    name: "Scout Drone",
+    imageKey: "bots-scout.png",
+    description: "A small flyer.",
+    confCost: 40,
+    usage: "Recon",
+    notes: "Quiet.",
+    maxHp: 8,
+    maxCargoWeightKg: 2,
+    maxInstalledItems: 1,
+    speed: 12,
+    maxCarryWeight: 5,
+    heightMetres: 0.4,
+    weight: 3,
+    processingPower: 1,
+    processingPowerMaxPotential: 2,
+    physicalPower: 0,
+    physicalPowerMaxPotential: 0,
+    finesseCapacity: 2,
+    finesseCapacityMaxPotential: 1,
+    gridProtection: -1,
+    gridProtectionMaxPotential: 0,
+    batteryCapacity: 4,
+    batteryMaxPotential: 1,
+    attackMelee: 1,
+    attackRange: 3,
+    defenceMelee: 1,
+    defenceRange: 2,
+    defenceGrid: 2,
+    numberOfReactions: 1,
+    actions: [
+      {
+        name: "Scan",
+        description: null,
+        notes: null,
+        numberOfDice: 2,
+        attribute: "processingPower",
+        damage: null,
+      },
+    ],
+    additionalActions: [],
+    ...overrides,
   };
 }
 
@@ -123,6 +194,7 @@ function snapshotResponse(
         "items",
         "vehicles",
         "enemies",
+        "bots",
         "paths",
         "features",
         "maps",
@@ -200,6 +272,7 @@ describe("/api/staff/catalogue-sync dest preview", () => {
           "items",
           "vehicles",
           "enemies",
+          "bots",
           "paths",
           "features",
           "maps",
@@ -698,6 +771,7 @@ function resetOfficialWriteMocks() {
     prisma.map,
     prisma.referenceEntry,
     prisma.currency,
+    prisma.bot,
   ];
   for (const delegate of delegates) {
     vi.mocked(delegate.create).mockReset();
@@ -739,6 +813,8 @@ function resetOfficialWriteMocks() {
     prisma.enemyInstance.count,
     prisma.featureCharacter.count,
     prisma.characterCurrency.count,
+    prisma.botCharacter.count,
+    prisma.uniqueBot.count,
   ]) {
     vi.mocked(count).mockReset();
     vi.mocked(count).mockResolvedValue(0 as never);
@@ -1233,6 +1309,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       items: [{ id: "item-1", name: "Old item", accessType: "PLAYER" }],
       vehicles: [{ id: "veh-1", name: "Old vehicle", accessType: "PLAYER" }],
       enemies: [{ id: "enemy-1", name: "Old enemy" }],
+      bots: [{ id: "bot-1", name: "Old bot", accessType: "PLAYER" }],
       paths: [
         {
           id: "path-1",
@@ -1285,6 +1362,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
         { domain: "items", id: "item-1", action: "delete" },
         { domain: "vehicles", id: "veh-1", action: "delete" },
         { domain: "enemies", id: "enemy-1", action: "delete" },
+        { domain: "bots", id: "bot-1", action: "delete" },
         { domain: "paths", id: "path-1", action: "delete" },
         { domain: "features", id: "feat-1", action: "delete" },
         { domain: "maps", id: "map-1", action: "delete" },
@@ -1302,6 +1380,9 @@ describe("/api/staff/catalogue-sync dest apply", () => {
     });
     expect(prisma.enemy.delete).toHaveBeenCalledWith({
       where: { id: "enemy-1" },
+    });
+    expect(prisma.bot.delete).toHaveBeenCalledWith({
+      where: { id: "bot-1" },
     });
     expect(prisma.path.delete).toHaveBeenCalledWith({
       where: { id: "path-1" },
@@ -1329,6 +1410,7 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       "items",
       "vehicles",
       "enemies",
+      "bots",
       "paths",
       "features",
       "maps",
@@ -1772,5 +1854,231 @@ describe("/api/staff/catalogue-sync dest apply", () => {
       where: { id: "old-nord" },
     });
     expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["currencies"]);
+  });
+
+  it("POST adds a missing Official bot and updates one whose combat value and image key differ", async () => {
+    const added = officialBotRow({ id: "bot-new", name: "Scout Drone" });
+    const updated = officialBotRow({
+      id: "bot-existing",
+      name: "Hauler",
+      attackRange: 4,
+      imageKey: "bots-hauler-new.png",
+    });
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        bots: [added, updated],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      bots: [
+        officialBotRow({
+          id: "bot-existing",
+          name: "Hauler",
+          attackRange: 1,
+          imageKey: "bots-hauler.png",
+        }),
+      ],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [
+        { domain: "bots", id: "bot-new", action: "overlay" },
+        { domain: "bots", id: "bot-existing", action: "overlay" },
+      ],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.bot.create).toHaveBeenCalledWith({
+      data: {
+        ...added,
+        protectedFromOfficialImport: true,
+      },
+    });
+    const { id: _updatedId, ...updatedFields } = updated;
+    expect(prisma.bot.update).toHaveBeenCalledWith({
+      where: { id: "bot-existing" },
+      data: {
+        ...updatedFields,
+        protectedFromOfficialImport: true,
+      },
+    });
+    expect(touchStaffCatalogueDrift).toHaveBeenCalledWith(["bots"]);
+  });
+
+  it("POST leaves Custom bots and holdings in place while overlaying Official bots", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        exportedAt: "2026-01-01T00:00:00.000Z",
+        scope: "all",
+        domains: [
+          "items",
+          "vehicles",
+          "enemies",
+          "bots",
+          "paths",
+          "features",
+          "maps",
+          "reference",
+          "currencies",
+        ],
+        data: {
+          ...emptySeedData(),
+          bots: [officialBotRow({ id: "bot-new" })],
+          customBots: [
+            { id: "custom-bot-1", gameId: "g-1", name: "Playtest Drone" },
+          ],
+          uniqueBots: [{ id: "unique-bot-1", name: "One-off Drone" }],
+          holdings: [
+            {
+              id: "holding-1",
+              characterId: "char-1",
+              botId: "custom-bot-1",
+              currentHp: 6,
+            },
+          ],
+        },
+      }),
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "bots", id: "bot-new", action: "overlay" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.bot.create).toHaveBeenCalledTimes(1);
+    expect(prisma.customBot.create).not.toHaveBeenCalled();
+    expect(prisma.customBot.update).not.toHaveBeenCalled();
+    expect(prisma.customBot.delete).not.toHaveBeenCalled();
+    expect(prisma.uniqueBot.create).not.toHaveBeenCalled();
+    expect(prisma.uniqueBot.update).not.toHaveBeenCalled();
+    expect(prisma.uniqueBot.delete).not.toHaveBeenCalled();
+    expect(prisma.botCharacter.create).not.toHaveBeenCalled();
+    expect(prisma.botCharacter.update).not.toHaveBeenCalled();
+    expect(prisma.botCharacter.delete).not.toHaveBeenCalled();
+  });
+
+  it("POST skips an Official bot name collision with a different id and does not merge it", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        bots: [
+          officialBotRow({
+            id: "src-scout",
+            name: "scout   drone",
+            attackRange: 5,
+          }),
+          officialBotRow({ id: "src-hauler", name: "Hauler" }),
+        ],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      bots: [officialBotRow({ id: "dest-scout", name: "Scout Drone" })],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(POST, applyBody());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "bots", id: "src-hauler", action: "overlay" }],
+      skipped: [{ domain: "bots", id: "src-scout", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.bot.create).toHaveBeenCalledTimes(1);
+    expect(prisma.bot.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ id: "src-hauler", name: "Hauler" }),
+    });
+    expect(prisma.bot.update).not.toHaveBeenCalled();
+    expect(prisma.bot.delete).not.toHaveBeenCalled();
+  });
+
+  it("POST leaves a dest-only Official bot unless dest-only delete is on", async () => {
+    fetchMock.mockResolvedValue(
+      snapshotResponse({
+        bots: [officialBotRow({ id: "bot-new", name: "Scout Drone" })],
+      })
+    );
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      bots: [officialBotRow({ id: "bot-old", name: "Retired Drone" })],
+    });
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: false,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [{ domain: "bots", id: "bot-new", action: "overlay" }],
+      skipped: [],
+      failed: [],
+    });
+    expect(prisma.bot.delete).not.toHaveBeenCalled();
+  });
+
+  it("POST does not delete a dest-only Official bot that a character holds", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      bots: [officialBotRow({ id: "held-bot", name: "Held Drone" })],
+    });
+    vi.mocked(prisma.botCharacter.count).mockImplementation((async (args: {
+      where?: { botId?: string };
+    }) => (args?.where?.botId === "held-bot" ? 1 : 0)) as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [{ domain: "bots", id: "held-bot", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.bot.delete).not.toHaveBeenCalled();
+    expect(prisma.botCharacter.delete).not.toHaveBeenCalled();
+    expect(touchStaffCatalogueDrift).not.toHaveBeenCalled();
+  });
+
+  it("POST does not delete a dest-only Official bot that a Unique bot still uses", async () => {
+    fetchMock.mockResolvedValue(snapshotResponse({}));
+    buildCatalogueSeedDataExportMock.mockResolvedValue({
+      ...emptySeedData(),
+      bots: [officialBotRow({ id: "templated-bot", name: "Template Drone" })],
+    });
+    vi.mocked(prisma.uniqueBot.count).mockImplementation((async (args: {
+      where?: { botId?: string };
+    }) => (args?.where?.botId === "templated-bot" ? 1 : 0)) as never);
+    const { POST } = await import("@/app/api/staff/catalogue-sync/route");
+    const res = await invokeRoute(
+      POST,
+      applyBody({
+        source: "development",
+        dest: "production",
+        deleteDestOnly: true,
+      })
+    );
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      applied: [],
+      skipped: [{ domain: "bots", id: "templated-bot", reason: "blocked" }],
+      failed: [],
+    });
+    expect(prisma.bot.delete).not.toHaveBeenCalled();
+    expect(prisma.uniqueBot.delete).not.toHaveBeenCalled();
   });
 });

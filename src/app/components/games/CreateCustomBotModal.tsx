@@ -3,6 +3,7 @@
 import { BotActionListEditor } from "@/app/components/character/BotActionListEditor";
 import { DarkBotCombatFields } from "@/app/components/games/DarkBotCombatFields";
 import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
+import { PromoteCustomTemplateSection } from "@/app/components/games/PromoteCustomTemplateSection";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
 import { Checkbox } from "@/app/components/shared/Checkbox";
@@ -25,6 +26,7 @@ import {
   type CustomBotResponse,
 } from "@/app/lib/types/bot";
 import type { BotAction } from "@/app/lib/types/botAction";
+import type { CataloguePromotionSuccess } from "@/lib/api/cataloguePromotions";
 import {
   createGameCustomBot,
   getGameCustomBot,
@@ -40,6 +42,7 @@ type CreateCustomBotModalProps = {
   editCustomBotId?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
+  onPromoted?: (result: CataloguePromotionSuccess) => void;
 };
 
 function optionalNumber(value: string): number | null {
@@ -89,6 +92,7 @@ function CreateCustomBotModalBody({
   editCustomBotId = null,
   onClose,
   onSuccess,
+  onPromoted,
 }: CreateCustomBotModalProps) {
   const isEdit = Boolean(editCustomBotId);
   const [name, setName] = useState("");
@@ -403,6 +407,16 @@ function CreateCustomBotModalBody({
         tone="inverse"
         label="Allow game members to mint a unique bot from this bot"
       />
+      {isEdit && editCustomBotId ? (
+        <PromoteCustomTemplateSection
+          key={editCustomBotId}
+          gameId={gameId}
+          customId={editCustomBotId}
+          catalogueDomain="bots"
+          disabled={busy}
+          onPromoted={onPromoted}
+        />
+      ) : null}
     </GameFormModal>
   );
 }

@@ -4,15 +4,7 @@ import {
   userIsInGame,
 } from "@/app/lib/prisma/game";
 import { prepareBotInitiativeRoll } from "@/app/lib/botInitiative";
-import {
-  botHoldingSource,
-  missingBotTemplateMessage,
-  presentBotHolding,
-} from "@/app/lib/botHoldingView";
-import {
-  getBotCharacterById,
-  resolveHoldingTemplate,
-} from "@/app/lib/prisma/botCharacter";
+import { loadPresentedBotHolding } from "@/app/lib/botHoldingLoad";
 import {
   characterIsInGame,
   userHasPlayControlInGame,
@@ -99,18 +91,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
       const surname = character?.generalInformation?.surname ?? "";
       resolvedCombatantName = `${name}${surname ? ` ${surname}` : ""}`.trim();
     } else if (combatantType === "BOT") {
-      const row = await getBotCharacterById(combatantId);
-      if (!row) {
-        return errorResponse("Bot holding not found", 404);
+      const loaded = await loadPresentedBotHolding({ id: combatantId });
+      if (!loaded.ok) {
+        return errorResponse(loaded.message, 404);
       }
-      const template = await resolveHoldingTemplate(row);
-      if (!template) {
-        return errorResponse(
-          missingBotTemplateMessage(botHoldingSource(row)),
-          404
-        );
-      }
-      const holding = presentBotHolding(row, template);
+      const holding = loaded.holding;
       const inThisGame = await characterIsInGame(gameId, holding.characterId);
       if (!inThisGame) {
         return errorResponse("Character is not in this game", 403);

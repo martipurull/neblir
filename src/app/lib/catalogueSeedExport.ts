@@ -1,3 +1,4 @@
+import { getBots } from "@/app/lib/prisma/bot";
 import { getCurrencies } from "@/app/lib/prisma/currency";
 import { getAllFeatures } from "@/app/lib/prisma/feature";
 import { getEnemies } from "@/app/lib/prisma/enemy";
@@ -40,6 +41,10 @@ export async function buildCatalogueSeedDataExport(
     data.enemies = rows.map((row) =>
       scrubCatalogueExportMeta(jsonRoundTrip(row))
     );
+  }
+  if (want.has("bots")) {
+    const rows = await getBots();
+    data.bots = rows.map((row) => scrubCatalogueExportMeta(jsonRoundTrip(row)));
   }
   if (want.has("paths")) {
     const rows = await getPaths();

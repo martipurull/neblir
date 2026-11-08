@@ -18,7 +18,7 @@ export const BOT_COMBAT_VALUES = [
 
 export type BotCombatValue = (typeof BOT_COMBAT_VALUES)[number];
 
-export const BOT_COMBAT_STAT_KEYS = [
+const BOT_COMBAT_STAT_KEYS = [
   ...BOT_COMBAT_VALUES,
   "numberOfReactions",
 ] as const;
@@ -91,15 +91,9 @@ type BotCombatOverrideKey = `${BotCombatStatKey}Override`;
 
 export type BotCombatOverrides = Record<BotCombatOverrideKey, number | null>;
 
-export const BOT_ATTACKS = ["attackMelee", "attackRange"] as const;
-export type BotAttack = (typeof BOT_ATTACKS)[number];
+export type BotAttack = "attackMelee" | "attackRange";
 
-export const BOT_DEFENCES = [
-  "defenceMelee",
-  "defenceRange",
-  "defenceGrid",
-] as const;
-export type BotDefence = (typeof BOT_DEFENCES)[number];
+export type BotDefence = "defenceMelee" | "defenceRange" | "defenceGrid";
 
 const BOT_COMBAT_VALUE_SET = new Set<string>(BOT_COMBAT_VALUES);
 
@@ -187,7 +181,7 @@ export function reactionsRemainingForCap(
 }
 
 /** Pool before extra dice. At least 1. */
-export function botCombatPool(parts: number[]): number {
+function botCombatPool(parts: number[]): number {
   return Math.max(
     1,
     parts.reduce((sum, part) => sum + part, 0)
@@ -200,7 +194,7 @@ type AttributeFigures = {
   gridProtection: { effective: number };
 };
 
-export function botAttackAttribute(
+function botAttackAttribute(
   attack: BotAttack,
   attributes: AttributeFigures
 ): number {
@@ -209,7 +203,7 @@ export function botAttackAttribute(
     : attributes.finesseCapacity.effective;
 }
 
-export function botDefenceAttribute(
+function botDefenceAttribute(
   defence: BotDefence,
   attributes: AttributeFigures
 ): number {
@@ -248,7 +242,7 @@ const UNARMED_DAMAGE = {
   damageText: "1d4, bludgeoning",
 };
 
-export type BotWeaponDamage = {
+type BotWeaponDamage = {
   numberOfDice: number;
   diceType: number;
   damageText: string;
@@ -332,7 +326,7 @@ export function botAttackChoices(
     const damage = item.damage ? formatWeaponDamage(item.damage) : null;
     weapons.push({
       itemCharacterId: entry.itemCharacterId,
-      name: entry.customName?.trim() || item.name?.trim() || "Weapon",
+      name: entry.customName?.trim() ?? item.name?.trim() ?? "Weapon",
       bonus,
       damage: damage ?? { numberOfDice: 0, diceType: 4, damageText: "" },
     });
