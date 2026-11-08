@@ -457,7 +457,7 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
     });
   });
 
-  it("PATCH refuses an Upgrade outside -5 through the track max potential", async () => {
+  it("PATCH refuses an Upgrade outside -5 through that track's upgrade potential", async () => {
     getBotMock.mockResolvedValue({
       ...loader,
       processingPower: 2,
@@ -476,7 +476,8 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
     );
     expect(tooHigh.status).toBe(400);
     await expect(tooHigh.json()).resolves.toMatchObject({
-      message: "Upgrade must stay from -5 through that track's max potential.",
+      message:
+        "Upgrade must stay from -5 through that track's upgrade potential.",
     });
 
     const tooLow = await invokeRoute(
@@ -488,6 +489,10 @@ describe("/api/characters/[id]/bots/[botCharacterId] handlers", () => {
       params()
     );
     expect(tooLow.status).toBe(400);
+    await expect(tooLow.json()).resolves.toMatchObject({
+      message:
+        "Upgrade must stay from -5 through that track's upgrade potential.",
+    });
     expect(updateBotCharacterMock).not.toHaveBeenCalled();
   });
 

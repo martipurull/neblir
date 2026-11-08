@@ -236,13 +236,18 @@ describe("/api/bots route handlers", () => {
     expect(createBotMock).not.toHaveBeenCalled();
   });
 
-  it("POST returns 400 when a max potential is above +5", async () => {
+  it("POST returns 400 when Grid Protection upgrade potential is above +5", async () => {
     const { POST } = await import("@/app/api/bots/route");
     const response = await invokeRoute(
       POST,
       makeAuthedRequest({ ...officialBot, gridProtectionMaxPotential: 6 })
     );
     expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      details: expect.stringContaining(
+        "Grid Protection upgrade potential must stay from 0 through +5"
+      ),
+    });
     expect(createBotMock).not.toHaveBeenCalled();
   });
 

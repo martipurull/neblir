@@ -32,11 +32,11 @@ const maxPotentialSchema = (label: string) =>
     .int()
     .min(
       BOT_MAX_POTENTIAL_MIN,
-      `${label} max potential must stay from 0 through +5`
+      `${label} upgrade potential must stay from 0 through +5`
     )
     .max(
       BOT_MAX_POTENTIAL_MAX,
-      `${label} max potential must stay from 0 through +5`
+      `${label} upgrade potential must stay from 0 through +5`
     );
 
 const batteryCapacitySchema = z

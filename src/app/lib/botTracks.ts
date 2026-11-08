@@ -1,6 +1,6 @@
 /**
  * Bot attribute tracks and battery.
- * Bases and max potentials live on the template. Upgrades live on the holding.
+ * Bases and upgrade potentials live on the template. Upgrades live on the holding.
  */
 
 export const BOT_ATTRIBUTE_MIN = -5;
@@ -55,7 +55,7 @@ export const BOT_TEMPLATE_TRACK_FIELDS: ReadonlyArray<{
   },
   {
     key: "processingPowerMaxPotential",
-    label: "Processing Power max potential",
+    label: "Processing Power upgrade potential",
     min: BOT_MAX_POTENTIAL_MIN,
     max: BOT_MAX_POTENTIAL_MAX,
   },
@@ -67,7 +67,7 @@ export const BOT_TEMPLATE_TRACK_FIELDS: ReadonlyArray<{
   },
   {
     key: "physicalPowerMaxPotential",
-    label: "Physical Power max potential",
+    label: "Physical Power upgrade potential",
     min: BOT_MAX_POTENTIAL_MIN,
     max: BOT_MAX_POTENTIAL_MAX,
   },
@@ -79,7 +79,7 @@ export const BOT_TEMPLATE_TRACK_FIELDS: ReadonlyArray<{
   },
   {
     key: "finesseCapacityMaxPotential",
-    label: "Finesse Capacity max potential",
+    label: "Finesse Capacity upgrade potential",
     min: BOT_MAX_POTENTIAL_MIN,
     max: BOT_MAX_POTENTIAL_MAX,
   },
@@ -91,7 +91,7 @@ export const BOT_TEMPLATE_TRACK_FIELDS: ReadonlyArray<{
   },
   {
     key: "gridProtectionMaxPotential",
-    label: "Grid Protection max potential",
+    label: "Grid Protection upgrade potential",
     min: BOT_MAX_POTENTIAL_MIN,
     max: BOT_MAX_POTENTIAL_MAX,
   },
@@ -103,7 +103,7 @@ export const BOT_TEMPLATE_TRACK_FIELDS: ReadonlyArray<{
   },
   {
     key: "batteryMaxPotential",
-    label: "Battery max potential",
+    label: "Battery upgrade potential",
     min: BOT_MAX_POTENTIAL_MIN,
     max: BOT_MAX_POTENTIAL_MAX,
   },
@@ -150,7 +150,7 @@ export type BotHoldingTrackState = {
 };
 
 export const BOT_UPGRADE_OUT_OF_RANGE_MESSAGE =
-  "Upgrade must stay from -5 through that track's max potential.";
+  "Upgrade must stay from -5 through that track's upgrade potential.";
 
 export const BOT_BATTERY_USED_OUT_OF_RANGE_MESSAGE =
   "Battery used must stay from 0 through the effective capacity.";
@@ -340,7 +340,7 @@ export function trackCeilingOverridesChanged(
 }
 
 /**
- * Fields to persist so every Upgrade stays within −5 through its max potential,
+ * Fields to persist so every Upgrade stays within −5 through its upgrade potential,
  * and battery used stays within the effective capacity.
  */
 export function holdingTrackClamp(
