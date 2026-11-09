@@ -5,17 +5,23 @@ import { ErrorState } from "@/app/components/shared/ErrorState";
 import { InfoCard } from "@/app/components/shared/InfoCard";
 import { LoadingState } from "@/app/components/shared/LoadingState";
 import { NumberInput } from "@/app/components/shared/NumberInput";
+import { RangeSlider } from "@/app/components/shared/RangeSlider";
 import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import {
-  BOT_COMBAT_FIELDS,
+  BOT_COMBAT_LABELS,
+  BOT_COMBAT_VALUE_MAX,
+  BOT_COMBAT_VALUE_MIN,
+  BOT_COMBAT_VALUES,
   DEFAULT_BOT_COMBAT_STATS,
   readBotCombatStats,
   type BotCombatStats,
+  type BotCombatValue,
 } from "@/app/lib/botCombat";
 import {
   BOT_TEMPLATE_TRACK_FIELDS,
   DEFAULT_BOT_TRACK_STATS,
   readBotTrackStats,
+  type BotTrackStatKey,
   type BotTrackStats,
 } from "@/app/lib/botTracks";
 import {
@@ -27,7 +33,13 @@ import {
 import { getCatalogueBot } from "@/lib/api/bots";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import useSWR from "swr";
 import {
   parseCreatedCatalogueId,
@@ -62,6 +74,43 @@ const accessOptions = [
   { value: "PLAYER", label: "Player" },
   { value: "GAME_MASTER", label: "Game master" },
 ];
+
+const BOT_REACTION_CAP_LABEL =
+  "Bot reaction cap (no upper limit, usual cap is 2)";
+
+function OfficialBotRangeField({
+  name,
+  label,
+  min,
+  max,
+}: {
+  name: BotTrackStatKey | BotCombatValue;
+  label: string;
+  min: number;
+  max: number;
+}) {
+  const { control } = useFormContext<BotFormValues>();
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <RangeSlider
+          id={`official-bot-${name}`}
+          label={label}
+          value={typeof field.value === "number" ? field.value : min}
+          allowedMin={min}
+          allowedMax={max}
+          visualMin={min}
+          visualMax={max}
+          step={1}
+          showTicks
+          onChange={field.onChange}
+        />
+      )}
+    />
+  );
+}
 
 function createDefaults(): BotFormValues {
   return {
@@ -205,6 +254,12 @@ function SuperAdminBotFormFields({
       gridProtectionMaxPotential: values.gridProtectionMaxPotential,
       batteryCapacity: values.batteryCapacity,
       batteryMaxPotential: values.batteryMaxPotential,
+      attackMelee: values.attackMelee,
+      attackRange: values.attackRange,
+      defenceMelee: values.defenceMelee,
+      defenceRange: values.defenceRange,
+      defenceGrid: values.defenceGrid,
+      numberOfReactions: values.numberOfReactions,
       actions,
       additionalActions,
     };
@@ -312,20 +367,20 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="maxHp"
-                label="Max HP"
+                label="Max HP (1 or more)"
                 min={1}
                 className="mb-0"
               />
               <NumberInput
                 name="speed"
-                label="Speed (m)"
+                label="Speed (m, 0 or more)"
                 min={0}
                 parseAs="int"
                 className="mb-0"
               />
               <NumberInput
                 name="maxCarryWeight"
-                label="Max carry (kg)"
+                label="Max carry (kg, 0 or more)"
                 min={0}
                 step="any"
                 parseAs="float"
@@ -333,7 +388,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="heightMetres"
-                label="Height (m, descriptive)"
+                label="Height (m, optional, 0 or more)"
                 min={0}
                 step="any"
                 parseAs="float"
@@ -342,7 +397,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="weight"
-                label="Weight (kg, descriptive)"
+                label="Weight (kg, optional, 0 or more)"
                 min={0}
                 step="any"
                 parseAs="float"
@@ -366,29 +421,35 @@ function SuperAdminBotFormFields({
                 allowEmpty
                 className="mb-0"
               />
+            </div>
+
+            <div className="mb-6 flex flex-col gap-3">
               {BOT_TEMPLATE_TRACK_FIELDS.map((field) => (
-                <NumberInput
+                <OfficialBotRangeField
                   key={field.key}
                   name={field.key}
                   label={field.label}
                   min={field.min}
                   max={field.max}
-                  parseAs="int"
-                  className="mb-0"
                 />
               ))}
-              {BOT_COMBAT_FIELDS.map((field) => (
-                <NumberInput
-                  key={field.key}
-                  name={field.key}
-                  label={field.label}
-                  min={field.min}
-                  max={field.max}
-                  parseAs="int"
-                  className="mb-0"
+              {BOT_COMBAT_VALUES.map((key) => (
+                <OfficialBotRangeField
+                  key={key}
+                  name={key}
+                  label={BOT_COMBAT_LABELS[key]}
+                  min={BOT_COMBAT_VALUE_MIN}
+                  max={BOT_COMBAT_VALUE_MAX}
                 />
               ))}
             </div>
+
+            <NumberInput
+              name="numberOfReactions"
+              label={BOT_REACTION_CAP_LABEL}
+              min={0}
+              parseAs="int"
+            />
 
             <SuperAdminCatalogueImageBlock
               key={form.watch("imageKey") || "bot-image"}
