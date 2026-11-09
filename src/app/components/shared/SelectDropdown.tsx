@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { RequiredMark } from "@/app/components/shared/FieldLabel";
 import { TextField } from "@/app/components/shared/TextField";
 import React, {
   useCallback,
@@ -11,8 +12,8 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type SelectDropdownOption = {
-  value: string;
+export type SelectDropdownOption<T extends string = string> = {
+  value: T;
   label: string;
   /** When true, option is visible but not selectable. */
   disabled?: boolean;
@@ -20,27 +21,36 @@ export type SelectDropdownOption = {
   disabledHint?: string;
 };
 
-export type SelectDropdownProps = {
+export type SelectDropdownSurface = "page" | "modal";
+
+export type SelectDropdownProps<T extends string = string> = {
   id: string;
   label: string;
   /** When false, label is visually hidden but kept for accessibility (paired with an external heading). */
   showLabel?: boolean;
+  /**
+   * `page` is the pale field and the default. `modal` is the menu on a modal
+   * shell. Both follow the document Theme. Callers pass a surface, not a Theme.
+   */
+  surface?: SelectDropdownSurface;
+  /** Modal surface only. Shows the red required asterisk on the menu label. */
+  required?: boolean;
   placeholder: string;
-  value: string;
-  options: SelectDropdownOption[];
+  value: T;
+  options: SelectDropdownOption<T>[];
   disabled?: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: T) => void;
   /**
    * When set (including `""`), the option with this `value` is listed first;
    * remaining options are sorted by label.
    */
-  pinValueFirst?: string;
+  pinValueFirst?: T;
   /**
    * Extra control per option (e.g. info button). Receives `closeMenu` so the parent can dismiss the list first.
    * Clicks on the suffix do not select the option.
    */
   renderOptionSuffix?: (
-    option: SelectDropdownOption,
+    option: SelectDropdownOption<T>,
     closeMenu: () => void
   ) => ReactNode;
   /** Max height of the options list (scrolls inside). Taller values help in modals with long option sets. */
@@ -50,14 +60,74 @@ export type SelectDropdownProps = {
    * and keeps `pinValueFirst` at the top when that value is present.
    */
   sortOptions?: boolean;
-  /** Fires when the paleBlue list opens or closes. */
+  /** Fires when the list opens or closes. */
   onOpenChange?: (open: boolean) => void;
 };
 
-export function SelectDropdown({
+/** Room the open list wants before it should flip above the field. */
+const MENU_PREFERRED_HEIGHT = 240;
+
+function clippingBoundary(anchor: HTMLElement): DOMRect {
+  let parent = anchor.parentElement;
+  while (parent) {
+    const { overflowY } = getComputedStyle(parent);
+    if (
+      overflowY === "auto" ||
+      overflowY === "hidden" ||
+      overflowY === "scroll"
+    ) {
+      return parent.getBoundingClientRect();
+    }
+    parent = parent.parentElement;
+  }
+  return new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+function menuOpensUp(anchor: HTMLElement): boolean {
+  const rect = anchor.getBoundingClientRect();
+  const boundary = clippingBoundary(anchor);
+  const spaceBelow = boundary.bottom - rect.bottom;
+  const spaceAbove = rect.top - boundary.top;
+  if (spaceBelow >= MENU_PREFERRED_HEIGHT) return false;
+  return spaceAbove > spaceBelow;
+}
+
+function selectOptionClassName(
+  surface: SelectDropdownSurface,
+  state: { disabled: boolean; selected: boolean; highlighted: boolean }
+): string {
+  const layout =
+    "flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors";
+  if (surface === "page") {
+    if (state.disabled) {
+      return `${layout} bg-paleBlue cursor-not-allowed text-black/40`;
+    }
+    const selected = state.selected ? "bg-black/10 font-medium" : "";
+    const highlighted = state.highlighted
+      ? `ring-2 ring-inset ring-customPrimaryHover ${
+          state.selected ? "bg-black/10" : "bg-paleBlueHover"
+        }`
+      : "";
+    return `${layout} bg-paleBlue cursor-pointer hover:bg-paleBlueHover text-black ${selected} ${highlighted}`;
+  }
+  if (state.disabled) {
+    return `${layout} cursor-not-allowed bg-modalBackground-200 text-white/40`;
+  }
+  const selected = state.selected
+    ? "bg-paleBlue/15 font-medium"
+    : "bg-modalBackground-200";
+  const highlighted = state.highlighted
+    ? "ring-2 ring-inset ring-white/70"
+    : "";
+  return `${layout} cursor-pointer text-white hover:bg-paleBlue/20 ${selected} ${highlighted}`;
+}
+
+export function SelectDropdown<T extends string>({
   id,
   label,
   showLabel = true,
+  surface = "page",
+  required = false,
   placeholder,
   value,
   options,
@@ -68,8 +138,9 @@ export function SelectDropdown({
   menuMaxHeightClass = "max-h-44",
   sortOptions = true,
   onOpenChange,
-}: SelectDropdownProps) {
+}: SelectDropdownProps<T>) {
   const [open, setOpen] = useState(false);
+  const [opensUp, setOpensUp] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   /** Index into `filteredOptions`; -1 = no row highlighted (focus stays in filter input). */
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -155,6 +226,12 @@ export function SelectDropdown({
     [onOpenChange]
   );
 
+  const openMenu = () => {
+    const anchor = containerRef.current;
+    if (anchor) setOpensUp(menuOpensUp(anchor));
+    updateOpen(true);
+  };
+
   useEffect(() => {
     if (!open || highlightedIndex < 0) return;
     const el = document.getElementById(`${id}-option-${highlightedIndex}`);
@@ -175,7 +252,7 @@ export function SelectDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, updateOpen]);
 
-  const handleSelect = (opt: SelectDropdownOption) => {
+  const handleSelect = (opt: SelectDropdownOption<T>) => {
     updateOpen(false);
     onChange(opt.value);
   };
@@ -215,28 +292,37 @@ export function SelectDropdown({
   };
 
   const closeMenu = () => updateOpen(false);
+  const modalSurface = surface === "modal";
+  const labelClassName = showLabel
+    ? modalSurface
+      ? "block text-sm font-medium text-white/90"
+      : "mb-1 block text-sm font-bold text-black"
+    : "sr-only";
+  const triggerClassName = [
+    modalSurface || !showLabel ? "" : "mt-1",
+    !selectedOption ? (modalSurface ? "text-white/60" : "text-black/60") : "",
+  ]
+    .filter((part) => part.length > 0)
+    .join(" ");
 
   return (
     <div ref={containerRef} className="relative">
-      <label
-        htmlFor={id}
-        className={
-          showLabel ? "mb-1 block text-sm font-bold text-black" : "sr-only"
-        }
-      >
+      <label htmlFor={id} className={labelClassName}>
         {label}
+        {required && modalSurface ? <RequiredMark /> : null}
       </label>
       <Button
         id={id}
-        variant="selectTriggerLight"
+        variant={modalSurface ? "selectTriggerModal" : "selectTriggerLight"}
         fullWidth
         type="button"
         disabled={disabled}
         onClick={() => {
           if (disabled) return;
-          updateOpen(!open);
+          if (open) updateOpen(false);
+          else openMenu();
         }}
-        className={`${showLabel ? "mt-1" : ""} ${!selectedOption ? "text-black/60" : ""}`}
+        className={triggerClassName}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={`${id}-label`}
@@ -245,18 +331,37 @@ export function SelectDropdown({
           {displayLabel}
         </span>
         <span
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black/60"
+          className={
+            modalSurface
+              ? "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/70"
+              : "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black/60"
+          }
           aria-hidden
         >
           {open ? "▲" : "▼"}
         </span>
       </Button>
       {open && (
-        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg">
-          <div className="sticky top-0 border-b border-black/20 bg-paleBlue p-1.5">
+        <div
+          className={[
+            "absolute z-10 w-full overflow-hidden shadow-lg",
+            opensUp ? "bottom-full mb-1" : "mt-1",
+            modalSurface
+              ? "rounded border-2 border-white/50 bg-modalBackground-200"
+              : "rounded-md border-2 border-black/30 bg-paleBlue",
+          ].join(" ")}
+        >
+          <div
+            className={
+              modalSurface
+                ? "sticky top-0 border-b border-white/30 bg-modalBackground-200 p-1.5"
+                : "sticky top-0 border-b border-black/20 bg-paleBlue p-1.5"
+            }
+          >
             <TextField
               ref={filterInputRef}
               type="text"
+              variant={modalSurface ? "dark" : "light"}
               density="compact"
               value={filterQuery}
               onChange={handleFilterInputChange}
@@ -280,7 +385,11 @@ export function SelectDropdown({
             {filteredOptions.length === 0 ? (
               <li
                 role="option"
-                className="px-3 py-2 text-sm text-black/60"
+                className={
+                  modalSurface
+                    ? "px-3 py-2 text-sm text-white/60"
+                    : "px-3 py-2 text-sm text-black/60"
+                }
                 aria-selected={false}
               >
                 {options.length === 0 ? "No options" : "No matches"}
@@ -322,25 +431,22 @@ export function SelectDropdown({
                       }
                     }}
                     tabIndex={-1}
-                    className={`flex min-h-[2.5rem] items-stretch gap-1 text-left text-sm transition-colors bg-paleBlue ${
-                      isDisabled
-                        ? "cursor-not-allowed text-black/40"
-                        : `cursor-pointer hover:bg-paleBlueHover text-black ${
-                            value === opt.value ? "bg-black/10 font-medium" : ""
-                          } ${
-                            isHighlighted
-                              ? "ring-2 ring-inset ring-customPrimaryHover " +
-                                (value === opt.value
-                                  ? "bg-black/10"
-                                  : "bg-paleBlueHover")
-                              : ""
-                          }`
-                    }`}
+                    className={selectOptionClassName(surface, {
+                      disabled: isDisabled,
+                      selected: value === opt.value,
+                      highlighted: isHighlighted,
+                    })}
                   >
                     <span className="min-w-0 flex-1 px-3 py-2">
                       {opt.label}
                       {isDisabled ? (
-                        <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40">
+                        <span
+                          className={
+                            modalSurface
+                              ? "ml-2 text-[10px] font-normal uppercase tracking-wide text-white/40"
+                              : "ml-2 text-[10px] font-normal uppercase tracking-wide text-black/40"
+                          }
+                        >
                           {opt.disabledHint ?? "(already rolled)"}
                         </span>
                       ) : null}

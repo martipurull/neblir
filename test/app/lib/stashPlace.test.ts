@@ -239,6 +239,20 @@ describe("resolveStashRename", () => {
     });
   });
 
+  it("rejects a bot placement location", () => {
+    expect(
+      resolveStashRename(
+        [renameHolding("locker", "Locker", "game-1")],
+        "game-1",
+        { from: "Locker", placeName: "bot-cargo:hold-1" }
+      )
+    ).toEqual({
+      ok: false,
+      reason: "invalid",
+      message: "Place items on a bot from the bot holding.",
+    });
+  });
+
   it("does not find a from-spelling that is not a stash on that game", () => {
     expect(
       resolveStashRename(

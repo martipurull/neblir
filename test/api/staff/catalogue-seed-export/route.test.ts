@@ -176,6 +176,7 @@ describe("/api/staff/catalogue-seed-export route", () => {
     const files = unzipSync(bytes);
     expect(Object.keys(files).sort()).toEqual(
       [
+        "Bot_Upload.json",
         "Currency_Upload.json",
         "Enemy_Upload.json",
         "Feature_Upload.json",

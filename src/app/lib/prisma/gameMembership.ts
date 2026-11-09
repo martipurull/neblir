@@ -3,18 +3,35 @@ import { prisma } from "./client";
 import { updateGame } from "./game";
 import { userIsGameMaster } from "./gameCharacter";
 
-function filterInitiativeForCharacterIds(
+function filterInitiativeForUnlink(
   order: InitiativeEntry[],
-  characterIds: Set<string>
+  characterIds: Set<string>,
+  holdingIds: Set<string>
 ): InitiativeEntry[] {
   if (characterIds.size === 0) return order;
-  return order.filter(
-    (entry) =>
-      !(
-        entry.combatantType === "CHARACTER" &&
-        characterIds.has(entry.combatantId)
-      )
-  );
+  return order.filter((entry) => {
+    if (
+      entry.combatantType === "CHARACTER" &&
+      characterIds.has(entry.combatantId)
+    ) {
+      return false;
+    }
+    if (entry.combatantType === "BOT" && holdingIds.has(entry.combatantId)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+async function holdingIdsForCharacters(
+  characterIds: Set<string>
+): Promise<Set<string>> {
+  if (characterIds.size === 0) return new Set();
+  const rows = await prisma.botCharacter.findMany({
+    where: { characterId: { in: [...characterIds] } },
+    select: { id: true },
+  });
+  return new Set(rows.map((row) => row.id));
 }
 
 export type UnlinkCharacterFromGameResult = {
@@ -44,9 +61,11 @@ export async function unlinkCharacterFromGame(
 
   if (deleteResult.count > 0) {
     const characterIds = new Set([characterId]);
-    const nextInitiative = filterInitiativeForCharacterIds(
+    const holdingIds = await holdingIdsForCharacters(characterIds);
+    const nextInitiative = filterInitiativeForUnlink(
       game.initiativeOrder ?? [],
-      characterIds
+      characterIds,
+      holdingIds
     );
     if (nextInitiative.length !== (game.initiativeOrder ?? []).length) {
       await updateGame(gameId, { initiativeOrder: nextInitiative });
@@ -140,9 +159,11 @@ export async function removePlayerFromGame(
         ]),
   ]);
 
-  const nextInitiative = filterInitiativeForCharacterIds(
+  const holdingIds = await holdingIdsForCharacters(characterIdSet);
+  const nextInitiative = filterInitiativeForUnlink(
     game.initiativeOrder ?? [],
-    characterIdSet
+    characterIdSet,
+    holdingIds
   );
   if (nextInitiative.length !== (game.initiativeOrder ?? []).length) {
     await updateGame(gameId, { initiativeOrder: nextInitiative });

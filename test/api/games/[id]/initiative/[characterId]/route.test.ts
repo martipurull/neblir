@@ -69,6 +69,49 @@ describe("/api/games/[id]/initiative/[characterId]", () => {
       expect(updateGameMock).not.toHaveBeenCalled();
     });
 
+    it("removes a bot holding entry when the game master asks", async () => {
+      getGameWithDetailsMock
+        .mockResolvedValueOnce({
+          id: "g-1",
+          gameMaster: "gm-1",
+          initiativeOrder: [
+            {
+              combatantType: "BOT",
+              combatantId: "hold-1",
+              combatantName: "Mule",
+              rolledValue: 8,
+              initiativeModifier: -1,
+              submittedAt: new Date(),
+            },
+            charEntry("c-1"),
+          ],
+          characters: [],
+        })
+        .mockResolvedValueOnce({
+          id: "g-1",
+          gameMaster: "gm-1",
+          initiativeOrder: [charEntry("c-1")],
+          characters: [],
+        });
+      updateGameMock.mockResolvedValue(undefined);
+      const { DELETE } =
+        await import("@/app/api/games/[id]/initiative/[characterId]/route");
+      const response = await invokeRoute(
+        DELETE,
+        makeAuthedRequest(undefined, "gm-1"),
+        makeParams({ id: "g-1", characterId: "BOT:hold-1" })
+      );
+      expect(response.status).toBe(200);
+      expect(updateGameMock).toHaveBeenCalledWith("g-1", {
+        initiativeOrder: [
+          expect.objectContaining({
+            combatantType: "CHARACTER",
+            combatantId: "c-1",
+          }),
+        ],
+      });
+    });
+
     it("removes one entry when game master", async () => {
       getGameWithDetailsMock
         .mockResolvedValueOnce({

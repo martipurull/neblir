@@ -24,6 +24,10 @@ const getEnemyInstanceMock = vi.fn();
 const getEnemiesMock = vi.fn();
 const createEnemyMock = vi.fn();
 const deleteCustomEnemyMock = vi.fn();
+const getCustomBotMock = vi.fn();
+const getUniqueBotMock = vi.fn();
+const getBotsMock = vi.fn();
+const createBotMock = vi.fn();
 const touchStaffCatalogueDriftMock = vi.fn();
 const envR2SendMock = vi.fn();
 const catalogueR2SendMock = vi.fn();
@@ -74,6 +78,19 @@ vi.mock("@/app/lib/prisma/enemyInstance", () => ({
 vi.mock("@/app/lib/prisma/enemy", () => ({
   getEnemies: getEnemiesMock,
   createEnemy: createEnemyMock,
+}));
+
+vi.mock("@/app/lib/prisma/customBot", () => ({
+  getCustomBot: getCustomBotMock,
+}));
+
+vi.mock("@/app/lib/prisma/uniqueBot", () => ({
+  getUniqueBot: getUniqueBotMock,
+}));
+
+vi.mock("@/app/lib/prisma/bot", () => ({
+  getBots: getBotsMock,
+  createBot: createBotMock,
 }));
 
 vi.mock("@/app/lib/prisma/staffCatalogueDrift", () => ({
@@ -137,6 +154,9 @@ describe("POST /api/games/[id]/catalogue-promotions", () => {
     getCustomEnemyMock.mockResolvedValue(null);
     getEnemyInstanceMock.mockResolvedValue(null);
     getEnemiesMock.mockResolvedValue([]);
+    getCustomBotMock.mockResolvedValue(null);
+    getUniqueBotMock.mockResolvedValue(null);
+    getBotsMock.mockResolvedValue([]);
     touchStaffCatalogueDriftMock.mockResolvedValue(undefined);
     envR2SendMock.mockReset();
     catalogueR2SendMock.mockReset();
@@ -689,5 +709,190 @@ describe("POST /api/games/[id]/catalogue-promotions", () => {
     );
     expect(deleteCustomEnemyMock).not.toHaveBeenCalled();
     expect(touchStaffCatalogueDriftMock).toHaveBeenCalledWith(["enemies"]);
+  });
+
+  function completeCustomBot() {
+    return {
+      id: "custom-bot-1",
+      gameId: "g-1",
+      name: "Scout Drone",
+      description: "A small flyer.",
+      confCost: 40,
+      usage: "Recon",
+      notes: "Quiet.",
+      maxHp: 8,
+      membersCanModify: true,
+      maxCargoWeightKg: 2,
+      maxInstalledItems: 1,
+      speed: 12,
+      maxCarryWeight: 5,
+      heightMetres: 0.4,
+      weight: 3,
+      processingPower: 1,
+      processingPowerMaxPotential: 2,
+      physicalPower: 0,
+      physicalPowerMaxPotential: 0,
+      finesseCapacity: 2,
+      finesseCapacityMaxPotential: 1,
+      gridProtection: -1,
+      gridProtectionMaxPotential: 0,
+      batteryCapacity: 4,
+      batteryMaxPotential: 1,
+      attackMelee: 1,
+      attackRange: 3,
+      defenceMelee: 1,
+      defenceRange: 2,
+      defenceGrid: 2,
+      numberOfReactions: 1,
+      actions: [
+        {
+          name: "Scan",
+          description: null,
+          notes: null,
+          numberOfDice: 2,
+          attribute: "processingPower",
+          damage: null,
+        },
+      ],
+      additionalActions: [],
+    };
+  }
+
+  it("returns 400 when the id is a Unique bot", async () => {
+    getUniqueBotMock.mockResolvedValue({ id: "unique-bot-1" });
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "bots",
+          customId: "unique-bot-1",
+          accessType: "PLAYER",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when a Custom bot is missing Official description and conf cost", async () => {
+    getCustomBotMock.mockResolvedValue({
+      ...completeCustomBot(),
+      description: null,
+      confCost: null,
+    });
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "bots",
+          customId: "custom-bot-1",
+          accessType: "PLAYER",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when the Custom bot is not in this game", async () => {
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "bots",
+          customId: "cb-missing",
+          accessType: "PLAYER",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(404);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 409 when the Official bot name is already taken", async () => {
+    getCustomBotMock.mockResolvedValue(completeCustomBot());
+    getBotsMock.mockResolvedValue([
+      { id: "official-bot", name: "scout   drone" },
+    ]);
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "bots",
+          customId: "custom-bot-1",
+          accessType: "PLAYER",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(409);
+    expect(createBotMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 201 for a Custom bot and leaves the Custom template in place", async () => {
+    getCustomBotMock.mockResolvedValue(completeCustomBot());
+    createBotMock.mockResolvedValue({
+      id: "official-bot",
+      name: "Scout Drone",
+    });
+    const { POST } =
+      await import("@/app/api/games/[id]/catalogue-promotions/route");
+    const response = await invokeRoute(
+      POST,
+      makeAuthedRequest(
+        {
+          catalogueDomain: "bots",
+          customId: "custom-bot-1",
+          accessType: "GAME_MASTER",
+        },
+        "gm-1"
+      ),
+      makeParams({ id: "g-1" })
+    );
+    expect(response.status).toBe(201);
+    const json = await response.json();
+    expect(json.catalogueDomain).toBe("bots");
+    expect(json.official.id).toBe("official-bot");
+    expect(json.official.id).not.toBe("custom-bot-1");
+    expect(createBotMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Scout Drone",
+        accessType: "GAME_MASTER",
+        description: "A small flyer.",
+        confCost: 40,
+        usage: "Recon",
+        maxHp: 8,
+        attackRange: 3,
+        numberOfReactions: 1,
+        imageKey: null,
+        actions: [
+          expect.objectContaining({
+            name: "Scan",
+            numberOfDice: 2,
+            attribute: "processingPower",
+          }),
+        ],
+      }),
+      { officialCatalogueWrite: true }
+    );
+    const created = createBotMock.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(created.membersCanModify).toBeUndefined();
+    expect(created.gameId).toBeUndefined();
+    expect(touchStaffCatalogueDriftMock).toHaveBeenCalledWith(["bots"]);
   });
 });

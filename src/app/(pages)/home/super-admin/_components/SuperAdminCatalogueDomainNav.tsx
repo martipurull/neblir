@@ -9,6 +9,7 @@ type SuperAdminCatalogueDomain =
   | "enemies"
   | "reference"
   | "vehicles"
+  | "bots"
   | "maps"
   | "currencies";
 
@@ -19,6 +20,7 @@ const DOMAIN_BASE: Record<SuperAdminCatalogueDomain, string> = {
   enemies: "/home/super-admin/enemies",
   reference: "/home/super-admin/reference",
   vehicles: "/home/super-admin/vehicles",
+  bots: "/home/super-admin/bots",
   maps: "/home/super-admin/maps",
   currencies: "/home/super-admin/currencies",
 };

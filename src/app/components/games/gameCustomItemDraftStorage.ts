@@ -1,3 +1,5 @@
+import { readBotActionList } from "@/app/lib/botActions";
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   buildModalDraftStorageKey,
   clearModalSessionDraft,
@@ -19,6 +21,8 @@ export type GameCustomItemDraft = {
   confCost: string;
   equippable: boolean;
   vehicleMountable: boolean;
+  botInstallable: boolean;
+  botActions: BotAction[];
   equipSlotTypes: string[];
   equipSlotCost: string;
   maxUses: string;
@@ -75,6 +79,8 @@ function normaliseGameCustomItemDraft(
     confCost: draftStrField(parsed.confCost),
     equippable: parsed.equippable === true,
     vehicleMountable: parsed.vehicleMountable === true,
+    botInstallable: parsed.botInstallable === true,
+    botActions: readBotActionList(parsed.botActions),
     equipSlotTypes: draftStringArrayField(parsed.equipSlotTypes),
     equipSlotCost: draftStrField(parsed.equipSlotCost),
     maxUses: draftStrField(parsed.maxUses),
@@ -106,6 +112,8 @@ export function isMeaningfulGameCustomItemDraft(
   if (draft.imageKey.trim()) return true;
   if (draft.equippable) return true;
   if (draft.vehicleMountable) return true;
+  if (draft.botInstallable) return true;
+  if (draft.botActions.length > 0) return true;
   if (draft.isSpeedAltered) return true;
   if (draft.type === "WEAPON") return true;
   if (

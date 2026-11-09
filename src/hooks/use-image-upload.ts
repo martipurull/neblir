@@ -12,13 +12,15 @@ export type ImageUploadKind =
   | "unique_items"
   | "custom_vehicles"
   | "unique_vehicles"
+  | "unique_bots"
   | "games"
   | "characters"
   | "items"
   | "vehicles"
   | "maps"
   | "enemies"
-  | "currencies";
+  | "currencies"
+  | "bots";
 
 export function useImageUpload(kind: ImageUploadKind, initialImageKey = "") {
   const [imageKey, setImageKey] = useState(initialImageKey);

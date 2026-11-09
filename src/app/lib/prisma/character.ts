@@ -4,6 +4,7 @@ import type { SoldierFavouriteWeapon } from "@/app/lib/types/path";
 import { prisma } from "./client";
 import type { Prisma } from "@prisma/client";
 import { presentWalletHoldings } from "@/app/lib/walletHoldings";
+import { hydrateBotCharacters } from "./botCharacter";
 import { hydrateItemCharacters } from "./itemCharacter";
 import {
   getHydratedVehicleCharacter,
@@ -167,6 +168,7 @@ export async function getCharacter(id: string) {
       },
       inventory: true,
       vehicles: true,
+      bots: true,
       games: {
         include: {
           game: { select: { id: true, name: true } },
@@ -181,8 +183,10 @@ export async function getCharacter(id: string) {
 
   const rawInventory = character.inventory ?? [];
   const rawVehicles = character.vehicles ?? [];
+  const rawBots = character.bots ?? [];
   const hydratedInventory = await hydrateItemCharacters(rawInventory);
   let hydratedVehicles = await hydrateVehicleCharacters(rawVehicles);
+  const hydratedBots = await hydrateBotCharacters(rawBots);
 
   const activeVehicleId = character.activeVehicleCharacterId;
   if (
@@ -200,6 +204,7 @@ export async function getCharacter(id: string) {
     wallet: presentWalletHoldings(character.wallet),
     inventory: hydratedInventory ?? [],
     vehicles: hydratedVehicles ?? [],
+    bots: hydratedBots,
     paths: character.paths.map((pc) => ({
       ...pc.path,
       rank: pc.rank,
@@ -351,6 +356,15 @@ export async function deleteCharacter(id: string) {
     } catch (error) {
       throw new CharacterDeletionTransactionError(
         "deleteCharacterWallet",
+        serializeError(error)
+      );
+    }
+
+    try {
+      await tx.botCharacter.deleteMany({ where: { characterId: id } });
+    } catch (error) {
+      throw new CharacterDeletionTransactionError(
+        "deleteCharacterBotHoldings",
         serializeError(error)
       );
     }

@@ -1,6 +1,6 @@
 # Neblir
 
-Tabletop RPG companion for characters, inventory, and in-play health and combat state.
+Tabletop RPG companion for characters, bots, inventory, and in-play health and combat state.
 
 ## Language
 
@@ -15,7 +15,7 @@ A user the character belongs to. Ownership is not play control and is not a play
 _Avoid_: shared owner, temporary owner (when meaning a play grant)
 
 **Play control**:
-Who may operate a character sheet in a game right now. That means in-play actions only: rolls, HP and Status, inventory, equip, wallet, vehicles, and combat resources. It does not include authorship or notes.
+Who may operate a character sheet in a game right now. That means in-play actions only: rolls, HP and Status, inventory, equip, wallet, vehicles, bot holdings, and combat resources. It does not include authorship or character notes.
 _Avoid_: ownership, shared ownership
 
 **Play grant**:
@@ -23,7 +23,7 @@ A GM-issued, GM-revocable permission for one player to have play control of a GM
 _Avoid_: shared ownership, temporary ownership, transfer, played by (as an in-app badge), co-controlled
 
 **Roller**:
-The user who emitted a roll. Discord posts `{roller} as {character}` unless the roll is private (`SECRET ROLL`). Naming the roller on Discord is not an in-app play-grant badge.
+The user who emitted a roll. Discord posts `{roller} as {character}` unless the roll is private (`SECRET ROLL`). A bot roll posts `{roller} as {bot}`, using the bot's display name. Naming the roller on Discord is not an in-app play-grant badge.
 _Avoid_: owner (when meaning who rolled)
 
 **Authorship**:
@@ -35,7 +35,7 @@ The user recorded as the game master for that game. The GM has standing play con
 _Avoid_: owner (when meaning the GM's table role)
 
 **Game master page**:
-The GM's screen for one game, where that GM runs dice, combat, NPCs, and enemies.
+The GM's screen for one game, where that GM runs dice, combat, NPCs, enemies, and bots.
 _Avoid_: GM page
 
 **GM-controlled character**:
@@ -111,15 +111,15 @@ _Avoid_: madness counter (the roll track is separate)
 ### Official
 
 **Official**:
-Published game content, not tied to one game: items, vehicles, enemies, maps, paths, features, currencies, and published reference entries (world info and game mechanics). Super-admin authors them.
+Published game content, not tied to one game: items, vehicles, enemies, bots, maps, paths, features, currencies, and published reference entries (world info and game mechanics). Super-admin authors them.
 _Avoid_: seed data (when meaning the live rows), global (as a stored type)
 
 **Catalogue domain**:
-A named slice of Official content: items, vehicles, enemies, paths, features, maps, currencies, or published reference entries.
+A named slice of Official content: items, vehicles, enemies, bots, paths, features, maps, currencies, or published reference entries.
 _Avoid_: domain (unqualified), seed type
 
 **Promotion**:
-Creating Official content from a Custom item, Custom vehicle, or Custom enemy that was tested in a game.
+Creating Official content from a Custom item, Custom vehicle, Custom enemy, or Custom bot that was tested in a game.
 _Avoid_: upload, convert, publish (when meaning this), Catalogue sync
 
 **Catalogue environment**:
@@ -131,7 +131,7 @@ A one-way copy of Official catalogue rows from a source Catalogue environment to
 _Avoid_: sync dbs, database sync, Promotion, seed import (the git CLI path), acknowledge repo seeds
 
 **Official name**:
-The unique name of an Official item, Official vehicle, Official enemy, Official map, Feature, or currency within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
+The unique name of an Official item, Official vehicle, Official enemy, Official bot, Official map, Feature, or currency within that catalogue domain. Names that differ only by case or extra spaces are the same Official name. A player-facing row and a GM-only row cannot share one.
 _Avoid_: title (published reference entries use slug), custom name, currency code
 
 **Official item**:
@@ -145,6 +145,10 @@ _Avoid_: custom vehicle, unique vehicle
 **Official enemy**:
 A published enemy template. Spawning it produces enemy instances.
 _Avoid_: custom enemy, enemy instance
+
+**Official bot**:
+A published bot template. Not game-scoped. Super-admin authors it.
+_Avoid_: global bot, custom bot, unique bot
 
 **Official map**:
 A published map. Not game-scoped.
@@ -185,15 +189,15 @@ A name on one game where characters leave items they are not carrying while that
 _Avoid_: location, place, group, folder, parked location, vehicle cargo
 
 **Nickname**:
-A per-holding display name on an inventory or vehicle row (`customName`). Optional; when empty, the sheet shows the unique override or template name. Editable for every holding, not only unique items or vehicles.
+A per-holding display name on an inventory, vehicle, or bot row (`customName`). Optional; when empty, the sheet shows the unique override or template name. Editable for every holding, not only unique items, vehicles, or bots.
 _Avoid_: custom name (when meaning the unique/template name), name override
 
 **Name override**:
-The unique item or unique vehicle’s own name, stored on the unique record. Edited via **Edit unique item/vehicle**, not via nickname.
+The unique item, unique vehicle, or unique bot’s own name, stored on the unique record. Edited via **Edit unique**, not via nickname.
 _Avoid_: nickname, custom name (ambiguous)
 
 **Max HP bonus**:
-An extra max HP on a character’s vehicle holding, added to the template or unique max HP. Editable on the character sheet for any owned vehicle.
+An extra max HP on a vehicle holding or a bot holding, added to the template or unique max HP. Editable by play control of the holding character.
 _Avoid_: unique max HP, maxHpOverride
 
 **Vehicle holding notes**:
@@ -212,6 +216,108 @@ _Avoid_: custom item, custom vehicle (those are game-scoped templates)
 A game-scoped map the GM creates.
 _Avoid_: official map, File (when meaning a map)
 
+### Bots
+
+**Bot**:
+A non-sentient machine a character holds. It is its own combatant, with its own attributes and inventory placements. Not a character, not an item, and not a vehicle.
+_Avoid_: drone, companion, NPC
+
+**Custom bot**:
+A game-scoped bot template the GM edits. Changing it changes every holding of that template.
+_Avoid_: unique bot, official bot
+
+**Unique bot**:
+One user's bot in one game, with its own stats. Editing it does not change other holdings. It has at most one holding.
+_Avoid_: custom bot, official bot
+
+**Bot holding**:
+One character's holding of one bot. The character is not an Owner of the bot. Play control of that character operates the holding.
+_Avoid_: ownership, bot instance (enemy instances already use "instance")
+
+**Bot holding notes**:
+Notes on one character's bot holding. They belong to that holding, not to the bot template.
+_Avoid_: template notes, character notes
+
+**Condition**:
+A bot holding's derived readiness: Operational, Broken, or Beyond repair. Beyond repair when that flag is set. Broken at 0 HP. Otherwise Operational.
+_Avoid_: Status, Functional
+
+**Upgrade**:
+The integer on a bot holding for one track, from −5 up to that track's Upgrade potential. The effective value is the track's base plus this upgrade.
+_Avoid_: fill, damage (when meaning a negative upgrade)
+
+**Upgrade potential**:
+The ceiling on a bot track's Upgrade, an integer from 0 to +5, authored on the template. A unique bot may override it.
+_Avoid_: max potential
+
+**Processing Power**:
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
+_Avoid_: intelligence, Grid Protection
+
+**Physical Power**:
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
+_Avoid_: strength, brute force
+
+**Finesse Capacity**:
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
+_Avoid_: dexterity, agility
+
+**Grid Protection**:
+A bot attribute with the same base and Upgrade potential as Processing Power. It is not a bot-action attribute, and it is not part of initiative.
+_Avoid_: GRID skill, GRID defence (the character roll)
+
+**Battery**:
+A bot capacity. Its base is an integer from 1 to 10, and its Upgrade potential is an integer from 0 to +5. Effective capacity is the base plus the battery upgrade, and it cannot fall below 0.
+_Avoid_: ammunition, Phase
+
+**Bot reaction cap**:
+The Reaction cap authored on a bot template. It has no upper limit. The usual cap is 2. Remaining on a holding cannot exceed the cap.
+_Avoid_: character level, Bot additional action
+
+**Bot damage profile**:
+The damage traits every bot has: vulnerable to GRID; resistant to Ice, Fire, Bludgeoning, Bullet, and Blade; immune to Nerve and Poison. Siike, Acid, Electricity, and Other are unmarked.
+_Avoid_: general information, enemy resistances (those are authored per enemy)
+
+**Bot action**:
+A named ability on a bot's action list.
+_Avoid_: Reaction, Bot additional action
+
+**Bot additional action**:
+A named ability on a bot's additional-action list. The same kind of ability as a bot action. Not a Reaction.
+_Avoid_: Reaction, reaction
+
+**Bot-installable**:
+An item that may be installed on a bot. Independent of whether that item is vehicle-mountable. It may carry its own bot actions.
+_Avoid_: vehicle-mountable (either flag may be set)
+
+**Item bot actions**:
+Bot actions stored on a bot-installable item. The Official or Custom item owns the list. A unique item may override it.
+_Avoid_: the bot's own bot actions, vehicle actions (there are none)
+
+**Bot-installed**:
+An inventory placement for hardware fixed on one bot holding. The item must be bot-installable. The weight counts toward neither that bot's carry nor its cargo.
+_Avoid_: mounted, equipped
+
+**Bot cargo**:
+An inventory placement for storage on one bot holding. The weight counts toward that bot's cargo capacity.
+_Avoid_: bot-carried, character carry
+
+**Bot-carried**:
+An inventory placement for what a bot holding has in its hands or wearing. The weight counts toward that bot's carry.
+_Avoid_: bot cargo, character carry
+
+**Bot equip**:
+Which bot-carried rows occupy that bot's hands or its Body slot. Separate from the character's equip slots. Foot, Head, and Brain are not bot slots.
+_Avoid_: weapon option, character equip
+
+**Bot combat value**:
+An authored attack or defence on a bot template: Attack Melee, Attack Range, Defence Melee, Defence Range, or Defence GRID. Each is an integer from 1 to 5. A unique bot may override it.
+_Avoid_: attack mod, defence mod (those are computed character values)
+
+**Bot weapon option**:
+One way a bot makes an Attack Melee or Attack Range roll: one bot-equipped hand weapon in that attack mode, Unarmed, or Improvised weapon.
+_Avoid_: weapon option (the character's list)
+
 ### Files and lore
 
 **File**:
@@ -229,8 +335,12 @@ _Avoid_: File, lore
 ### Combat
 
 **Reaction**:
-A per-round combat resource on a character or enemy instance: how many remain this round, up to that combatant’s cap. Spending one (for example to defend) reduces remaining; a reset restores remaining to the cap.
-_Avoid_: defence reaction cost (an area-effect item rule), clear (when meaning this restore)
+A per-round combat resource on a character, enemy instance, or bot holding: how many remain this round, up to that combatant’s cap. Spending one (for example to defend) reduces remaining; a reset restores remaining to the cap.
+_Avoid_: Bot additional action, defence reaction cost (an area-effect item rule), clear (when meaning this restore)
+
+**Extra dice**:
+A per-roll integer added to a dice pool after that pool is formed. It may be negative. The number of dice rolled cannot fall below 0. On a bot pool it is added after the floor of 1. Play control of the holding character sets it. A bot initiative roll has none.
+_Avoid_: authored bot combat value, initiative modifier
 
 **Attack mode**:
 Melee, range, throw, or GRID. One weapon can have more than one.
@@ -241,11 +351,11 @@ One way a character can make an attack roll or a damage roll: an equipped weapon
 _Avoid_: item, weapon (when meaning a bag row)
 
 **Unarmed**:
-The weapon option for a melee or throw attack with no weapon in that mode. Its damage is 1d4 bludgeoning.
+The no-weapon melee option. For a character it is also the no-weapon throw option. For a bot it is Attack Melee with no weapon. Its damage is 1d4 bludgeoning.
 _Avoid_: Improvised weapon
 
 **Improvised weapon**:
-The weapon option for a range attack with no ranged weapon. Its damage is 1d4 bludgeoning.
+The no-weapon range option, for a character or for a bot's Attack Range. Its damage is 1d4 bludgeoning.
 _Avoid_: Unarmed
 
 **GRID attack**:

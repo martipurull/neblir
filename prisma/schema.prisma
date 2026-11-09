@@ -165,6 +165,23 @@ enum VehicleAccessType {
   GAME_MASTER
 }
 
+enum BotAccessType {
+  PLAYER
+  GAME_MASTER
+}
+
+enum BotSourceType {
+  OFFICIAL
+  CUSTOM
+  UNIQUE
+}
+
+enum BotTemplateSourceType {
+  OFFICIAL
+  CUSTOM
+  STANDALONE
+}
+
 enum VehicleSourceType {
   GLOBAL_VEHICLE
   CUSTOM_VEHICLE
@@ -251,20 +268,22 @@ enum Theme {
 }
 
 type CharacterCombatInformation {
-  armourCurrentHP   Int
-  armourMaxHP       Int
-  armourMod         Int
-  initiativeMod     Int
-  meleeAttackMod    Int
-  meleeDefenceMod   Int
-  rangeAttackMod    Int
-  rangeDefenceMod   Int
-  throwAttackMod    Int
-  speed             Int
-  reactionsPerRound Int
-  /** Remaining reactions this round; capped by reactionsPerRound. */
+  armourCurrentHP    Int
+  armourMaxHP        Int
+  armourMod          Int
+  initiativeMod      Int
+  meleeAttackMod     Int
+  meleeDefenceMod    Int
+  rangeAttackMod     Int
+  rangeDefenceMod    Int
+  throwAttackMod     Int
+  speed              Int
+  reactionsPerRound  Int
+  /**
+   * Remaining reactions this round; capped by reactionsPerRound.
+   */
   reactionsRemaining Int
-  maxCarryWeight    Int
+  maxCarryWeight     Int
 }
 
 type CharacterGeneralInformation {
@@ -417,6 +436,7 @@ model Character {
   wallet                   CharacterCurrency[]
   inventory                ItemCharacter[]
   vehicles                 VehicleCharacter[]
+  bots                     BotCharacter[]
   activeVehicleCharacterId String?                     @db.ObjectId
   notes                    String[]
   paths                    PathCharacter[]
@@ -473,11 +493,15 @@ model ItemCharacter {
   sourceType ItemSourceType
   itemId     String         @db.ObjectId
 
-  quantity     Int        @default(1)
-  currentUses  Int        @default(0)
-  isEquipped   Boolean    @default(false)
-  equipSlots   String[]   @default([])
-  customName   String?
+  quantity      Int        @default(1)
+  currentUses   Int        @default(0)
+  isEquipped    Boolean    @default(false)
+  equipSlots    String[]   @default([])
+  /**
+   * Hands or Body on a bot holding. Separate from the character's equip slots.
+   */
+  botEquipSlots String[]   @default([])
+  customName    String?
   status       ItemStatus @default(FUNCTIONAL)
   itemLocation String     @default("carried")
   /** Game that was active when this holding was left at a place. Empty when carried, in a vehicle, or left with no active game. */
@@ -595,17 +619,19 @@ model VehicleCharacter {
   sourceType VehicleSourceType
   vehicleId  String            @db.ObjectId
 
-  customName     String?
-  currentHp      Int
-  maxHpBonus     Int      @default(0)
-  isBeyondRepair Boolean  @default(false)
-  parkedAt       String?
-  notes          String?
-  /** Other characters riding as passengers (driver is the owner when actively mounted). */
-  passengerCharacterIds String[] @default([])
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  mountedItems   VehicleMountedItem[]
+  customName            String?
+  currentHp             Int
+  maxHpBonus            Int                  @default(0)
+  isBeyondRepair        Boolean              @default(false)
+  parkedAt              String?
+  notes                 String?
+  /**
+   * Other characters riding as passengers (driver is the owner when actively mounted).
+   */
+  passengerCharacterIds String[]             @default([])
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  mountedItems          VehicleMountedItem[]
 
   @@index([characterId])
   @@index([sourceType, vehicleId])
@@ -628,9 +654,249 @@ model VehicleMountedItem {
   @@index([vehicleCharacterId])
 }
 
+model Bot {
+  id                          String        @id @default(auto()) @map("_id") @db.ObjectId
+  accessType                  BotAccessType
+  name                        String
+  imageKey                    String?
+  description                 String
+  confCost                    Int
+  usage                       String?
+  notes                       String?
+  maxHp                       Int
+  /**
+   * Unset means cargo is not capped.
+   */
+  maxCargoWeightKg            Float?
+  /**
+   * Unset means installed hardware is not capped.
+   */
+  maxInstalledItems           Int?
+  /**
+   * Movement speed in metres, before carry load.
+   */
+  speed                       Int           @default(0)
+  /**
+   * Base max carry weight in kilograms. Backpack bonuses are not stored.
+   */
+  maxCarryWeight              Float         @default(0)
+  /**
+   * Descriptive height in metres. Does not encumber the holding character.
+   */
+  heightMetres                Float?
+  /**
+   * Descriptive weight in kilograms. Does not encumber the holding character.
+   */
+  weight                      Float?
+  processingPower             Int           @default(0)
+  processingPowerMaxPotential Int           @default(0)
+  physicalPower               Int           @default(0)
+  physicalPowerMaxPotential   Int           @default(0)
+  finesseCapacity             Int           @default(0)
+  finesseCapacityMaxPotential Int           @default(0)
+  gridProtection              Int           @default(0)
+  gridProtectionMaxPotential  Int           @default(0)
+  batteryCapacity             Int           @default(1)
+  batteryMaxPotential         Int           @default(0)
+  attackMelee                 Int           @default(1)
+  attackRange                 Int           @default(1)
+  defenceMelee                Int           @default(1)
+  defenceRange                Int           @default(1)
+  defenceGrid                 Int           @default(1)
+  /**
+   * Reaction cap. No upper limit. Remaining on a holding cannot exceed it.
+   */
+  numberOfReactions           Int           @default(2)
+  /**
+   * Bot actions this Official bot owns.
+   */
+  actions                     Json?
+  /**
+   * Bot additional actions this Official bot owns.
+   */
+  additionalActions           Json?
+  protectedFromOfficialImport Boolean       @default(false)
+
+  @@unique([name])
+}
+
+model BotCharacter {
+  id             String             @id @default(auto()) @map("_id") @db.ObjectId
+  characterId    String             @db.ObjectId
+  character      Character          @relation(fields: [characterId], references: [id])
+  /**
+   * Official holdings point at Bot. Custom holdings point at CustomBot.
+   * Unique holdings point at UniqueBot. Missing values on older rows are Official.
+   */
+  sourceType     BotSourceType      @default(OFFICIAL)
+  botId          String             @db.ObjectId
+  customName               String?
+  currentHp                Int
+  maxHpBonus               Int                @default(0)
+  notes                    String?
+  processingPowerUpgrade   Int                @default(0)
+  physicalPowerUpgrade     Int                @default(0)
+  finesseCapacityUpgrade   Int                @default(0)
+  gridProtectionUpgrade    Int                @default(0)
+  batteryUpgrade           Int                @default(0)
+  batteryUsed              Int                @default(0)
+  isBeyondRepair           Boolean            @default(false)
+  /**
+   * Reactions left this round. A reset restores this to the cap.
+   */
+  reactionsRemaining       Int                @default(2)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  installedItems BotInstalledItem[]
+
+  @@index([characterId])
+  @@index([botId])
+}
+
+/**
+ * One inventory row installed on one bot holding.
+ * Ownership stays on the character; this is an install link only.
+ */
+model BotInstalledItem {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  botCharacterId  String       @db.ObjectId
+  botCharacter    BotCharacter @relation(fields: [botCharacterId], references: [id], onDelete: Cascade)
+  itemCharacterId String       @db.ObjectId
+  createdAt       DateTime     @default(now())
+
+  @@unique([itemCharacterId])
+  @@index([botCharacterId])
+}
+
+model CustomBot {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  gameId            String  @db.ObjectId
+  game              Game    @relation(fields: [gameId], references: [id])
+  name              String
+  description       String?
+  confCost          Int?
+  usage             String?
+  notes             String?
+  maxHp             Int
+  /**
+   * When true, game members may later mint a Unique bot from this template.
+   * Editing the shared Custom bot stays GM-only.
+   */
+  membersCanModify  Boolean @default(false)
+  /**
+   * Unset means cargo is not capped.
+   */
+  maxCargoWeightKg  Float?
+  /**
+   * Unset means installed hardware is not capped.
+   */
+  maxInstalledItems Int?
+  /**
+   * Movement speed in metres, before carry load.
+   */
+  speed             Int    @default(0)
+  /**
+   * Base max carry weight in kilograms. Backpack bonuses are not stored.
+   */
+  maxCarryWeight    Float  @default(0)
+  /**
+   * Descriptive height in metres. Does not encumber the holding character.
+   */
+  heightMetres      Float?
+  /**
+   * Descriptive weight in kilograms. Does not encumber the holding character.
+   */
+  weight                      Float?
+  processingPower             Int     @default(0)
+  processingPowerMaxPotential Int     @default(0)
+  physicalPower               Int     @default(0)
+  physicalPowerMaxPotential   Int     @default(0)
+  finesseCapacity             Int     @default(0)
+  finesseCapacityMaxPotential Int     @default(0)
+  gridProtection              Int     @default(0)
+  gridProtectionMaxPotential  Int     @default(0)
+  batteryCapacity             Int     @default(1)
+  batteryMaxPotential         Int     @default(0)
+  attackMelee                 Int     @default(1)
+  attackRange                 Int     @default(1)
+  defenceMelee                Int     @default(1)
+  defenceRange                Int     @default(1)
+  defenceGrid                 Int     @default(1)
+  /**
+   * Reaction cap. No upper limit. Remaining on a holding cannot exceed it.
+   */
+  numberOfReactions           Int     @default(2)
+  /**
+   * Bot actions this Custom bot owns.
+   */
+  actions                     Json?
+  /**
+   * Bot additional actions this Custom bot owns.
+   */
+  additionalActions           Json?
+
+  @@index([gameId])
+}
+
+model UniqueBot {
+  id          String                @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId String                @db.ObjectId
+  gameId      String                @db.ObjectId
+  game        Game                  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  /**
+   * OFFICIAL and CUSTOM point at a template. STANDALONE stores its own stats.
+   */
+  sourceType  BotTemplateSourceType
+  botId       String?               @db.ObjectId
+
+  nameOverride              String?
+  imageKeyOverride          String?
+  descriptionOverride       String?
+  confCostOverride          Int?
+  usageOverride             String?
+  notesOverride             String?
+  maxHpOverride             Int?
+  maxCargoWeightKgOverride  Float?
+  maxInstalledItemsOverride Int?
+  speedOverride             Int?
+  maxCarryWeightOverride    Float?
+  heightMetresOverride      Float?
+  weightOverride            Float?
+  processingPowerOverride             Int?
+  processingPowerMaxPotentialOverride Int?
+  physicalPowerOverride               Int?
+  physicalPowerMaxPotentialOverride   Int?
+  finesseCapacityOverride             Int?
+  finesseCapacityMaxPotentialOverride Int?
+  gridProtectionOverride              Int?
+  gridProtectionMaxPotentialOverride  Int?
+  batteryCapacityOverride             Int?
+  batteryMaxPotentialOverride         Int?
+  attackMeleeOverride                 Int?
+  attackRangeOverride                 Int?
+  defenceMeleeOverride                Int?
+  defenceRangeOverride                Int?
+  defenceGridOverride                 Int?
+  numberOfReactionsOverride           Int?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   * A standalone Unique bot stores its own list here.
+   */
+  actionsOverride                     Json?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   * A standalone Unique bot stores its own list here.
+   */
+  additionalActionsOverride           Json?
+
+  @@index([ownerUserId])
+  @@index([gameId])
+}
+
 enum InitiativeCombatantType {
   CHARACTER
   ENEMY
+  BOT
 }
 
 /**
@@ -657,36 +923,38 @@ model Game {
   characters         GameCharacter[]
   customItems        CustomItem[]
   customVehicles     CustomVehicle[]
+  customBots         CustomBot[]
   customEnemies      CustomEnemy[]
   enemyInstances     EnemyInstance[]
   uniqueItems        UniqueItem[]
   uniqueVehicles     UniqueVehicle[]
+  uniqueBots         UniqueBot[]
   invites            GameInvite[]
   initiativeOrder    InitiativeEntry[]
   discordIntegration DiscordIntegration?
-  rollEvents       RollEvent[]
-  referenceEntries ReferenceEntry[]
-  maps             Map[]
-  recaps           GameRecap[]
-  files            GameFile[]
+  rollEvents         RollEvent[]
+  referenceEntries   ReferenceEntry[]
+  maps               Map[]
+  recaps             GameRecap[]
+  files              GameFile[]
 
   @@index([gameMaster])
 }
 
 model GameFile {
-  id               String           @id @default(auto()) @map("_id") @db.ObjectId
-  gameId           String           @db.ObjectId
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  gameId           String          @db.ObjectId
   title            String
   description      String?
   kind             GameFileKind
-  access           ReferenceAccess  @default(PLAYER)
-  fileKey          String           @unique
+  access           ReferenceAccess @default(PLAYER)
+  fileKey          String          @unique
   fileName         String
   fileSizeBytes    Int
   thumbnailKey     String?
-  uploadedByUserId String           @db.ObjectId
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  uploadedByUserId String          @db.ObjectId
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
@@ -715,24 +983,26 @@ model GameRecap {
 }
 
 model ReferenceEntry {
-  id          String            @id @default(auto()) @map("_id") @db.ObjectId
-  category    ReferenceCategory
-  slug        String
-  title       String
-  summary     String?
-  access      ReferenceAccess   @default(PLAYER)
-  tags        String[]          @default([])
-  sortOrder   Int               @default(0)
-  contentJson Json?
-  contentHtml String?
-  sourceFile  String?
-  gameId      String?           @db.ObjectId
-  game        Game?             @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  attachments ReferenceEntryAttachment[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  /** When true, official import scripts skip overwriting this row unless --force-official-import. */
-  protectedFromOfficialImport Boolean @default(false)
+  id                          String                     @id @default(auto()) @map("_id") @db.ObjectId
+  category                    ReferenceCategory
+  slug                        String
+  title                       String
+  summary                     String?
+  access                      ReferenceAccess            @default(PLAYER)
+  tags                        String[]                   @default([])
+  sortOrder                   Int                        @default(0)
+  contentJson                 Json?
+  contentHtml                 String?
+  sourceFile                  String?
+  gameId                      String?                    @db.ObjectId
+  game                        Game?                      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  attachments                 ReferenceEntryAttachment[]
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+  /**
+   * When true, official import scripts skip overwriting this row unless --force-official-import.
+   */
+  protectedFromOfficialImport Boolean                    @default(false)
 
   @@unique([category, slug, gameId])
   @@index([category])
@@ -742,15 +1012,15 @@ model ReferenceEntry {
 }
 
 model ReferenceEntryAttachment {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  referenceEntryId  String   @db.ObjectId
-  fileKey           String   @unique
-  fileName          String
-  fileSizeBytes     Int
-  thumbnailKey      String?
-  uploadedByUserId  String   @db.ObjectId
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  referenceEntryId String   @db.ObjectId
+  fileKey          String   @unique
+  fileName         String
+  fileSizeBytes    Int
+  thumbnailKey     String?
+  uploadedByUserId String   @db.ObjectId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   referenceEntry ReferenceEntry @relation(fields: [referenceEntryId], references: [id], onDelete: Cascade)
 
@@ -869,13 +1139,15 @@ model GameCharacter {
   gameId          String  @db.ObjectId
   characterId     String  @db.ObjectId
   isPublic        Boolean @default(true)
-  /** NPC group name on this game link. Absent means Ungrouped. */
+  /**
+   * NPC group name on this game link. Absent means Ungrouped.
+   */
   npcGroup        String?
   playGrantUserId String? @db.ObjectId
 
-  game          Game  @relation(fields: [gameId], references: [id])
+  game          Game      @relation(fields: [gameId], references: [id])
   character     Character @relation(fields: [characterId], references: [id])
-  playGrantUser User? @relation("GameCharacterPlayGrant", fields: [playGrantUserId], references: [id])
+  playGrantUser User?     @relation("GameCharacterPlayGrant", fields: [playGrantUserId], references: [id])
 
   @@unique([gameId, characterId])
   @@index([gameId])
@@ -909,8 +1181,18 @@ model Item {
   equippable                  Boolean                    @default(false)
   equipSlotTypes              String[]                   @default([])
   equipSlotCost               Int?
-  /** When true, this item can be mounted on a vehicle (not cargo). */
+  /**
+   * When true, this item can be mounted on a vehicle (not cargo).
+   */
   vehicleMountable            Boolean                    @default(false)
+  /**
+   * When true, this item can be installed on a bot. Independent of vehicle-mountable.
+   */
+  botInstallable              Boolean                    @default(false)
+  /**
+   * Bot actions this Official item owns. They show on a bot only while installed.
+   */
+  botActions                  Json?
   maxUses                     Int?
   modifiesAttribute           ItemAttributePath?
   attributeMod                Int?
@@ -951,8 +1233,18 @@ model CustomItem {
   equippable        Boolean?                   @default(false)
   equipSlotTypes    String[]                   @default([])
   equipSlotCost     Int?
-  /** When true, this item can be mounted on a vehicle (not cargo). */
+  /**
+   * When true, this item can be mounted on a vehicle (not cargo).
+   */
   vehicleMountable  Boolean?                   @default(false)
+  /**
+   * When true, this item can be installed on a bot. Independent of vehicle-mountable.
+   */
+  botInstallable    Boolean?                   @default(false)
+  /**
+   * Bot actions this Custom item owns. They show on a bot only while installed.
+   */
+  botActions        Json?
   maxUses           Int?
   modifiesAttribute ItemAttributePath?
   attributeMod      Int?
@@ -995,6 +1287,11 @@ model UniqueItem {
   equipSlotTypesOverride    Json? // String[] when set; null = use template
   equipSlotCostOverride     Int?
   vehicleMountableOverride  Boolean?
+  botInstallableOverride    Boolean?
+  /**
+   * Null inherits the template list. An array, including empty, replaces it.
+   */
+  botActionsOverride        Json?
   maxUsesOverride           Int?
   modifiesAttributeOverride ItemAttributePath?
   attributeModOverride      Int?
@@ -1203,7 +1500,7 @@ model EnemyInstance {
   sourceCustomEnemy   CustomEnemy? @relation(fields: [sourceCustomEnemyId], references: [id], onDelete: Cascade)
   sourceOfficialEnemy Enemy?       @relation(fields: [sourceOfficialEnemyId], references: [id], onDelete: Cascade)
 
-  name        String
+  name           String
   /**
    * Instance number assigned at spawn for this source template in the game.
    * Optional so legacy rows can occupy a trailing ` #N` in name instead.
@@ -1222,13 +1519,13 @@ model EnemyInstance {
    * False for an unsuffixed singleton spawn; true for a numbered batch (including #1).
    */
   numberVisible  Boolean @default(false)
-  imageKey    String?
-  description String?
-  notes       String?
+  imageKey       String?
+  description    String?
+  notes          String?
   /**
    * When false, instance name/details are GM-only in game context; rolls default secret on Discord.
    */
-  isPublic    Boolean @default(true)
+  isPublic       Boolean @default(true)
 
   maxHealth          Int
   currentHealth      Int

@@ -1,3 +1,7 @@
+import {
+  BOT_ALREADY_ON_BOT_MESSAGE,
+  parseBotItemLocation,
+} from "@/app/lib/constants/inventory";
 import { getCharacter, updateCharacter } from "@/app/lib/prisma/character";
 import { userHasPlayControl } from "@/app/lib/prisma/gameCharacter";
 import { prisma } from "@/app/lib/prisma/client";
@@ -83,8 +87,11 @@ export const POST = auth(async (request: AuthNextRequest, { params }) => {
     );
     const itemBefore = await prisma.itemCharacter.findFirst({
       where: { id: parsed.data.itemCharacterId, characterId },
-      select: { isEquipped: true, equipSlots: true },
+      select: { isEquipped: true, equipSlots: true, itemLocation: true },
     });
+    if (parseBotItemLocation(itemBefore?.itemLocation)) {
+      return errorResponse(BOT_ALREADY_ON_BOT_MESSAGE, 409);
+    }
 
     await stowItemAsVehicleCargo({
       ownerCharacterId: characterId,

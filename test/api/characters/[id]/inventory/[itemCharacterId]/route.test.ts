@@ -14,6 +14,7 @@ const characterIsInGameMock = vi.fn();
 const getCharacterMock = vi.fn();
 const updateCharacterMock = vi.fn();
 const vehicleMountedItemDeleteManyMock = vi.fn();
+const botInstalledItemDeleteManyMock = vi.fn();
 const itemCharacterUpdateMock = vi.fn();
 const itemCharacterFindManyMock = vi.fn();
 
@@ -49,6 +50,10 @@ vi.mock("@/app/lib/prisma/client", () => ({
         vehicleMountedItem: {
           deleteMany: (...args: unknown[]) =>
             vehicleMountedItemDeleteManyMock(...args),
+        },
+        botInstalledItem: {
+          deleteMany: (...args: unknown[]) =>
+            botInstalledItemDeleteManyMock(...args),
         },
         itemCharacter: {
           update: (...args: unknown[]) => itemCharacterUpdateMock(...args),
@@ -161,7 +166,11 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
 
   it("clears vehicle mounts when an item is left", async () => {
     characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockResolvedValue([
+      { id: "ic-1", quantity: 1, equipSlots: [], itemLocation: "carried" },
+    ]);
     vehicleMountedItemDeleteManyMock.mockResolvedValue({ count: 1 });
+    botInstalledItemDeleteManyMock.mockResolvedValue({ count: 0 });
     itemCharacterUpdateMock.mockResolvedValue({});
     const { PATCH } =
       await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
@@ -178,6 +187,33 @@ describe("/api/characters/[id]/inventory/[itemCharacterId] PATCH", () => {
       where: { id: "ic-1" },
       data: { itemLocation: "locker", stashGameId: null },
     });
+    expect(botInstalledItemDeleteManyMock).toHaveBeenCalledWith({
+      where: { itemCharacterId: "ic-1" },
+    });
+  });
+
+  it("refuses a bot placement location from the inventory row", async () => {
+    characterBelongsToUserMock.mockResolvedValue(true);
+    getCharacterInventoryMock.mockResolvedValue([
+      { id: "ic-1", quantity: 1, equipSlots: [], itemLocation: "carried" },
+    ]);
+    const { PATCH } =
+      await import("@/app/api/characters/[id]/inventory/[itemCharacterId]/route");
+    const response = await invokeRoute(
+      PATCH,
+      makeAuthedRequest(
+        { action: "leave", placeName: "bot-cargo:hold-1" },
+        "user-1"
+      ),
+      makeParams({ id: "char-1", itemCharacterId: "ic-1" })
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        message: "Place items on a bot from the bot holding.",
+      })
+    );
+    expect(itemCharacterUpdateMock).not.toHaveBeenCalled();
   });
 
   it("sets stack quantity on the holding", async () => {

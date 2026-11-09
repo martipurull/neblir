@@ -1,3 +1,7 @@
+import {
+  BotActionListEditor,
+  BotActionOverrideEditor,
+} from "@/app/components/character/BotActionListEditor";
 import { GameModalRichTextField } from "@/app/components/games/shared/GameModalRichTextField";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
@@ -160,11 +164,32 @@ export function UniqueItemModalOverridesSection({ f }: Props) {
           onEquippableOverrideChange={f.setEquippableOverride}
           vehicleMountableOverride={f.vehicleMountableOverride}
           onVehicleMountableOverrideChange={f.setVehicleMountableOverride}
+          botInstallableOverride={f.botInstallableOverride}
+          onBotInstallableOverrideChange={f.setBotInstallableOverride}
           equipSlotTypesOverride={f.equipSlotTypesOverride}
           onToggleEquipSlot={f.toggleEquipSlot}
           equipSlotCostOverride={f.equipSlotCostOverride}
           onEquipSlotCostOverrideChange={f.setEquipSlotCostOverride}
         />
+
+        {standalone ? (
+          <BotActionListEditor
+            idPrefix="unique-item-bot-actions"
+            title="Item bot actions"
+            hint="These actions show on a bot only while this item is installed."
+            value={f.botActionsOverride ?? []}
+            disabled={f.submitting}
+            onChange={f.setBotActionsOverride}
+          />
+        ) : (
+          <BotActionOverrideEditor
+            idPrefix="unique-item-bot-actions"
+            title="item bot actions"
+            value={f.botActionsOverride}
+            disabled={f.submitting}
+            onChange={f.setBotActionsOverride}
+          />
+        )}
 
         <div className="border-t border-white/15 pt-3">
           <h4 className="mb-3 text-sm font-semibold text-white/85">

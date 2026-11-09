@@ -15,6 +15,7 @@ import {
   weaponDamageTypeSchema,
 } from "./item";
 import { gameCharacterWithGameSchema } from "./game";
+import { botHoldingSchema } from "./bot";
 import { vehicleCharacterSchema } from "./vehicle";
 import { Race, Religion, Status } from "@prisma/client";
 import { specialAbilityNameSchemaValues } from "../specialAbility";
@@ -66,6 +67,8 @@ const resolvedItemSchema = z
     equipSlotTypes: z.array(equipSlotTypeSchema).optional().nullable(),
     equipSlotCost: equipSlotCostSchema.optional().nullable(),
     vehicleMountable: z.boolean().optional().nullable(),
+    botInstallable: z.boolean().optional().nullable(),
+    maxUses: z.number().int().positive().nullish(),
     modifiesAttribute: itemAttributePathSchema.optional().nullable(),
     attributeMod: z.number().int().optional().nullable(),
     modifiesSkill: itemGeneralSkillSchema.optional().nullable(),
@@ -264,6 +267,10 @@ export const characterSchema = z.object({
     .nullish(),
   vehicles: z
     .array(z.lazy(() => vehicleCharacterSchema))
+    .optional()
+    .nullish(),
+  bots: z
+    .array(z.lazy(() => botHoldingSchema))
     .optional()
     .nullish(),
   activeVehicleCharacterId: z.string().optional().nullish(),

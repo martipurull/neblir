@@ -3,6 +3,8 @@
 import { CataloguePromotionSuccessBanner } from "@/app/components/games/CataloguePromotionSuccessBanner";
 import { BrowseCustomEnemiesModal } from "@/app/components/games/BrowseCustomEnemiesModal";
 import { BrowseCustomItemsModal } from "@/app/components/games/BrowseCustomItemsModal";
+import { BrowseBotsModal } from "@/app/components/games/BrowseBotsModal";
+import { BrowseCustomBotsModal } from "@/app/components/games/BrowseCustomBotsModal";
 import { BrowseCustomVehiclesModal } from "@/app/components/games/BrowseCustomVehiclesModal";
 import { BrowseEnemiesModal } from "@/app/components/games/BrowseEnemiesModal";
 import { BrowseItemsModal } from "@/app/components/games/BrowseItemsModal";
@@ -10,9 +12,12 @@ import { BrowseVehiclesModal } from "@/app/components/games/BrowseVehiclesModal"
 import { CopyCustomEnemyModal } from "@/app/components/games/CopyCustomEnemyModal";
 import { CreateCustomEnemyModal } from "@/app/components/games/CreateCustomEnemyModal";
 import { CreateCustomItemModal } from "@/app/components/games/CreateCustomItemModal";
+import { CreateCustomBotModal } from "@/app/components/games/CreateCustomBotModal";
 import { CreateCustomVehicleModal } from "@/app/components/games/CreateCustomVehicleModal";
 import { CreateUniqueItemModal } from "@/app/components/games/CreateUniqueItemModal";
+import { CreateUniqueBotModal } from "@/app/components/games/CreateUniqueBotModal";
 import { CreateUniqueVehicleModal } from "@/app/components/games/CreateUniqueVehicleModal";
+import { GiveBotToCharacterModal } from "@/app/components/games/GiveBotToCharacterModal";
 import { GiveItemToCharacterModal } from "@/app/components/games/GiveItemToCharacterModal";
 import { GiveVehicleToCharacterModal } from "@/app/components/games/GiveVehicleToCharacterModal";
 import { GmNpcInitiativeRollModal } from "@/app/components/games/GmNpcInitiativeRollModal";
@@ -36,6 +41,7 @@ import {
   GmItemsSection,
   GmNpcsSection,
   GmTableSettingsCard,
+  GmBotsSection,
   GmVehiclesSection,
 } from "./sections";
 import { GM_LIVE_GAME_REFRESH_MS, useGame } from "@/hooks/use-game";
@@ -85,10 +91,15 @@ export function GameMasterPageClient() {
   const [browseVehiclesOpen, setBrowseVehiclesOpen] = useState(false);
   const [browseCustomVehiclesOpen, setBrowseCustomVehiclesOpen] =
     useState(false);
+  const [browseBotsOpen, setBrowseBotsOpen] = useState(false);
+  const [browseCustomBotsOpen, setBrowseCustomBotsOpen] = useState(false);
+  const [customBotModalOpen, setCustomBotModalOpen] = useState(false);
   const [uniqueItemModalOpen, setUniqueItemModalOpen] = useState(false);
   const [uniqueVehicleModalOpen, setUniqueVehicleModalOpen] = useState(false);
+  const [uniqueBotModalOpen, setUniqueBotModalOpen] = useState(false);
   const [giveItemModalOpen, setGiveItemModalOpen] = useState(false);
   const [giveVehicleModalOpen, setGiveVehicleModalOpen] = useState(false);
+  const [giveBotModalOpen, setGiveBotModalOpen] = useState(false);
   const [gmInitiativeRollModalOpen, setGmInitiativeRollModalOpen] =
     useState(false);
   const [initiativeActionId, setInitiativeActionId] = useState<string | null>(
@@ -344,6 +355,14 @@ export function GameMasterPageClient() {
           onGiveVehicle={() => setGiveVehicleModalOpen(true)}
         />
 
+        <GmBotsSection
+          onBrowseCatalogue={() => setBrowseBotsOpen(true)}
+          onBrowseCustom={() => setBrowseCustomBotsOpen(true)}
+          onCreateCustom={() => setCustomBotModalOpen(true)}
+          onCreateUnique={() => setUniqueBotModalOpen(true)}
+          onGiveBot={() => setGiveBotModalOpen(true)}
+        />
+
         <GmTableSettingsCard gameId={game.id} />
       </div>
 
@@ -353,6 +372,14 @@ export function GameMasterPageClient() {
         gameName={game.name}
         onClose={() => setCustomItemModalOpen(false)}
         onSuccess={() => void mutate()}
+      />
+      <CreateCustomBotModal
+        isOpen={customBotModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setCustomBotModalOpen(false)}
+        onSuccess={() => void mutate()}
+        onPromoted={onPromoted}
       />
       <CreateCustomVehicleModal
         isOpen={customVehicleModalOpen}
@@ -445,6 +472,20 @@ export function GameMasterPageClient() {
           await mutate();
         }}
       />
+      <BrowseBotsModal
+        isOpen={browseBotsOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setBrowseBotsOpen(false)}
+      />
+      <BrowseCustomBotsModal
+        isOpen={browseCustomBotsOpen}
+        gameId={game.id}
+        gameName={game.name}
+        onClose={() => setBrowseCustomBotsOpen(false)}
+        onSuccess={() => void mutate()}
+        onPromoted={onPromoted}
+      />
       <BrowseCustomVehiclesModal
         isOpen={browseCustomVehiclesOpen}
         gameId={game.id}
@@ -484,6 +525,21 @@ export function GameMasterPageClient() {
         gameId={game.id}
         game={game}
         onClose={() => setGiveVehicleModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <CreateUniqueBotModal
+        isOpen={uniqueBotModalOpen}
+        gameId={game.id}
+        gameName={game.name}
+        allowClosedCustom
+        onClose={() => setUniqueBotModalOpen(false)}
+        onSuccess={() => void mutate()}
+      />
+      <GiveBotToCharacterModal
+        isOpen={giveBotModalOpen}
+        gameId={game.id}
+        game={game}
+        onClose={() => setGiveBotModalOpen(false)}
         onSuccess={() => void mutate()}
       />
       <GmNpcInitiativeRollModal

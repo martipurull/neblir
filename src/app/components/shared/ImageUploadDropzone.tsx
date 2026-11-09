@@ -12,14 +12,20 @@ export type ImageUploadPreviewLayout =
   | "roundAvatar"
   | "characterAvatar"
   | "itemThumbnail"
+  | "sheetPortrait"
   | "cover";
 
-type NormalizedPreviewLayout = "roundAvatar" | "itemThumbnail" | "cover";
+type NormalizedPreviewLayout =
+  | "roundAvatar"
+  | "itemThumbnail"
+  | "sheetPortrait"
+  | "cover";
 
 const DEFAULT_PREVIEW_CAPTION: Record<NormalizedPreviewLayout, string> = {
   roundAvatar:
     "Image preview — this is how it will appear in lists and detail views.",
   itemThumbnail: "Image preview — this is how it will appear in item details.",
+  sheetPortrait: "Portrait preview — this is the character-sheet portrait.",
   cover: "Cover preview — this is how it will appear on the game page.",
 };
 
@@ -165,6 +171,48 @@ function ItemThumbnailPreview({
   );
 }
 
+function SheetPortraitPreview({
+  previewImageUrl,
+  previewImageKey,
+  previewImageAlt,
+  previewCaption,
+  isLight,
+  inactive,
+  onFileChange,
+}: Omit<PreviewContentProps, "layout">) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-paleBlue/20">
+        {previewImageUrl ? (
+          <SignedRemoteImage
+            src={previewImageUrl}
+            imageKey={previewImageKey}
+            alt={previewImageAlt}
+            width={80}
+            height={80}
+            className="h-20 w-20 object-cover object-top"
+          />
+        ) : previewImageUrl === undefined ? (
+          <ImageLoadingSkeleton variant="item" className="h-20 w-20" />
+        ) : null}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className={previewMutedTextClassName(isLight)}>{previewCaption}</p>
+        <Button
+          type="button"
+          variant={isLight ? "lightRemoveLinkOnPale" : "lightRemoveLinkOnModal"}
+          fullWidth={false}
+          onClick={() => onFileChange(null)}
+          disabled={inactive}
+          className="shrink-0 self-start sm:self-center"
+        >
+          Remove
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function CoverPreview({
   previewImageUrl,
   previewImageKey,
@@ -262,6 +310,18 @@ function ImageUploadPreview({
     case "itemThumbnail":
       return (
         <ItemThumbnailPreview
+          previewImageUrl={previewImageUrl}
+          previewImageKey={previewImageKey}
+          previewImageAlt={previewImageAlt}
+          previewCaption={previewCaption}
+          isLight={isLight}
+          inactive={inactive}
+          onFileChange={onFileChange}
+        />
+      );
+    case "sheetPortrait":
+      return (
+        <SheetPortraitPreview
           previewImageUrl={previewImageUrl}
           previewImageKey={previewImageKey}
           previewImageAlt={previewImageAlt}

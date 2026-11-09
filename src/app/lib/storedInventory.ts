@@ -2,6 +2,7 @@ import {
   formatItemLocationLabel,
   isItemCarried,
   isVehicleItemLocation,
+  parseBotItemLocation,
   sortInventoryEntriesAlphabetically,
   type FormatItemLocationLabelOptions,
 } from "@/app/lib/constants/inventory";
@@ -33,6 +34,7 @@ type StashDrawer<T> = {
 
 export type StoredInventoryLayout<T> = {
   vehicleRows: StoredVehicleRow<T>[];
+  botRows: StoredVehicleRow<T>[];
   stashDrawers: StashDrawer<T>[];
 };
 
@@ -59,12 +61,17 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
   holdings: readonly T[],
   options?: {
     vehicleNamesById?: FormatItemLocationLabelOptions["vehicleNamesById"];
+    botNamesById?: FormatItemLocationLabelOptions["botNamesById"];
     openByKey?: StashDrawerOpenState;
   }
 ): StoredInventoryLayout<T> {
   const openByKey = options?.openByKey ?? {};
-  const labelOptions = { vehicleNamesById: options?.vehicleNamesById };
+  const labelOptions = {
+    vehicleNamesById: options?.vehicleNamesById,
+    botNamesById: options?.botNamesById,
+  };
   const vehicleHoldings: T[] = [];
+  const botHoldings: T[] = [];
   const stashes = new Map<string, { spellings: string[]; holdings: T[] }>();
 
   for (const holding of holdings) {
@@ -72,6 +79,10 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
     const trimmed = holding.itemLocation?.trim() ?? "";
     if (isVehicleItemLocation(trimmed)) {
       vehicleHoldings.push(holding);
+      continue;
+    }
+    if (parseBotItemLocation(trimmed)) {
+      botHoldings.push(holding);
       continue;
     }
     const stashKey = foldSharedName(trimmed);
@@ -85,6 +96,14 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
   }
 
   const vehicleRows = sortInventoryEntriesAlphabetically(vehicleHoldings).map(
+    (holding) => ({
+      holding,
+      locationLabel:
+        formatItemLocationLabel(holding.itemLocation, labelOptions) ??
+        trimmedLocation(holding),
+    })
+  );
+  const botRows = sortInventoryEntriesAlphabetically(botHoldings).map(
     (holding) => ({
       holding,
       locationLabel:
@@ -110,7 +129,7 @@ export function projectStoredInventory<T extends StoredInventoryHolding>(
       })
     );
 
-  return { vehicleRows, stashDrawers };
+  return { vehicleRows, botRows, stashDrawers };
 }
 
 function trimmedLocation(holding: StoredInventoryHolding): string {

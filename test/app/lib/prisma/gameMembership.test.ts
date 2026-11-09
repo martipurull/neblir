@@ -8,6 +8,7 @@ const prismaMock = {
     findMany: vi.fn(),
     updateMany: vi.fn(),
   },
+  botCharacter: { findMany: vi.fn() },
   characterUser: { findMany: vi.fn() },
   gameUser: { findFirst: vi.fn(), deleteMany: vi.fn() },
   gameInvite: { deleteMany: vi.fn() },
@@ -33,6 +34,7 @@ vi.mock("@/app/lib/prisma/gameCharacter", () => ({
 describe("gameMembership", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.botCharacter.findMany.mockResolvedValue([]);
     prismaMock.$transaction.mockImplementation(async (ops: unknown[]) => {
       for (const op of ops) {
         await op;

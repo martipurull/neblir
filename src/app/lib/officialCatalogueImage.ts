@@ -26,7 +26,10 @@ export class CatalogueImageCopyError extends Error {
 
 export async function copyImageToOfficialCatalogue(
   sourceKey: string | null | undefined,
-  catalogueType: Extract<UploadKeyType, "items" | "vehicles" | "enemies">
+  catalogueType: Extract<
+    UploadKeyType,
+    "items" | "vehicles" | "enemies" | "bots"
+  >
 ): Promise<string | null> {
   const key = sourceKey?.trim();
   if (!key) return null;

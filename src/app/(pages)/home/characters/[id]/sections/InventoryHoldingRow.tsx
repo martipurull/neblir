@@ -18,6 +18,7 @@ export type HoldingRowShared = {
   onSelectDetail: (holding: ItemCharacter) => void;
   readOnly?: boolean;
   vehicleNamesById?: Readonly<Record<string, string>>;
+  botNamesById?: Readonly<Record<string, string>>;
 };
 
 /** Equip controls for an On hand row. A stored row does not take these. */
@@ -85,7 +86,7 @@ export function InventoryColumnHeader({
 
 export function InventoryHoldingRow(props: InventoryHoldingRowProps) {
   const { holding, locationLabel } = props;
-  const { onSelectDetail, vehicleNamesById } = props.row;
+  const { onSelectDetail, vehicleNamesById, botNamesById } = props.row;
   const readOnly = props.row.readOnly === true;
   const name = holding.customName ?? holding.item?.name ?? "Unknown item";
   const weight = holding.item?.weight;
@@ -95,7 +96,10 @@ export function InventoryHoldingRow(props: InventoryHoldingRowProps) {
   const location =
     props.variant === "stored"
       ? (locationLabel ??
-        formatItemLocationLabel(holding.itemLocation, { vehicleNamesById }))
+        formatItemLocationLabel(holding.itemLocation, {
+          vehicleNamesById,
+          botNamesById,
+        }))
       : null;
   const gridClass = inventoryGridClass(props.variant);
 

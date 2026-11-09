@@ -1,4 +1,9 @@
 import type { CustomEnemy } from "@prisma/client";
+import {
+  botSchema,
+  type Bot,
+  type CustomBotResponse,
+} from "@/app/lib/types/bot";
 import { enemyCreateSchema } from "@/app/lib/types/enemy";
 import {
   itemSchema,
@@ -114,6 +119,20 @@ export function officialVehicleFromCustom(
     description: overlayOptionalText(body.description, custom.description),
   };
   return parseOfficial(vehicleSchema.safeParse(candidate));
+}
+
+export function officialBotFromCustom(
+  custom: CustomBotResponse,
+  body: Extract<CataloguePromotionBody, { catalogueDomain: "bots" }>
+): OfficialFieldMapResult<Bot> {
+  const candidate = {
+    ...omitCustomOnlyFields(custom),
+    accessType: body.accessType,
+    confCost: overlayOptionalNumber(body.confCost, custom.confCost),
+    description: overlayOptionalText(body.description, custom.description),
+    usage: overlayOptionalText(body.usage, custom.usage),
+  };
+  return parseOfficial(botSchema.safeParse(candidate));
 }
 
 export function officialEnemyFromCustom(

@@ -6,6 +6,7 @@ import type {
   Prisma,
   UniqueItem,
 } from "@prisma/client";
+import { readBotActionList, readBotActionOverride } from "@/app/lib/botActions";
 import type { z } from "zod";
 import {
   ATTRIBUTE_PATH_API_TO_PRISMA,
@@ -77,6 +78,7 @@ export function mapItemUpdateParsedToPrisma(
 export function mapPrismaItemToApi(row: Item) {
   return {
     ...row,
+    botActions: readBotActionList((row as { botActions?: unknown }).botActions),
     modifiesAttribute:
       row.modifiesAttribute == null
         ? null
@@ -91,6 +93,7 @@ export function mapPrismaItemToApi(row: Item) {
 export function mapPrismaCustomItemToApi(row: CustomItem) {
   return {
     ...row,
+    botActions: readBotActionList((row as { botActions?: unknown }).botActions),
     modifiesAttribute:
       row.modifiesAttribute == null
         ? null
@@ -105,6 +108,9 @@ export function mapPrismaCustomItemToApi(row: CustomItem) {
 export function mapPrismaUniqueItemToApi(row: UniqueItem) {
   return {
     ...row,
+    botActionsOverride: readBotActionOverride(
+      (row as { botActionsOverride?: unknown }).botActionsOverride
+    ),
     modifiesAttributeOverride:
       row.modifiesAttributeOverride == null
         ? null

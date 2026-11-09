@@ -219,6 +219,7 @@ async function transferWithinClient(
   }
 
   // Giving an item away (fully or partially) clears any vehicle mount link.
+  // A partial transfer leaves a bot placement where it is.
   await db.vehicleMountedItem.deleteMany({
     where: { itemCharacterId: row.id },
   });
@@ -237,6 +238,9 @@ async function transferWithinClient(
   );
 
   if (newGiverQty === 0) {
+    await db.botInstalledItem.deleteMany({
+      where: { itemCharacterId: row.id },
+    });
     await db.itemCharacter.delete({ where: { id: row.id } });
   } else {
     await db.itemCharacter.update({
@@ -264,6 +268,11 @@ async function transferWithinClient(
       (existingRecipient.currentUses ?? 0) + transferredUses,
       maxUses
     );
+    // The gift arrives carried. One row per item, so the recipient's stack
+    // leaves whatever placement it was in.
+    await db.botInstalledItem.deleteMany({
+      where: { itemCharacterId: existingRecipient.id },
+    });
     await db.vehicleMountedItem.deleteMany({
       where: { itemCharacterId: existingRecipient.id },
     });

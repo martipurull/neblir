@@ -128,6 +128,14 @@ function InventorySectionContent({
     }
     return map;
   }, [character.vehicles]);
+  const botNamesById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const bot of character.bots ?? []) {
+      const name = bot.displayName.trim();
+      map[bot.id] = name.length > 0 ? name : "Bot";
+    }
+    return map;
+  }, [character.bots]);
   const characterGames = useMemo(
     () => Array.from(new Set((character.games ?? []).map((g) => g.gameId))),
     [character.games]
@@ -259,6 +267,7 @@ function InventorySectionContent({
     onSelectDetail: setDetailEntry,
     readOnly,
     vehicleNamesById,
+    botNamesById,
   };
   const carriedRow: CarriedHoldingRow = {
     ...storedRow,

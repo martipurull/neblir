@@ -292,7 +292,7 @@ const gameDetailEnemyInstanceSchema = z.object({
 
 /** Initiative line as returned from GET/PATCH/POST/DELETE game detail responses (sorted). */
 const gameDetailInitiativeEntrySchema = z.object({
-  combatantType: z.enum(["CHARACTER", "ENEMY"]),
+  combatantType: z.enum(["CHARACTER", "ENEMY", "BOT"]),
   combatantId: z.string(),
   combatantName: z.string(),
   rolledValue: z.number(),

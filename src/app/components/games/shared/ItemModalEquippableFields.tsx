@@ -14,6 +14,8 @@ type Props = {
   onEquipSlotCostChange: (value: string) => void;
   vehicleMountable?: boolean;
   onVehicleMountableChange?: (value: boolean) => void;
+  botInstallable?: boolean;
+  onBotInstallableChange?: (value: boolean) => void;
 };
 
 export function ItemModalEquippableFields({
@@ -26,6 +28,8 @@ export function ItemModalEquippableFields({
   onEquipSlotCostChange,
   vehicleMountable = false,
   onVehicleMountableChange,
+  botInstallable = false,
+  onBotInstallableChange,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -44,6 +48,15 @@ export function ItemModalEquippableFields({
             disabled={disabled}
             tone="inverse"
             label="Can be mounted on a vehicle"
+          />
+        ) : null}
+        {onBotInstallableChange ? (
+          <Checkbox
+            checked={botInstallable}
+            onChange={onBotInstallableChange}
+            disabled={disabled}
+            tone="inverse"
+            label="Can be installed on a bot"
           />
         ) : null}
       </CheckboxRow>

@@ -6,6 +6,7 @@ const envRoot = process.cwd();
 loadEnv({ path: resolve(envRoot, ".env") });
 loadEnv({ path: resolve(envRoot, ".env.local"), override: true });
 
+import { botRollAttribution } from "../src/app/lib/botAttributeRoll";
 import { prisma } from "../src/app/lib/prisma/client";
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";
@@ -112,6 +113,13 @@ function isPrivateRoll(metadata: unknown): boolean {
   return (metadata as { isPrivate?: unknown }).isPrivate === true;
 }
 
+function botDisplayNameFromMetadata(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  return cleanMetadataLabel(
+    (metadata as { botDisplayName?: unknown }).botDisplayName
+  );
+}
+
 function formatRollMessage(event: {
   rollType: string;
   diceExpression: string | null;
@@ -122,9 +130,10 @@ function formatRollMessage(event: {
   character: { generalInformation: { name: string; surname: string } } | null;
 }) {
   const isPrivate = isPrivateRoll(event.metadata);
-  const charName = event.character
+  const characterName = event.character
     ? `${event.character.generalInformation.name} ${event.character.generalInformation.surname}`.trim()
     : "GM";
+  const botName = botDisplayNameFromMetadata(event.metadata);
   const displayRollType = (() => {
     if (event.rollType === "GENERAL_ROLL") {
       return getGeneralRollTag(event.metadata);
@@ -137,12 +146,47 @@ function formatRollMessage(event: {
   const label = escapeForDiscordInlineCode(event.diceExpression ?? "roll");
   const summary = event.results.map(formatDieForDiscord).join(", ");
   const totalResult = event.total ? `  **→** **Total: ${event.total}**` : "";
+  const rollerName = event.rollerUser.name;
+  const subjectName = botName ?? characterName;
+  const secret =
+    botName === null
+      ? isPrivate
+      : botRollAttribution({
+          isPrivate,
+          rollerName,
+          botDisplayName: botName,
+        }) === "SECRET ROLL";
+  const damage = damageLineFromMetadata(event.metadata);
   return (
-    (isPrivate
-      ? `🎲 **${event.rollerUser.name}** ► **SECRET ROLL**\n`
-      : `🎲 **${event.rollerUser.name}** as **${charName}** ► **${displayRollType}**\n`) +
-    `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}`
+    (secret
+      ? `🎲 **${rollerName}** ► **SECRET ROLL**\n`
+      : `🎲 **${rollerName}** as **${subjectName}** ► **${displayRollType}**\n`) +
+    `**Rolled** \`${label}\` **→** \`[${summary}]\`${totalResult}` +
+    (damage == null ? "" : `\n${damage}`)
   );
+}
+
+function damageLineFromMetadata(metadata: unknown): string | null {
+  if (metadata == null || typeof metadata !== "object") return null;
+  const damage = (metadata as { damage?: unknown }).damage;
+  if (damage == null || typeof damage !== "object") return null;
+  const record = damage as {
+    diceExpression?: unknown;
+    results?: unknown;
+    total?: unknown;
+    damageType?: unknown;
+  };
+  if (
+    typeof record.diceExpression !== "string" ||
+    !Array.isArray(record.results) ||
+    typeof record.total !== "number"
+  ) {
+    return null;
+  }
+  const faces = record.results.map(formatDieForDiscord).join(", ");
+  const kind =
+    typeof record.damageType === "string" ? ` ${record.damageType}` : "";
+  return `**Damage** \`${escapeForDiscordInlineCode(record.diceExpression)}\` **→** \`[${faces}]\`  **→** **${record.total}${kind}**`;
 }
 
 async function postToDiscord(channelId: string, content: string) {

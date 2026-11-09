@@ -35,6 +35,7 @@ import {
   getFeaturesSection,
   getInventorySection,
   getVehiclesSection,
+  getBotsSection,
   getWalletSection,
   getNotesSection,
 } from "@/app/(pages)/home/characters/[id]/sections";
@@ -251,6 +252,16 @@ export function CharacterDetailView({
       })
     );
     list.push(
+      getBotsSection(character, {
+        mutate: sheetReadOnly ? undefined : mutateAction,
+        readOnly: sheetReadOnly,
+        activeGameId,
+        allowUniqueCreate: hasAuthorship && !sheetReadOnly,
+        viewerUserId: user?.id ?? null,
+        rollPrivacy,
+      })
+    );
+    list.push(
       getWalletSection(
         character,
         character.id,
@@ -281,6 +292,7 @@ export function CharacterDetailView({
     healthWritePending,
     settledCrisisHealth,
     user?.characterSectionOrder,
+    user?.id,
   ]);
 
   const effectiveLayoutMode = resolveCharacterLayoutMode(

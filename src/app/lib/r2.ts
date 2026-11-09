@@ -53,6 +53,7 @@ export const CATALOGUE_UPLOAD_TYPES = [
   "maps",
   "enemies",
   "currencies",
+  "bots",
 ] as const satisfies readonly UploadKeyType[];
 
 export type CatalogueUploadType = (typeof CATALOGUE_UPLOAD_TYPES)[number];
@@ -80,6 +81,7 @@ const ALLOWED_UPLOAD_PREFIXES = [
   "unique_items-",
   "custom_vehicles-",
   "unique_vehicles-",
+  "unique_bots-",
   "games-",
   "characters-",
   ...CATALOGUE_KEY_PREFIXES,

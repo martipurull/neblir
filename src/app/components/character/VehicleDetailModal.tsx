@@ -14,15 +14,14 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { DangerConfirmModal } from "@/app/components/shared/DangerConfirmModal";
 import { ImageLoadingSkeleton } from "@/app/components/shared/ImageLoadingSkeleton";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { SignedRemoteImage } from "@/app/components/shared/SignedRemoteImage";
 import { RichTextField } from "@/app/components/shared/RichTextField";
 import { StoredRichTextHtml } from "@/app/components/shared/StoredRichTextHtml";
 import { TextField } from "@/app/components/shared/TextField";
-import {
-  ModalSelect,
-  type ModalSelectOption,
-} from "@/app/components/games/shared/ModalSelect";
 import { useImageUrls } from "@/hooks/use-image-urls";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -50,7 +49,6 @@ import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useVehicleHpUpdates } from "@/hooks/use-vehicle-hp-updates";
 import type { KeyedMutator } from "swr";
 import type { CharacterDetail, ItemCharacter } from "@/app/lib/types/character";
-import type { SelectDropdownOption } from "@/app/components/shared/SelectDropdown";
 import type { VehicleCharacter } from "@/app/lib/types/vehicle";
 
 export type VehicleDetailModalProps = {
@@ -193,7 +191,7 @@ export function VehicleDetailModal({
     return ids;
   }, [allMountedItemCharacterIds, mountedItems]);
 
-  const mountableInventoryOptions: ModalSelectOption[] = useMemo(() => {
+  const mountableInventoryOptions: SelectDropdownOption[] = useMemo(() => {
     return inventory
       .filter(
         (row) =>
@@ -212,7 +210,7 @@ export function VehicleDetailModal({
       );
   }, [inventory, mountedItemCharacterIds]);
 
-  const stowableCargoOptions: ModalSelectOption[] = useMemo(() => {
+  const stowableCargoOptions: SelectDropdownOption[] = useMemo(() => {
     return inventory
       .filter(
         (row) =>
@@ -230,7 +228,7 @@ export function VehicleDetailModal({
       );
   }, [inventory, mountedItemCharacterIds]);
 
-  const passengerOptions: ModalSelectOption[] = useMemo(
+  const passengerOptions: SelectDropdownOption[] = useMemo(
     () =>
       recipientOptions.filter(
         (option) =>
@@ -729,9 +727,10 @@ export function VehicleDetailModal({
             <p className="text-sm text-white/70">No items mounted yet.</p>
           )}
 
-          <ModalSelect
+          <SelectDropdown
             id={`vehicle-mount-item-${entry.id}`}
             label="Inventory item"
+            surface="modal"
             placeholder={
               mountAtCapacity
                 ? "Mount capacity reached"
@@ -829,9 +828,10 @@ export function VehicleDetailModal({
             <p className="text-sm text-white/70">No cargo stowed.</p>
           )}
 
-          <ModalSelect
+          <SelectDropdown
             id={`vehicle-cargo-item-${entry.id}`}
             label="Carried item"
+            surface="modal"
             placeholder={
               stowableCargoOptions.length === 0
                 ? "No carried items to stow"
@@ -913,9 +913,10 @@ export function VehicleDetailModal({
             <p className="text-sm text-white/70">No passengers.</p>
           )}
 
-          <ModalSelect
+          <SelectDropdown
             id={`vehicle-passenger-${entry.id}`}
             label="Passenger"
+            surface="modal"
             placeholder={
               passengerAtCapacity
                 ? "Vehicle is at capacity"
@@ -964,6 +965,7 @@ export function VehicleDetailModal({
             id={`vehicle-transfer-recipient-${entry.id}`}
             label="Transfer recipient"
             showLabel={false}
+            surface="modal"
             placeholder={
               recipientsLoading ? "Loading characters…" : "Choose a character"
             }

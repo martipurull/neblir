@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { botActionSchema } from "@/app/lib/types/botAction";
+import {
+  weaponDamageTypeSchema,
+  type WeaponDamageType,
+} from "@/app/lib/types/weaponDamage";
 import {
   itemAttributePathSchema,
   itemGeneralSkillSchema,
@@ -93,22 +98,7 @@ export const weaponAttackRollTypeSchema = z.enum([
   "GRID",
   "THROW",
 ]);
-export const weaponDamageTypeSchema = z.enum([
-  "BULLET",
-  "BLADE",
-  "SIIKE",
-  "ACID",
-  "FIRE",
-  "ICE",
-  "BLUDGEONING",
-  "ELECTRICITY",
-  "NERVE",
-  "GRID",
-  "POISON",
-  "OTHER",
-]);
-
-export type WeaponDamageType = z.infer<typeof weaponDamageTypeSchema>;
+export { weaponDamageTypeSchema, type WeaponDamageType };
 
 export const itemAreaTypeSchema = z.enum(["RADIUS", "CONE"]);
 
@@ -211,6 +201,8 @@ const baseItemSchema = z.object({
   equipSlotTypes: z.array(equipSlotTypeSchema).optional().default([]),
   equipSlotCost: equipSlotCostSchema.optional(),
   vehicleMountable: z.boolean().optional().default(false),
+  botInstallable: z.boolean().optional().default(false),
+  botActions: z.array(botActionSchema).optional(),
   maxUses: z.number().int().positive().optional().nullable(),
   defenceMeleeBonus: z.number().optional(),
   defenceRangeBonus: z.number().optional(),
@@ -279,6 +271,8 @@ export const customItemCreateSchema = z.object({
   equipSlotTypes: z.array(equipSlotTypeSchema).optional(),
   equipSlotCost: equipSlotCostSchema.optional(),
   vehicleMountable: z.boolean().optional(),
+  botInstallable: z.boolean().optional(),
+  botActions: z.array(botActionSchema).optional(),
   maxUses: z.number().int().positive().optional().nullable(),
   modifiesAttribute: itemAttributePathSchema.nullish(),
   attributeMod: z.number().int().nullish(),
@@ -322,6 +316,8 @@ const uniqueItemMutableBodySchema = z.object({
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).optional(),
   equipSlotCostOverride: equipSlotCostSchema.optional(),
   vehicleMountableOverride: z.boolean().optional(),
+  botInstallableOverride: z.boolean().optional(),
+  botActionsOverride: z.array(botActionSchema).nullish(),
   /** Prefer `maxUsesOverride`; `maxUses` is an accepted alias for clients. */
   maxUsesOverride: z.number().int().positive().optional().nullable(),
   maxUses: z.number().int().positive().optional().nullable(),
@@ -392,6 +388,8 @@ const uniqueItemRecordResponseSchema = z.object({
   equipSlotTypesOverride: z.array(equipSlotTypeSchema).nullish(),
   equipSlotCostOverride: z.number().int().nullish(),
   vehicleMountableOverride: z.boolean().nullish(),
+  botInstallableOverride: z.boolean().nullish(),
+  botActionsOverride: z.array(botActionSchema).nullish(),
   maxUsesOverride: z.number().int().nullish(),
   modifiesAttributeOverride: itemAttributePathSchema.nullish(),
   attributeModOverride: z.number().int().nullish(),
@@ -443,6 +441,8 @@ export const itemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   vehicleMountable: z.boolean().nullish(),
+  botInstallable: z.boolean().nullish(),
+  botActions: z.array(botActionSchema).default([]),
   maxUses: z.number().int().positive().nullish(),
   modifiesAttribute: itemAttributePathSchema.nullish(),
   attributeMod: z.number().int().nullish(),
@@ -481,6 +481,8 @@ export const customItemResponseSchema = z.object({
   equipSlotTypes: z.array(z.string()).nullish(),
   equipSlotCost: z.number().nullish(),
   vehicleMountable: z.boolean().nullish(),
+  botInstallable: z.boolean().nullish(),
+  botActions: z.array(botActionSchema).default([]),
   maxUses: z.number().int().positive().nullish(),
   modifiesAttribute: itemAttributePathSchema.nullish(),
   attributeMod: z.number().int().nullish(),

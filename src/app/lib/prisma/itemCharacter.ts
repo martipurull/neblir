@@ -5,6 +5,8 @@ import {
   PRISMA_TO_ATTRIBUTE_PATH_API,
   PRISMA_TO_GENERAL_SKILL_API,
 } from "@/app/lib/itemModifierEnums";
+import { readBotActionList } from "@/app/lib/botActions";
+import type { BotAction } from "@/app/lib/types/botAction";
 import {
   mapPrismaCustomItemToApi,
   mapPrismaItemToApi,
@@ -213,6 +215,15 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
         ...(uniqueItem.vehicleMountableOverride != null && {
           vehicleMountable: uniqueItem.vehicleMountableOverride,
         }),
+        ...(uniqueItem.botInstallableOverride != null && {
+          botInstallable: uniqueItem.botInstallableOverride,
+        }),
+        ...("botActionsOverride" in uniqueItem &&
+        uniqueItem.botActionsOverride != null
+          ? {
+              botActions: readBotActionList(uniqueItem.botActionsOverride),
+            }
+          : {}),
         ...("equipSlotTypesOverride" in uniqueItem &&
           uniqueItem.equipSlotTypesOverride != null && {
             equipSlotTypes: Array.isArray(uniqueItem.equipSlotTypesOverride)
@@ -254,6 +265,19 @@ async function resolveItem(sourceType: ItemSourceType, itemId: string) {
   }
 }
 
+export async function resolvedItemBotActions(
+  sourceType: ItemSourceType,
+  itemId: string
+): Promise<{ name: string; botActions: BotAction[] } | null> {
+  const item = await resolveItem(sourceType, itemId);
+  if (item == null || typeof item !== "object") return null;
+  const record = item as { name?: unknown; botActions?: unknown };
+  return {
+    name: typeof record.name === "string" ? record.name : "Item",
+    botActions: readBotActionList(record.botActions),
+  };
+}
+
 export async function getCharacterInventory(characterId: string) {
   const records = await prisma.itemCharacter.findMany({
     where: { characterId },
@@ -289,6 +313,7 @@ export async function deleteItemCharacter(id: string) {
   return prisma.$transaction(async (tx) => {
     // Mount links have no FK cascade from ItemCharacter; clear before delete.
     await tx.vehicleMountedItem.deleteMany({ where: { itemCharacterId: id } });
+    await tx.botInstalledItem.deleteMany({ where: { itemCharacterId: id } });
     return tx.itemCharacter.delete({ where: { id } });
   });
 }

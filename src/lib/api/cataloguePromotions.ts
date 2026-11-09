@@ -9,7 +9,7 @@ import { z } from "zod";
 type ApiErrorPayload = { message?: string; details?: string };
 
 const cataloguePromotionResponseSchema = z.object({
-  catalogueDomain: z.enum(["items", "vehicles", "enemies"]),
+  catalogueDomain: z.enum(["items", "vehicles", "bots", "enemies"]),
   official: z.object({
     id: z.string(),
     name: z.string().optional().nullable(),
