@@ -41,10 +41,6 @@ export function BotModalRangeField({
       allowBlank={allowBlank}
       allowedMin={min}
       allowedMax={max}
-      visualMin={min}
-      visualMax={max}
-      step={1}
-      showTicks
       disabled={disabled}
       requirement={allowBlank ? "optional" : "required"}
       onChange={(next) => onChange(String(next))}

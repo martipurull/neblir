@@ -10,6 +10,7 @@ import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import { botOpenEndedStatLabel } from "@/app/lib/botFieldLabels";
 import {
   combatFieldTextFromStats,
   combatStatsFromFieldText,
@@ -250,7 +251,7 @@ function CreateCustomBotModalBody({
       </div>
       <ModalNumberField
         id="custom-bot-max-hp"
-        label="Max HP (1 or more)"
+        label={botOpenEndedStatLabel("maxHp")}
         value={maxHp}
         onChange={setMaxHp}
         disabled={busy}
@@ -268,7 +269,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-speed"
-        label="Speed (m, 0 or more)"
+        label={botOpenEndedStatLabel("speed")}
         value={speed}
         onChange={setSpeed}
         disabled={busy}
@@ -277,7 +278,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-max-carry"
-        label="Max carry (kg, 0 or more)"
+        label={botOpenEndedStatLabel("maxCarry")}
         value={maxCarryWeight}
         onChange={setMaxCarryWeight}
         disabled={busy}
@@ -287,7 +288,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-height"
-        label="Height (m, optional, 0 or more)"
+        label={botOpenEndedStatLabel("height")}
         value={heightMetres}
         onChange={setHeightMetres}
         disabled={busy}
@@ -299,7 +300,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-weight"
-        label="Weight (kg, optional, 0 or more)"
+        label={botOpenEndedStatLabel("weight")}
         value={weight}
         onChange={setWeight}
         disabled={busy}
@@ -311,7 +312,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-cargo"
-        label="Cargo max (kg, empty = no cap)"
+        label={botOpenEndedStatLabel("cargo")}
         value={maxCargoWeightKg}
         onChange={setMaxCargoWeightKg}
         disabled={busy}
@@ -322,7 +323,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-installed"
-        label="Installed max (empty = no cap)"
+        label={botOpenEndedStatLabel("installed")}
         value={maxInstalledItems}
         onChange={setMaxInstalledItems}
         disabled={busy}

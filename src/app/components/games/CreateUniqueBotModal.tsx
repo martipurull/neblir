@@ -16,6 +16,7 @@ import {
 } from "@/app/components/shared/SelectDropdown";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
+import { botOpenEndedStatLabel } from "@/app/lib/botFieldLabels";
 import {
   combatFieldTextFromOverrides,
   combatOverridesFromFieldText,
@@ -294,27 +295,14 @@ function CreateUniqueBotModalBody({
   };
 
   const nameLabel = isStandalone ? "Name" : "Name override";
-  const maxHpLabel = isStandalone
-    ? "Max HP (1 or more)"
-    : "Max HP override (1 or more)";
-  const speedLabel = isStandalone
-    ? "Speed (m, 0 or more)"
-    : "Speed override (m, 0 or more)";
-  const carryLabel = isStandalone
-    ? "Max carry (kg, 0 or more)"
-    : "Max carry override (kg, 0 or more)";
-  const heightLabel = isStandalone
-    ? "Height (m, optional, 0 or more)"
-    : "Height override (m, optional, 0 or more)";
-  const weightLabel = isStandalone
-    ? "Weight (kg, optional, 0 or more)"
-    : "Weight override (kg, optional, 0 or more)";
-  const cargoLabel = isStandalone
-    ? "Cargo max (kg, empty = no cap)"
-    : "Cargo max override (kg)";
-  const installedLabel = isStandalone
-    ? "Installed max (empty = no cap)"
-    : "Installed max override";
+  const override = !isStandalone;
+  const maxHpLabel = botOpenEndedStatLabel("maxHp", { override });
+  const speedLabel = botOpenEndedStatLabel("speed", { override });
+  const carryLabel = botOpenEndedStatLabel("maxCarry", { override });
+  const heightLabel = botOpenEndedStatLabel("height", { override });
+  const weightLabel = botOpenEndedStatLabel("weight", { override });
+  const cargoLabel = botOpenEndedStatLabel("cargo", { override });
+  const installedLabel = botOpenEndedStatLabel("installed", { override });
 
   return (
     <GameFormModal

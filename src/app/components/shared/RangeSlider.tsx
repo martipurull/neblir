@@ -4,7 +4,7 @@ import { Button } from "@/app/components/shared/Button";
 import { RequiredMark } from "@/app/components/shared/FieldLabel";
 import type { CSSProperties } from "react";
 
-export type RangeSliderSurface = "page" | "modal";
+type RangeSliderSurface = "page" | "modal";
 
 export type RangeSliderProps = {
   id: string;
@@ -19,7 +19,7 @@ export type RangeSliderProps = {
   /** Allowed range (enforced via clamping). */
   allowedMin?: number;
   allowedMax?: number;
-  /** Visual range for the slider track. Defaults to 1..5. */
+  /** Visual range for the slider track. Defaults to the allowed range. */
   visualMin?: number;
   visualMax?: number;
   /** Step for the slider. Defaults to 1. */
@@ -79,8 +79,8 @@ export function RangeSlider({
   surface = "page",
   allowedMin = 1,
   allowedMax = 5,
-  visualMin = 1,
-  visualMax = 5,
+  visualMin = allowedMin,
+  visualMax = allowedMax,
   step = 1,
   labelSuffix,
   showTicks = true,

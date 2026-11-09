@@ -18,6 +18,7 @@ import {
   type BotCombatStats,
   type BotCombatValue,
 } from "@/app/lib/botCombat";
+import { botOpenEndedStatLabel } from "@/app/lib/botFieldLabels";
 import {
   BOT_TEMPLATE_TRACK_FIELDS,
   DEFAULT_BOT_TRACK_STATS,
@@ -99,10 +100,6 @@ function OfficialBotRangeField({
           value={typeof field.value === "number" ? field.value : min}
           allowedMin={min}
           allowedMax={max}
-          visualMin={min}
-          visualMax={max}
-          step={1}
-          showTicks
           onChange={field.onChange}
         />
       )}
@@ -365,20 +362,20 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="maxHp"
-                label="Max HP (1 or more)"
+                label={botOpenEndedStatLabel("maxHp")}
                 min={1}
                 className="mb-0"
               />
               <NumberInput
                 name="speed"
-                label="Speed (m, 0 or more)"
+                label={botOpenEndedStatLabel("speed")}
                 min={0}
                 parseAs="int"
                 className="mb-0"
               />
               <NumberInput
                 name="maxCarryWeight"
-                label="Max carry (kg, 0 or more)"
+                label={botOpenEndedStatLabel("maxCarry")}
                 min={0}
                 step="any"
                 parseAs="float"
@@ -386,7 +383,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="heightMetres"
-                label="Height (m, optional, 0 or more)"
+                label={botOpenEndedStatLabel("height")}
                 min={0}
                 step="any"
                 parseAs="float"
@@ -395,7 +392,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="weight"
-                label="Weight (kg, optional, 0 or more)"
+                label={botOpenEndedStatLabel("weight")}
                 min={0}
                 step="any"
                 parseAs="float"
@@ -404,7 +401,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="maxCargoWeightKg"
-                label="Cargo max (kg, empty = no cap)"
+                label={botOpenEndedStatLabel("cargo")}
                 min={0}
                 step="any"
                 parseAs="float"
@@ -413,7 +410,7 @@ function SuperAdminBotFormFields({
               />
               <NumberInput
                 name="maxInstalledItems"
-                label="Installed max (empty = no cap)"
+                label={botOpenEndedStatLabel("installed")}
                 min={0}
                 parseAs="int"
                 allowEmpty
