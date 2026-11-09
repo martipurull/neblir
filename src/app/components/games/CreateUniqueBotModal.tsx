@@ -8,7 +8,6 @@ import { DarkBotCombatFields } from "@/app/components/games/DarkBotCombatFields"
 import { DarkBotTrackFields } from "@/app/components/games/DarkBotTrackFields";
 import { GameFormModal } from "@/app/components/games/shared/GameFormModal";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
 import {
@@ -340,9 +339,10 @@ function CreateUniqueBotModalBody({
         />
       ) : null}
       {!isEdit && !isStandalone ? (
-        <ModalSelect
+        <SelectDropdown
           id="unique-bot-template"
           label={sourceType === "OFFICIAL" ? "Official bot" : "Custom bot"}
+          surface="modal"
           placeholder={
             templates.length === 0 ? "No bots available" : "Select a bot"
           }

@@ -6,12 +6,12 @@ import type {
   ResolvedVehicle,
   UniqueVehicleListItem,
 } from "@/app/lib/types/vehicle";
-import {
-  ModalSelect,
-  type ModalSelectOption,
-} from "@/app/components/games/shared/ModalSelect";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { giveVehicleToCharacter } from "@/lib/api/game";
 import { fetchGameCustomVehicles } from "@/lib/api/customVehicles";
 import { getGameUniqueVehicles } from "@/lib/api/uniqueVehicles";
@@ -205,18 +205,18 @@ function GiveVehicleToCharacterModalBody({
     [c.character.name, c.character.surname].filter(Boolean).join(" ").trim() ||
     "Unnamed";
 
-  const characterOptions: ModalSelectOption[] = characters.map((gc) => ({
+  const characterOptions: SelectDropdownOption[] = characters.map((gc) => ({
     value: gc.character.id,
     label: characterDisplayName(gc),
   }));
 
-  const sourceTypeOptions: ModalSelectOption[] = [
+  const sourceTypeOptions: SelectDropdownOption<GiveVehicleSourceType>[] = [
     { value: "GLOBAL_VEHICLE", label: "Official vehicle" },
     { value: "CUSTOM_VEHICLE", label: "Custom vehicle" },
     { value: "UNIQUE_VEHICLE", label: "Unique vehicle" },
   ];
 
-  const selectVehicleOptions: ModalSelectOption[] = vehicleOptions.map(
+  const selectVehicleOptions: SelectDropdownOption[] = vehicleOptions.map(
     (option) => ({
       value: option.vehicleId,
       label: option.label,
@@ -300,9 +300,10 @@ function GiveVehicleToCharacterModalBody({
         onSubmit={(e) => void handleSubmit(e)}
         className="space-y-4"
       >
-        <ModalSelect
+        <SelectDropdown
           id="give-vehicle-character"
           label="Character"
+          surface="modal"
           placeholder={
             characters.length === 0
               ? "No characters in game"
@@ -325,22 +326,24 @@ function GiveVehicleToCharacterModalBody({
           </div>
         ) : (
           <>
-            <ModalSelect
+            <SelectDropdown
               id="give-vehicle-source"
               label="Vehicle type"
+              surface="modal"
               placeholder="Vehicle type"
               value={sourceType}
               options={sourceTypeOptions}
               disabled={submitting}
               onChange={(value) => {
-                setSourceType(value as GiveVehicleSourceType);
+                setSourceType(value);
                 setVehicleId("");
               }}
             />
 
-            <ModalSelect
+            <SelectDropdown
               id="give-vehicle-vehicle"
               label="Vehicle"
+              surface="modal"
               placeholder={vehicleSelectPlaceholder}
               value={vehicleId}
               options={selectVehicleOptions}

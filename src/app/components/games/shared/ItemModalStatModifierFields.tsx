@@ -4,7 +4,7 @@ import {
 } from "@/app/(pages)/home/characters/[id]/level-up/constants";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 
 const noneSelectOption = { value: "", label: "None" };
 
@@ -60,9 +60,10 @@ export function ItemModalStatModifierFields({
       <p className="-mt-1 text-xs text-white/55">
         Positive integer only. Leave blank for unlimited charges.
       </p>
-      <ModalSelect
+      <SelectDropdown
         id={`${fieldIdPrefix}-modifies-attribute`}
         label="Modifies attribute (optional)"
+        surface="modal"
         placeholder="Attribute"
         value={modifiesAttribute}
         options={attributePathOptions}
@@ -78,9 +79,10 @@ export function ItemModalStatModifierFields({
         required={false}
         placeholder="e.g. 1 or −1"
       />
-      <ModalSelect
+      <SelectDropdown
         id={`${fieldIdPrefix}-modifies-skill`}
         label="Modifies general skill (optional)"
+        surface="modal"
         placeholder="Skill"
         value={modifiesSkill}
         options={generalSkillOptions}

@@ -2,16 +2,16 @@
 
 import type { GameDetail } from "@/app/lib/types/game";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import {
-  ModalSelect,
-  type ModalSelectOption,
-} from "@/app/components/games/shared/ModalSelect";
 import { giveItemToCharacter } from "@/lib/api/game";
 import type { ItemWithId } from "@/lib/api/items";
 import { getItems } from "@/lib/api/items";
 import { getGameUniqueItems } from "@/lib/api/uniqueItems";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
 import { useCallback, useEffect, useState } from "react";
 
@@ -23,14 +23,16 @@ function parseGiveQuantity(raw: string): number {
   return Math.min(n, MAX_GIVE_QUANTITY);
 }
 
+type GiveItemSourceType = "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
+
 export type GiveItemOption = {
-  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
+  sourceType: GiveItemSourceType;
   itemId: string;
   label: string;
 };
 
 type GiveItemLockedItem = {
-  sourceType: "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM";
+  sourceType: GiveItemSourceType;
   itemId: string;
   itemName: string;
 };
@@ -60,9 +62,8 @@ export function GiveItemToCharacterModal({
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingUniqueItems, setLoadingUniqueItems] = useState(false);
   const [characterId, setCharacterId] = useState("");
-  const [sourceType, setSourceType] = useState<
-    "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM"
-  >("GLOBAL_ITEM");
+  const [sourceType, setSourceType] =
+    useState<GiveItemSourceType>("GLOBAL_ITEM");
   const [itemId, setItemId] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [submitting, setSubmitting] = useState(false);
@@ -187,18 +188,18 @@ export function GiveItemToCharacterModal({
     [c.character.name, c.character.surname].filter(Boolean).join(" ").trim() ||
     "Unnamed";
 
-  const characterOptions: ModalSelectOption[] = characters.map((gc) => ({
+  const characterOptions: SelectDropdownOption[] = characters.map((gc) => ({
     value: gc.character.id,
     label: characterDisplayName(gc),
   }));
 
-  const sourceTypeOptions: ModalSelectOption[] = [
+  const sourceTypeOptions: SelectDropdownOption<GiveItemSourceType>[] = [
     { value: "GLOBAL_ITEM", label: "Global item" },
     { value: "CUSTOM_ITEM", label: "Custom item" },
     { value: "UNIQUE_ITEM", label: "Unique item" },
   ];
 
-  const selectItemOptions: ModalSelectOption[] = itemOptions.map((o) => ({
+  const selectItemOptions: SelectDropdownOption[] = itemOptions.map((o) => ({
     value: o.itemId,
     label: o.label,
   }));
@@ -275,9 +276,10 @@ export function GiveItemToCharacterModal({
         onSubmit={(e) => void handleSubmit(e)}
         className="space-y-4"
       >
-        <ModalSelect
+        <SelectDropdown
           id="give-item-character"
           label="Character"
+          surface="modal"
           placeholder={
             characters.length === 0
               ? "No characters in game"
@@ -300,23 +302,21 @@ export function GiveItemToCharacterModal({
           </div>
         ) : (
           <>
-            <ModalSelect
+            <SelectDropdown
               id="give-item-source"
               label="Item type"
+              surface="modal"
               placeholder="Item type"
               value={sourceType}
               options={sourceTypeOptions}
               disabled={submitting}
-              onChange={(v) =>
-                setSourceType(
-                  v as "GLOBAL_ITEM" | "CUSTOM_ITEM" | "UNIQUE_ITEM"
-                )
-              }
+              onChange={setSourceType}
             />
 
-            <ModalSelect
+            <SelectDropdown
               id="give-item-item"
               label="Item"
+              surface="modal"
               placeholder={itemSelectPlaceholder}
               value={itemId}
               options={selectItemOptions}

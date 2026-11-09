@@ -3,16 +3,16 @@
 import { Button } from "@/app/components/shared/Button";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import {
-  ModalSelect,
-  type ModalSelectOption,
-} from "@/app/components/games/shared/ModalSelect";
 import { RichTextField } from "@/app/components/shared/RichTextField";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { TextField } from "@/app/components/shared/TextField";
 import type { CustomEnemyActionDraft } from "@/app/components/games/useCreateCustomEnemyModal";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 
-const DAMAGE_TYPE_OPTIONS: ModalSelectOption[] = [
+const DAMAGE_TYPE_OPTIONS: SelectDropdownOption[] = [
   { value: "", label: "None" },
   ...weaponDamageTypeSchema.options.map((v) => ({
     value: v,
@@ -164,9 +164,10 @@ export function CustomEnemyActionListEditor({
                       step={1}
                     />
                   </div>
-                  <ModalSelect
+                  <SelectDropdown
                     id={`${prefix}-damage`}
                     label="Damage type"
+                    surface="modal"
                     placeholder="None"
                     value={row.damageType}
                     options={DAMAGE_TYPE_OPTIONS}

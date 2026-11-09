@@ -5,7 +5,7 @@ import {
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
-import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import { RadioGroup } from "@/app/components/shared/RadioGroup";
 
 const noneSelectOption = { value: "", label: "None" };
@@ -92,9 +92,10 @@ export function UniqueItemStatModifierOverrideFields({
           Positive integer only. Leave blank for unlimited charges.
         </p>
       )}
-      <ModalSelect
+      <SelectDropdown
         id="unique-modifies-attribute-override"
         label={attributeLabel}
+        surface="modal"
         placeholder={attributePlaceholder}
         value={modifiesAttributeOverride}
         options={attributePathOptions}
@@ -110,9 +111,10 @@ export function UniqueItemStatModifierOverrideFields({
         required={false}
         placeholder="e.g. 1 or −1"
       />
-      <ModalSelect
+      <SelectDropdown
         id="unique-modifies-skill-override"
         label={skillLabel}
+        surface="modal"
         placeholder={skillPlaceholder}
         value={modifiesSkillOverride}
         options={generalSkillOptions}

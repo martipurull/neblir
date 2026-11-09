@@ -1,8 +1,11 @@
 "use client";
 
-import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
 import { Button } from "@/app/components/shared/Button";
 import { ModalShell } from "@/app/components/shared/ModalShell";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import type { GameDetail } from "@/app/lib/types/game";
 import type { BotSourceType } from "@/app/lib/types/bot";
 import { fetchGameCustomBots } from "@/lib/api/customBots";
@@ -21,6 +24,12 @@ type GiveBotToCharacterModalProps = {
 };
 
 type BotOption = { id: string; label: string };
+
+const GIVE_BOT_SOURCE_OPTIONS: SelectDropdownOption<BotSourceType>[] = [
+  { value: "OFFICIAL", label: "Official bot" },
+  { value: "CUSTOM", label: "Custom bot" },
+  { value: "UNIQUE", label: "Unique bot" },
+];
 
 export function GiveBotToCharacterModal(props: GiveBotToCharacterModalProps) {
   if (!props.isOpen) return null;
@@ -149,9 +158,10 @@ function GiveBotToCharacterModalBody({
         }}
         className="space-y-4"
       >
-        <ModalSelect
+        <SelectDropdown
           id="give-bot-character"
           label="Character"
+          surface="modal"
           placeholder={
             characters.length === 0
               ? "No characters in game"
@@ -169,25 +179,23 @@ function GiveBotToCharacterModalBody({
           disabled={submitting || characters.length === 0}
           onChange={setCharacterId}
         />
-        <ModalSelect
+        <SelectDropdown
           id="give-bot-source"
           label="Bot type"
+          surface="modal"
           placeholder="Bot type"
           value={sourceType}
-          options={[
-            { value: "OFFICIAL", label: "Official bot" },
-            { value: "CUSTOM", label: "Custom bot" },
-            { value: "UNIQUE", label: "Unique bot" },
-          ]}
+          options={GIVE_BOT_SOURCE_OPTIONS}
           disabled={submitting}
           onChange={(value) => {
-            setSourceType(value as BotSourceType);
+            setSourceType(value);
             setBotId("");
           }}
         />
-        <ModalSelect
+        <SelectDropdown
           id="give-bot-bot"
           label="Bot"
+          surface="modal"
           placeholder={
             loading
               ? "Loading…"

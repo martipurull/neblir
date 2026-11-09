@@ -3,7 +3,7 @@
 import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { ModalShell } from "@/app/components/shared/ModalShell";
-import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { CatalogueSyncApplyResult } from "@/app/lib/catalogueSyncApply";
 import type {
   CatalogueSyncDestOnlyDeleteCounts,
@@ -194,9 +194,10 @@ export function SuperAdminCatalogueSyncModal({
         }
       >
         <div className="space-y-4">
-          <ModalSelect
+          <SelectDropdown
             id="catalogue-sync-source"
             label="Source"
+            surface="modal"
             placeholder="Select source"
             value={source}
             options={sourceOptions}
@@ -205,9 +206,10 @@ export function SuperAdminCatalogueSyncModal({
               clearPairing();
             }}
           />
-          <ModalSelect
+          <SelectDropdown
             id="catalogue-sync-dest"
             label="Destination"
+            surface="modal"
             placeholder="Select destination"
             value={dest}
             options={destOptions}
