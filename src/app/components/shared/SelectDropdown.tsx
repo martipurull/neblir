@@ -11,8 +11,8 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type SelectDropdownOption = {
-  value: string;
+export type SelectDropdownOption<T extends string = string> = {
+  value: T;
   label: string;
   /** When true, option is visible but not selectable. */
   disabled?: boolean;
@@ -22,32 +22,34 @@ export type SelectDropdownOption = {
 
 export type SelectDropdownSurface = "page" | "modal";
 
-export type SelectDropdownProps = {
+export type SelectDropdownProps<T extends string = string> = {
   id: string;
   label: string;
   /** When false, label is visually hidden but kept for accessibility (paired with an external heading). */
   showLabel?: boolean;
   /**
    * `page` is the pale field and the default. `modal` is the menu on a modal
-   * shell. Both follow the document Theme. Callers do not pass a Theme.
+   * shell. Both follow the document Theme. Callers pass a surface, not a Theme.
    */
   surface?: SelectDropdownSurface;
+  /** Modal surface only. Shows the red required asterisk on the menu label. */
+  required?: boolean;
   placeholder: string;
-  value: string;
-  options: SelectDropdownOption[];
+  value: T;
+  options: SelectDropdownOption<T>[];
   disabled?: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: T) => void;
   /**
    * When set (including `""`), the option with this `value` is listed first;
    * remaining options are sorted by label.
    */
-  pinValueFirst?: string;
+  pinValueFirst?: T;
   /**
    * Extra control per option (e.g. info button). Receives `closeMenu` so the parent can dismiss the list first.
    * Clicks on the suffix do not select the option.
    */
   renderOptionSuffix?: (
-    option: SelectDropdownOption,
+    option: SelectDropdownOption<T>,
     closeMenu: () => void
   ) => ReactNode;
   /** Max height of the options list (scrolls inside). Taller values help in modals with long option sets. */
@@ -60,6 +62,34 @@ export type SelectDropdownProps = {
   /** Fires when the list opens or closes. */
   onOpenChange?: (open: boolean) => void;
 };
+
+/** Room the open list wants before it should flip above the field. */
+const MENU_PREFERRED_HEIGHT = 240;
+
+function clippingBoundary(anchor: HTMLElement): DOMRect {
+  let parent = anchor.parentElement;
+  while (parent) {
+    const { overflowY } = getComputedStyle(parent);
+    if (
+      overflowY === "auto" ||
+      overflowY === "hidden" ||
+      overflowY === "scroll"
+    ) {
+      return parent.getBoundingClientRect();
+    }
+    parent = parent.parentElement;
+  }
+  return new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+function menuOpensUp(anchor: HTMLElement): boolean {
+  const rect = anchor.getBoundingClientRect();
+  const boundary = clippingBoundary(anchor);
+  const spaceBelow = boundary.bottom - rect.bottom;
+  const spaceAbove = rect.top - boundary.top;
+  if (spaceBelow >= MENU_PREFERRED_HEIGHT) return false;
+  return spaceAbove > spaceBelow;
+}
 
 function selectOptionClassName(
   surface: SelectDropdownSurface,
@@ -91,11 +121,12 @@ function selectOptionClassName(
   return `${layout} cursor-pointer text-white hover:bg-paleBlue/20 ${selected} ${highlighted}`;
 }
 
-export function SelectDropdown({
+export function SelectDropdown<T extends string>({
   id,
   label,
   showLabel = true,
   surface = "page",
+  required = false,
   placeholder,
   value,
   options,
@@ -106,8 +137,9 @@ export function SelectDropdown({
   menuMaxHeightClass = "max-h-44",
   sortOptions = true,
   onOpenChange,
-}: SelectDropdownProps) {
+}: SelectDropdownProps<T>) {
   const [open, setOpen] = useState(false);
+  const [opensUp, setOpensUp] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   /** Index into `filteredOptions`; -1 = no row highlighted (focus stays in filter input). */
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -193,6 +225,12 @@ export function SelectDropdown({
     [onOpenChange]
   );
 
+  const openMenu = () => {
+    const anchor = containerRef.current;
+    if (anchor) setOpensUp(menuOpensUp(anchor));
+    updateOpen(true);
+  };
+
   useEffect(() => {
     if (!open || highlightedIndex < 0) return;
     const el = document.getElementById(`${id}-option-${highlightedIndex}`);
@@ -213,7 +251,7 @@ export function SelectDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, updateOpen]);
 
-  const handleSelect = (opt: SelectDropdownOption) => {
+  const handleSelect = (opt: SelectDropdownOption<T>) => {
     updateOpen(false);
     onChange(opt.value);
   };
@@ -270,6 +308,11 @@ export function SelectDropdown({
     <div ref={containerRef} className="relative">
       <label htmlFor={id} className={labelClassName}>
         {label}
+        {required && modalSurface ? (
+          <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
+            *
+          </span>
+        ) : null}
       </label>
       <Button
         id={id}
@@ -279,7 +322,8 @@ export function SelectDropdown({
         disabled={disabled}
         onClick={() => {
           if (disabled) return;
-          updateOpen(!open);
+          if (open) updateOpen(false);
+          else openMenu();
         }}
         className={triggerClassName}
         aria-haspopup="listbox"
@@ -302,11 +346,13 @@ export function SelectDropdown({
       </Button>
       {open && (
         <div
-          className={
+          className={[
+            "absolute z-10 w-full overflow-hidden shadow-lg",
+            opensUp ? "bottom-full mb-1" : "mt-1",
             modalSurface
-              ? "absolute z-10 mt-1 w-full overflow-hidden rounded border-2 border-white/50 bg-modalBackground-200 shadow-lg"
-              : "absolute z-10 mt-1 w-full overflow-hidden rounded-md border-2 border-black/30 bg-paleBlue shadow-lg"
-          }
+              ? "rounded border-2 border-white/50 bg-modalBackground-200"
+              : "rounded-md border-2 border-black/30 bg-paleBlue",
+          ].join(" ")}
         >
           <div
             className={

@@ -4,7 +4,10 @@ import { Button } from "@/app/components/shared/Button";
 import { Checkbox } from "@/app/components/shared/Checkbox";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { NumberField } from "@/app/components/shared/NumberField";
-import { SelectField } from "@/app/components/shared/SelectField";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import {
@@ -12,19 +15,23 @@ import {
   type BotAction,
   type BotActionAttribute,
 } from "@/app/lib/types/botAction";
-import { weaponDamageTypeSchema } from "@/app/lib/types/weaponDamage";
+import {
+  weaponDamageTypeSchema,
+  type WeaponDamageType,
+} from "@/app/lib/types/weaponDamage";
 
-const ATTRIBUTE_OPTIONS = [
+const ATTRIBUTE_OPTIONS: SelectDropdownOption<"" | BotActionAttribute>[] = [
   { value: "", label: "None" },
   { value: "processingPower", label: "Processing Power" },
   { value: "physicalPower", label: "Physical Power" },
   { value: "finesseCapacity", label: "Finesse Capacity" },
-] as const;
+];
 
-const DAMAGE_TYPE_OPTIONS = weaponDamageTypeSchema.options.map((value) => ({
-  value,
-  label: value.replace(/_/g, " "),
-}));
+const DAMAGE_TYPE_OPTIONS: SelectDropdownOption<WeaponDamageType>[] =
+  weaponDamageTypeSchema.options.map((value) => ({
+    value,
+    label: value.replace(/_/g, " "),
+  }));
 
 function emptyAction(): BotAction {
   return {
@@ -42,7 +49,9 @@ function wholeNumber(value: string): number {
   return Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
 }
 
-function attributeValue(attribute: BotActionAttribute | null): string {
+function attributeValue(
+  attribute: BotActionAttribute | null
+): "" | BotActionAttribute {
   return attribute ?? "";
 }
 
@@ -66,6 +75,7 @@ export function BotActionListEditor({
   disabled = false,
 }: BotActionListEditorProps) {
   const dark = variant === "dark";
+  const surface = dark ? "modal" : "page";
   const headingClass = dark
     ? "text-sm font-semibold text-white/90"
     : "text-sm font-semibold text-black";
@@ -205,30 +215,26 @@ export function BotActionListEditor({
                       }
                     />
                   </div>
-                  <div>
-                    <FieldLabel
-                      id={`${prefix}-attribute`}
-                      label="Attribute"
-                      variant={variant}
-                    />
-                    <SelectField
-                      id={`${prefix}-attribute`}
-                      variant={variant}
-                      value={attributeValue(action.attribute)}
-                      disabled={disabled}
-                      options={ATTRIBUTE_OPTIONS}
-                      onChange={(next) =>
-                        update(index, {
-                          ...action,
-                          attribute: BOT_ACTION_ATTRIBUTES.includes(
-                            next as BotActionAttribute
-                          )
-                            ? (next as BotActionAttribute)
-                            : null,
-                        })
-                      }
-                    />
-                  </div>
+                  <SelectDropdown
+                    id={`${prefix}-attribute`}
+                    label="Attribute"
+                    surface={surface}
+                    placeholder="Select an attribute"
+                    value={attributeValue(action.attribute)}
+                    disabled={disabled}
+                    sortOptions={false}
+                    options={ATTRIBUTE_OPTIONS}
+                    onChange={(next) =>
+                      update(index, {
+                        ...action,
+                        attribute: BOT_ACTION_ATTRIBUTES.includes(
+                          next as BotActionAttribute
+                        )
+                          ? (next as BotActionAttribute)
+                          : null,
+                      })
+                    }
+                  />
                   <Checkbox
                     checked={damage != null}
                     disabled={disabled}
@@ -296,56 +302,48 @@ export function BotActionListEditor({
                           }
                         />
                       </div>
-                      <div>
-                        <FieldLabel
-                          id={`${prefix}-damage-kind`}
-                          label="Damage type"
-                          variant={variant}
-                        />
-                        <SelectField
-                          id={`${prefix}-damage-kind`}
-                          variant={variant}
-                          value={damage.damageType}
-                          disabled={disabled}
-                          options={DAMAGE_TYPE_OPTIONS}
-                          onChange={(next) =>
-                            update(index, {
-                              ...action,
-                              damage: {
-                                ...damage,
-                                damageType: weaponDamageTypeSchema.parse(next),
-                              },
-                            })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel
-                          id={`${prefix}-damage-attribute`}
-                          label="Damage attribute"
-                          variant={variant}
-                        />
-                        <SelectField
-                          id={`${prefix}-damage-attribute`}
-                          variant={variant}
-                          value={attributeValue(damage.attribute)}
-                          disabled={disabled}
-                          options={ATTRIBUTE_OPTIONS}
-                          onChange={(next) =>
-                            update(index, {
-                              ...action,
-                              damage: {
-                                ...damage,
-                                attribute: BOT_ACTION_ATTRIBUTES.includes(
-                                  next as BotActionAttribute
-                                )
-                                  ? (next as BotActionAttribute)
-                                  : null,
-                              },
-                            })
-                          }
-                        />
-                      </div>
+                      <SelectDropdown
+                        id={`${prefix}-damage-kind`}
+                        label="Damage type"
+                        surface={surface}
+                        placeholder="Select a damage type"
+                        value={damage.damageType}
+                        disabled={disabled}
+                        sortOptions={false}
+                        options={DAMAGE_TYPE_OPTIONS}
+                        onChange={(next) =>
+                          update(index, {
+                            ...action,
+                            damage: {
+                              ...damage,
+                              damageType: weaponDamageTypeSchema.parse(next),
+                            },
+                          })
+                        }
+                      />
+                      <SelectDropdown
+                        id={`${prefix}-damage-attribute`}
+                        label="Damage attribute"
+                        surface={surface}
+                        placeholder="Select an attribute"
+                        value={attributeValue(damage.attribute)}
+                        disabled={disabled}
+                        sortOptions={false}
+                        options={ATTRIBUTE_OPTIONS}
+                        onChange={(next) =>
+                          update(index, {
+                            ...action,
+                            damage: {
+                              ...damage,
+                              attribute: BOT_ACTION_ATTRIBUTES.includes(
+                                next as BotActionAttribute
+                              )
+                                ? (next as BotActionAttribute)
+                                : null,
+                            },
+                          })
+                        }
+                      />
                     </div>
                   ) : null}
                 </div>

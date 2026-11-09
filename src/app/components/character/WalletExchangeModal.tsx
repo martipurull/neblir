@@ -1,9 +1,8 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
-import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { NumberField } from "@/app/components/shared/NumberField";
-import { SelectField } from "@/app/components/shared/SelectField";
+import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
 import type { CurrencyExchangeQuote } from "@/app/lib/types/item";
 import { useAutoFocusInput } from "@/hooks/use-auto-focus-input";
 import { getUserSafeErrorMessage } from "@/lib/userSafeError";
@@ -141,16 +140,14 @@ export function WalletExchangeModal({
         <p className="mt-2 text-sm text-white/80">{sourceName}</p>
 
         <div className="mt-4">
-          <FieldLabel
+          <SelectDropdown
             id="wallet-exchange-destination"
             label="Destination"
+            surface="modal"
             required
-            variant="dark"
-          />
-          <SelectField
-            id="wallet-exchange-destination"
-            variant="dark"
+            placeholder="Select a destination"
             value={destinationId}
+            sortOptions={false}
             onChange={(value) => {
               setDestinationId(value);
               setError(null);
