@@ -2,7 +2,7 @@ import { z } from "zod";
 import { weaponDamageTypeSchema } from "@/app/lib/types/weaponDamage";
 
 /** Attributes a bot action or its damage block may add. Grid Protection is not one. */
-export const BOT_ACTION_ATTRIBUTES = [
+const BOT_ACTION_ATTRIBUTES = [
   "processingPower",
   "physicalPower",
   "finesseCapacity",

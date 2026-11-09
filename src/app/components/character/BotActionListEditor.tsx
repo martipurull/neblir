@@ -10,11 +10,7 @@ import {
 } from "@/app/components/shared/SelectDropdown";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
-import {
-  BOT_ACTION_ATTRIBUTES,
-  type BotAction,
-  type BotActionAttribute,
-} from "@/app/lib/types/botAction";
+import type { BotAction, BotActionAttribute } from "@/app/lib/types/botAction";
 import {
   weaponDamageTypeSchema,
   type WeaponDamageType,
@@ -53,6 +49,12 @@ function attributeValue(
   attribute: BotActionAttribute | null
 ): "" | BotActionAttribute {
   return attribute ?? "";
+}
+
+function attributeOrNull(
+  value: "" | BotActionAttribute
+): BotActionAttribute | null {
+  return value === "" ? null : value;
 }
 
 type BotActionListEditorProps = {
@@ -227,11 +229,7 @@ export function BotActionListEditor({
                     onChange={(next) =>
                       update(index, {
                         ...action,
-                        attribute: BOT_ACTION_ATTRIBUTES.includes(
-                          next as BotActionAttribute
-                        )
-                          ? (next as BotActionAttribute)
-                          : null,
+                        attribute: attributeOrNull(next),
                       })
                     }
                   />
@@ -335,11 +333,7 @@ export function BotActionListEditor({
                             ...action,
                             damage: {
                               ...damage,
-                              attribute: BOT_ACTION_ATTRIBUTES.includes(
-                                next as BotActionAttribute
-                              )
-                                ? (next as BotActionAttribute)
-                                : null,
+                              attribute: attributeOrNull(next),
                             },
                           })
                         }

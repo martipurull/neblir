@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/shared/Button";
+import { RequiredMark } from "@/app/components/shared/FieldLabel";
 import { TextField } from "@/app/components/shared/TextField";
 import React, {
   useCallback,
@@ -308,11 +309,7 @@ export function SelectDropdown<T extends string>({
     <div ref={containerRef} className="relative">
       <label htmlFor={id} className={labelClassName}>
         {label}
-        {required && modalSurface ? (
-          <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
-            *
-          </span>
-        ) : null}
+        {required && modalSurface ? <RequiredMark /> : null}
       </label>
       <Button
         id={id}

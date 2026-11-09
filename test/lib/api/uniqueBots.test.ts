@@ -71,7 +71,63 @@ describe("createUniqueBot", () => {
   });
 });
 
+const attributeFigure = {
+  base: 0,
+  maxPotential: 0,
+  upgrade: 0,
+  effective: 0,
+  signedUpgrade: null,
+};
+
+const holding = {
+  id: "hold-1",
+  characterId: "character-1",
+  botId: "bot-1",
+  displayName: "Mule",
+  currentHp: 8,
+  maxHpBonus: 0,
+  effectiveMaxHp: 8,
+  condition: "OPERATIONAL" as const,
+  damageProfile: [],
+  bot: null,
+  attributes: {
+    processingPower: attributeFigure,
+    physicalPower: attributeFigure,
+    finesseCapacity: attributeFigure,
+    gridProtection: attributeFigure,
+  },
+  battery: {
+    base: 1,
+    maxPotential: 0,
+    upgrade: 0,
+    effectiveCapacity: 1,
+    signedUpgrade: null,
+    used: 0,
+    remaining: 1,
+  },
+  isBeyondRepair: false,
+  mayRoll: true,
+  rollBlockedReason: null,
+};
+
 describe("mintUniqueBotForCharacter", () => {
+  it("returns the created holding from a well-formed body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse(holding, 201))
+    );
+    const created = await mintUniqueBotForCharacter("character-1", {
+      gameId: "game-1",
+      sourceType: "STANDALONE",
+      nameOverride: "Mule",
+      maxHpOverride: 8,
+    });
+    expect(created.id).toBe("hold-1");
+    expect(created.displayName).toBe("Mule");
+    expect(created.characterId).toBe("character-1");
+    expect(created.sourceType).toBe("OFFICIAL");
+  });
+
   it("falls back to Failed to create unique bot when the server fails", async () => {
     vi.stubGlobal(
       "fetch",

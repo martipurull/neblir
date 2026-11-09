@@ -11,7 +11,10 @@ import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField
 import { ModalSelect } from "@/app/components/games/shared/ModalSelect";
 import { FieldLabel } from "@/app/components/shared/FieldLabel";
 import { ImageUploadDropzone } from "@/app/components/shared/ImageUploadDropzone";
-import { SelectDropdown } from "@/app/components/shared/SelectDropdown";
+import {
+  SelectDropdown,
+  type SelectDropdownOption,
+} from "@/app/components/shared/SelectDropdown";
 import { TextArea } from "@/app/components/shared/TextArea";
 import { TextField } from "@/app/components/shared/TextField";
 import {
@@ -56,6 +59,13 @@ type CreateUniqueBotModalProps = {
 };
 
 type TemplateOption = { id: string; name: string };
+
+const UNIQUE_BOT_SOURCE_OPTIONS: SelectDropdownOption<BotTemplateSourceType>[] =
+  [
+    { value: "STANDALONE", label: "Standalone" },
+    { value: "OFFICIAL", label: "Official bot" },
+    { value: "CUSTOM", label: "Custom bot" },
+  ];
 
 function optionalText(value: string): string | null {
   const trimmed = value.trim();
@@ -310,23 +320,13 @@ function CreateUniqueBotModalBody({
           id="unique-bot-source"
           label="Source"
           surface="modal"
+          required
           placeholder="Select a source"
           value={sourceType}
           sortOptions={false}
           disabled={busy}
-          options={[
-            { value: "STANDALONE", label: "Standalone" },
-            { value: "OFFICIAL", label: "Official bot" },
-            { value: "CUSTOM", label: "Custom bot" },
-          ]}
+          options={UNIQUE_BOT_SOURCE_OPTIONS}
           onChange={(value) => {
-            if (
-              value !== "STANDALONE" &&
-              value !== "OFFICIAL" &&
-              value !== "CUSTOM"
-            ) {
-              return;
-            }
             setSourceType(value);
             setBotId("");
             if (value === "STANDALONE") {

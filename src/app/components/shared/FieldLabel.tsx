@@ -21,6 +21,14 @@ type FieldLabelProps = {
   variant?: "light" | "dark";
 };
 
+export function RequiredMark() {
+  return (
+    <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
+      *
+    </span>
+  );
+}
+
 export function FieldLabel({
   id,
   label,
@@ -41,9 +49,7 @@ export function FieldLabel({
       <>
         {label}
         {required ? (
-          <span className="ml-1 text-neblirDanger-400" aria-hidden="true">
-            *
-          </span>
+          <RequiredMark />
         ) : (
           <span className="ml-1 text-white/50">(optional)</span>
         )}

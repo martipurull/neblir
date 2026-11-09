@@ -243,27 +243,31 @@ A bot holding's derived readiness: Operational, Broken, or Beyond repair. Beyond
 _Avoid_: Status, Functional
 
 **Upgrade**:
-The integer on a bot holding for one track, from −5 up to that track's max potential. The effective value is the track's base plus this upgrade.
+The integer on a bot holding for one track, from −5 up to that track's Upgrade potential. The effective value is the track's base plus this upgrade.
 _Avoid_: fill, damage (when meaning a negative upgrade)
 
+**Upgrade potential**:
+The ceiling on a bot track's Upgrade, an integer from 0 to +5, authored on the template. A unique bot may override it.
+_Avoid_: max potential
+
 **Processing Power**:
-A bot attribute. Its base is an integer from −5 to +5, and its max potential is an integer from 0 to +5.
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
 _Avoid_: intelligence, Grid Protection
 
 **Physical Power**:
-A bot attribute. Its base is an integer from −5 to +5, and its max potential is an integer from 0 to +5.
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
 _Avoid_: strength, brute force
 
 **Finesse Capacity**:
-A bot attribute. Its base is an integer from −5 to +5, and its max potential is an integer from 0 to +5.
+A bot attribute. Its base is an integer from −5 to +5, and its Upgrade potential is an integer from 0 to +5.
 _Avoid_: dexterity, agility
 
 **Grid Protection**:
-A bot attribute with the same base and max potential as Processing Power. It is not a bot-action attribute, and it is not part of initiative.
+A bot attribute with the same base and Upgrade potential as Processing Power. It is not a bot-action attribute, and it is not part of initiative.
 _Avoid_: GRID skill, GRID defence (the character roll)
 
 **Battery**:
-A bot capacity. Its base is an integer from 1 to 10, and its max potential is an integer from 0 to +5. Effective capacity is the base plus the battery upgrade, and it cannot fall below 0.
+A bot capacity. Its base is an integer from 1 to 10, and its Upgrade potential is an integer from 0 to +5. Effective capacity is the base plus the battery upgrade, and it cannot fall below 0.
 _Avoid_: ammunition, Phase
 
 **Bot reaction cap**:
