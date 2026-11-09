@@ -96,7 +96,7 @@ export type AppButtonVariant =
   | "surfaceInherit"
   /** Light-UI combobox trigger ({@link SelectDropdown}). */
   | "selectTriggerLight"
-  /** Modal-shell combobox trigger ({@link SelectDropdown} `surface="modal"`, {@link ModalSelect}). */
+  /** Modal-shell combobox trigger ({@link SelectDropdown} `surface="modal"`). */
   | "selectTriggerModal"
   | "stepperDotComplete"
   | "stepperDotCurrent"

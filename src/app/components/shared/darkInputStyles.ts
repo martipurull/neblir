@@ -16,7 +16,7 @@ export const darkNumberFieldShellClass =
 export const darkNumberFieldInnerClass =
   "min-h-[2.75rem] w-full flex-1 appearance-none border-0 bg-transparent px-3 py-2 pr-9 text-sm text-white outline-none placeholder:text-white/40 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
-/** Compact filter input inside dark `ModalSelect` menus. */
+/** Compact filter input inside `SelectDropdown` on the modal surface. */
 export const darkTextFieldCompactClassName =
   "w-full rounded border border-white/40 bg-paleBlue/10 px-2 py-1.5 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-1 focus:ring-white";
 
