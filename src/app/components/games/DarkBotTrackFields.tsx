@@ -1,6 +1,6 @@
 "use client";
 
-import { ModalNumberField } from "@/app/components/games/shared/ModalNumberField";
+import { BotModalRangeField } from "@/app/components/games/BotModalRangeField";
 import {
   BOT_TEMPLATE_TRACK_FIELDS,
   type BotTrackStatKey,
@@ -22,19 +22,18 @@ export function DarkBotTrackFields({
   required: boolean;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="flex flex-col gap-3">
       {BOT_TEMPLATE_TRACK_FIELDS.map((field) => (
-        <ModalNumberField
+        <BotModalRangeField
           key={field.key}
           id={`${idPrefix}-${field.key}`}
           label={labelFor(field.label)}
           value={values[field.key]}
           onChange={(value) => onChange(field.key, value)}
           disabled={disabled}
-          required={required}
+          allowBlank={!required}
           min={field.min}
           max={field.max}
-          step={1}
         />
       ))}
     </div>

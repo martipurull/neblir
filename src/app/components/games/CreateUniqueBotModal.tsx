@@ -294,7 +294,27 @@ function CreateUniqueBotModalBody({
   };
 
   const nameLabel = isStandalone ? "Name" : "Name override";
-  const maxHpLabel = isStandalone ? "Max HP" : "Max HP override";
+  const maxHpLabel = isStandalone
+    ? "Max HP (1 or more)"
+    : "Max HP override (1 or more)";
+  const speedLabel = isStandalone
+    ? "Speed (m, 0 or more)"
+    : "Speed override (m, 0 or more)";
+  const carryLabel = isStandalone
+    ? "Max carry (kg, 0 or more)"
+    : "Max carry override (kg, 0 or more)";
+  const heightLabel = isStandalone
+    ? "Height (m, optional, 0 or more)"
+    : "Height override (m, optional, 0 or more)";
+  const weightLabel = isStandalone
+    ? "Weight (kg, optional, 0 or more)"
+    : "Weight override (kg, optional, 0 or more)";
+  const cargoLabel = isStandalone
+    ? "Cargo max (kg, empty = no cap)"
+    : "Cargo max override (kg)";
+  const installedLabel = isStandalone
+    ? "Installed max (empty = no cap)"
+    : "Installed max override";
 
   return (
     <GameFormModal
@@ -389,7 +409,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-speed"
-        label={isStandalone ? "Speed (m)" : "Speed override (m)"}
+        label={speedLabel}
         value={speed}
         onChange={setSpeed}
         disabled={busy}
@@ -399,7 +419,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-max-carry"
-        label={isStandalone ? "Max carry (kg)" : "Max carry override (kg)"}
+        label={carryLabel}
         value={maxCarryWeight}
         onChange={setMaxCarryWeight}
         disabled={busy}
@@ -409,7 +429,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-height"
-        label={isStandalone ? "Height (m)" : "Height override (m)"}
+        label={heightLabel}
         value={heightMetres}
         onChange={setHeightMetres}
         disabled={busy}
@@ -419,7 +439,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-weight"
-        label={isStandalone ? "Weight (kg)" : "Weight override (kg)"}
+        label={weightLabel}
         value={weight}
         onChange={setWeight}
         disabled={busy}
@@ -429,7 +449,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-cargo"
-        label="Max cargo kg"
+        label={cargoLabel}
         value={maxCargoWeightKg}
         onChange={setMaxCargoWeightKg}
         disabled={busy}
@@ -439,7 +459,7 @@ function CreateUniqueBotModalBody({
       />
       <ModalNumberField
         id="unique-bot-installed"
-        label="Max installed items"
+        label={installedLabel}
         value={maxInstalledItems}
         onChange={setMaxInstalledItems}
         disabled={busy}

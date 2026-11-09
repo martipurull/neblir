@@ -44,6 +44,13 @@ export const BOT_COMBAT_LABELS: Record<BotCombatValue, string> = {
   defenceGrid: "Defence GRID",
 };
 
+export const BOT_REACTION_CAP_NAME = "Bot reaction cap";
+
+/** Open-ended reaction cap. There is no maximum; 2 is the usual cap. */
+export function botReactionCapLabel(name = BOT_REACTION_CAP_NAME): string {
+  return `${name} (no upper limit, usual cap is 2)`;
+}
+
 export const BOT_COMBAT_FIELDS: ReadonlyArray<{
   key: BotCombatStatKey;
   label: string;

@@ -250,7 +250,7 @@ function CreateCustomBotModalBody({
       </div>
       <ModalNumberField
         id="custom-bot-max-hp"
-        label="Max HP"
+        label="Max HP (1 or more)"
         value={maxHp}
         onChange={setMaxHp}
         disabled={busy}
@@ -263,13 +263,12 @@ function CreateCustomBotModalBody({
         value={confCost}
         onChange={setConfCost}
         disabled={busy}
-        min={0}
         required={false}
         placeholder="Optional"
       />
       <ModalNumberField
         id="custom-bot-speed"
-        label="Speed (m)"
+        label="Speed (m, 0 or more)"
         value={speed}
         onChange={setSpeed}
         disabled={busy}
@@ -278,7 +277,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-max-carry"
-        label="Max carry (kg)"
+        label="Max carry (kg, 0 or more)"
         value={maxCarryWeight}
         onChange={setMaxCarryWeight}
         disabled={busy}
@@ -288,7 +287,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-height"
-        label="Height (m)"
+        label="Height (m, optional, 0 or more)"
         value={heightMetres}
         onChange={setHeightMetres}
         disabled={busy}
@@ -300,7 +299,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-weight"
-        label="Weight (kg)"
+        label="Weight (kg, optional, 0 or more)"
         value={weight}
         onChange={setWeight}
         disabled={busy}
@@ -312,7 +311,7 @@ function CreateCustomBotModalBody({
       />
       <ModalNumberField
         id="custom-bot-cargo"
-        label="Max cargo kg"
+        label="Cargo max (kg, empty = no cap)"
         value={maxCargoWeightKg}
         onChange={setMaxCargoWeightKg}
         disabled={busy}
@@ -320,18 +319,16 @@ function CreateCustomBotModalBody({
         step={0.1}
         required={false}
         placeholder="No cap"
-        hint="Leave empty for no cargo cap."
       />
       <ModalNumberField
         id="custom-bot-installed"
-        label="Max installed items"
+        label="Installed max (empty = no cap)"
         value={maxInstalledItems}
         onChange={setMaxInstalledItems}
         disabled={busy}
         min={0}
         required={false}
         placeholder="No cap"
-        hint="Leave empty for no install cap."
       />
       <div>
         <FieldLabel id="custom-bot-description" label="Description" />

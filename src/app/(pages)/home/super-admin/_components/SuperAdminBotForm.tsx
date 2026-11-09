@@ -12,6 +12,7 @@ import {
   BOT_COMBAT_VALUE_MAX,
   BOT_COMBAT_VALUE_MIN,
   BOT_COMBAT_VALUES,
+  botReactionCapLabel,
   DEFAULT_BOT_COMBAT_STATS,
   readBotCombatStats,
   type BotCombatStats,
@@ -74,9 +75,6 @@ const accessOptions = [
   { value: "PLAYER", label: "Player" },
   { value: "GAME_MASTER", label: "Game master" },
 ];
-
-const BOT_REACTION_CAP_LABEL =
-  "Bot reaction cap (no upper limit, usual cap is 2)";
 
 function OfficialBotRangeField({
   name,
@@ -446,7 +444,7 @@ function SuperAdminBotFormFields({
 
             <NumberInput
               name="numberOfReactions"
-              label={BOT_REACTION_CAP_LABEL}
+              label={botReactionCapLabel()}
               min={0}
               parseAs="int"
             />
