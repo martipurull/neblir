@@ -1,8 +1,9 @@
-import { healthSchema } from "@/app/lib/types/character";
 import { z } from "zod";
+import { partialWithoutDefaults } from "@/app/lib/partialWithoutDefaults";
+import { healthSchema } from "@/app/lib/types/character";
 
-export const healthUpdateSchema = healthSchema
-  .pick({
+export const healthUpdateSchema = partialWithoutDefaults(
+  healthSchema.pick({
     currentPhysicalHealth: true,
     currentMentalHealth: true,
     seriousPhysicalInjuries: true,
@@ -11,8 +12,7 @@ export const healthUpdateSchema = healthSchema
     madnessSaves: true,
     status: true,
   })
-  .partial()
-  .extend({
-    physicalHitsAtZero: z.number().int().min(1).max(3).optional(),
-    mentalHitsAtZero: z.number().int().min(1).max(3).optional(),
-  });
+).extend({
+  physicalHitsAtZero: z.number().int().min(1).max(3).optional(),
+  mentalHitsAtZero: z.number().int().min(1).max(3).optional(),
+});

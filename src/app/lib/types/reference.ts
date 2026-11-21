@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { partialWithoutDefaults } from "@/app/lib/partialWithoutDefaults";
 import { referenceEntryAttachmentSchema } from "./referenceEntryAttachment";
 
 export const referenceCategorySchema = z.enum([
@@ -62,8 +63,9 @@ export const referenceEntryCreateSchema = referenceEntryMutableSchema
   .strict()
   .superRefine(requireGameForCampaignLore);
 
-export const referenceEntryUpdateSchema = referenceEntryMutableSchema
-  .partial()
+export const referenceEntryUpdateSchema = partialWithoutDefaults(
+  referenceEntryMutableSchema
+)
   .strict()
   .superRefine(requireGameForCampaignLore);
 

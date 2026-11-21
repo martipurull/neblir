@@ -19,7 +19,7 @@ export const rollEventPayloadSchema = z
     diceExpression: z.string().max(120).optional(),
     results: z.array(z.number().int().min(1)).min(1),
     total: z.number().int().optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     /** Holding the roll is for. Present only on a bot roll. */
     botCharacterId: z.string().min(1).optional(),
     /** One bot attribute. Battery is refused by the handler. */
