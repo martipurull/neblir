@@ -1,13 +1,14 @@
 import { z } from "zod";
+import {
+  itemAttributePathSchema,
+  itemGeneralSkillSchema,
+} from "@/app/lib/itemModifierEnums";
+import { partialWithoutDefaults } from "@/app/lib/partialWithoutDefaults";
 import { botActionSchema } from "@/app/lib/types/botAction";
 import {
   weaponDamageTypeSchema,
   type WeaponDamageType,
 } from "@/app/lib/types/weaponDamage";
-import {
-  itemAttributePathSchema,
-  itemGeneralSkillSchema,
-} from "@/app/lib/itemModifierEnums";
 
 export function currencyImageKey(currencyName: string): string {
   return `currencies-${currencyName.toLowerCase()}.png`;
@@ -237,8 +238,8 @@ export const itemSchema = z.discriminatedUnion("type", [
   weaponSchema,
 ]);
 export const itemUpdateSchema = z.union([
-  generalItemSchema.partial(),
-  weaponSchema.partial(),
+  partialWithoutDefaults(generalItemSchema),
+  partialWithoutDefaults(weaponSchema),
 ]);
 
 export type Item = z.infer<typeof itemSchema>;
@@ -282,9 +283,9 @@ export const customItemCreateSchema = z.object({
 });
 export type CustomItemCreate = z.infer<typeof customItemCreateSchema>;
 
-export const customItemUpdateSchema = customItemCreateSchema
-  .omit({ gameId: true })
-  .partial();
+export const customItemUpdateSchema = partialWithoutDefaults(
+  customItemCreateSchema.omit({ gameId: true })
+);
 export type CustomItemUpdate = z.infer<typeof customItemUpdateSchema>;
 
 // ---- Unique Item ----

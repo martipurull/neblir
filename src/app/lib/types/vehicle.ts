@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { partialWithoutDefaults } from "@/app/lib/partialWithoutDefaults";
 
 const vehicleAccessTypeSchema = z.enum(["PLAYER", "GAME_MASTER"]);
 export type VehicleAccessType = z.infer<typeof vehicleAccessTypeSchema>;
@@ -165,9 +166,9 @@ export const customVehicleCreateSchema = z.object({
 });
 export type CustomVehicleCreate = z.infer<typeof customVehicleCreateSchema>;
 
-export const customVehicleUpdateSchema = customVehicleCreateSchema
-  .omit({ gameId: true })
-  .partial();
+export const customVehicleUpdateSchema = partialWithoutDefaults(
+  customVehicleCreateSchema.omit({ gameId: true })
+);
 export type CustomVehicleUpdate = z.infer<typeof customVehicleUpdateSchema>;
 
 export const customVehicleResponseSchema = customVehicleCreateSchema.extend({

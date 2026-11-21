@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { partialWithoutDefaults } from "@/app/lib/partialWithoutDefaults";
 import { weaponDamageTypeSchema } from "@/app/lib/types/item";
 
 /** Optional fields accept `null` (e.g. JSON / DB) as well as omitted; output uses `undefined` for unset. */
@@ -92,7 +93,8 @@ const enemyBaseSchema = z.object({
 export const enemyCreateSchema = enemyBaseSchema;
 
 /** PATCH /api/enemies/[id] (super-admin official catalogue). */
-export const enemyCatalogueUpdateSchema = enemyCreateSchema.partial().strict();
+export const enemyCatalogueUpdateSchema =
+  partialWithoutDefaults(enemyCreateSchema).strict();
 
 export const customEnemyCreateSchema = enemyBaseSchema.extend({
   gameId: z.string(),
@@ -103,9 +105,9 @@ export const customEnemyCreateBodySchema = customEnemyCreateSchema.omit({
   gameId: true,
 });
 
-export const customEnemyUpdateSchema = customEnemyCreateSchema
-  .omit({ gameId: true })
-  .partial();
+export const customEnemyUpdateSchema = partialWithoutDefaults(
+  customEnemyCreateSchema.omit({ gameId: true })
+);
 
 export const enemyResponseSchema = enemyBaseSchema.extend({
   id: z.string(),
