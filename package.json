@@ -67,10 +67,10 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.53.2",
     "swr": "^2.4.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@serwist/turbopack": "^9.5.7",
+    "@serwist/turbopack": "^9.5.15",
     "@types/csv-parse": "^1.1.12",
     "@types/node": "^22.13.0",
     "@types/react": "19.2.14",
